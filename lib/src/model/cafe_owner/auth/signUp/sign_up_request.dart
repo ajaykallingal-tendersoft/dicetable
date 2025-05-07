@@ -10,8 +10,6 @@ class SignUpRequest {
   final String? region;
   final String? address;
   final String? postcode;
-  final double? latitude;
-  final double? longitude;
   final List<String>? accommodations;
   final Map<String, Map<String, dynamic>>? workingDays;
   final String? blob;
@@ -29,8 +27,6 @@ class SignUpRequest {
     this.region,
     this.address,
     this.postcode,
-    this.latitude,
-    this.longitude,
     this.accommodations,
     this.workingDays,
     this.blob,
@@ -70,12 +66,6 @@ class SignUpRequest {
     }
     if (postcode != null) {
       json['postcode'] = postcode;
-    }
-    if (latitude != null) {
-      json['latitude'] = latitude;
-    }
-    if (longitude != null) {
-      json['longitude'] = longitude;
     }
     if (accommodations != null) {
       json['accommodations'] = accommodations;

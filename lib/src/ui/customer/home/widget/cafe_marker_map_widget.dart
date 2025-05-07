@@ -19,12 +19,12 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
   final String markerImage = 'assets/png/map-pin@2x.png';
   final List<Marker> _markers = <Marker>[];
   final List<LatLng> _latLen = <LatLng>[
-    LatLng(19.0759837, 72.8776559),
-    LatLng(28.679079, 77.069710),
-    LatLng(26.850000, 80.949997),
-    LatLng(24.879999, 74.629997),
-    LatLng(16.166700, 74.833298),
-    LatLng(12.971599, 77.594563),
+    LatLng(40.7590, -73.9845),
+    LatLng(40.7128, -74.0060),
+    LatLng(40.6892, -74.0445),
+    LatLng(40.7646, -73.9799),
+    LatLng(40.7306, -73.9352),
+    LatLng(40.7431, -73.9424),
   ];
 
   Future<Uint8List> getImages(String path, int width) async {
@@ -40,7 +40,7 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
   }
 
   static final CameraPosition _kGoogle = const CameraPosition(
-    target: LatLng(19.0759837, 72.8776559),
+    target: LatLng(40.7128, -74.0060),
     zoom: 15,
   );
 

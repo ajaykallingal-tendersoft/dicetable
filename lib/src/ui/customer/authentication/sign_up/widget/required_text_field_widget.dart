@@ -9,6 +9,8 @@ class RequiredTextField extends StatelessWidget {
   final bool obscureText;
   final String? Function(String?)? validator;
   final TextInputType keyboardType;
+  final Function(String)? onChanged;
+
 
   const RequiredTextField({
     super.key,
@@ -18,6 +20,7 @@ class RequiredTextField extends StatelessWidget {
     this.obscureText = false,
     this.validator,
     this.keyboardType = TextInputType.text,
+    this.onChanged,
   });
 
   @override
@@ -52,6 +55,7 @@ class RequiredTextField extends StatelessWidget {
         controller: controller,
         obscureText: obscureText,
         keyboardType: keyboardType,
+        onChanged: onChanged,
         validator:
             validator ??
             (value) {

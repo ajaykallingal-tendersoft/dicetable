@@ -1,4 +1,5 @@
 import 'package:dicetable/src/constants/app_colors.dart';
+import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -116,7 +117,7 @@ class HomePage extends StatelessWidget {
                         ),
                         const Gap(20),
                          Text(
-                          "Hi Morgan",
+                          ObjectFactory().prefs.getCafeUserName() ?? "Hi",
                           style: TextTheme.of(context).labelMedium!.copyWith(
                             color: AppColors.primaryWhiteColor,
                             fontWeight: FontWeight.w600,

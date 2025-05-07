@@ -1,4 +1,5 @@
 import 'package:dicetable/src/constants/app_colors.dart';
+import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:flutter/material.dart';
 
 class RememberDecisionWidget extends StatefulWidget {
@@ -21,6 +22,7 @@ class RememberDecisionWidgetState extends State<RememberDecisionWidget> {
           onChanged: (value) {
             setState(() {
               isChecked = value ?? false;
+              ObjectFactory().prefs.setRememberDecision(isChecked);
             });
           },
           checkColor: AppColors.primary,

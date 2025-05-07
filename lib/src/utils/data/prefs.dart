@@ -10,7 +10,9 @@ class Prefs {
   static const String _IS_HOME_1_DATA_LOADED = "is_home_1_data_loaded";
   static const String _IS_HOME_2_DATA_LOADED = "is_home_2_data_loaded";
   static const String _AUTH_TOKEN = "auth_token";
-  static const String _USER_NAME = "USER_NAME";
+  static const String _CUSTOMER_AUTH_TOKEN = "customer_auth_token";
+  static const String _CUSTOMER_USER_NAME = "USER_NAME";
+  static const String _CAFE_USER_NAME = "USER_NAME";
   static const String _USER_MAIL = "USER_MAIL";
   static const String _USER_ID = "user_id";
   static const String _LAYOUT_ID = "layout_id";
@@ -24,6 +26,8 @@ class Prefs {
   static const String _REFERRAL_DATA = "referral_data";
   static const String _HELP_CENTER_DATA = "help_center_data";
   static const String _IS_LOGGED_IN = "is_logged_in";
+  static const String _IS_CUSTOMER_LOGGED_IN = "is_customer_logged_in";
+  static const String _REMEMBER_DECISION = "remember_decision";
   static const String _IS_EMAIL_VERIFIED = "is_email_verified";
   static const String _IS_EMAIL_VERIFIED_STATUS = "is_email_verified";
   static const String _VERIFIED_POINTS = "verified_points";
@@ -49,15 +53,22 @@ class Prefs {
     _sharedPreferences = value;
   }
 
+  ///saving cafe user name
+  void setCafeUserName({String? cafeUserName}) {
+    _sharedPreferences!.setString(_CAFE_USER_NAME, cafeUserName!);
+  }
+
+  ///get method  for cafe user name
+  String? getCafeUserName() => _sharedPreferences?.getString(_CAFE_USER_NAME);
 
 
   ///saving user name
-  void setUserName({String? userName}) {
-    _sharedPreferences!.setString(_USER_NAME, userName!);
+  void setCustomerUserName({String? customerUserName}) {
+    _sharedPreferences!.setString(_CUSTOMER_USER_NAME, customerUserName!);
   }
 
   ///get method  for user name
-  String? getUserName() => _sharedPreferences?.getString(_USER_NAME);
+  String? getCustomerUserName() => _sharedPreferences?.getString(_CUSTOMER_USER_NAME);
 
 
 
@@ -74,8 +85,16 @@ class Prefs {
     _sharedPreferences!.setString(_USER_ID, userId!);
   }
 
-  ///get method  for auth token
+  ///get method  for userID
   String? getUserId() => _sharedPreferences!.getString(_USER_ID);
+
+  ///saving customer  the auth token as a String
+  void setCustomerAuthToken({String? token}) {
+    _sharedPreferences!.setString(_CUSTOMER_AUTH_TOKEN, "Bearer ${token!}");
+  }
+
+  ///get method  for auth token
+  String? getCustomerAuthToken() => _sharedPreferences?.getString(_CUSTOMER_AUTH_TOKEN);
 
   // ///saving  layout id
   // void saveLayoutId({String? layoutId}) {
@@ -133,9 +152,30 @@ class Prefs {
     _sharedPreferences!.setBool(_IS_LOGGED_IN, status);
   }
 
-  ///checking that is logged in or not
+  ///Save User remember Decision
   bool? isLoggedIn() => _sharedPreferences!.getBool(_IS_LOGGED_IN) != null &&
       _sharedPreferences!.getBool(_IS_LOGGED_IN) == true
+      ? true
+      : false;
+
+  void setRememberDecision(bool status) {
+    _sharedPreferences!.setBool(_REMEMBER_DECISION, status);
+  }
+
+  ///Get User Remember decision
+  bool? getRememberDecision() => _sharedPreferences!.getBool(_REMEMBER_DECISION) != null &&
+      _sharedPreferences!.getBool(_REMEMBER_DECISION) == true
+      ? true
+      : false;
+
+  ///after login set isLoggedIn true
+  ///before logout set isLoggedIn false
+  void setIsCustomerLoggedIn(bool status) {
+    _sharedPreferences!.setBool(_IS_CUSTOMER_LOGGED_IN, status);
+  }
+
+  bool? isCustomerLoggedIn() => _sharedPreferences!.getBool(_IS_CUSTOMER_LOGGED_IN) != null &&
+      _sharedPreferences!.getBool(_IS_CUSTOMER_LOGGED_IN) == true
       ? true
       : false;
 

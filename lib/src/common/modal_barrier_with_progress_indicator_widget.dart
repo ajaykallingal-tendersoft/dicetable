@@ -1,5 +1,7 @@
 import 'package:dicetable/src/constants/app_colors.dart';
+import 'package:dicetable/src/constants/assets.dart';
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
 
 class ModalBarrierWithProgressIndicatorWidget extends StatelessWidget {
   const ModalBarrierWithProgressIndicatorWidget({
@@ -19,9 +21,7 @@ class ModalBarrierWithProgressIndicatorWidget extends StatelessWidget {
               SizedBox(
                 height: 90,
                 width: 90,
-                child: CircularProgressIndicator(
-                  color: AppColors.primaryWhiteColor,
-                ),
+                child: Lottie.asset(Assets.JUMBING_DOT),
               ),
               Text(
                 "Please Wait",

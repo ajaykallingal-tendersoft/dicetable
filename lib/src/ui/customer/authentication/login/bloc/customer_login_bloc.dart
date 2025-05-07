@@ -5,30 +5,35 @@ import 'package:dicetable/src/resources/api_providers/auth/auth_data_provider.da
 import 'package:dicetable/src/utils/extension/state_model_extension.dart';
 import 'package:equatable/equatable.dart';
 
-part 'login_event.dart';
-part 'login_state.dart';
+part 'customer_login_event.dart';
+part 'customer_login_state.dart';
 
-class LoginBloc extends Bloc<LoginEvent, LoginState> {
+class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
   final AuthDataProvider authDataProvider;
-  LoginBloc({required this.authDataProvider}) : super(const LoginFormState()) {
-    on<EmailChanged>((event, emit) {
-      if (state is LoginFormState) {
-        final formState = state as LoginFormState;
-        emit(formState.copyWith(email: event.email, emailError: null));
-      }
-    });
 
-    on<PasswordChanged>((event, emit) {
-      if (state is LoginFormState) {
-        final formState = state as LoginFormState;
-        emit(formState.copyWith(password: event.password, passwordError: null));
-      }
-    });
-
+  CustomerLoginBloc({required this.authDataProvider}) : super(LoginFormState()) {
+    // Register event handlers in one place - ONE handler per event type
+    on<EmailChanged>(_onEmailChanged);
+    on<PasswordChanged>(_onPasswordChanged);
     on<FormSubmitted>(_onFormSubmitted);
+
   }
 
-  Future<void> _onFormSubmitted(FormSubmitted event, Emitter<LoginState> emit) async {
+  void _onEmailChanged(EmailChanged event, Emitter<CustomerLoginState> emit) {
+    if (state is LoginFormState) {
+      final formState = state as LoginFormState;
+      emit(formState.copyWith(email: event.email, emailError: null));
+    }
+  }
+
+  void _onPasswordChanged(PasswordChanged event, Emitter<CustomerLoginState> emit) {
+    if (state is LoginFormState) {
+      final formState = state as LoginFormState;
+      emit(formState.copyWith(password: event.password, passwordError: null));
+    }
+  }
+
+  Future<void> _onFormSubmitted(FormSubmitted event, Emitter<CustomerLoginState> emit) async {
     if (state is LoginFormState) {
       final formState = state as LoginFormState;
 
@@ -63,7 +68,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         return;
       }
 
-      emit(LoginLoadingState());
+      emit(CustomerLoginLoadingState());
 
       try {
         final loginRequest = LoginRequest(login: email, password: password);
@@ -72,20 +77,29 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         print("PasswordAfter: $password");
 
         if (stateModel.isSuccess) {
-
-          emit(LoginSuccessState(loginRequestResponse: stateModel.data as LoginRequestResponse));
+          emit(CustomerLoginSuccessState(loginRequestResponse: stateModel.data as LoginRequestResponse));
         } else if (stateModel.isError) {
 
-          emit(LoginFailureState(stateModel.error as String));
-          emit(formState.copyWith());
+          emit(CustomerLoginFailureState(stateModel.error as String));
+          emit(LoginFormState(
+            email: email,
+            password: password,
+          ));
         } else {
-          emit(const LoginFailureState("Unknown error occurred"));
-          emit(formState.copyWith());
+          emit(const CustomerLoginFailureState("Unknown error occurred"));
+          emit(LoginFormState(
+            email: email,
+            password: password,
+          ));
         }
       } catch (e) {
-        emit(LoginFailureState("Exception: ${e.toString()}"));
-        emit(formState.copyWith());
+        emit(CustomerLoginFailureState("Exception: ${e.toString()}"));
+        emit(LoginFormState(
+          email: email,
+          password: password,
+        ));
       }
     }
   }
 }
+

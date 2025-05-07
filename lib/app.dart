@@ -1,6 +1,7 @@
 
 import 'package:dicetable/router.dart';
 import 'package:dicetable/src/constants/app_theme.dart';
+import 'package:dicetable/src/ui/cafe_owner/authentication/login/cubit/google_sign_in_cubit.dart';
 import 'package:dicetable/src/ui/cafe_owner/home/bloc/card_cubit.dart';
 import 'package:dicetable/src/ui/cafe_owner/notification/notification_cubit.dart';
 import 'package:dicetable/src/ui/cafe_owner/profile/bloc/profile_bloc.dart';
@@ -27,6 +28,7 @@ class App extends StatelessWidget {
         BlocProvider<ProfileBloc>(
           create: (context) => ProfileBloc(),
         ),
+        BlocProvider(create: (context) => GoogleSignInCubit()),
       ],
       child: ScreenUtilInit(
         designSize: const Size(430, 932),

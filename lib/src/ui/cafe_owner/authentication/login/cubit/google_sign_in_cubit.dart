@@ -7,64 +7,63 @@ part 'google_sign_in_state.dart';
 
 class GoogleSignInCubit extends Cubit<GoogleSignInState> {
   GoogleSignInCubit() : super(GoogleSignInInitial());
-  final GoogleSignIn googleSignIn = GoogleSignIn();
-  final _auth = FirebaseAuth.instance;
 
-  void login() async {
+  final GoogleSignIn googleSignIn = GoogleSignIn();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  Future<void> login() async {
+    if (isClosed) return;
+
     emit(GoogleSignInCubitLoading());
+
     try {
-      // Select account
       final userAccount = await googleSignIn.signIn();
 
-      // User dismissed the dialog box
+      // User dismissed the sign-in dialog
       if (userAccount == null) {
-        emit(GoogleSignInDenied());
-        print("User denied Google Sign-In");
+        if (!isClosed) emit(GoogleSignInDenied());
         return;
       }
 
-      final GoogleSignInAuthentication googleSignInAuthentication =
-      await userAccount.authentication;
-
+      final googleAuth = await userAccount.authentication;
 
       final credential = GoogleAuthProvider.credential(
-        accessToken: googleSignInAuthentication.accessToken,
-        idToken: googleSignInAuthentication.idToken,
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
       );
-
 
       final userCredentials = await _auth.signInWithCredential(credential);
 
+      final user = userCredentials.user;
 
-      print("Google Sign-In initiated");
-      print("Account: ${userAccount.email}");
-      print("Firebase User: ${userCredentials.user?.displayName}, ${userCredentials.user?.email}");
-
-      if (userCredentials.user != null) {
-        emit(GoogleSignInSuccess(user: userCredentials.user!));
+      if (user != null) {
+        if (!isClosed) emit(GoogleSignInSuccess(user: user));
       } else {
-        emit(GoogleSignInError());
-        print("Firebase user is null after sign-in.");
+        if (!isClosed) emit(GoogleSignInError());
       }
-    } catch (e, stack) {
-      print("Google Sign-In Error: $e");
-      print(stack);
-      emit(GoogleSignInError());
+    } catch (e, stackTrace) {
+      print("Google Sign-In Error: $e\n$stackTrace");
+      if (!isClosed) emit(GoogleSignInError());
     }
   }
 
-
-  void signOut() async {
+  Future<void> signOut() async {
     try {
       await googleSignIn.signOut();
-      await googleSignIn.disconnect();
-      await FirebaseAuth.instance.signOut();
-      emit(GoogleSignInLoggedOut());
+
+      // Disconnect may throw if already disconnected; catch and ignore.
+      try {
+        await googleSignIn.disconnect();
+      } catch (disconnectError) {
+        print("Google disconnect failed: $disconnectError");
+      }
+
+      await _auth.signOut();
+
+      if (!isClosed) emit(GoogleSignInLoggedOut());
     } catch (e) {
-      print(e);
-      emit(GoogleSignInError());
+      print("Sign-out error: $e");
+      if (!isClosed) emit(GoogleSignInError());
     }
   }
-
-
 }

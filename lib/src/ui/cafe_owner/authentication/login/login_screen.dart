@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dicetable/src/common/custom_login_text_field.dart';
 import 'package:dicetable/src/common/divider_with_center_text.dart';
 import 'package:dicetable/src/common/elevated_button_widget.dart';
@@ -31,8 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final FocusNode _passwordFocusNode = FocusNode();
   final _formKey = GlobalKey<FormState>();
   bool _isSubmitting = false;
-
-  // Keys for each field to ensure they're visible when focused
+  DateTime? _lastBackPressed;
   final GlobalKey _emailFieldKey = GlobalKey();
   final GlobalKey _passwordFieldKey = GlobalKey();
 
@@ -73,6 +74,7 @@ class _LoginScreenState extends State<LoginScreen> {
     _passwordFocusNode.dispose();
     super.dispose();
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -130,19 +132,16 @@ class _LoginScreenState extends State<LoginScreen> {
                   : null;
               final bool isLoading = state is LoginLoadingState;
 
-              return Scaffold(
-                // Set to false to prevent automatic resizing which can cause layout issues
+              return WillPopScope(child: Scaffold(
                 resizeToAvoidBottomInset: false,
                 body: Stack(
                   children: [
-                    // Background image
                     Positioned.fill(
                       child: Image.asset(
                         'assets/png/login-bg.png',
                         fit: BoxFit.cover,
                       ),
                     ),
-                    // Logo at the top
                     Positioned(
                       top: 0,
                       bottom: 650.h,
@@ -172,7 +171,6 @@ class _LoginScreenState extends State<LoginScreen> {
                               fit: BoxFit.cover,
                             ),
                           ),
-                          // Use a SafeArea inside a LayoutBuilder for better keyboard handling
                           child: SafeArea(
                             child: LayoutBuilder(
                               builder: (context, constraints) {
@@ -186,7 +184,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                       bottom: MediaQuery.of(context).viewInsets.bottom,
                                     ),
                                     child: SingleChildScrollView(
-                                      // Automatically adjust scroll based on viewport
                                       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                                       padding: EdgeInsets.symmetric(
                                         horizontal: 26.w,
@@ -303,7 +300,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                             Gap(30),
                                             LoginOrSignupPrompt(
                                               spanText: 'Dont have an account yet',
-                                            promptText: 'Sign Up Now',
+                                              promptText: 'Sign Up Now',
                                               onSignInTap: () {
                                                 context.push('/signup');
                                               },
@@ -322,7 +319,22 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
-              );
+              ),   onWillPop: () async {
+                final now = DateTime.now();
+                if (_lastBackPressed == null ||
+                    now.difference(_lastBackPressed!) > Duration(seconds: 2)) {
+                  _lastBackPressed = now;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Press again to quit'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                  return false;
+                }
+                exit(0);
+
+              },);
             },
           );
         },

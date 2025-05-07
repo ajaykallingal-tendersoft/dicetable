@@ -131,15 +131,12 @@ class _CustomTextFieldState extends State<CustomTextField> {
                         _obscureText = !_obscureText;
                       });
                     },
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 18.0),
-                      child: SvgPicture.asset(
-                        'assets/svg/pw-view.svg',
-                        fit: BoxFit.scaleDown,
-                        color: widget.isProfile && widget.readOnly
-                            ? AppColors.primaryWhiteColor
-                            : AppColors.primary,
-                      ),
+                    child: SvgPicture.asset(
+                      'assets/svg/pw-view.svg',
+                      fit: BoxFit.scaleDown,
+                      color: widget.isProfile && widget.readOnly
+                          ? AppColors.primaryWhiteColor
+                          : AppColors.primary,
                     ),
                   )
                       : null,

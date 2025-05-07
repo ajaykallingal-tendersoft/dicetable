@@ -9,6 +9,7 @@ import 'package:dicetable/src/ui/cafe_owner/authentication/sign_up/widget/image_
 import 'package:dicetable/src/ui/cafe_owner/authentication/sign_up/widget/opening_hours_widget.dart';
 
 import 'package:dicetable/src/ui/cafe_owner/authentication/sign_up/widget/venue_type_checkboxes.dart';
+import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -81,9 +82,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                   child: BlocConsumer<SignUpBloc, SignUpState>(
                     builder: (context, state) {
-                      if(state is SignUpImageLoadingState) {
-                        return ModalBarrierWithProgressIndicatorWidget();
-                      }
+
                       return Column(
                         children: [
                           CustomTextField(
@@ -275,11 +274,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             builder: (context, state) {
 
                               if (state is SignUpFormState) {
+                                final formState = state;
                                 return InkWell(
                                   splashColor: AppColors.secondary,
                                   splashFactory: InkRipple.splashFactory,
                                   onTap: () {
-                                    final formState = state;
+
 
                                     String formatTime(TimeOfDay time) {
                                       final hours = time.hour.toString().padLeft(2, '0');
@@ -333,8 +333,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                       passwordConfirmation: formState.confirmPassword,
                                       address: formState.address,
                                       country: formState.country,
-                                      latitude: 0.0,
-                                      longitude: 0.0,
                                       loginType: 3,
                                       phone: formState.phone,
                                       postcode: formState.postalCode,
@@ -409,6 +407,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 duration: Duration(seconds: 2),
                               ),
                             );
+                            // ObjectFactory().prefs.setAuthToken(token: state.signUpRequestResponse.token);
+                            ObjectFactory().prefs.setCafeUserName(cafeUserName: _venueNameController.text);
                             context.go('/subscription_prompt');
                           }
                         }

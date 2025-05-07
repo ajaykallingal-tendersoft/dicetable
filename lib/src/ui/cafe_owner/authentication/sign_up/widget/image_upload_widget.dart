@@ -1,12 +1,15 @@
 import 'dart:io';
 
 import 'package:dicetable/src/constants/app_colors.dart';
+import 'package:dicetable/src/constants/assets.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/sign_up/bloc/sign_up/sign_up_bloc.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
+import 'package:lottie/lottie.dart';
 
 class ImageUploadWidget extends StatefulWidget {
   const ImageUploadWidget({super.key});
@@ -39,7 +42,9 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
               color: AppColors.signUpContainerColor,
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Column(
+            child:  state is SignUpImageLoadingState
+                ? Lottie.asset(Assets.JUMBING_DOT,fit: BoxFit.scaleDown,width: 40.w,height: 40.h,)
+                : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(

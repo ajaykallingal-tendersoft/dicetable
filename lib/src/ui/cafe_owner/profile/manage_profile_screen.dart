@@ -1,10 +1,9 @@
 import 'dart:io';
-
 import 'package:dicetable/src/common/custom_text_field.dart';
 import 'package:dicetable/src/common/elevated_button_widget.dart';
 import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
-
+import 'package:dicetable/src/ui/cafe_owner/authentication/login/cubit/google_sign_in_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -24,7 +23,7 @@ class ManageProfileScreen extends StatefulWidget {
 class _ManageProfileScreenState extends State<ManageProfileScreen> {
   late TextEditingController _venueNameController = TextEditingController();
   late TextEditingController _venueDescriptionController =
-      TextEditingController();
+  TextEditingController();
   late TextEditingController _emailController = TextEditingController();
   late TextEditingController _passwordController = TextEditingController();
   late TextEditingController _phoneController = TextEditingController();
@@ -39,7 +38,9 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
   }
 
   void _initializeControllers() {
-    final state = context.read<ProfileBloc>().state;
+    final state = context
+        .read<ProfileBloc>()
+        .state;
     _venueNameController = TextEditingController(text: state.venueName);
     _venueDescriptionController = TextEditingController(
       text: state.venueDescription,
@@ -99,7 +100,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                           onChanged: (value) {
                             context.read<ProfileBloc>().add(
                               UpdateTextField(
-                                (state) => state.copyWith(venueName: value),
+                                    (state) => state.copyWith(venueName: value),
                               ),
                             );
                           },
@@ -110,14 +111,14 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                           readOnly: true,
                           hintText: 'Your Venue description here',
                           textFieldAnnotationText:
-                              'Your Venue description here',
+                          'Your Venue description here',
                           maxLines: 5,
                           controller: _venueDescriptionController,
                           // initialValue: state.venueDescription,
                           onChanged: (value) {
                             context.read<ProfileBloc>().add(
                               UpdateTextField(
-                                (state) =>
+                                    (state) =>
                                     state.copyWith(venueDescription: value),
                               ),
                             );
@@ -133,7 +134,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                           onChanged: (value) {
                             context.read<ProfileBloc>().add(
                               UpdateTextField(
-                                (state) => state.copyWith(email: value),
+                                    (state) => state.copyWith(email: value),
                               ),
                             );
                           },
@@ -149,7 +150,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                           onChanged: (value) {
                             context.read<ProfileBloc>().add(
                               UpdateTextField(
-                                (state) => state.copyWith(password: value),
+                                    (state) => state.copyWith(password: value),
                               ),
                             );
                           },
@@ -165,7 +166,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                           onChanged: (value) {
                             context.read<ProfileBloc>().add(
                               UpdateTextField(
-                                (state) => state.copyWith(phone: value),
+                                    (state) => state.copyWith(phone: value),
                               ),
                             );
                           },
@@ -180,7 +181,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                           onChanged: (value) {
                             context.read<ProfileBloc>().add(
                               UpdateTextField(
-                                (state) => state.copyWith(address: value),
+                                    (state) => state.copyWith(address: value),
                               ),
                             );
                           },
@@ -194,7 +195,8 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                           onChanged: (value) {
                             context.read<ProfileBloc>().add(
                               UpdateTextField(
-                                (state) => state.copyWith(postalCode: value),
+                                    (state) =>
+                                    state.copyWith(postalCode: value),
                               ),
                             );
                           },
@@ -228,9 +230,11 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                         const Gap(30),
                         InkWell(
                           onTap: () {
+                            context.read<GoogleSignInCubit>().signOut();
                             ObjectFactory().prefs.setIsLoggedIn(false);
                             ObjectFactory().prefs.setAuthToken(token: "");
-                            ObjectFactory().prefs.setUserName(userName: "");
+                            ObjectFactory().prefs.setCafeUserName(
+                                cafeUserName: "");
                             context.go('/category');
                           },
                           child: ElevatedButtonWidget(
@@ -258,10 +262,10 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
   // For venue types, convert selected types to a readable string
   String _formatVenueTypes(Map<String, bool> venueTypes) {
     final selectedTypes =
-        venueTypes.entries
-            .where((entry) => entry.value) // Only get true values
-            .map((entry) => entry.key) // Get the venue type name
-            .toList();
+    venueTypes.entries
+        .where((entry) => entry.value) // Only get true values
+        .map((entry) => entry.key) // Get the venue type name
+        .toList();
 
     if (selectedTypes.isEmpty) {
       return 'No venue types selected';
@@ -347,7 +351,10 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                     Gap(60),
                     Text(
                       "Sun Cafe",
-                      style: TextTheme.of(context).bodyLarge!.copyWith(
+                      style: TextTheme
+                          .of(context)
+                          .bodyLarge!
+                          .copyWith(
                         color: AppColors.primaryWhiteColor,
                         fontSize: 22,
                       ),
@@ -355,7 +362,10 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                     SizedBox(height: 4),
                     Text(
                       "Member Since June, 2024",
-                      style: TextTheme.of(context).bodySmall!.copyWith(
+                      style: TextTheme
+                          .of(context)
+                          .bodySmall!
+                          .copyWith(
                         color: AppColors.primaryWhiteColor,
                         fontSize: 12,
                       ),
@@ -377,11 +387,11 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                       child: CircleAvatar(
                         radius: 85.r,
                         backgroundImage:
-                            _imageFile != null
-                                ? FileImage(_imageFile!)
-                                : const AssetImage(
-                                  'assets/png/profile-img.png',
-                                ),
+                        _imageFile != null
+                            ? FileImage(_imageFile!)
+                            : const AssetImage(
+                          'assets/png/profile-img.png',
+                        ),
                       ),
                     ),
                     Positioned(
@@ -429,7 +439,11 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
           children: [
             Text(
               "Venue Information",
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              style: Theme
+                  .of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(
                 fontSize: 14,
                 color: AppColors.primaryWhiteColor,
                 fontWeight: FontWeight.bold,
@@ -437,7 +451,9 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
             ),
             ElevatedButton.icon(
               onPressed: () async {
-                final profileState = context.read<ProfileBloc>().state;
+                final profileState = context
+                    .read<ProfileBloc>()
+                    .state;
                 final dynamic result = await context.push(
                   // Capture the result
                   '/edit_profile',

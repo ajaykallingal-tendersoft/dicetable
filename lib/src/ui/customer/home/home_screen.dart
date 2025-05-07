@@ -17,6 +17,8 @@ class CustomerHomeScreen extends StatefulWidget {
 
 class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   int _selectedIndex = 0;
+  DateTime? _lastBackPressed;
+
 
   void _onTabSelected(int index) {
     setState(() {
@@ -25,70 +27,88 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   }
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      extendBody: true,
-      // appBar: _buildAppBar(_selectedIndex, context),
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        transitionBuilder: (Widget child, Animation<double> animation) {
-          return FadeTransition(opacity: animation, child: child);
-        },
-        child: _buildPage(_selectedIndex),
-      ),
+    return WillPopScope(
+      onWillPop: () async {
+        final now = DateTime.now();
+        if (_lastBackPressed == null ||
+            now.difference(_lastBackPressed!) > Duration(seconds: 2)) {
+          _lastBackPressed = now;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Press again to quit'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+          return false;
+        }
+        // Quit the app
+        return true;
+      },
+      child: Scaffold(
+        extendBody: true,
+        // appBar: _buildAppBar(_selectedIndex, context),
+        body: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          transitionBuilder: (Widget child, Animation<double> animation) {
+            return FadeTransition(opacity: animation, child: child);
+          },
+          child: _buildPage(_selectedIndex),
+        ),
 
-      bottomNavigationBar: PhysicalShape(
-        elevation: 8,
-        clipper: const ShapeBorderClipper(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(24),
-              topRight: Radius.circular(24),
+        bottomNavigationBar: PhysicalShape(
+          elevation: 8,
+          clipper: const ShapeBorderClipper(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(24),
+                topRight: Radius.circular(24),
+              ),
             ),
           ),
-        ),
-        color: AppColors.primaryWhiteColor,
-        child: BottomNavigationAppBar(
-          items: [
-            FABBottomAppBarItem(
-              iconData: SvgPicture.asset(
-                'assets/svg/home.svg',
-                fit: BoxFit.scaleDown,
+          color: AppColors.primaryWhiteColor,
+          child: BottomNavigationAppBar(
+            items: [
+              FABBottomAppBarItem(
+                iconData: SvgPicture.asset(
+                  'assets/svg/home.svg',
+                  fit: BoxFit.scaleDown,
+                ),
+                text: 'HOME',
               ),
-              text: 'HOME',
-            ),
-            FABBottomAppBarItem(
-              iconData: SvgPicture.asset(
-                'assets/svg/cafe-list.svg',
-                fit: BoxFit.contain,
+              FABBottomAppBarItem(
+                iconData: SvgPicture.asset(
+                  'assets/svg/cafe-list.svg',
+                  fit: BoxFit.contain,
+                ),
+                text: 'CAFE LIST',
               ),
-              text: 'CAFE LIST',
-            ),
-            FABBottomAppBarItem(
-              iconData: SvgPicture.asset(
-                'assets/svg/favourites.svg',
-                fit: BoxFit.scaleDown,
+              FABBottomAppBarItem(
+                iconData: SvgPicture.asset(
+                  'assets/svg/favourites.svg',
+                  fit: BoxFit.scaleDown,
+                ),
+                text: 'FAVOURITES',
               ),
-              text: 'FAVOURITES',
-            ),
-            FABBottomAppBarItem(
-              iconData: SvgPicture.asset(
-                'assets/svg/history.svg',
-                fit: BoxFit.scaleDown,
+              FABBottomAppBarItem(
+                iconData: SvgPicture.asset(
+                  'assets/svg/history.svg',
+                  fit: BoxFit.scaleDown,
+                ),
+                text: 'HISTORY',
               ),
-              text: 'HISTORY',
-            ),
-            FABBottomAppBarItem(
-              iconData: SvgPicture.asset(
-                'assets/svg/profile.svg',
-                fit: BoxFit.scaleDown,
+              FABBottomAppBarItem(
+                iconData: SvgPicture.asset(
+                  'assets/svg/profile.svg',
+                  fit: BoxFit.scaleDown,
+                ),
+                text: 'PROFILE',
               ),
-              text: 'PROFILE',
-            ),
-          ],
-          backgroundColor: Colors.transparent,
-          color: AppColors.textPrimaryGrey,
-          selectedColor: AppColors.primary,
-          onTabSelected: _onTabSelected,
+            ],
+            backgroundColor: Colors.transparent,
+            color: AppColors.textPrimaryGrey,
+            selectedColor: AppColors.primary,
+            onTabSelected: _onTabSelected,
+          ),
         ),
       ),
     );

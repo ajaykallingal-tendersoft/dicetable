@@ -33,7 +33,7 @@ class LoginFailureState extends LoginState {
 
   @override
 
-  List<Object?> get props => [];
+  List<Object?> get props => [message];
 }
 
 class LoginFormState  extends LoginState{
