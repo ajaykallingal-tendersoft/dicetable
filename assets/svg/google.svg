@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="28.356" height="29.016" viewBox="0 0 28.356 29.016">
+  <defs>
+    <clipPath id="clip-path">
+      <path id="Path_234" data-name="Path 234" d="M2.909,17.417A14.466,14.466,0,0,0,17.417,31.925c7.254,0,13.848-5.276,13.848-14.508a12.021,12.021,0,0,0-.33-2.638H17.417v5.606H25.2c-.725,3.561-3.759,5.605-7.782,5.605a8.573,8.573,0,1,1,0-17.146,8.388,8.388,0,0,1,5.342,1.912l4.22-4.221A14.484,14.484,0,0,0,2.909,17.417" transform="translate(-2.909 -2.909)" fill="none"/>
+    </clipPath>
+  </defs>
+  <g id="google" transform="translate(-2.909 -2.909)">
+    <g id="Group_200" data-name="Group 200" transform="translate(2.909 2.909)" clip-path="url(#clip-path)">
+      <path id="Path_230" data-name="Path 230" d="M0,33.146V16l11.21,8.573Z" transform="translate(-1.319 -10.065)" fill="#fbbc05"/>
+      <path id="Path_231" data-name="Path 231" d="M0,7.254l11.21,8.573L15.827,11.8,31.653,9.232V0H0Z" transform="translate(-1.319 -1.319)" fill="#ea4335"/>
+      <path id="Path_232" data-name="Path 232" d="M0,24.4,19.783,9.232l5.21.66L31.653,0V31.654H0Z" transform="translate(-1.319 -1.319)" fill="#34a853"/>
+      <path id="Path_233" data-name="Path 233" d="M41.99,40.4,21.547,24.573l-2.638-1.979L41.99,16Z" transform="translate(-11.655 -10.065)" fill="#4285f4"/>
+    </g>
+  </g>
+</svg>
