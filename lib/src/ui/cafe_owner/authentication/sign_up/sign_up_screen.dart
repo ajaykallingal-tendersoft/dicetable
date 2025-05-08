@@ -407,8 +407,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 duration: Duration(seconds: 2),
                               ),
                             );
-                            // ObjectFactory().prefs.setAuthToken(token: state.signUpRequestResponse.token);
+                            ObjectFactory().prefs.setAuthToken(token: state.signUpRequestResponse.token);
                             ObjectFactory().prefs.setCafeUserName(cafeUserName: _venueNameController.text);
+                            ObjectFactory().prefs.setIsLoggedIn(true);
                             context.go('/subscription_prompt');
                           }
                         }

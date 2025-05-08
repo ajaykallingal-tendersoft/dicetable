@@ -8,6 +8,8 @@ import 'package:dicetable/src/ui/cafe_owner/authentication/login/widget/login_wi
 import 'package:dicetable/src/ui/customer/authentication/login/bloc/customer_login_bloc.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
@@ -29,8 +31,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _isSubmitting = false;
   DateTime? _lastBackPressed;
-
-
+  String? _navigationSource;
   final GlobalKey _emailFieldKey = GlobalKey();
   final GlobalKey _passwordFieldKey = GlobalKey();
 
@@ -39,7 +40,10 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
   @override
   void initState() {
     super.initState();
-
+    // Get the navigation source when the screen initializes
+    _navigationSource = ObjectFactory().prefs.getNavigationSource();
+    // Clear it to prevent future confusion
+    ObjectFactory().prefs.clearNavigationSource();
     _emailFocusNode.addListener(() {
       if (_emailFocusNode.hasFocus) {
         _ensureVisible(_emailFieldKey);
@@ -130,6 +134,11 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
 
               return WillPopScope(
                 onWillPop: () async {
+                  // If we came from category screen, go back to it
+                  if (_navigationSource == 'category_screen') {
+                    context.go('/category');
+                    return false; // We handle navigation ourselves
+                  }
                   final now = DateTime.now();
                   if (_lastBackPressed == null ||
                       now.difference(_lastBackPressed!) > Duration(seconds: 2)) {
@@ -142,21 +151,25 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                     );
                     return false;
                   }
-                  // Quit the app
+                  if (Theme.of(context).platform == TargetPlatform.android) {
+                    SystemNavigator.pop();
+                    return false;
+                  }
                   return true;
                 },
                 child: Scaffold(
                   resizeToAvoidBottomInset: false,
                   body: Stack(
                     children: [
-                      // Background image
+                      // Background image with fade-in animation
                       Positioned.fill(
                         child: Image.asset(
                           'assets/png/login-bg.png',
                           fit: BoxFit.cover,
-                        ),
+                        ).animate()
+                            .fadeIn(duration: 800.ms, curve: Curves.easeOut),
                       ),
-                      // Logo at the top
+
                       Positioned(
                         top: 0,
                         bottom: 650.h,
@@ -167,9 +180,16 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                           height: 162.h,
                           width: 114.w,
                           fit: BoxFit.scaleDown,
-                        ),
+                        ).animate()
+                            .scale(
+                            begin: const Offset(0.8, 0.8),
+                            end: const Offset(1, 1),
+                            duration: 600.ms,
+                            curve: Curves.easeOutBack
+                        )
+                            .fadeIn(duration: 500.ms),
                       ),
-                      // Main content box
+
                       Positioned(
                         bottom: 0,
                         left: 0,
@@ -186,7 +206,6 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                                 fit: BoxFit.cover,
                               ),
                             ),
-                            // Use a SafeArea inside a LayoutBuilder for better keyboard handling
                             child: SafeArea(
                               child: LayoutBuilder(
                                 builder: (context, constraints) {
@@ -210,6 +229,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                                           child: Column(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
+                                              // Welcome text with fade and scale animation
                                               Text(
                                                 'Welcome Back!',
                                                 style: Theme.of(context)
@@ -220,8 +240,18 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                                                   fontWeight: FontWeight.w600,
                                                   color: AppColors.primaryWhiteColor,
                                                 ),
+                                              ).animate()
+                                                  .fadeIn(duration: 600.ms, delay: 300.ms)
+                                                  .scale(
+                                                  begin: const Offset(0.9, 0.9),
+                                                  duration: 600.ms,
+                                                  curve: Curves.easeOutBack,
+                                                  delay: 300.ms
                                               ),
+
                                               Gap(10),
+
+                                              // Email field with slide-in animation
                                               Container(
                                                 key: _emailFieldKey,
                                                 child: CustomLoginTextField(
@@ -236,8 +266,19 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                                                     );
                                                   },
                                                 ),
+                                              ).animate()
+                                                  .fadeIn(duration: 600.ms, delay: 400.ms)
+                                                  .slideX(
+                                                  begin: 0.2,
+                                                  end: 0,
+                                                  duration: 600.ms,
+                                                  curve: Curves.easeOutQuad,
+                                                  delay: 400.ms
                                               ),
+
                                               Gap(10),
+
+                                              // Password field with slide-in animation
                                               Container(
                                                 key: _passwordFieldKey,
                                                 child: CustomLoginTextField(
@@ -253,8 +294,19 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                                                     );
                                                   },
                                                 ),
+                                              ).animate()
+                                                  .fadeIn(duration: 600.ms, delay: 500.ms)
+                                                  .slideX(
+                                                  begin: 0.2,
+                                                  end: 0,
+                                                  duration: 600.ms,
+                                                  curve: Curves.easeOutQuad,
+                                                  delay: 500.ms
                                               ),
+
                                               Gap(8),
+
+                                              // Forgot Password with fade-in animation
                                               InkWell(
                                                 splashColor: AppColors.secondary,
                                                 splashFactory: InkRipple.splashFactory,
@@ -275,8 +327,12 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                                                     ),
                                                   ),
                                                 ),
-                                              ),
+                                              ).animate()
+                                                  .fadeIn(duration: 400.ms, delay: 600.ms),
+
                                               Gap(15),
+
+                                              // Login button with slide-up and shimmer animation
                                               InkWell(
                                                 splashColor: AppColors.borderColor,
                                                 splashFactory: InkRipple.splashFactory,
@@ -306,21 +362,56 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                                                       ),
                                                   ],
                                                 ),
+                                              ).animate()
+                                                  .fadeIn(duration: 600.ms, delay: 700.ms)
+                                                  .slideY(
+                                                  begin: 0.2,
+                                                  end: 0,
+                                                  duration: 600.ms,
+                                                  curve: Curves.easeOutQuad,
+                                                  delay: 700.ms
+                                              )
+                                                  .shimmer(
+                                                  duration: 1200.ms,
+                                                  delay: 1000.ms,
+                                                  color: AppColors.primaryWhiteColor.withOpacity(0.3)
                                               ),
+
                                               Gap(10),
+
+                                              // Divider with fade-in animation
                                               DividerWithCenterText(
                                                 centerText: 'Or Continue with',
-                                              ),
+                                              ).animate()
+                                                  .fadeIn(duration: 500.ms, delay: 800.ms),
+
                                               Gap(10),
-                                              LoginWithGoogleWidget(),
+
+                                              // Google login with bounce animation
+                                              LoginWithGoogleWidget()
+                                                  .animate()
+                                                  .fadeIn(duration: 600.ms, delay: 900.ms)
+                                                  .scale(
+                                                  begin: const Offset(0.9, 0.9),
+                                                  end: const Offset(1, 1),
+                                                  duration: 500.ms,
+                                                  curve: Curves.elasticOut,
+                                                  delay: 900.ms
+                                              ),
+
                                               Gap(30),
+
+                                              // Sign up prompt with fade-in animation
                                               LoginOrSignupPrompt(
                                                 spanText: 'Dont have an account yet',
                                                 promptText: 'Sign Up Now',
                                                 onSignInTap: () {
                                                   context.push('/customer_signUp');
                                                 },
-                                              ),
+                                              ).animate()
+                                                  .fadeIn(duration: 500.ms, delay: 1000.ms),
+
+                                              // Skip sign in with pulse animation
                                               TextButton(
                                                 onPressed: () => context.go('/customer_home'),
                                                 child: Text(
@@ -332,6 +423,13 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                                                     fontSize: 16.sp,
                                                   ),
                                                 ),
+                                              ).animate()
+                                                  .fadeIn(duration: 500.ms, delay: 1100.ms)
+                                                  .then()
+                                                  .animate(onPlay: (controller) => controller.repeat(reverse: true))
+                                                  .fadeIn(
+                                                  begin: 0.6,
+                                                  duration: 1500.ms
                                               ),
                                             ],
                                           ),
@@ -344,6 +442,13 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                             ),
                           ),
                         ),
+                      ).animate()
+                          .fadeIn(duration: 800.ms)
+                          .slideY(
+                          begin: 0.1,
+                          end: 0,
+                          duration: 800.ms,
+                          curve: Curves.easeOutQuint
                       ),
                     ],
                   ),

@@ -6,7 +6,9 @@ import 'package:dicetable/src/ui/customer/home/home_page.dart';
 import 'package:dicetable/src/ui/customer/home/widget/bottom_navigation_bar.dart';
 import 'package:dicetable/src/ui/customer/profile/customer_profile_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class CustomerHomeScreen extends StatefulWidget {
   const CustomerHomeScreen({super.key});
@@ -17,7 +19,7 @@ class CustomerHomeScreen extends StatefulWidget {
 
 class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   int _selectedIndex = 0;
-  DateTime? _lastBackPressed;
+  DateTime? currentBackPressTime;
 
 
   void _onTabSelected(int index) {
@@ -25,25 +27,27 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       _selectedIndex = index;
     });
   }
+  Future<bool> onWillPop() {
+    DateTime now = DateTime.now();
+    if (currentBackPressTime == null ||
+        now.difference(currentBackPressTime!) > const Duration(seconds: 3)) {
+      currentBackPressTime = now;
+      Fluttertoast.showToast(
+        backgroundColor: AppColors.secondary,
+        textColor: AppColors.primaryWhiteColor,
+        gravity: ToastGravity.BOTTOM,
+        msg: "Press again to exit",
+      );
+      return Future.value(false);
+    }
+    SystemNavigator.pop();
+    return Future.value(true);
+
+  }
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () async {
-        final now = DateTime.now();
-        if (_lastBackPressed == null ||
-            now.difference(_lastBackPressed!) > Duration(seconds: 2)) {
-          _lastBackPressed = now;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Press again to quit'),
-              duration: Duration(seconds: 2),
-            ),
-          );
-          return false;
-        }
-        // Quit the app
-        return true;
-      },
+      onWillPop: onWillPop,
       child: Scaffold(
         extendBody: true,
         // appBar: _buildAppBar(_selectedIndex, context),

@@ -9,6 +9,7 @@ class Prefs {
   static const String _IS_USER_LOADED = "is_user_loaded";
   static const String _IS_HOME_1_DATA_LOADED = "is_home_1_data_loaded";
   static const String _IS_HOME_2_DATA_LOADED = "is_home_2_data_loaded";
+  static const String _USER_DECISON = "USER_DECISION";
   static const String _AUTH_TOKEN = "auth_token";
   static const String _CUSTOMER_AUTH_TOKEN = "customer_auth_token";
   static const String _CUSTOMER_USER_NAME = "USER_NAME";
@@ -95,6 +96,30 @@ class Prefs {
 
   ///get method  for auth token
   String? getCustomerAuthToken() => _sharedPreferences?.getString(_CUSTOMER_AUTH_TOKEN);
+
+  ///saving user decision
+  void setUserDecisionName({String? userDecision}) {
+    _sharedPreferences!.setString(_USER_DECISON, userDecision!);
+  }
+
+  ///get method  for cafe user name
+  String? getUserDecisionName() => _sharedPreferences?.getString(_USER_DECISON);
+
+  /// Method to track navigation source
+  Future<void> setNavigationSource(String source) async {
+    await _sharedPreferences!.setString('navigation_source', source);
+  }
+
+  // Method to get navigation source
+  String? getNavigationSource() {
+    return _sharedPreferences!.getString('navigation_source');
+  }
+
+  // Method to clear navigation source when no longer needed
+  Future<void> clearNavigationSource() async {
+    await _sharedPreferences!.remove('navigation_source');
+  }
+
 
   // ///saving  layout id
   // void saveLayoutId({String? layoutId}) {

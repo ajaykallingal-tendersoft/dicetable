@@ -61,7 +61,7 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                     duration: Duration(seconds: 2),
                   ),
                 );
-                // ObjectFactory().prefs.setAuthToken(token: state.signUpRequestResponse.token);
+                ObjectFactory().prefs.setAuthToken(token: state.signUpRequestResponse.token);
                 ObjectFactory().prefs.setCustomerUserName(customerUserName: _nameController.text);
                 ObjectFactory().prefs.setIsCustomerLoggedIn(true);
                 context.go('/customer_home');
