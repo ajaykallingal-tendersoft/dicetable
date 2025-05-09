@@ -6,6 +6,7 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/sign_up_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/sign_up_request_response.dart';
 import 'package:dicetable/src/resources/api_providers/auth/auth_data_provider.dart';
+import 'package:dicetable/src/ui/cafe_owner/authentication/sign_up/model/venue_type_model.dart';
 import 'package:dicetable/src/utils/extension/state_model_extension.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
@@ -52,10 +53,14 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
     });
 
     on<ToggleVenueType>((event, emit) {
-      final updatedVenueTypes = Map<String, bool>.from(_formState.venueTypes);
-      updatedVenueTypes[event.venueType] = event.isSelected;
-      _formState = _formState.copyWith(venueTypes: updatedVenueTypes);
-      emit(_formState);
+      final updatedVenueTypes = Map<String, VenueTypeModel>.from(_formState.venueTypes);
+
+      final current = updatedVenueTypes[event.venueType];
+      if (current != null) {
+        updatedVenueTypes[event.venueType] = current.copyWith(isSelected: event.isSelected);
+        _formState = _formState.copyWith(venueTypes: updatedVenueTypes);
+        emit(_formState);
+      }
     });
 
     on<UpdateOpeningHour>((event, emit) {
@@ -70,7 +75,6 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
       emit(SignUpImageLoadingState());
       try {
         Permission permission;
-
         if (Platform.isAndroid) {
           // For Android 13 (API level 33) and higher, use READ_MEDIA_IMAGES
           if (await isAndroid13OrHigher()) {

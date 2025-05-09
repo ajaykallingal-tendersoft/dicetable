@@ -168,10 +168,11 @@ class ApiClient {
   ///Customer
 ///
 Future<Response> getFavourite() {
+    print("Bearer ${ObjectFactory().prefs.getCustomerAuthToken()}");
   return dioDiceApp.get(
     UrlsDiceApp.getFavourite,
     options: Options(headers: {
-      "Authorization": ObjectFactory().prefs.getAuthToken(),
+      "Authorization": ObjectFactory().prefs.getCustomerAuthToken(),
     }),
   );
 }

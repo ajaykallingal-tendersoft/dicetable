@@ -85,7 +85,7 @@ class SignUpFormState extends SignUpState {
   final String region;
   final String address;
   final String postalCode;
-  final Map<String, bool> venueTypes;
+  final Map<String, VenueTypeModel> venueTypes;
   final Map<String, OpeningHour> openingHours;
   final XFile? image;
   final String? base64Image;
@@ -102,14 +102,14 @@ class SignUpFormState extends SignUpState {
     this.address = '',
     this.postalCode = '',
     this.venueTypes = const {
-      'Restaurant': true,
-      'Cafe': true,
-      'Bakeries': true,
-      'Dessert Venue': false,
-      'Pub&Bars': false,
-      'Clubs': false,
-      'Activity Venue': false,
-      'Hotel Restaurant/Cafe': false,
+      'Restaurant': VenueTypeModel(id: '1', name: 'Restaurant', isSelected: true),
+      'Cafe': VenueTypeModel(id: '2', name: 'Cafe', isSelected: true),
+      'Bakeries': VenueTypeModel(id: '3', name: 'Bakeries', isSelected: true),
+      'Dessert Venue': VenueTypeModel(id: '4', name: 'Dessert Venue', isSelected: false),
+      'Pub&Bars': VenueTypeModel(id: '5', name: 'Pub&Bars', isSelected: false),
+      'Clubs': VenueTypeModel(id: '6', name: 'Clubs', isSelected: false),
+      'Activity Venue': VenueTypeModel(id: '7', name: 'Activity Venue', isSelected: false),
+      'Hotel Restaurant/Cafe': VenueTypeModel(id: '8', name: 'Hotel Restaurant/Cafe', isSelected: false),
     },
     this.openingHours = const {},
     this.image,
@@ -127,7 +127,7 @@ class SignUpFormState extends SignUpState {
     String? region,
     String? address,
     String? postalCode,
-    Map<String, bool>? venueTypes,
+    Map<String, VenueTypeModel>? venueTypes,
     Map<String, OpeningHour>? openingHours,
     XFile? image,
     bool clearImage = false,

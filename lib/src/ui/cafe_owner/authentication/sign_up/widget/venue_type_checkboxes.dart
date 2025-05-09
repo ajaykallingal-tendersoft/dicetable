@@ -43,14 +43,16 @@ class VenueTypeCheckboxes extends StatelessWidget {
                 spacing: 8,
                 runSpacing: 8,
                 children: venueTypes.entries.map((entry) {
+                  final model = entry.value;
+
                   return SizedBox(
                     width: 150,
                     child: InkWell(
                       onTap: () {
                         context.read<SignUpBloc>().add(
                           ToggleVenueType(
-                            venueType: entry.key,
-                            isSelected: !entry.value,
+                            venueType: model.name,
+                            isSelected: !model.isSelected,
                           ),
                         );
                       },
@@ -71,7 +73,7 @@ class VenueTypeCheckboxes extends StatelessWidget {
                             ),
                             child: AnimatedSwitcher(
                               duration: const Duration(milliseconds: 200),
-                              child: entry.value
+                              child: model.isSelected
                                   ? Center(
                                 child: SvgPicture.asset(
                                   'assets/svg/check.svg',
@@ -84,7 +86,7 @@ class VenueTypeCheckboxes extends StatelessWidget {
                           const SizedBox(width: 4),
                           Expanded(
                             child: Text(
-                              entry.key,
+                              model.name,
                               textAlign: TextAlign.left,
                               style: TextTheme.of(context).bodyMedium!.copyWith(
                                 fontSize: 14,

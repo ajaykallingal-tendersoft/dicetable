@@ -4,7 +4,7 @@ import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:dio/dio.dart';
 
 class FavouriteDataProvider {
-  Future<StateModel?> getHomeData() async {
+  Future<StateModel?> getFavourite() async {
 
     try {
       final response = await ObjectFactory().apiClient.getFavourite();

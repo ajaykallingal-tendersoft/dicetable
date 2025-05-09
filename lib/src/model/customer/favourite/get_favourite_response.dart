@@ -33,25 +33,47 @@ class Datum {
   final String? venueDescription;
   final List<String>? tableTypes;
   final String? photo;
+  bool isFavorite; // ← add this
 
   Datum({
     this.name,
     this.venueDescription,
     this.tableTypes,
     this.photo,
+    this.isFavorite = false, // default false
   });
+
+  Datum copyWith({
+    String? name,
+    String? venueDescription,
+    List<String>? tableTypes,
+    String? photo,
+    bool? isFavorite,
+  }) => Datum(
+    name: name ?? this.name,
+    venueDescription: venueDescription ?? this.venueDescription,
+    tableTypes: tableTypes ?? this.tableTypes,
+    photo: photo ?? this.photo,
+    isFavorite: isFavorite ?? this.isFavorite,
+  );
 
   factory Datum.fromJson(Map<String, dynamic> json) => Datum(
     name: json["name"],
     venueDescription: json["venue_description"],
-    tableTypes: json["table_types"] == null ? [] : List<String>.from(json["table_types"]!.map((x) => x)),
+    tableTypes: json["table_types"] == null
+        ? []
+        : List<String>.from(json["table_types"]!.map((x) => x)),
     photo: json["photo"],
+    isFavorite: false, // ← initialize from local logic only
   );
 
   Map<String, dynamic> toJson() => {
     "name": name,
     "venue_description": venueDescription,
-    "table_types": tableTypes == null ? [] : List<dynamic>.from(tableTypes!.map((x) => x)),
+    "table_types": tableTypes == null
+        ? []
+        : List<dynamic>.from(tableTypes!.map((x) => x)),
     "photo": photo,
   };
 }
+
