@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 
@@ -54,17 +55,16 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                   );
                 }
               } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(state.signUpRequestResponse.message!),
-                    backgroundColor: AppColors.appGreenColor,
-                    duration: Duration(seconds: 2),
-                  ),
-                );
                 ObjectFactory().prefs.setAuthToken(token: state.signUpRequestResponse.token);
                 ObjectFactory().prefs.setCustomerUserName(customerUserName: _nameController.text);
                 ObjectFactory().prefs.setIsCustomerLoggedIn(true);
                 context.go('/customer_home');
+                Fluttertoast.showToast(
+                  backgroundColor: AppColors.primaryWhiteColor,
+                  textColor: AppColors.appGreenColor,
+                  gravity: ToastGravity.BOTTOM,
+                  msg: state.signUpRequestResponse.message!,
+                );
               }
             }
 
@@ -172,6 +172,7 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                           RequiredTextField(
                             hint: 'Password',
                             isRequired: true,
+                            obscureText: true,
                             controller: _passwordController,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
@@ -193,6 +194,7 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                           RequiredTextField(
                             hint: 'Confirm Password',
                             isRequired: true,
+                            obscureText: true,
                             controller: _confirmPasswordController,
                             validator: (value) {
                               if (value != _passwordController.text ||

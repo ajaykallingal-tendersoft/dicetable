@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:dicetable/src/common/custom_login_text_field.dart';
 import 'package:dicetable/src/common/divider_with_center_text.dart';
 import 'package:dicetable/src/common/elevated_button_widget.dart';
@@ -13,6 +14,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 
@@ -40,9 +42,8 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
   @override
   void initState() {
     super.initState();
-    // Get the navigation source when the screen initializes
+    print("UserCate: ${ObjectFactory().prefs.getUserDecisionName()}");
     _navigationSource = ObjectFactory().prefs.getNavigationSource();
-    // Clear it to prevent future confusion
     ObjectFactory().prefs.clearNavigationSource();
     _emailFocusNode.addListener(() {
       if (_emailFocusNode.hasFocus) {
@@ -99,6 +100,12 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                 ObjectFactory().prefs.setCustomerAuthToken(token: state.loginRequestResponse.token);
                 ObjectFactory().prefs.setIsCustomerLoggedIn(true);
                 context.go('/customer_home');
+                Fluttertoast.showToast(
+                  backgroundColor: AppColors.primaryWhiteColor,
+                  textColor: AppColors.appGreenColor,
+                  gravity: ToastGravity.BOTTOM,
+                  msg: "Successfully Logged In.",
+                );
               }
 
               if (state is CustomerLoginFailureState) {
@@ -134,7 +141,6 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
 
               return WillPopScope(
                 onWillPop: () async {
-                  // If we came from category screen, go back to it
                   if (_navigationSource == 'category_screen') {
                     context.go('/category');
                     return false; // We handle navigation ourselves
@@ -229,7 +235,6 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                                           child: Column(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
-                                              // Welcome text with fade and scale animation
                                               Text(
                                                 'Welcome Back!',
                                                 style: Theme.of(context)
@@ -251,7 +256,6 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
 
                                               Gap(10),
 
-                                              // Email field with slide-in animation
                                               Container(
                                                 key: _emailFieldKey,
                                                 child: CustomLoginTextField(
@@ -329,10 +333,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                                                 ),
                                               ).animate()
                                                   .fadeIn(duration: 400.ms, delay: 600.ms),
-
                                               Gap(15),
-
-                                              // Login button with slide-up and shimmer animation
                                               InkWell(
                                                 splashColor: AppColors.borderColor,
                                                 splashFactory: InkRipple.splashFactory,
@@ -387,7 +388,6 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
 
                                               Gap(10),
 
-                                              // Google login with bounce animation
                                               LoginWithGoogleWidget()
                                                   .animate()
                                                   .fadeIn(duration: 600.ms, delay: 900.ms)

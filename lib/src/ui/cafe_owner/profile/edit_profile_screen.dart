@@ -455,7 +455,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         },
         child: SvgPicture.asset('assets/svg/back.svg', fit: BoxFit.scaleDown),
       ),
-      actions: [SvgPicture.asset('assets/svg/notify.svg')],
+      actions: [
+        InkWell(
+          onTap: () {
+            GoRouter.of(context).push('/notification');
+            // context.push('/notification');
+          },
+          child:  SvgPicture.asset('assets/svg/notify.svg'),
+        ),
+
+      ],
     );
   }
 

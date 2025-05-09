@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/ui/customer/cafe_list/cafe_list_screen.dart';
 import 'package:dicetable/src/ui/customer/favourites/favourites_screen.dart';
@@ -27,7 +28,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       _selectedIndex = index;
     });
   }
-  Future<bool> onWillPop() {
+  Future<bool> onWillPop() async {
     DateTime now = DateTime.now();
     if (currentBackPressTime == null ||
         now.difference(currentBackPressTime!) > const Duration(seconds: 3)) {
@@ -40,8 +41,11 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       );
       return Future.value(false);
     }
-    SystemNavigator.pop();
-    return Future.value(true);
+    if (Theme.of(context).platform == TargetPlatform.android) {
+      SystemNavigator.pop();
+      return false;
+    }
+    return true;
 
   }
   @override

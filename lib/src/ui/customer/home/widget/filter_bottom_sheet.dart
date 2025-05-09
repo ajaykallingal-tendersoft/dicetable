@@ -77,63 +77,57 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        return DraggableScrollableSheet(
-          initialChildSize: 0.9,
-          minChildSize: 0.5,
-          maxChildSize: 0.95,
-          expand: false,
-          builder:
-              (context, controller) => Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.primaryWhiteColor,
-                      AppColors.primaryWhiteColor,
-                      AppColors.filterGradient1,
-                      AppColors.filterGradient2,
-                    ],
-                    stops: [0.0, 0.0, 0.40, 1.0],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                  ),
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-                ),
-                child: SingleChildScrollView(
-                  controller: controller,
-                  padding: const EdgeInsets.all(26),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "FILTERS",
-                            style: TextTheme.of(context).bodyMedium!.copyWith(
-                              color: AppColors.textPrimaryGrey,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14.sp,
-                            ),
-                          ),
-                          IconButton(
-                            icon: SvgPicture.asset('assets/svg/filter-close.svg',),
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                        ],
+        return Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.primaryWhiteColor,
+                AppColors.primaryWhiteColor,
+                AppColors.filterGradient1,
+                AppColors.filterGradient2,
+              ],
+              stops: [0.0, 0.0, 0.40, 1.0],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+          ),
+          child: SingleChildScrollView(
+            physics: BouncingScrollPhysics(),
+            // controller: controller,
+            padding: const EdgeInsets.all(26),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "FILTERS",
+                      style: TextTheme.of(context).bodyMedium!.copyWith(
+                        color: AppColors.textPrimaryGrey,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14.sp,
                       ),
-                     Gap(30.h),
-                      _buildSectionTitle("HOURS"),
-                      _buildHoursPicker(),
-                      Gap(20.h),
-                      _buildSectionTitle("TYPE OF TABLE"),
-                      _buildCustomCheckboxList(tableTypes, selectedTableTypes, _updateSelectedTableType),
-                      Gap(20.h),
-                      _buildSectionTitle("VENUE TYPE"),
-                      _buildCustomCheckboxGrid(venueTypes, selectedVenueTypes, _updateSelectedVenueType),
-                    ],
-                  ),
+                    ),
+                    IconButton(
+                      icon: SvgPicture.asset('assets/svg/filter-close.svg',),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
                 ),
-              ),
+                Gap(30.h),
+                _buildSectionTitle("HOURS"),
+                _buildHoursPicker(),
+                Gap(20.h),
+                _buildSectionTitle("TYPE OF TABLE"),
+                _buildCustomCheckboxList(tableTypes, selectedTableTypes, _updateSelectedTableType),
+                Gap(20.h),
+                _buildSectionTitle("VENUE TYPE"),
+                _buildCustomCheckboxGrid(venueTypes, selectedVenueTypes, _updateSelectedVenueType),
+              ],
+            ),
+          ),
         );
       },
     );

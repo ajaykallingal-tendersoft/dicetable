@@ -131,7 +131,14 @@ class _CustomTextFieldState extends State<CustomTextField> {
                         _obscureText = !_obscureText;
                       });
                     },
-                    child: SvgPicture.asset(
+                    child: _obscureText
+                        ? Icon(
+                      Icons.visibility_off,
+                      color: widget.isProfile && widget.readOnly
+                          ? AppColors.primaryWhiteColor
+                          : AppColors.primary,
+                    )
+                        : SvgPicture.asset(
                       'assets/svg/pw-view.svg',
                       fit: BoxFit.scaleDown,
                       color: widget.isProfile && widget.readOnly
@@ -140,6 +147,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
                     ),
                   )
                       : null,
+
+
                 ),
               ),
             ),

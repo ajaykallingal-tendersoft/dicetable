@@ -16,7 +16,6 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    // Do not reset rememberDecision here unless you want to clear it every launch!
     _navigateAfterDelay();
   }
 
@@ -27,13 +26,11 @@ class _SplashScreenState extends State<SplashScreen> {
 
   void _navigateToNextScreen() {
     if (!mounted) return;
-
     final isLoggedIn = ObjectFactory().prefs.isLoggedIn() == true;
     final isCustomerLoggedIn = ObjectFactory().prefs.isCustomerLoggedIn() == true;
     final rememberDecision = ObjectFactory().prefs.getRememberDecision() ?? false;
     final userCategory = ObjectFactory().prefs.getUserDecisionName();
 
-    // Set navigation source to track where we're coming from
     ObjectFactory().prefs.setNavigationSource('splash_screen');
 
     if (isLoggedIn) {

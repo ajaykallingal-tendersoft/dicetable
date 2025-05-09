@@ -425,7 +425,13 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
           ],
         ),
       ),
-      actions: [SvgPicture.asset('assets/svg/notify.svg')],
+      actions: [InkWell(
+        onTap: () {
+          GoRouter.of(context).push('/notification');
+          // context.push('/notification');
+        },
+        child:  SvgPicture.asset('assets/svg/notify.svg'),
+      ),],
       actionsPadding: EdgeInsets.only(right: 15),
     );
   }

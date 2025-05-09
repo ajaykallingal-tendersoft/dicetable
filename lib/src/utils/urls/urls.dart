@@ -13,7 +13,8 @@ class UrlsDiceApp {
 
 
 
-
+  //Customer
+  static const String getFavourite = '/api/favourites';
 
 
 

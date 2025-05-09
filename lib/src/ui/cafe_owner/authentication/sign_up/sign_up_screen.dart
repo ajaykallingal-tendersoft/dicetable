@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 
@@ -400,12 +401,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               );
                             }
                           } else {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                               SnackBar(
-                                content: Text(state.signUpRequestResponse.message!),
-                                backgroundColor: AppColors.appGreenColor,
-                                duration: Duration(seconds: 2),
-                              ),
+
+                            Fluttertoast.showToast(
+                              backgroundColor: AppColors.primaryWhiteColor,
+                              textColor: AppColors.appGreenColor,
+                              gravity: ToastGravity.BOTTOM,
+                              msg: state.signUpRequestResponse.message!,
                             );
                             ObjectFactory().prefs.setAuthToken(token: state.signUpRequestResponse.token);
                             ObjectFactory().prefs.setCafeUserName(cafeUserName: _venueNameController.text);

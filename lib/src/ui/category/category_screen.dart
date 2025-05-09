@@ -51,10 +51,9 @@ class _CategoryScreenState extends State<CategoryScreen> {
       ObjectFactory().prefs.setRememberDecision(true);
     } else {
       ObjectFactory().prefs.setRememberDecision(false);
-      ObjectFactory().prefs.setUserDecisionName(userDecision: "");
+      ObjectFactory().prefs.setUserDecisionName(userDecision: userType);
     }
 
-    // Set navigation source to track where we're coming from
     ObjectFactory().prefs.setNavigationSource('category_screen');
 
     if (userType == 'PUBLIC_USER') {

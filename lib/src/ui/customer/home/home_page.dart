@@ -5,7 +5,6 @@ import 'package:dicetable/src/ui/customer/home/widget/filter_bottom_sheet.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 
 class CustomerHomePage extends StatefulWidget {
@@ -19,13 +18,17 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
 
   void showFilterBottomSheet(BuildContext context) {
     showModalBottomSheet(
-      constraints: BoxConstraints(minWidth: double.infinity),
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery.sizeOf(context).height * 0.9,
+        minWidth: double.infinity,
+      ),
       context: context,
       isScrollControlled: true,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) => const FilterBottomSheet(),
+      builder: (context) => FractionallySizedBox(
+          child: const FilterBottomSheet()),
     );
   }
   @override

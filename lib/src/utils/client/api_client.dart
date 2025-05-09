@@ -4,6 +4,7 @@ import 'package:dicetable/src/model/cafe_owner/auth/forgot_password/forgot_passw
 import 'package:dicetable/src/model/cafe_owner/auth/forgot_password/password_reset_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/login/login_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/sign_up_request.dart';
+import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:dicetable/src/utils/urls/urls.dart';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
@@ -124,7 +125,7 @@ class ApiClient {
     ));
   }
 
-  ///
+  ///Cafe Owner
   /// Auth
   //Register
   Future<Response> registerUser(SignUpRequest signupRequest) {
@@ -158,6 +159,22 @@ class ApiClient {
 
     );
   }
+
+
+
+
+
+
+  ///Customer
+///
+Future<Response> getFavourite() {
+  return dioDiceApp.get(
+    UrlsDiceApp.getFavourite,
+    options: Options(headers: {
+      "Authorization": ObjectFactory().prefs.getAuthToken(),
+    }),
+  );
+}
 
 
   //
