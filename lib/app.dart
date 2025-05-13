@@ -8,6 +8,7 @@ import 'package:dicetable/src/ui/cafe_owner/notification/notification_cubit.dart
 import 'package:dicetable/src/ui/cafe_owner/profile/bloc/profile_bloc.dart';
 import 'package:dicetable/src/ui/customer/cafe_list/bloc/cafe_list_bloc.dart';
 import 'package:dicetable/src/ui/customer/favourites/bloc/favourite_bloc.dart';
+import 'package:dicetable/src/utils/network_connectivity/network_connectivity_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -22,6 +23,10 @@ class App extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+        BlocProvider<NetworkConnectivityBloc>(
+          create: (BuildContext context) =>
+          NetworkConnectivityBloc()..add(NetworkObserve()),
+        ),
         BlocProvider<NotificationCubit>(
           create: (context) => NotificationCubit(),
         ),

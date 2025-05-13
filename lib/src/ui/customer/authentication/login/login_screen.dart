@@ -8,6 +8,7 @@ import 'package:dicetable/src/resources/api_providers/auth/auth_data_provider.da
 import 'package:dicetable/src/ui/cafe_owner/authentication/login/widget/login_with_google_widget.dart';
 import 'package:dicetable/src/ui/customer/authentication/login/bloc/customer_login_bloc.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
+import 'package:dicetable/src/utils/network_connectivity/network_connectivity_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -36,12 +37,14 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
   String? _navigationSource;
   final GlobalKey _emailFieldKey = GlobalKey();
   final GlobalKey _passwordFieldKey = GlobalKey();
+  bool _isConnected = true;
 
 
 
   @override
   void initState() {
     super.initState();
+    NetworkConnectivityBloc().add(NetworkObserve());
     print("UserCate: ${ObjectFactory().prefs.getUserDecisionName()}");
     _navigationSource = ObjectFactory().prefs.getNavigationSource();
     ObjectFactory().prefs.clearNavigationSource();
@@ -58,7 +61,6 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
     });
   }
   void _ensureVisible(GlobalKey key) {
-    // Delay slightly to allow keyboard to appear
     Future.delayed(Duration(milliseconds: 300), () {
       if (key.currentContext != null) {
         Scrollable.ensureVisible(
@@ -83,7 +85,29 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
       create: (context) => CustomerLoginBloc(authDataProvider: AuthDataProvider()),
       child: Builder(
         builder: (context) {
-          return BlocConsumer<CustomerLoginBloc, CustomerLoginState>(
+          return BlocListener<NetworkConnectivityBloc, NetworkConnectivityState>(
+            listener: (context, state) {
+              if (state is NetworkFailure) {
+                setState(() {
+                  _isConnected = false;
+                });
+                Fluttertoast.showToast(
+                  msg: "No internet connection",
+                  backgroundColor: AppColors.appRedColor,
+                  textColor: AppColors.primaryWhiteColor,
+                );
+              } else if (state is NetworkSuccess) {
+                setState(() {
+                  _isConnected = true;
+                });
+                Fluttertoast.showToast(
+                  msg: "Back online",
+                  backgroundColor:  AppColors.appGreenColor,
+                  textColor: AppColors.primaryWhiteColor,
+                );
+              }
+            },
+            child: BlocConsumer<CustomerLoginBloc, CustomerLoginState>(
             listener: (context, state) {
               print('Login state: $state');
               if (state is CustomerLoginLoadingState) {
@@ -340,6 +364,15 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                                                 onTap: isLoading
                                                     ? null
                                                     : () {
+                                                  NetworkConnectivityBloc().add(NetworkObserve());
+                                                  if (!_isConnected) {
+                                                    Fluttertoast.showToast(
+                                                      msg: "Please check your internet connection.",
+                                                      backgroundColor: AppColors.appRedColor,
+                                                      textColor: AppColors.primaryWhiteColor,
+                                                    );
+                                                    return;
+                                                  }
                                                   context.read<CustomerLoginBloc>().add(
                                                     FormSubmitted(),
                                                   );
@@ -380,7 +413,6 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
 
                                               Gap(10),
 
-                                              // Divider with fade-in animation
                                               DividerWithCenterText(
                                                 centerText: 'Or Continue with',
                                               ).animate()
@@ -401,7 +433,6 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
 
                                               Gap(30),
 
-                                              // Sign up prompt with fade-in animation
                                               LoginOrSignupPrompt(
                                                 spanText: 'Dont have an account yet',
                                                 promptText: 'Sign Up Now',
@@ -455,7 +486,8 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                 ),
               );
             },
-          );
+          ),
+);
         },
       ),
     );

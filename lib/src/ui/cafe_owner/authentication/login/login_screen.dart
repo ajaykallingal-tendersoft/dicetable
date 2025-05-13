@@ -1,3 +1,5 @@
+import 'package:dicetable/src/utils/network_connectivity/network_connectivity_bloc.dart';
+import 'package:dicetable/src/utils/network_connectivity/network_toast_manager.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:dicetable/src/common/custom_login_text_field.dart';
@@ -35,12 +37,14 @@ class _LoginScreenState extends State<LoginScreen> {
   final GlobalKey _emailFieldKey = GlobalKey();
   final GlobalKey _passwordFieldKey = GlobalKey();
   String? _navigationSource;
+  NetworkConnectivityState? _networkState;
 
 
 
   @override
   void initState() {
     super.initState();
+    NetworkConnectivityBloc().add(NetworkObserve());
     print("UserCate: ${ObjectFactory().prefs.getUserDecisionName()}");
     _navigationSource = ObjectFactory().prefs.getNavigationSource();
     ObjectFactory().prefs.clearNavigationSource();
@@ -84,7 +88,12 @@ class _LoginScreenState extends State<LoginScreen> {
       create: (context) => LoginBloc(authDataProvider: AuthDataProvider()),
       child: Builder(
         builder: (context) {
-          return BlocConsumer<LoginBloc, LoginState>(
+          return BlocListener<NetworkConnectivityBloc, NetworkConnectivityState>(
+            listener: (context, state) {
+              _networkState = state;
+              NetworkToastManager.handleStateChange(state);
+            },
+            child: BlocConsumer<LoginBloc, LoginState>(
             listener: (context, state) {
               print('Login state: $state');
               if (state is LoginLoadingState) {
@@ -306,6 +315,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                               onTap: isLoading
                                                   ? null
                                                   : () {
+                                                if (_networkState is NetworkFailure) {
+                                                  Fluttertoast.showToast(
+                                                    msg: "No internet connection",
+                                                    backgroundColor: AppColors.primaryWhiteColor,
+                                                    textColor: AppColors.appRedColor,
+                                                  );
+                                                  return;
+                                                }
                                                 context.read<LoginBloc>().add(
                                                   FormSubmitted(),
                                                 );
@@ -407,7 +424,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 },
               );
             },
-          );
+          ),
+);
         },
       ),
     );

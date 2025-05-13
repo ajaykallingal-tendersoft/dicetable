@@ -11,8 +11,9 @@ class GoogleSignInLoggedOut extends GoogleSignInState {}
 
 class GoogleSignInSuccess extends GoogleSignInState {
   final User user;
+  final String base64Image;
 
-  GoogleSignInSuccess({required this.user});
+  GoogleSignInSuccess({required this.user,required this.base64Image});
 }
 class GoogleSignInError extends GoogleSignInState {}
 class GoogleSignInDenied extends GoogleSignInState {}

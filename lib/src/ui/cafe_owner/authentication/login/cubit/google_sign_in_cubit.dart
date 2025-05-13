@@ -1,12 +1,16 @@
+import 'dart:convert';
+
 import 'package:bloc/bloc.dart';
+import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:meta/meta.dart';
-
+import 'package:http/http.dart' as http;
 part 'google_sign_in_state.dart';
 
 class GoogleSignInCubit extends Cubit<GoogleSignInState> {
   GoogleSignInCubit() : super(GoogleSignInInitial());
+  Dio dioDiceApp = Dio();
 
   final GoogleSignIn googleSignIn = GoogleSignIn();
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -37,7 +41,11 @@ class GoogleSignInCubit extends Cubit<GoogleSignInState> {
       final user = userCredentials.user;
 
       if (user != null) {
-        if (!isClosed) emit(GoogleSignInSuccess(user: user));
+        final base64Image = await _convertPhotoUrlToBase64(user.photoURL);
+        String base64Encoded = "data:image/png;base64,$base64Image";
+
+
+        if (!isClosed) emit(GoogleSignInSuccess(user: user, base64Image: base64Encoded));
       } else {
         if (!isClosed) emit(GoogleSignInError());
       }
@@ -66,4 +74,18 @@ class GoogleSignInCubit extends Cubit<GoogleSignInState> {
       if (!isClosed) emit(GoogleSignInError());
     }
   }
+
+  Future<String?> _convertPhotoUrlToBase64(String? photoUrl) async {
+    if (photoUrl == null) return null;
+    try {
+      final response = await http.get(Uri.parse(photoUrl));
+      if (response.statusCode == 200) {
+        return base64Encode(response.bodyBytes);
+      }
+    } catch (e) {
+      print("Error converting photoURL to base64: $e");
+    }
+    return null;
+  }
+
 }
