@@ -24,3 +24,11 @@ class PasswordChanged extends LoginEvent {
   @override
   List<Object?> get props => [password];
 }
+///Google
+class GetGoogleLoginEvent extends LoginEvent {
+  final GoogleLoginRequest googleLoginRequest;
+  const GetGoogleLoginEvent({required this.googleLoginRequest});
+  @override
+  List<Object?> get props => [googleLoginRequest];
+
+}

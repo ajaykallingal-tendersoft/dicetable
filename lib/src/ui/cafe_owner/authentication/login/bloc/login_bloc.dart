@@ -1,6 +1,9 @@
 import 'package:bloc/bloc.dart';
+import 'package:dicetable/src/model/cafe_owner/auth/login/google_login_request.dart';
+import 'package:dicetable/src/model/cafe_owner/auth/login/google_login_request_response.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/login/login_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/login/login_request_response.dart';
+import 'package:dicetable/src/model/state_model.dart';
 import 'package:dicetable/src/resources/api_providers/auth/auth_data_provider.dart';
 import 'package:dicetable/src/utils/extension/state_model_extension.dart';
 import 'package:equatable/equatable.dart';
@@ -26,6 +29,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     });
 
     on<FormSubmitted>(_onFormSubmitted);
+    on<GetGoogleLoginEvent> (_handleGoogleLogin);
+
   }
 
   Future<void> _onFormSubmitted(FormSubmitted event, Emitter<LoginState> emit) async {
@@ -88,4 +93,20 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       }
     }
   }
+  Future<void> _handleGoogleLogin(GetGoogleLoginEvent event, Emitter<LoginState> emit) async {
+    try {
+      emit(GoogleLoginLoading());
+      await Future.delayed(Duration(seconds: 1));
+
+      final response = await authDataProvider.googleLogin(event.googleLoginRequest);
+      if (response!.data.status == true) {
+        emit(GoogleLoginLoaded(googleLoginResponse: response.data));
+      } else {
+        emit(GoogleLoginErrorState(msg: response.data.message));
+      }
+    } catch (e) {
+      emit(GoogleLoginErrorState(msg: e.toString()));
+    }
+  }
+
 }

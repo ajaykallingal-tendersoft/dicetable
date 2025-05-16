@@ -8,7 +8,7 @@ class NetworkToastManager {
   static void handleStateChange(NetworkConnectivityState state) {
     if (state != _lastState) {
       if (state is NetworkSuccess) {
-        Fluttertoast.showToast(msg: "Back online");
+        // Fluttertoast.showToast(msg: "Back online");
       } else if (state is NetworkFailure) {
         Fluttertoast.showToast(msg: "No internet connection");
       }

@@ -1,6 +1,7 @@
 import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/constants/assets.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart' show GoogleFonts;
 import 'package:lottie/lottie.dart';
 
 class ModalBarrierWithProgressIndicatorWidget extends StatelessWidget {
@@ -18,16 +19,20 @@ class ModalBarrierWithProgressIndicatorWidget extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(
+              Container(
                 height: 90,
                 width: 90,
-                child: Lottie.asset(Assets.JUMBING_DOT),
+                decoration:
+                BoxDecoration(color: AppColors.tertiary),
+                child: Lottie.asset(Assets.JUMBING_DOT,
+                    height: 90, width: 90),
               ),
               Text(
-                "Please Wait",
-                style: TextTheme.of(context).bodySmall!.copyWith(
-                  fontSize: 12,
-                  color: AppColors.primaryWhiteColor
+                "pleasewait",
+                style: GoogleFonts.openSans(
+                  color: AppColors.primaryWhiteColor,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ],

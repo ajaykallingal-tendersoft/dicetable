@@ -3,9 +3,12 @@ import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'app.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+
+import 'app_bloc_observer.dart';
 
 //
 // Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message)async {
@@ -14,6 +17,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  Bloc.observer = AppBlocObserver();
   runApp(App());
 
   // FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);

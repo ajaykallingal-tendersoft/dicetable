@@ -10,6 +10,14 @@ class UrlsDiceApp {
   static const String login = '/api/login';
   static const String forgotPassword = '/api/forgot';
   static const String passwordReset = '/api/reset';
+  static const String googleLogin = '/api/google/auth';
+  static const String googleSignUp = '/api/google/signup';
+
+  ///Subscription
+  static const String subscriptionStart = '/api/subscription/start';
+  static const String subscriptionInitial = '/api/subscription/new-subscription';
+
+
 
 
 

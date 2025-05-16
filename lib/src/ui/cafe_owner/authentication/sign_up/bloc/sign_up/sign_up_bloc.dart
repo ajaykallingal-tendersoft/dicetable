@@ -3,6 +3,9 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:bloc/bloc.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:dicetable/src/model/cafe_owner/auth/login/google_login_request_response.dart';
+import 'package:dicetable/src/model/cafe_owner/auth/signUp/google_sign-up_request.dart';
+import 'package:dicetable/src/model/cafe_owner/auth/signUp/google_sign-up_response.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/sign_up_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/sign_up_request_response.dart';
 import 'package:dicetable/src/resources/api_providers/auth/auth_data_provider.dart';
@@ -288,9 +291,61 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
                   response.errors?.values.first.first ?? "Signup failed",
             ),
           );
+          emit(_formState); // Restore form state
+
         }
       }
     });
+
+    on<SubmitGoogleSignUp>((event, emit) async {
+      emit(GoogleSignUpLoadingState());
+
+      if (_image == null) {
+        emit(
+          GoogleSignUpErrorState(
+            errorMessage: "Please provide all the details to complete sign-up.",
+          ),
+        );
+        return;
+      }
+
+      final result = await authDataProvider.googleRegisterUser(event.signupRequest);
+
+      if (result!.isError) {
+        final error = result.error;
+
+        if (error is GoogleSignUpRequestResponse) {
+          final firstError =
+              error.errors?.values.first.first ?? "Signup failed.";
+          emit(GoogleSignUpErrorState(errorMessage: firstError));
+        } else if (error is String) {
+          emit(GoogleSignUpErrorState(errorMessage: error));
+          emit(_formState); // Restore form state
+
+        } else {
+          emit(GoogleSignUpErrorState(errorMessage: "Something went wrong."));
+          emit(_formState); // Restore form state
+
+        }
+      } else if (result.isSuccess) {
+        final response = result.data as GoogleSignUpRequestResponse;
+
+        if (response.status == true) {
+          emit(GoogleSignUpSuccessState(googleSignUpRequestResponse: response));
+        } else {
+          emit(
+            GoogleSignUpErrorState(
+              errorMessage:
+              response.errors?.values.first.first ?? "Signup failed",
+            ),
+          );
+          emit(_formState); // Restore form state
+
+        }
+      }
+    });
+
+
   }
 
   Future<bool> isAndroid13OrHigher() async {

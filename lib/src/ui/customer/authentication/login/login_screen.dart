@@ -100,11 +100,11 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                 setState(() {
                   _isConnected = true;
                 });
-                Fluttertoast.showToast(
-                  msg: "Back online",
-                  backgroundColor:  AppColors.appGreenColor,
-                  textColor: AppColors.primaryWhiteColor,
-                );
+                // Fluttertoast.showToast(
+                //   msg: "Back online",
+                //   backgroundColor:  AppColors.appGreenColor,
+                //   textColor: AppColors.primaryWhiteColor,
+                // );
               }
             },
             child: BlocConsumer<CustomerLoginBloc, CustomerLoginState>(
@@ -334,7 +334,6 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
 
                                               Gap(8),
 
-                                              // Forgot Password with fade-in animation
                                               InkWell(
                                                 splashColor: AppColors.secondary,
                                                 splashFactory: InkRipple.splashFactory,

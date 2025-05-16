@@ -66,3 +66,43 @@ class LoginFormState  extends LoginState{
   @override
   List<Object?> get props => [email, emailError, password, passwordError];
 }
+
+///Google Login
+class GoogleLoginInitial extends LoginState {
+  @override
+  List<Object> get props => [];
+
+  @override
+  String toString() => 'GoogleLoginInitial';
+}
+
+class GoogleLoginLoading extends LoginState {
+  @override
+  List<Object> get props => [];
+
+  @override
+  String toString() => 'GoogleLoginLoading';
+}
+
+class GoogleLoginLoaded extends LoginState {
+  final GoogleLoginRequestResponse googleLoginResponse;
+
+  const GoogleLoginLoaded({required this.googleLoginResponse});
+
+  @override
+  List<Object> get props => [googleLoginResponse];
+
+  @override
+  String toString() => 'GoogleLoginLoaded: $googleLoginResponse';
+}
+
+class GoogleLoginErrorState extends LoginState {
+  final String msg;
+  const GoogleLoginErrorState({required this.msg});
+
+  @override
+  List<Object> get props => [msg];
+
+  @override
+  String toString() => 'GoogleLoginErrorState: $msg';
+}

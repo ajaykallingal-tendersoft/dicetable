@@ -55,6 +55,25 @@ class SignUpErrorState extends SignUpState {
   List<Object?> get props => [errorMessage];
 }
 
+///Google signup
+class GoogleSignUpInitial extends SignUpState {}
+
+class GoogleSignUpLoadingState extends SignUpState {}
+
+class GoogleSignUpSuccessState extends SignUpState {
+  final GoogleSignUpRequestResponse googleSignUpRequestResponse;
+  const GoogleSignUpSuccessState({required this.googleSignUpRequestResponse});
+}
+
+class GoogleSignUpErrorState extends SignUpState {
+  final String errorMessage;
+
+  const GoogleSignUpErrorState({required this.errorMessage});
+
+  @override
+  List<Object?> get props => [errorMessage];
+}
+
 class SignUpImageLoadedState extends SignUpState {
   final XFile image;
 
@@ -109,7 +128,6 @@ class SignUpFormState extends SignUpState {
       'Pub&Bars': VenueTypeModel(id: '5', name: 'Pub&Bars', isSelected: false),
       'Clubs': VenueTypeModel(id: '6', name: 'Clubs', isSelected: false),
       'Activity Venue': VenueTypeModel(id: '7', name: 'Activity Venue', isSelected: false),
-      'Hotel Restaurant/Cafe': VenueTypeModel(id: '8', name: 'Hotel Restaurant/Cafe', isSelected: false),
     },
     this.openingHours = const {},
     this.image,

@@ -4,11 +4,13 @@ import 'package:dicetable/src/ui/cafe_owner/authentication/forgot_password/forgo
 import 'package:dicetable/src/ui/cafe_owner/authentication/forgot_password/reset_password_screen.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/login/login_screen.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/sign_up/sign_up_screen.dart';
+import 'package:dicetable/src/ui/cafe_owner/authentication/sign_up/sign_up_screen_argument.dart';
 import 'package:dicetable/src/ui/cafe_owner/home/home_screen.dart';
 import 'package:dicetable/src/ui/cafe_owner/notification/notification_screen.dart';
 import 'package:dicetable/src/ui/cafe_owner/profile/bloc/profile_bloc.dart';
 import 'package:dicetable/src/ui/cafe_owner/profile/edit_profile_screen.dart';
 import 'package:dicetable/src/ui/cafe_owner/profile/manage_profile_screen.dart';
+import 'package:dicetable/src/ui/cafe_owner/subscription/payment/payment.dart';
 import 'package:dicetable/src/ui/cafe_owner/subscription/subscription_overview_screen.dart';
 import 'package:dicetable/src/ui/cafe_owner/subscription/subscription_prompt_screen.dart';
 import 'package:dicetable/src/ui/category/category_screen.dart';
@@ -23,6 +25,7 @@ import 'package:dicetable/src/ui/customer/home/home_page.dart';
 import 'package:dicetable/src/ui/customer/home/home_screen.dart';
 import 'package:dicetable/src/ui/customer/profile/customer_profile_screen.dart';
 import 'package:dicetable/src/ui/splash/splash_screen.dart';
+import 'package:dicetable/src/ui/verification/email_verification_screen.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
@@ -84,7 +87,30 @@ class AppRouter {
             pageBuilder: (BuildContext context, GoRouterState state) {
               return CustomTransitionPage<void>(
                 key: state.pageKey,
-                child: const SignUpScreen(),
+                child:  SignUpScreen(signUpScreenArgument: state.extra as SignUpScreenArgument,),
+                transitionDuration: const Duration(milliseconds: 300),
+                transitionsBuilder: (
+                    BuildContext context,
+                    Animation<double> animation,
+                    Animation<double> secondaryAnimation,
+                    Widget child,
+                    ) {
+                  return FadeTransition(
+                    opacity: CurveTween(
+                      curve: Curves.easeIn,
+                    ).animate(animation),
+                    child: child,
+                  );
+                },
+              );
+            },
+          ),
+          GoRoute(
+            path: 'verify',
+            pageBuilder: (BuildContext context, GoRouterState state) {
+              return CustomTransitionPage<void>(
+                key: state.pageKey,
+                child:  EmailVerificationScreen(),
                 transitionDuration: const Duration(milliseconds: 300),
                 transitionsBuilder: (
                     BuildContext context,
@@ -478,6 +504,29 @@ class AppRouter {
               return CustomTransitionPage<void>(
                 key: state.pageKey,
                 child:  CafeDetailsScreen(cafeDetailsArguments: state.extra as CafeDetailsArguments,),
+                transitionDuration: const Duration(milliseconds: 300),
+                transitionsBuilder: (
+                    BuildContext context,
+                    Animation<double> animation,
+                    Animation<double> secondaryAnimation,
+                    Widget child,
+                    ) {
+                  return FadeTransition(
+                    opacity: CurveTween(
+                      curve: Curves.easeIn,
+                    ).animate(animation),
+                    child: child,
+                  );
+                },
+              );
+            },
+          ),
+          GoRoute(
+            path: 'payment',
+            pageBuilder: (BuildContext context, GoRouterState state) {
+              return CustomTransitionPage<void>(
+                key: state.pageKey,
+                child:  PaymentHome(),
                 transitionDuration: const Duration(milliseconds: 300),
                 transitionsBuilder: (
                     BuildContext context,

@@ -14,6 +14,12 @@ class Prefs {
   static const String _CUSTOMER_AUTH_TOKEN = "customer_auth_token";
   static const String _CUSTOMER_USER_NAME = "USER_NAME";
   static const String _CAFE_USER_NAME = "USER_NAME";
+  static const String _CAFE_USER_MAIL = "CAFE_USER_MAIL";
+  static const String _CAFE_USER_PHONE = "CAFE_USER_PHONE";
+  static const String _CAFE_USER_IMAGE = "CAFE_USER_IMAGE";
+
+
+
   static const String _USER_MAIL = "USER_MAIL";
   static const String _USER_ID = "user_id";
   static const String _LAYOUT_ID = "layout_id";
@@ -120,6 +126,29 @@ class Prefs {
     await _sharedPreferences!.remove('navigation_source');
   }
 
+  ///saving cafe user email
+  void setCafeUserMail({String? cafeUserMail}) {
+    _sharedPreferences!.setString(_CAFE_USER_MAIL, cafeUserMail!);
+  }
+
+  ///get method  for cafe user mail
+  String? getCafeUserMail() => _sharedPreferences?.getString(_CAFE_USER_MAIL);
+
+  ///saving cafe user phone
+  void setCafeUserPhone({String? cafeUserPhone}) {
+    _sharedPreferences!.setString(_CAFE_USER_PHONE, cafeUserPhone!);
+  }
+
+  ///get method  for cafe user phone
+  String? getCafeUserPhone() => _sharedPreferences?.getString(_CAFE_USER_PHONE);
+
+  ///saving cafe user base64 image
+  void setCafeUserImage({String? cafeUserImage}) {
+    _sharedPreferences!.setString(_CAFE_USER_IMAGE, cafeUserImage!);
+  }
+
+  ///get method  for cafe user image
+  String? getCafeUserImage() => _sharedPreferences?.getString(_CAFE_USER_IMAGE);
 
   // ///saving  layout id
   // void saveLayoutId({String? layoutId}) {

@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:dicetable/src/model/customer/favourite/get_favourite_response.dart';
 import 'package:dicetable/src/model/state_model.dart';
-import 'package:dicetable/src/resources/api_providers/customer/favourite/favourite_data_provider.dart';
+import 'package:dicetable/src/resources/api_providers/customer/favourite_data_provider.dart';
 import 'package:dicetable/src/ui/customer/cafe_list/cafe_model.dart';
 import 'package:equatable/equatable.dart';
 

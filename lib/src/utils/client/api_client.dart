@@ -2,8 +2,12 @@ import 'dart:io';
 
 import 'package:dicetable/src/model/cafe_owner/auth/forgot_password/forgot_password_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/forgot_password/password_reset_request.dart';
+import 'package:dicetable/src/model/cafe_owner/auth/login/google_login_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/login/login_request.dart';
+import 'package:dicetable/src/model/cafe_owner/auth/signUp/google_sign-up_request.dart';
+import 'package:dicetable/src/model/cafe_owner/auth/signUp/google_sign-up_response.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/sign_up_request.dart';
+import 'package:dicetable/src/model/cafe_owner/subscription/subscription_start_request.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:dicetable/src/utils/urls/urls.dart';
 import 'package:dio/dio.dart';
@@ -96,6 +100,8 @@ class ApiClient {
         HttpHeaders.contentTypeHeader: 'application/json',
         HttpHeaders.acceptHeader: 'application/json',
 
+
+
       },
       responseType: ResponseType.json,
       receiveDataWhenStatusError: true,
@@ -157,6 +163,44 @@ class ApiClient {
       UrlsDiceApp.passwordReset,
       data: passwordResetRequest,
 
+    );
+  }
+  //Google login
+  Future<Response> googleLogin(GoogleLoginRequest googleLoginRequest) {
+    return dioDiceApp.post(
+      UrlsDiceApp.googleLogin,
+      data: googleLoginRequest,
+
+    );
+  }
+  //Google Register
+  Future<Response> googleRegisterUser(GoogleSignUpRequest googleSignUpRequest) {
+    return dioDiceApp.post(
+      UrlsDiceApp.googleSignUp,
+      data: googleSignUpRequest,
+
+    );
+  }
+
+  ///Subscription
+  Future<Response> subscriptionStart(SubscriptionStartRequest subscriptionStartRequest) {
+    return dioDiceApp.post(
+      UrlsDiceApp.subscriptionStart,
+      data: subscriptionStartRequest,
+      options: Options(headers: {
+        "Authorization": ObjectFactory().prefs.getAuthToken(),
+      }),
+
+    );
+  }
+  //Initial subscription plan
+  Future<Response> getInitialSubscription() {
+    print("Bearer ${ObjectFactory().prefs.getAuthToken()}");
+    return dioDiceApp.get(
+      UrlsDiceApp.subscriptionInitial,
+      options: Options(headers: {
+        "Authorization": ObjectFactory().prefs.getAuthToken(),
+      }),
     );
   }
 
