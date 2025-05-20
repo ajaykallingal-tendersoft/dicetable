@@ -49,6 +49,8 @@ class User {
   final String updatedAt;
   final String createdAt;
   final int id;
+  final int? emailOtp;
+  final DateTime? otpExpiresAt;
 
   User({
     required this.userLogin,
@@ -61,6 +63,8 @@ class User {
     required this.updatedAt,
     required this.createdAt,
     required this.id,
+    this.emailOtp,
+    this.otpExpiresAt,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -75,6 +79,8 @@ class User {
       updatedAt: json['updated_at'],
       createdAt: json['created_at'],
       id: json['id'],
+      emailOtp: json["email_otp"],
+      otpExpiresAt: json["otp_expires_at"] == null ? null : DateTime.parse(json["otp_expires_at"]),
     );
   }
 }

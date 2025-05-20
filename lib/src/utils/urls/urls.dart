@@ -12,10 +12,16 @@ class UrlsDiceApp {
   static const String passwordReset = '/api/reset';
   static const String googleLogin = '/api/google/auth';
   static const String googleSignUp = '/api/google/signup';
+  static const String otpVerify = '/api/otp/verify';
 
   ///Subscription
   static const String subscriptionStart = '/api/subscription/start';
   static const String subscriptionInitial = '/api/subscription/new-subscription';
+  static const String subscriptionOverView = '/api/subscription/overview/id';
+
+  ///Home
+
+  static const String venueOwnerHome = '/api/cafe/dice-tables';
 
 
 

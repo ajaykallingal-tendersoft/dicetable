@@ -8,6 +8,7 @@ import 'package:dicetable/src/model/cafe_owner/auth/signUp/google_sign-up_reques
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/google_sign-up_response.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/sign_up_request.dart';
 import 'package:dicetable/src/model/cafe_owner/subscription/subscription_start_request.dart';
+import 'package:dicetable/src/model/verification/otp_verify_request.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:dicetable/src/utils/urls/urls.dart';
 import 'package:dio/dio.dart';
@@ -182,6 +183,14 @@ class ApiClient {
     );
   }
 
+  //Otp Verify
+  Future<Response> verifyOTP(OtpVerifyRequest otpVerifyRequest) {
+    return dioDiceApp.post(
+      UrlsDiceApp.otpVerify,
+     data: otpVerifyRequest
+    );
+  }
+
   ///Subscription
   Future<Response> subscriptionStart(SubscriptionStartRequest subscriptionStartRequest) {
     return dioDiceApp.post(
@@ -204,6 +213,17 @@ class ApiClient {
     );
   }
 
+// ///Venue owner home
+//   Future<Response> venueOwnerHome( ) {
+//     return dioDiceApp.post(
+//       UrlsDiceApp.subscriptionStart,
+//       data: subscriptionStartRequest,
+//       options: Options(headers: {
+//         "Authorization": ObjectFactory().prefs.getAuthToken(),
+//       }),
+//
+//     );
+//   }
 
 
 

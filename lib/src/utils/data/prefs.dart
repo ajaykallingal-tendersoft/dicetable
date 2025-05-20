@@ -12,12 +12,13 @@ class Prefs {
   static const String _USER_DECISON = "USER_DECISION";
   static const String _AUTH_TOKEN = "auth_token";
   static const String _CUSTOMER_AUTH_TOKEN = "customer_auth_token";
-  static const String _CUSTOMER_USER_NAME = "USER_NAME";
-  static const String _CAFE_USER_NAME = "USER_NAME";
-  static const String _CAFE_USER_MAIL = "CAFE_USER_MAIL";
-  static const String _CAFE_USER_PHONE = "CAFE_USER_PHONE";
-  static const String _CAFE_USER_IMAGE = "CAFE_USER_IMAGE";
-
+  static const String _CUSTOMER_USER_NAME = "user_name";
+  static const String _CAFE_USER_NAME = "user_name";
+  static const String _CAFE_USER_MAIL = "cafe_user_mail";
+  static const String _CAFE_USER_PHONE = "cafe_user_phone";
+  static const String _CAFE_USER_IMAGE = "cafe_user_image";
+  static const String _USER_MAIL_VERIFIED = "_user_mail_verified";
+  static const String _IS_GOOGLE = "is_google";
 
 
   static const String _USER_MAIL = "USER_MAIL";
@@ -232,6 +233,28 @@ class Prefs {
       _sharedPreferences!.getBool(_IS_CUSTOMER_LOGGED_IN) == true
       ? true
       : false;
+
+  ///Set  email is verified.
+  void setEmailVerified(bool status) {
+    _sharedPreferences!.setBool(_USER_MAIL_VERIFIED, status);
+  }
+
+  bool? isEmailVerified() => _sharedPreferences!.getBool(_USER_MAIL_VERIFIED) != null &&
+      _sharedPreferences!.getBool(_USER_MAIL_VERIFIED) == true
+      ? true
+      : false;
+
+  ///Set is Google.
+  void setIsGoogle(bool status) {
+    _sharedPreferences!.setBool(_IS_GOOGLE, status);
+  }
+
+  bool? isGoogle() => _sharedPreferences!.getBool(_IS_GOOGLE) != null &&
+      _sharedPreferences!.getBool(_IS_GOOGLE) == true
+      ? true
+      : false;
+
+
 
   // void setShowBirthdayWish(bool status) {
   //   _sharedPreferences!.setBool(_IS_SHOW_BIRTHDAY_WISH!, status);

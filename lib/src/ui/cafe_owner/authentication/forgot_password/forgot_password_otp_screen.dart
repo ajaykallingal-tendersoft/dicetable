@@ -53,7 +53,7 @@ class _ForgotPasswordOtpScreenState extends State<ForgotPasswordOtpScreen> {
                   textAlign: TextAlign.center,
                 ),
                 Gap(30),
-                OtpWidget(),
+                // OtpWidget(),
                 Gap(60),
                 InkWell(
                   onTap: () {

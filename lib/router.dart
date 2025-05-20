@@ -26,6 +26,7 @@ import 'package:dicetable/src/ui/customer/home/home_screen.dart';
 import 'package:dicetable/src/ui/customer/profile/customer_profile_screen.dart';
 import 'package:dicetable/src/ui/splash/splash_screen.dart';
 import 'package:dicetable/src/ui/verification/email_verification_screen.dart';
+import 'package:dicetable/src/ui/verification/verify_screen_argument.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 
@@ -110,7 +111,7 @@ class AppRouter {
             pageBuilder: (BuildContext context, GoRouterState state) {
               return CustomTransitionPage<void>(
                 key: state.pageKey,
-                child:  EmailVerificationScreen(),
+                child:  EmailVerificationScreen(verifyScreenArguments: state.extra as VerifyScreenArguments,),
                 transitionDuration: const Duration(milliseconds: 300),
                 transitionsBuilder: (
                     BuildContext context,

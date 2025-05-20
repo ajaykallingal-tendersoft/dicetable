@@ -1,5 +1,6 @@
 import 'package:dicetable/src/common/modal_barrier_with_progress_indicator_widget.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/sign_up/sign_up_screen_argument.dart';
+import 'package:dicetable/src/ui/verification/verify_screen_argument.dart';
 import 'package:dicetable/src/utils/network_connectivity/network_connectivity_bloc.dart';
 import 'package:dicetable/src/utils/network_connectivity/network_toast_manager.dart';
 import 'package:flutter/services.dart';
@@ -82,7 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
     bool isGoogle = false,
   }) {
     ObjectFactory().prefs.setAuthToken(token: token);
-    ObjectFactory().prefs.setIsLoggedIn(true);
+    ObjectFactory().prefs.setIsLoggedIn(false);
     if (isGoogle) {
       ObjectFactory().prefs.setCafeUserName(cafeUserName: name);
       ObjectFactory().prefs.setAuthToken(token: token);
@@ -135,6 +136,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   '',
                   isGoogle: false,
                 );
+                if(state.loginRequestResponse.status == false && state.loginRequestResponse.message ==  "Please verify your email first.") {
+                  Fluttertoast.showToast(
+                    msg: state.loginRequestResponse.message!,
+                    backgroundColor: AppColors.primaryWhiteColor,
+                    textColor: AppColors.appRedColor,
+                  );
+                  context.go('/verify',extra: VerifyScreenArguments(email: _emailController.text, otp: "", type: "login"));
+                }
               }
 
               if (state is GoogleLoginLoaded) {
@@ -568,7 +577,14 @@ class _LoginScreenState extends State<LoginScreen> {
                                                     'Dont have an account yet',
                                                 promptText: 'Sign Up Now',
                                                 onSignInTap: () {
-                                                  context.push('/signup');
+                                                  context.push('/signup',
+                                                      extra: SignUpScreenArgument(
+                                                          isGoggleSignUp: false,
+                                                          email: "",
+                                                          displayName: "",
+                                                          phone: "",
+                                                          imageBase64: "",
+                                                      ),);
                                                 },
                                               ).animate().fadeIn(
                                                 duration: 500.ms,

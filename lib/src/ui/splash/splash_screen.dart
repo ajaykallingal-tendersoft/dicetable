@@ -30,11 +30,17 @@ class _SplashScreenState extends State<SplashScreen> {
     final isCustomerLoggedIn = ObjectFactory().prefs.isCustomerLoggedIn() == true;
     final rememberDecision = ObjectFactory().prefs.getRememberDecision() ?? false;
     final userCategory = ObjectFactory().prefs.getUserDecisionName();
+    final isGoogleSignIn = ObjectFactory().prefs.isGoogle() == true;
+    final isEmailVerified = ObjectFactory().prefs.isEmailVerified() == true;
 
     ObjectFactory().prefs.setNavigationSource('splash_screen');
 
     if (isLoggedIn) {
-      context.go('/home');
+      if (isGoogleSignIn || isEmailVerified) {
+        context.go('/home');
+      } else {
+        context.go('/login');
+      }
     } else if (isCustomerLoggedIn) {
       context.go('/customer_home');
     } else if (rememberDecision && userCategory != null) {
