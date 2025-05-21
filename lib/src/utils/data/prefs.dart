@@ -23,6 +23,7 @@ class Prefs {
 
   static const String _USER_MAIL = "USER_MAIL";
   static const String _USER_ID = "user_id";
+  static const String _CAFE_ID = "cafe_id";
   static const String _LAYOUT_ID = "layout_id";
   static const String _COMPARE_CATEGORY_ID = "compare_category_id";
   static const String _CUSTOMER_NOTE = "customer_note";
@@ -150,6 +151,14 @@ class Prefs {
 
   ///get method  for cafe user image
   String? getCafeUserImage() => _sharedPreferences?.getString(_CAFE_USER_IMAGE);
+
+  ///Get method for cafeID
+  void setCafeId({String? cafeId}) {
+    _sharedPreferences!.setString(_CAFE_ID, cafeId!);
+  }
+
+  ///get method  for cafeID
+  String? getCafeId() => _sharedPreferences!.getString(_CAFE_ID);
 
   // ///saving  layout id
   // void saveLayoutId({String? layoutId}) {

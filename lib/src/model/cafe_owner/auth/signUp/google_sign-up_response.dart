@@ -3,6 +3,7 @@ class GoogleSignUpRequestResponse {
   final String? token;
   final User? user;
   final String? message;
+  final String? cafeId;
   final Map<String, List<String>>? errors;
   final Map<String, dynamic> extra;
 
@@ -11,6 +12,7 @@ class GoogleSignUpRequestResponse {
     this.token,
     this.user,
     this.message,
+    this.cafeId,
     this.errors,
     this.extra = const {},
   });
@@ -25,6 +27,7 @@ class GoogleSignUpRequestResponse {
           ? User.fromJson(Map<String, dynamic>.from(json['user']))
           : null,
       message: json['message'],
+      cafeId: json['cafe_id'],
       errors: json['errors'] != null
           ? Map<String, List<String>>.from(
           json['errors'].map((key, value) =>

@@ -6,9 +6,10 @@ import 'dart:convert';
 
 class LoginRequestResponse {
   final bool? status;
-  final String? token;
-  final String? type;
   final User? user;
+  final String? token;
+  final String? cafeId;
+  final String? type;
   final String? message;
   final String? error;
   final Map<String, dynamic>? errors;
@@ -19,6 +20,7 @@ class LoginRequestResponse {
     this.type,
     this.user,
     this.message,
+    this.cafeId,
     this.error,
     this.errors,
   });
@@ -28,6 +30,7 @@ class LoginRequestResponse {
     token: json["token"],
     type: json["type"],
     message: json["message"],
+    cafeId: json["cafe_id"],
     error: json["error"],
     errors: json["errors"],
   );
@@ -38,6 +41,7 @@ class LoginRequestResponse {
     if (token != null) data["token"] = token;
     if (type != null) data["type"] = type;
     if (message != null) data["message"] = message;
+    if(message != null) data['message'] = message;
     if (error != null) data["error"] = error;
     if (errors != null) data["errors"] = errors;
     return data;

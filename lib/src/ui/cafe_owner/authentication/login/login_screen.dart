@@ -77,30 +77,36 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _handleLoginSuccess(
-    BuildContext context,
-    String token,
-    String name, {
-    bool isGoogle = false,
-  }) {
+      BuildContext context,
+      String token,
+      String cafeId,
+      String name, {
+        bool isGoogle = false,
+      }) {
     ObjectFactory().prefs.setAuthToken(token: token);
-    ObjectFactory().prefs.setIsLoggedIn(false);
+    ObjectFactory().prefs.setCafeUserName(cafeUserName: name);
+    ObjectFactory().prefs.setCafeId(cafeId: cafeId);
+
     if (isGoogle) {
       ObjectFactory().prefs.setCafeUserName(cafeUserName: name);
-      ObjectFactory().prefs.setAuthToken(token: token);
+      ObjectFactory().prefs.setCafeId(cafeId: cafeId);
       ObjectFactory().prefs.setIsLoggedIn(true);
+    } else {
+      ObjectFactory().prefs.setIsLoggedIn(false);
     }
 
     context.go('/home');
+
     Fluttertoast.showToast(
       backgroundColor: AppColors.primaryWhiteColor,
       textColor: AppColors.appGreenColor,
       gravity: ToastGravity.BOTTOM,
-      msg:
-          isGoogle
-              ? "Successfully Logged In with Google."
-              : "Successfully Logged In.",
+      msg: isGoogle
+          ? "Successfully Logged In with Google."
+          : "Successfully Logged In.",
     );
   }
+
 
   @override
   void dispose() {
@@ -132,8 +138,9 @@ class _LoginScreenState extends State<LoginScreen> {
               if (state is LoginSuccessState) {
                 _handleLoginSuccess(
                   context,
-                  state.loginRequestResponse.token!,
-                  '',
+                  state.loginRequestResponse.token! ?? "",
+                   state.loginRequestResponse.cafeId ?? "",
+                   state.loginRequestResponse.user?.name.toString() ?? '',
                   isGoogle: false,
                 );
                 if(state.loginRequestResponse.status == false && state.loginRequestResponse.message ==  "Please verify your email first.") {
@@ -142,7 +149,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     backgroundColor: AppColors.primaryWhiteColor,
                     textColor: AppColors.appRedColor,
                   );
-                  context.go('/verify',extra: VerifyScreenArguments(email: _emailController.text, otp: "", type: "login"));
+                  context.go('/verify',extra: VerifyScreenArguments(email: _emailController.text, otp: "", type: "register"));
                 }
               }
 
@@ -154,6 +161,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     context,
                     response.token!,
                     response.user?.name ?? '',
+                    response.cafeId ?? '' ,
                     isGoogle: true,
                   );
                 } else {

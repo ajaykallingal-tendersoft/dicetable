@@ -17,7 +17,7 @@ class UrlsDiceApp {
   ///Subscription
   static const String subscriptionStart = '/api/subscription/start';
   static const String subscriptionInitial = '/api/subscription/new-subscription';
-  static const String subscriptionOverView = '/api/subscription/overview/id';
+  static const String subscriptionOverView = '/api/subscription/overview';
 
   ///Home
 

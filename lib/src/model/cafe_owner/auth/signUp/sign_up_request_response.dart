@@ -3,6 +3,7 @@ class SignUpRequestResponse {
   final String? token;
   final User? user;
   final String? message;
+  final String? cafeId;
   final Map<String, dynamic>? errors;
   final Map<String, dynamic> extra; // To hold any additional dynamic fields
 
@@ -11,6 +12,7 @@ class SignUpRequestResponse {
     this.token,
     this.user,
     this.message,
+    this.cafeId,
     this.errors,
     this.extra = const {},
   });
@@ -21,6 +23,7 @@ class SignUpRequestResponse {
     final token = json['token'] as String?;
     final user = json['user'] != null ? User.fromJson(json['user']) : null;
     final message = json['message'] as String?;
+    final cafeId = json['message'] as String?;
     final errors = json['errors'] != null ? Map<String, dynamic>.from(json['errors']) : null;
 
     // Remove known keys to get extra/dynamic fields
@@ -33,6 +36,7 @@ class SignUpRequestResponse {
       token: token,
       user: user,
       message: message,
+      cafeId: cafeId,
       errors: errors,
       extra: extra,
     );

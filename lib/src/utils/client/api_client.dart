@@ -212,6 +212,23 @@ class ApiClient {
       }),
     );
   }
+  //Subscription Overview
+  Future<Response> getSubscriptionOverview() {
+    final token = ObjectFactory().prefs.getAuthToken();
+    final cafeID = ObjectFactory().prefs.getUserId(); // Ensure this exists
+    final url = '${UrlsDiceApp.subscriptionOverView}/$cafeID';
+
+    print("Bearer $token");
+    print("URL: $url");
+
+    return dioDiceApp.get(
+      url,
+      options: Options(headers: {
+        "Authorization": token,
+      }),
+    );
+  }
+
 
 // ///Venue owner home
 //   Future<Response> venueOwnerHome( ) {

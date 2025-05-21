@@ -14,6 +14,8 @@ class GoogleLoginRequestResponse {
   final User? user;
   final int? type;
   final String? message;
+  final String? cafeId;
+
 
   GoogleLoginRequestResponse({
     this.status,
@@ -21,6 +23,7 @@ class GoogleLoginRequestResponse {
     this.user,
     this.type,
     this.message,
+    this.cafeId,
   });
 
   factory GoogleLoginRequestResponse.fromJson(Map<String, dynamic> json) => GoogleLoginRequestResponse(
@@ -29,6 +32,7 @@ class GoogleLoginRequestResponse {
     user: json["user"] == null ? null : User.fromJson(json["user"]),
     type: json["type"],
     message: json["message"],
+    cafeId: json['cafe_id'],
   );
 
   Map<String, dynamic> toJson() => {
@@ -37,6 +41,7 @@ class GoogleLoginRequestResponse {
     "user": user?.toJson(),
     "type": type,
     "message": message,
+    "cafe_id": cafeId,
   };
 }
 

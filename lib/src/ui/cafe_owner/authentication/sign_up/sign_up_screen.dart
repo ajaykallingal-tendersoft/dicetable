@@ -534,6 +534,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ObjectFactory().prefs.setCafeUserName(
                             cafeUserName: _venueNameController.text,
                           );
+                          ObjectFactory().prefs.setCafeId(cafeId: state.signUpRequestResponse.cafeId);
                           ObjectFactory().prefs.setIsGoogle(false);
                           ObjectFactory().prefs.setEmailVerified(false);
 
@@ -581,6 +582,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           ObjectFactory().prefs.setCafeUserName(
                             cafeUserName: _venueNameController.text,
                           );
+                          ObjectFactory().prefs.setCafeId(cafeId: state.googleSignUpRequestResponse.cafeId ?? '');
                           ObjectFactory().prefs.setIsGoogle(true);
                           ObjectFactory().prefs.setEmailVerified(true);
                           ObjectFactory().prefs.setIsLoggedIn(true);

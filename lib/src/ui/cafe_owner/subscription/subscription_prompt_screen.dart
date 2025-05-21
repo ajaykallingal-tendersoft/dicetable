@@ -3,6 +3,7 @@ import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/model/cafe_owner/subscription/subscription_start_request.dart';
 import 'package:dicetable/src/ui/cafe_owner/subscription/bloc/subscription_bloc.dart';
 import 'package:dicetable/src/ui/cafe_owner/subscription/widget/subscription_prompt_promo_code_widget.dart';
+import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
