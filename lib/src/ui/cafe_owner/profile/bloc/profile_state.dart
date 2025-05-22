@@ -35,6 +35,7 @@ class ProfileOpeningHour extends Equatable {
   @override
   List<Object?> get props => [isEnabled, from, to];
 }
+
 class ProfileState extends Equatable {
   final String venueName;
   final String venueDescription;
@@ -48,7 +49,6 @@ class ProfileState extends Equatable {
   final Map<String, ProfileOpeningHour> openingHours;
   final XFile? image;
 
-
   const ProfileState({
     this.venueName = '',
     this.venueDescription = '',
@@ -58,17 +58,18 @@ class ProfileState extends Equatable {
     this.phone = '',
     this.address = '',
     this.postalCode = '',
-    this.venueTypes = const {  'Restuarant': true,
+    this.venueTypes = const {
+      'Restuarant': true,
       'Cafe': true,
       'Bakeries': true,
-      'Dessert Venue': false,
+      'Dessert Venue': true,
       'Pub&Bars': false,
       'Clubs': false,
       'Activity Venue': false,
-      'Hotel Restaurant/Cafe': false,},
+      'Hotel Restaurant/Cafe': false,
+    },
     this.openingHours = const {},
     this.image,
-
   });
 
   ProfileState copyWith({
@@ -83,7 +84,6 @@ class ProfileState extends Equatable {
     Map<String, bool>? venueTypes,
     Map<String, ProfileOpeningHour>? openingHours,
     XFile? image,
-
   }) {
     return ProfileState(
       venueName: venueName ?? this.venueName,
@@ -99,8 +99,6 @@ class ProfileState extends Equatable {
       image: image ?? this.image,
     );
   }
-
-
 
   @override
   List<Object?> get props => [
@@ -118,9 +116,7 @@ class ProfileState extends Equatable {
   ];
 }
 
-class ProfileImageLoadingState extends ProfileState {
-
-}
+class ProfileImageLoadingState extends ProfileState {}
 
 class ProfileImageLoadedState extends ProfileState {
   final XFile image;
@@ -132,4 +128,18 @@ class ProfileImageErrorState extends ProfileState {
   final String errorMessage;
 
   const ProfileImageErrorState({required this.errorMessage});
+}
+
+class ProfileLoading extends ProfileState {}
+
+class ProfileLoaded extends ProfileState {
+  final Map<String, dynamic> profileData;
+
+  ProfileLoaded({required this.profileData});
+}
+
+class ProfileLoadError extends ProfileState {
+  final String errorMessage;
+
+  ProfileLoadError({required this.errorMessage});
 }

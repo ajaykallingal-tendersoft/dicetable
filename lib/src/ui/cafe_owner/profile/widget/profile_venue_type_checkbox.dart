@@ -11,8 +11,15 @@ class ProfileVenueTypeCheckboxes extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileBloc, ProfileState>(
       builder: (context, state) {
-        final venueTypes = state.venueTypes;
+        // final venueTypes = state.venu\eTypes;
+        late Map<String, bool> venueTypes;
 
+        if (state is EditProfileLoaded) {
+          venueTypes = state.venueTypes;
+        } else {
+          venueTypes = state.venueTypes;
+        }
+        // print(venueTypes.runtimeType);
         return Container(
           width: double.infinity,
           padding: const EdgeInsets.all(16),
@@ -25,50 +32,50 @@ class ProfileVenueTypeCheckboxes extends StatelessWidget {
             children: [
               Text(
                 'Venue Type',
-                style: TextTheme.of(context).labelMedium!.copyWith(
-                  fontSize: 14,
-                  color: AppColors.primary,
-                ),
+                style: TextTheme.of(
+                  context,
+                ).labelMedium!.copyWith(fontSize: 14, color: AppColors.primary),
               ),
               const SizedBox(height: 16),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: venueTypes.entries.map((entry) {
-                  return SizedBox(
-                    width: 150,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Checkbox(
-                          value: entry.value,
-                          onChanged: (bool? newValue) {
-                            if (newValue != null) {
-                              context.read<ProfileBloc>().add(
-                                ToggleVenueType(
-                                  venueType: entry.key,
-                                  isSelected: newValue,
-                                ),
-                              );
-                            }
-                          },
-                          activeColor: const Color(0xFF003366),
-                        ),
-                        const Gap(0),
-                        Expanded(
-                          child: Text(
-                            entry.key,
-                            textAlign: TextAlign.left,
-                            style: const TextStyle(
-                              color: Color(0xFF003366),
-                              fontSize: 14,
+                children:
+                    venueTypes.entries.map((entry) {
+                      return SizedBox(
+                        width: 150,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Checkbox(
+                              value: entry.value,
+                              onChanged: (bool? newValue) {
+                                if (newValue != null) {
+                                  context.read<ProfileBloc>().add(
+                                    ToggleVenueType(
+                                      venueType: entry.key,
+                                      isSelected: newValue,
+                                    ),
+                                  );
+                                }
+                              },
+                              activeColor: const Color(0xFF003366),
                             ),
-                          ),
+                            const Gap(0),
+                            Expanded(
+                              child: Text(
+                                entry.key,
+                                textAlign: TextAlign.left,
+                                style: const TextStyle(
+                                  color: Color(0xFF003366),
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                  );
-                }).toList(),
+                      );
+                    }).toList(),
               ),
             ],
           ),

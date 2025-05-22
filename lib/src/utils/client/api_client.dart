@@ -18,11 +18,10 @@ class ApiClient {
   ApiClient() {
     ///Dev
     initClientDiceAppDev();
+
     ///Live
     // initClientDiceAppLive();
   }
-
-
 
   Dio dioDiceApp = Dio();
 
@@ -88,10 +87,8 @@ class ApiClient {
   //   ));
   // }
 
-
   ///client dev
   initClientDiceAppDev() async {
-
     _baseOptionsDiceApp = BaseOptions(
       baseUrl: UrlsDiceApp.baseUrlDev,
       connectTimeout: const Duration(seconds: 5000),
@@ -100,9 +97,6 @@ class ApiClient {
       headers: {
         HttpHeaders.contentTypeHeader: 'application/json',
         HttpHeaders.acceptHeader: 'application/json',
-
-
-
       },
       responseType: ResponseType.json,
       receiveDataWhenStatusError: true,
@@ -112,112 +106,100 @@ class ApiClient {
     dioDiceApp.httpClientAdapter = IOHttpClientAdapter(
       createHttpClient: () {
         // Don't trust any certificate just because their root cert is trusted.
-        final HttpClient client =
-        HttpClient(context: SecurityContext(withTrustedRoots: false));
+        final HttpClient client = HttpClient(
+          context: SecurityContext(withTrustedRoots: false),
+        );
         // You can test the intermediate / root cert here. We just ignore it.
         client.badCertificateCallback =
-        ((X509Certificate cert, String host, int port) => true);
+            ((X509Certificate cert, String host, int port) => true);
         return client;
       },
     );
 
-
-    dioDiceApp.interceptors.add(InterceptorsWrapper(
-      onRequest: (reqOptions, handler) {
-        return handler.next(reqOptions);
-      },
-      onError: (DioException dioError, handler) {
-        return handler.next(dioError);
-      },
-    ));
+    dioDiceApp.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (reqOptions, handler) {
+          return handler.next(reqOptions);
+        },
+        onError: (DioException dioError, handler) {
+          return handler.next(dioError);
+        },
+      ),
+    );
   }
 
   ///Cafe Owner
   /// Auth
   //Register
   Future<Response> registerUser(SignUpRequest signupRequest) {
-    return dioDiceApp.post(
-      UrlsDiceApp.register,
-      data: signupRequest,
-
-    );
+    return dioDiceApp.post(UrlsDiceApp.register, data: signupRequest);
   }
+
   //Login
   Future<Response> loginUser(LoginRequest loginRequest) {
-    return dioDiceApp.post(
-      UrlsDiceApp.login,
-      data: loginRequest,
-
-    );
+    return dioDiceApp.post(UrlsDiceApp.login, data: loginRequest);
   }
+
   //ForgotPassword
   Future<Response> forgotPassword(ForgotPasswordRequest forgotPasswordRequest) {
     return dioDiceApp.post(
       UrlsDiceApp.forgotPassword,
       data: forgotPasswordRequest,
-
     );
   }
+
   //PasswordReset
   Future<Response> passwordReset(PasswordResetRequest passwordResetRequest) {
     return dioDiceApp.post(
       UrlsDiceApp.passwordReset,
       data: passwordResetRequest,
-
     );
   }
+
   //Google login
   Future<Response> googleLogin(GoogleLoginRequest googleLoginRequest) {
-    return dioDiceApp.post(
-      UrlsDiceApp.googleLogin,
-      data: googleLoginRequest,
-
-    );
+    return dioDiceApp.post(UrlsDiceApp.googleLogin, data: googleLoginRequest);
   }
+
   //Google Register
   Future<Response> googleRegisterUser(GoogleSignUpRequest googleSignUpRequest) {
-    return dioDiceApp.post(
-      UrlsDiceApp.googleSignUp,
-      data: googleSignUpRequest,
-
-    );
+    return dioDiceApp.post(UrlsDiceApp.googleSignUp, data: googleSignUpRequest);
   }
 
   //Otp Verify
   Future<Response> verifyOTP(OtpVerifyRequest otpVerifyRequest) {
-    return dioDiceApp.post(
-      UrlsDiceApp.otpVerify,
-     data: otpVerifyRequest
-    );
+    return dioDiceApp.post(UrlsDiceApp.otpVerify, data: otpVerifyRequest);
   }
+
   //Get Venue type
   Future<Response> getVenueTypes() {
-    return dioDiceApp.get(
-      UrlsDiceApp.venueType,
-    );
+    return dioDiceApp.get(UrlsDiceApp.venueType);
   }
 
   ///Subscription
-  Future<Response> subscriptionStart(SubscriptionStartRequest subscriptionStartRequest) {
+  Future<Response> subscriptionStart(
+    SubscriptionStartRequest subscriptionStartRequest,
+  ) {
     return dioDiceApp.post(
       UrlsDiceApp.subscriptionStart,
       data: subscriptionStartRequest,
-      options: Options(headers: {
-        "Authorization": ObjectFactory().prefs.getAuthToken(),
-      }),
-
+      options: Options(
+        headers: {"Authorization": ObjectFactory().prefs.getAuthToken()},
+      ),
     );
   }
+
   //Initial subscription plan
   Future<Response> getInitialSubscription() {
     print("Bearer ${ObjectFactory().prefs.getAuthToken()}");
     return dioDiceApp.get(
       UrlsDiceApp.subscriptionInitial,
-      options: Options(headers: {
-        "Authorization": ObjectFactory().prefs.getAuthToken(),
-      }),
+      options: Options(
+        headers: {"Authorization": ObjectFactory().prefs.getAuthToken()},
+      ),
     );
   }
+
   //Subscription Overview
   Future<Response> getSubscriptionOverview() {
     final token = ObjectFactory().prefs.getAuthToken();
@@ -229,40 +211,51 @@ class ApiClient {
 
     return dioDiceApp.get(
       url,
-      options: Options(headers: {
-        "Authorization": token,
-      }),
+      options: Options(headers: {"Authorization": token}),
     );
   }
 
-
-///Venue owner home
-  Future<Response> getVenueOwnerHomeData( ) {
+  ///Venue owner home
+  Future<Response> getVenueOwnerHomeData() {
     return dioDiceApp.get(
       UrlsDiceApp.venueOwnerHome,
-      options: Options(headers: {
-        "Authorization": ObjectFactory().prefs.getAuthToken(),
-      }),
+      options: Options(
+        headers: {"Authorization": ObjectFactory().prefs.getAuthToken()},
+      ),
     );
   }
 
-
-
-
-
   ///Customer
-///
-Future<Response> getFavourite() {
+  ///
+  Future<Response> getFavourite() {
     print("Bearer ${ObjectFactory().prefs.getCustomerAuthToken()}");
-  return dioDiceApp.get(
-    UrlsDiceApp.getFavourite,
-    options: Options(headers: {
-      "Authorization": ObjectFactory().prefs.getCustomerAuthToken(),
-    }),
-  );
-}
+    return dioDiceApp.get(
+      UrlsDiceApp.getFavourite,
+      options: Options(
+        headers: {
+          "Authorization": ObjectFactory().prefs.getCustomerAuthToken(),
+        },
+      ),
+    );
+  }
 
+  Future<Response> getCafeProfileById(String id) {
+    return dioDiceApp.get(
+      '${UrlsDiceApp.baseUrlDev}${UrlsDiceApp.getProfile}$id',
+      options: Options(
+        headers: {"Authorization": ObjectFactory().prefs.getAuthToken()},
+      ),
+    );
+  }
 
+  Future<Response> getCafeEditProfilebyId(String id) {
+    return dioDiceApp.get(
+      '${UrlsDiceApp.baseUrlDev}${UrlsDiceApp.getEditProfile}$id',
+      options: Options(
+        headers: {"Authorization": ObjectFactory().prefs.getAuthToken()},
+      ),
+    );
+  }
   //
   // ///Login
   // Future<Response> loginRequest(LoginRequest loginRequest) {
@@ -312,8 +305,4 @@ Future<Response> getFavourite() {
   //     }),
   //   );
   // }
-
-
-
-
 }

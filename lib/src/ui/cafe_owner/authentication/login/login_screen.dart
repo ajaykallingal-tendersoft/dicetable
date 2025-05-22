@@ -77,27 +77,25 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _handleLoginSuccess(
-      BuildContext context,
-      String token,
-      String cafeId,
-      String name, {
-        bool isGoogle = false,
-      }) {
+    BuildContext context,
+    String token,
+    String cafeId,
+    String name, {
+    bool isGoogle = false,
+  }) {
     ObjectFactory().prefs.setAuthToken(token: token);
     ObjectFactory().prefs.setCafeUserName(cafeUserName: name);
     ObjectFactory().prefs.setCafeId(cafeId: cafeId);
 
     if (isGoogle) {
-
       ObjectFactory().prefs.setCafeUserName(cafeUserName: name);
       ObjectFactory().prefs.setCafeId(cafeId: cafeId);
       ObjectFactory().prefs.setIsLoggedIn(true);
     } else {
-      if(ObjectFactory().prefs.isEmailVerified() == false) {
+      if (ObjectFactory().prefs.isEmailVerified() == false) {
         ObjectFactory().prefs.setIsLoggedIn(false);
-      }else {
+      } else {
         ObjectFactory().prefs.setIsLoggedIn(true);
-
       }
     }
 
@@ -107,12 +105,12 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: AppColors.primaryWhiteColor,
       textColor: AppColors.appGreenColor,
       gravity: ToastGravity.BOTTOM,
-      msg: isGoogle
-          ? "Successfully Logged In with Google."
-          : "Successfully Logged In.",
+      msg:
+          isGoogle
+              ? "Successfully Logged In with Google."
+              : "Successfully Logged In.",
     );
   }
-
 
   @override
   void dispose() {
@@ -154,13 +152,22 @@ class _LoginScreenState extends State<LoginScreen> {
                   isGoogle: false,
                 );
 
-                if(state.loginRequestResponse.status == false && state.loginRequestResponse.message ==  "Please verify your email first.") {
+                if (state.loginRequestResponse.status == false &&
+                    state.loginRequestResponse.message ==
+                        "Please verify your email first.") {
                   Fluttertoast.showToast(
                     msg: state.loginRequestResponse.message!,
                     backgroundColor: AppColors.primaryWhiteColor,
                     textColor: AppColors.appRedColor,
                   );
-                  context.go('/verify',extra: VerifyScreenArguments(email: _emailController.text, otp: "", type: "register"));
+                  context.go(
+                    '/verify',
+                    extra: VerifyScreenArguments(
+                      email: _emailController.text,
+                      otp: "",
+                      type: "register",
+                    ),
+                  );
                 }
               }
 
@@ -171,7 +178,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   _handleLoginSuccess(
                     context,
                     response.token!,
-                    response.cafeId ?? '' ,
+                    response.cafeId ?? '',
                     response.user?.name ?? '',
                     isGoogle: true,
                   );
@@ -596,14 +603,16 @@ class _LoginScreenState extends State<LoginScreen> {
                                                     'Dont have an account yet',
                                                 promptText: 'Sign Up Now',
                                                 onSignInTap: () {
-                                                  context.push('/signup',
-                                                      extra: SignUpScreenArgument(
-                                                          isGoggleSignUp: false,
-                                                          email: "",
-                                                          displayName: "",
-                                                          phone: "",
-                                                          imageBase64: "",
-                                                      ),);
+                                                  context.push(
+                                                    '/signup',
+                                                    extra: SignUpScreenArgument(
+                                                      isGoggleSignUp: false,
+                                                      email: "",
+                                                      displayName: "",
+                                                      phone: "",
+                                                      imageBase64: "",
+                                                    ),
+                                                  );
                                                 },
                                               ).animate().fadeIn(
                                                 duration: 500.ms,
