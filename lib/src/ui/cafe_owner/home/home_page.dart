@@ -8,9 +8,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
-
 import '../notification/notification_cubit.dart';
-import 'bloc/card_cubit.dart';
 import 'widget/expandable_card.dart';
 
 class HomePage extends StatelessWidget {
@@ -132,37 +130,37 @@ class HomePage extends StatelessWidget {
                 ),
               ),
             ),
-            SliverPadding(
-              padding:
-              const EdgeInsets.only(bottom: 20),
-              sliver: BlocBuilder<HomeBloc, HomeState>(
-                builder: (context, state) {
-                  if(state is HomeLoaded) {
-                    return AnimationLimiter(
-                      child: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                              (context, index) {
-                            final card = state.cards;
-                            return AnimationConfiguration.staggeredList(
-                              position: index,
-                              duration: const Duration(milliseconds: 375),
-                              child: SlideAnimation(
-                                verticalOffset: 50.0,
-                                child: FadeInAnimation(
-                                  child:
-                                  ExpandableCard(index: index, card: card),
-                                ),
-                              ),
-                            );
-                          },
-                          childCount: state.cards.length,
-                        ),
-                      ),
-                    );
-                  }
-                },
-              ),
-            ),
+            // SliverPadding(
+            //   padding:
+            //   const EdgeInsets.only(bottom: 20),
+            //   sliver: BlocBuilder<HomeBloc, HomeState>(
+            //     builder: (context, state) {
+            //       if(state is HomeLoaded) {
+            //         return AnimationLimiter(
+            //           child: SliverList(
+            //             delegate: SliverChildBuilderDelegate(
+            //                   (context, index) {
+            //                 final card = state.cards;
+            //                 return AnimationConfiguration.staggeredList(
+            //                   position: index,
+            //                   duration: const Duration(milliseconds: 375),
+            //                   child: SlideAnimation(
+            //                     verticalOffset: 50.0,
+            //                     child: FadeInAnimation(
+            //                       child:
+            //                       ExpandableCard(index: index, card: card),
+            //                     ),
+            //                   ),
+            //                 );
+            //               },
+            //               childCount: state.cards.length,
+            //             ),
+            //           ),
+            //         );
+            //       }
+            //     },
+            //   ),
+            // ),
           ],
         ),
       ),

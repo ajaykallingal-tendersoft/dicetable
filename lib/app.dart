@@ -7,7 +7,6 @@ import 'package:dicetable/src/resources/api_providers/venue_owner/home_data_prov
 import 'package:dicetable/src/resources/api_providers/venue_owner/subscription_data_provider.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/login/cubit/google_sign_in_cubit.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/sign_up/bloc/sign_up/sign_up_bloc.dart';
-import 'package:dicetable/src/ui/cafe_owner/home/bloc/card_cubit.dart';
 import 'package:dicetable/src/ui/cafe_owner/home/bloc/home_bloc.dart';
 import 'package:dicetable/src/ui/cafe_owner/notification/notification_cubit.dart';
 import 'package:dicetable/src/ui/cafe_owner/profile/bloc/profile_bloc.dart';
@@ -36,9 +35,6 @@ class App extends StatelessWidget {
         BlocProvider<NotificationCubit>(
           create: (context) => NotificationCubit(),
         ),
-        BlocProvider<CardCubit>(
-          create: (context) => CardCubit(),
-        ),
         BlocProvider<ProfileBloc>(
           create: (context) => ProfileBloc(),
         ),
@@ -55,9 +51,9 @@ class App extends StatelessWidget {
         BlocProvider(
           create: (context) => SignUpBloc(authDataProvider: AuthDataProvider()),
         ),
-        BlocProvider(
-          create: (context) => HomeBloc(homeDataProvider: HomeDataProvider()),
-        ),
+        // BlocProvider(
+        //   create: (context) => HomeBloc(homeDataProvider: HomeDataProvider()),
+        // ),
       ],
       child: ScreenUtilInit(
         designSize: const Size(430, 932),
