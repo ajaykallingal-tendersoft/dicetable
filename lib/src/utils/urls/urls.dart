@@ -24,6 +24,7 @@ class UrlsDiceApp {
   ///Home
 
   static const String venueOwnerHome = '/api/cafe/dice-tables';
+  static const String updateDiceTable = '/api/cafe/dice-tables/update';
 
 
 

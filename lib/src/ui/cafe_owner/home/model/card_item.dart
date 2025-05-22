@@ -1,53 +1,84 @@
-import 'package:equatable/equatable.dart';
 import 'package:dicetable/src/model/cafe_owner/home/venue_owner_home_screen_response.dart';
 
-class CardModel extends Equatable {
+import '../../../../model/cafe_owner/home/available_days.dart';
+import '../../../../model/cafe_owner/home/venue_owner_home_screen_response.dart' as model;
+class CardModel {
+  final int id;
   final String title;
-  final bool isChecked;
+  final String? subTitle;
+  final String? description;
+  final String? iconImage;
+  final String? moreInfo;
+  final List<AvailableDay> availableDays;
+  final bool isSelected;
   final bool isExpanded;
-  final String editedAvailabilityText;
-  final String editedPromoText;
-  final AvailableDay? selectedDay;
-  final DiceTable dice;
+  final String availabilityText;
+  final String promoText;
+  final List<AvailableDay> selectedDays;
 
-  const CardModel({
+  CardModel({
+    required this.id,
     required this.title,
-    required this.isChecked,
-    required this.isExpanded,
-    required this.editedAvailabilityText,
-    required this.editedPromoText,
-    required this.selectedDay,
-    required this.dice,
+    this.subTitle,
+    this.description,
+    this.iconImage,
+    this.moreInfo,
+    required this.availableDays,
+    this.isSelected = false,
+    this.isExpanded = false,
+    this.availabilityText = '',
+    this.promoText = '',
+    this.selectedDays = const [],
   });
 
-  CardModel copyWith({
-    String? title,
-    bool? isChecked,
-    bool? isExpanded,
-    String? editedAvailabilityText,
-    String? editedPromoText,
-    AvailableDay? selectedDay,
-    DiceTable? dice,
-  }) {
+  factory CardModel.fromDiceTable(DiceTable diceTable) {
+    List<AvailableDay> availableDaysList = [];
+    if (diceTable.availableDays != null) {
+      availableDaysList = List<AvailableDay>.from(diceTable.availableDays!);
+    }
+
+
     return CardModel(
-      title: title ?? this.title,
-      isChecked: isChecked ?? this.isChecked,
-      isExpanded: isExpanded ?? this.isExpanded,
-      editedAvailabilityText: editedAvailabilityText ?? this.editedAvailabilityText,
-      editedPromoText: editedPromoText ?? this.editedPromoText,
-      selectedDay: selectedDay ?? this.selectedDay,
-      dice: dice ?? this.dice,
+      id: diceTable.id ?? 0,
+      title: diceTable.title ?? '',
+      subTitle: diceTable.subTitle,
+      description: diceTable.description,
+      iconImage: diceTable.iconImage,
+      moreInfo: diceTable.moreInfo,
+      availableDays: availableDaysList,
+      isSelected: diceTable.selected ?? false,
+        selectedDays: []
     );
   }
 
-  @override
-  List<Object?> get props => [
-    title,
-    isChecked,
-    isExpanded,
-    editedAvailabilityText,
-    editedPromoText,
-    selectedDay,
-    dice,
-  ];
+  CardModel copyWith({
+    int? id,
+    String? title,
+    String? subTitle,
+    String? description,
+    String? iconImage,
+    String? moreInfo,
+    List<AvailableDay>? availableDays,
+    bool? isSelected,
+    bool? isExpanded,
+    String? availabilityText,
+    String? promoText,
+    List<AvailableDay>? selectedDays,
+  }) {
+    return CardModel(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      subTitle: subTitle ?? this.subTitle,
+      description: description ?? this.description,
+      iconImage: iconImage ?? this.iconImage,
+      moreInfo: moreInfo ?? this.moreInfo,
+      availableDays: availableDays ?? this.availableDays,
+      isSelected: isSelected ?? this.isSelected,
+      isExpanded: isExpanded ?? this.isExpanded,
+      availabilityText: availabilityText ?? this.availabilityText,
+      promoText: promoText ?? this.promoText,
+      selectedDays: selectedDays ?? this.selectedDays,
+    );
+  }
 }
+

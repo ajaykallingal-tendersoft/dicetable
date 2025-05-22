@@ -7,6 +7,7 @@ import 'package:dicetable/src/model/cafe_owner/auth/login/login_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/google_sign-up_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/google_sign-up_response.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/sign_up_request.dart';
+import 'package:dicetable/src/model/cafe_owner/home/dice_table_update_request.dart';
 import 'package:dicetable/src/model/cafe_owner/subscription/subscription_start_request.dart';
 import 'package:dicetable/src/model/verification/otp_verify_request.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
@@ -237,6 +238,7 @@ class ApiClient {
 
 
 ///Venue owner home
+  //GetVenueOwnerHomeData
   Future<Response> getVenueOwnerHomeData( ) {
     return dioDiceApp.get(
       UrlsDiceApp.venueOwnerHome,
@@ -245,8 +247,17 @@ class ApiClient {
       }),
     );
   }
+ //Update DiceTable Type
+  Future<Response> updateDiceTableType(DiceTableTypeUpdateRequest diceTableUpdateRequest) {
+    return dioDiceApp.post(
+      UrlsDiceApp.updateDiceTable,
+      data: diceTableUpdateRequest,
+      options: Options(headers: {
+        "Authorization": ObjectFactory().prefs.getAuthToken(),
+      }),
 
-
+    );
+  }
 
 
 

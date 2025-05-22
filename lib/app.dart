@@ -51,9 +51,9 @@ class App extends StatelessWidget {
         BlocProvider(
           create: (context) => SignUpBloc(authDataProvider: AuthDataProvider()),
         ),
-        // BlocProvider(
-        //   create: (context) => HomeBloc(homeDataProvider: HomeDataProvider()),
-        // ),
+        BlocProvider(
+          create: (context) => HomeBloc(homeDataProvider: HomeDataProvider()),
+        ),
       ],
       child: ScreenUtilInit(
         designSize: const Size(430, 932),
