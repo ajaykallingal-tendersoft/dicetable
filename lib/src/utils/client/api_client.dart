@@ -190,6 +190,12 @@ class ApiClient {
      data: otpVerifyRequest
     );
   }
+  //Get Venue type
+  Future<Response> getVenueTypes() {
+    return dioDiceApp.get(
+      UrlsDiceApp.venueType,
+    );
+  }
 
   ///Subscription
   Future<Response> subscriptionStart(SubscriptionStartRequest subscriptionStartRequest) {
@@ -215,7 +221,7 @@ class ApiClient {
   //Subscription Overview
   Future<Response> getSubscriptionOverview() {
     final token = ObjectFactory().prefs.getAuthToken();
-    final cafeID = ObjectFactory().prefs.getUserId(); // Ensure this exists
+    final cafeID = ObjectFactory().prefs.getCafeId(); // Ensure this exists
     final url = '${UrlsDiceApp.subscriptionOverView}/$cafeID';
 
     print("Bearer $token");
@@ -230,17 +236,15 @@ class ApiClient {
   }
 
 
-// ///Venue owner home
-//   Future<Response> venueOwnerHome( ) {
-//     return dioDiceApp.post(
-//       UrlsDiceApp.subscriptionStart,
-//       data: subscriptionStartRequest,
-//       options: Options(headers: {
-//         "Authorization": ObjectFactory().prefs.getAuthToken(),
-//       }),
-//
-//     );
-//   }
+///Venue owner home
+  Future<Response> getVenueOwnerHomeData( ) {
+    return dioDiceApp.get(
+      UrlsDiceApp.venueOwnerHome,
+      options: Options(headers: {
+        "Authorization": ObjectFactory().prefs.getAuthToken(),
+      }),
+    );
+  }
 
 
 

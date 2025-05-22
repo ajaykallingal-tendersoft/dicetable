@@ -17,3 +17,9 @@ class StartSubscriptionEvent extends SubscriptionEvent {
   @override
   List<Object?> get props => [subscriptionStartRequest];
 }
+
+class FetchSubscriptionOverview extends SubscriptionEvent{
+  @override
+  List<Object?> get props => [];
+
+}

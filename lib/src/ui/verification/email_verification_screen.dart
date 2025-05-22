@@ -82,7 +82,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                   gravity: ToastGravity.BOTTOM,
                   msg: state.otpVerificationResponse.message!,
                 );
-                context.go('/home');
+                context.go('/subscription_prompt');
               }
             }
             if (state is VerificationErrorState) {
@@ -125,117 +125,120 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                     horizontal: 26,
                     vertical: 10,
                   ),
-                  child: Column(
-                    children: [
-                      Gap(100),
-                      Text(
-                        "We have sent the verification code via email to ${widget.verifyScreenArguments.email}",
-                        style: TextTheme.of(context).labelLarge!.copyWith(
-                          fontSize: 16,
-                          color: AppColors.primaryBlackColor,
+                  child: SingleChildScrollView(
+                    physics: BouncingScrollPhysics(),
+                    child: Column(
+                      children: [
+                        Gap(100),
+                        Text(
+                          "We have sent the verification code via email to ${widget.verifyScreenArguments.email}",
+                          style: TextTheme.of(context).labelLarge!.copyWith(
+                            fontSize: 16,
+                            color: AppColors.primaryBlackColor,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                      Gap(30),
-                      Form(
-                        key: formKey,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Directionality(
-                              textDirection: TextDirection.ltr,
-                              child: Pinput(
-                                controller: pinController,
-                                focusNode: focusNode,
-                                length: 4,
-                                defaultPinTheme: defaultPinTheme,
-                                separatorBuilder:
-                                    (index) => const SizedBox(width: 8),
-                                validator: (value) {
-                                  return value ==
-                                          widget.verifyScreenArguments.otp
-                                      ? null
-                                      : 'Pin is incorrect';
-                                },
-                                hapticFeedbackType:
-                                    HapticFeedbackType.lightImpact,
-                                onCompleted:
-                                    (pin) => debugPrint('onCompleted: $pin'),
-                                onChanged:
-                                    (value) => debugPrint('onChanged: $value'),
-                                cursor: Column(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    Container(
-                                      margin: const EdgeInsets.only(bottom: 9),
-                                      width: 22,
-                                      height: 1,
-                                      color: AppColors.primaryWhiteColor,
-                                    ),
-                                  ],
-                                ),
-                                focusedPinTheme: defaultPinTheme.copyWith(
-                                  decoration: defaultPinTheme.decoration!
-                                      .copyWith(
-                                        borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(
-                                          color: focusedBorderColor,
-                                        ),
+                        Gap(30),
+                        Form(
+                          key: formKey,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Directionality(
+                                textDirection: TextDirection.ltr,
+                                child: Pinput(
+                                  controller: pinController,
+                                  focusNode: focusNode,
+                                  length: 4,
+                                  defaultPinTheme: defaultPinTheme,
+                                  separatorBuilder:
+                                      (index) => const SizedBox(width: 8),
+                                  validator: (value) {
+                                    return value ==
+                                            widget.verifyScreenArguments.otp
+                                        ? null
+                                        : 'Pin is incorrect';
+                                  },
+                                  hapticFeedbackType:
+                                      HapticFeedbackType.lightImpact,
+                                  onCompleted:
+                                      (pin) => debugPrint('onCompleted: $pin'),
+                                  onChanged:
+                                      (value) => debugPrint('onChanged: $value'),
+                                  cursor: Column(
+                                    mainAxisAlignment: MainAxisAlignment.end,
+                                    children: [
+                                      Container(
+                                        margin: const EdgeInsets.only(bottom: 9),
+                                        width: 22,
+                                        height: 1,
+                                        color: AppColors.primaryWhiteColor,
                                       ),
-                                ),
-                                submittedPinTheme: defaultPinTheme.copyWith(
-                                  decoration: defaultPinTheme.decoration!
-                                      .copyWith(
-                                        color: fillColor,
-                                        borderRadius: BorderRadius.circular(8),
-                                        border: Border.all(
-                                          color: AppColors.primary,
-                                        ),
-                                      ),
-                                ),
-                                errorPinTheme: defaultPinTheme.copyBorderWith(
-                                  border: Border.all(
-                                    color: AppColors.appRedColor,
+                                    ],
                                   ),
-                                ),
-                                preFilledWidget: Center(
-                                  child: Container(
-                                    width: 8,
-                                    height: 8,
-                                    decoration: BoxDecoration(
-                                      color: AppColors.secondaryGreyTextColor,
-                                      shape: BoxShape.circle,
+                                  focusedPinTheme: defaultPinTheme.copyWith(
+                                    decoration: defaultPinTheme.decoration!
+                                        .copyWith(
+                                          borderRadius: BorderRadius.circular(8),
+                                          border: Border.all(
+                                            color: focusedBorderColor,
+                                          ),
+                                        ),
+                                  ),
+                                  submittedPinTheme: defaultPinTheme.copyWith(
+                                    decoration: defaultPinTheme.decoration!
+                                        .copyWith(
+                                          color: fillColor,
+                                          borderRadius: BorderRadius.circular(8),
+                                          border: Border.all(
+                                            color: AppColors.primary,
+                                          ),
+                                        ),
+                                  ),
+                                  errorPinTheme: defaultPinTheme.copyBorderWith(
+                                    border: Border.all(
+                                      color: AppColors.appRedColor,
+                                    ),
+                                  ),
+                                  preFilledWidget: Center(
+                                    child: Container(
+                                      width: 8,
+                                      height: 8,
+                                      decoration: BoxDecoration(
+                                        color: AppColors.secondaryGreyTextColor,
+                                        shape: BoxShape.circle,
+                                      ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                      Gap(60),
-                      InkWell(
-                        onTap: () {
-                          context.read<VerificationBloc>().add(
-                            VerifyOtpEvent(
-                              otpVerifyRequest: OtpVerifyRequest(
-                                email: widget.verifyScreenArguments.email,
-                                otp: pinController.text,
-                                type: widget.verifyScreenArguments.type,
+                        Gap(60),
+                        InkWell(
+                          onTap: () {
+                            context.read<VerificationBloc>().add(
+                              VerifyOtpEvent(
+                                otpVerifyRequest: OtpVerifyRequest(
+                                  email: widget.verifyScreenArguments.email,
+                                  otp: pinController.text,
+                                  type: widget.verifyScreenArguments.type,
+                                ),
                               ),
-                            ),
-                          );
-                        },
-                        child: ElevatedButtonWidget(
-                          height: 70.h,
-                          width: 377.w,
-                          iconEnabled: false,
-                          iconLabel: "VERIFY",
-                          color: AppColors.primary,
-                          textColor: AppColors.primaryWhiteColor,
+                            );
+                          },
+                          child: ElevatedButtonWidget(
+                            height: 70.h,
+                            width: 377.w,
+                            iconEnabled: false,
+                            iconLabel: "VERIFY",
+                            color: AppColors.primary,
+                            textColor: AppColors.primaryWhiteColor,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),

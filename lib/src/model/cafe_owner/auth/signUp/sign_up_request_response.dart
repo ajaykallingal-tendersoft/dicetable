@@ -23,7 +23,7 @@ class SignUpRequestResponse {
     final token = json['token'] as String?;
     final user = json['user'] != null ? User.fromJson(json['user']) : null;
     final message = json['message'] as String?;
-    final cafeId = json['message'] as String?;
+    final cafeId = json['cafe_id'] as String?;
     final errors = json['errors'] != null ? Map<String, dynamic>.from(json['errors']) : null;
 
     // Remove known keys to get extra/dynamic fields

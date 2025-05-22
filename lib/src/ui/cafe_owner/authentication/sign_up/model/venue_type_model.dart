@@ -1,13 +1,23 @@
+import 'package:dicetable/src/model/venue_type_response.dart';
+
 class VenueTypeModel {
-  final String id;
+  final int id;
   final String name;
   final bool isSelected;
 
-  const VenueTypeModel({
+  VenueTypeModel({
     required this.id,
     required this.name,
-    required this.isSelected,
+    this.isSelected = false,
   });
+
+  factory VenueTypeModel.fromVenueType(VenueType venueType) {
+    return VenueTypeModel(
+      id: venueType.id ?? 0,
+      name: venueType.title ?? '',
+      isSelected: false,
+    );
+  }
 
   VenueTypeModel copyWith({bool? isSelected}) {
     return VenueTypeModel(

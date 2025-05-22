@@ -86,14 +86,26 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
               EasyLoading.show(status: "Loading");
             }
             if (state is StartSubscriptionLoaded) {
+
               EasyLoading.dismiss();
-              Fluttertoast.showToast(
-                backgroundColor: AppColors.primaryWhiteColor,
-                textColor: AppColors.appGreenColor,
-                gravity: ToastGravity.BOTTOM,
-                msg: state.subscriptionStartResponse.message!,
-              );
-              context.go('/home');
+              if(state.subscriptionStartResponse.status == false && state.subscriptionStartResponse.message == "This cafe already has an active subscription.") {
+                Fluttertoast.showToast(
+                  backgroundColor: AppColors.primaryWhiteColor,
+                  textColor: AppColors.appGreenColor,
+                  gravity: ToastGravity.BOTTOM,
+                  msg: state.subscriptionStartResponse.message.toString() ?? "",
+                );
+                context.go('/home');
+              }else {
+                Fluttertoast.showToast(
+                  backgroundColor: AppColors.primaryWhiteColor,
+                  textColor: AppColors.appGreenColor,
+                  gravity: ToastGravity.BOTTOM,
+                  msg: state.subscriptionStartResponse.message.toString() ?? "",
+                );
+                context.go('/home');
+              }
+
             }
             if(state is StartSubscriptionError) {
               EasyLoading.dismiss();
@@ -112,6 +124,7 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                   state.initialSubscriptionPlanResponse.data != null) {
                 initialData = state.initialSubscriptionPlanResponse;
                 cafeId = state.initialSubscriptionPlanResponse.data!.cafeId!;
+                ObjectFactory().prefs.setCafeId(cafeId: state.initialSubscriptionPlanResponse.data!.cafeId!.toString());
                 subscriptionTypeId =
                     state
                         .initialSubscriptionPlanResponse

@@ -14,10 +14,11 @@ class UpdateTextField extends SignUpEvent {
 }
 
 class ToggleVenueType extends SignUpEvent {
-  final String venueType;
+  final int id;
   final bool isSelected;
 
-  const ToggleVenueType({required this.venueType, required this.isSelected});
+
+  const ToggleVenueType({required this.id, required this.isSelected});
 }
 
 class UpdateOpeningHour extends SignUpEvent {
@@ -61,3 +62,5 @@ class SubmitGoogleSignUp extends SignUpEvent {
   List<Object?> get props => [signupRequest];
 
 }
+class LoadVenueTypes extends SignUpEvent {}
+

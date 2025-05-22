@@ -9,7 +9,7 @@ class LoginRequestResponse {
   final User? user;
   final String? token;
   final String? cafeId;
-  final String? type;
+  final int? type;
   final String? message;
   final String? error;
   final Map<String, dynamic>? errors;
@@ -33,6 +33,8 @@ class LoginRequestResponse {
     cafeId: json["cafe_id"],
     error: json["error"],
     errors: json["errors"],
+    user: json["user"] != null ? User.fromJson(json["user"]) : null,
+
   );
 
   Map<String, dynamic> toJson() {
@@ -41,9 +43,10 @@ class LoginRequestResponse {
     if (token != null) data["token"] = token;
     if (type != null) data["type"] = type;
     if (message != null) data["message"] = message;
-    if(message != null) data['message'] = message;
+    if(cafeId != null) data['cafe_id'] = cafeId;
     if (error != null) data["error"] = error;
     if (errors != null) data["errors"] = errors;
+    if (user != null) data["user"] = user!.toJson();
     return data;
   }
 

@@ -83,7 +83,7 @@ class PaymentHistory {
 class SubsriptionOverview {
   final String? status;
   final String? planName;
-  final int? amount;
+  final String? amount;
   final String? duration;
   final String? expiryDate;
   final String? discountCode;

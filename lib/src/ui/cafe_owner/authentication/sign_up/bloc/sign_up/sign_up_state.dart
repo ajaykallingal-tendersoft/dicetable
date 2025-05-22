@@ -93,6 +93,23 @@ class SignUpImageErrorState extends SignUpState {
   List<Object?> get props => [errorMessage];
 }
 
+///Venue
+class VenueLoadingState extends SignUpState {}
+
+class VenueLoadedState extends SignUpState {
+  final VenueTypeResponse venueTypeResponse;
+  const VenueLoadedState({required this.venueTypeResponse});
+}
+
+class VenueErrorState extends SignUpState {
+  final String errorMessage;
+
+  const VenueErrorState({required this.errorMessage});
+
+  @override
+  List<Object?> get props => [errorMessage];
+}
+
 class SignUpFormState extends SignUpState {
   final String venueName;
   final String venueDescription;
@@ -104,10 +121,12 @@ class SignUpFormState extends SignUpState {
   final String region;
   final String address;
   final String postalCode;
-  final Map<String, VenueTypeModel> venueTypes;
+  final List<VenueTypeModel> venueTypes;
   final Map<String, OpeningHour> openingHours;
   final XFile? image;
   final String? base64Image;
+  final bool isLoadingVenueTypes;
+  final String? error;
 
   const SignUpFormState({
     this.venueName = '',
@@ -120,18 +139,12 @@ class SignUpFormState extends SignUpState {
     this.region = '',
     this.address = '',
     this.postalCode = '',
-    this.venueTypes = const {
-      'Restaurant': VenueTypeModel(id: '1', name: 'Restaurant', isSelected: true),
-      'Cafe': VenueTypeModel(id: '2', name: 'Cafe', isSelected: true),
-      'Bakeries': VenueTypeModel(id: '3', name: 'Bakeries', isSelected: true),
-      'Dessert Venue': VenueTypeModel(id: '4', name: 'Dessert Venue', isSelected: false),
-      'Pub&Bars': VenueTypeModel(id: '5', name: 'Pub&Bars', isSelected: false),
-      'Clubs': VenueTypeModel(id: '6', name: 'Clubs', isSelected: false),
-      'Activity Venue': VenueTypeModel(id: '7', name: 'Activity Venue', isSelected: false),
-    },
+    this.venueTypes = const [],
     this.openingHours = const {},
     this.image,
     this.base64Image,
+    this.isLoadingVenueTypes = false,
+    this.error,
   });
 
   SignUpFormState copyWith({
@@ -145,11 +158,13 @@ class SignUpFormState extends SignUpState {
     String? region,
     String? address,
     String? postalCode,
-    Map<String, VenueTypeModel>? venueTypes,
+    List<VenueTypeModel>? venueTypes,
     Map<String, OpeningHour>? openingHours,
     XFile? image,
     bool clearImage = false,
     String? base64Image,
+    bool? isLoadingVenueTypes,
+    final String? error,
 
   }) {
     return SignUpFormState(
@@ -167,6 +182,8 @@ class SignUpFormState extends SignUpState {
       openingHours: openingHours ?? this.openingHours,
       image: clearImage ? null : (image ?? this.image),
       base64Image: base64Image ?? this.base64Image,
+      isLoadingVenueTypes: isLoadingVenueTypes ?? this.isLoadingVenueTypes,
+      error: error ?? this.error,
     );
   }
 
@@ -186,5 +203,7 @@ class SignUpFormState extends SignUpState {
     openingHours,
     image,
     base64Image,
+    isLoadingVenueTypes,
+    error,
   ];
 }

@@ -1,4 +1,5 @@
 import 'package:dicetable/src/constants/app_colors.dart';
+import 'package:dicetable/src/model/cafe_owner/subscription/subscription_overview_response.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/sign_up/widget/custom_switch.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
@@ -7,7 +8,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
 
 class SubscriptionOverviewCard extends StatefulWidget {
-  const SubscriptionOverviewCard({super.key});
+  final SubsriptionOverview? subsriptionOverview;
+  const SubscriptionOverviewCard({super.key,required this.subsriptionOverview});
 
   @override
   State<SubscriptionOverviewCard> createState() =>
@@ -73,7 +75,7 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                   children: [
                     Gap(30),
                     Text(
-                      'Status: Active',
+                      'Status: ${widget.subsriptionOverview?.status}',
                       style: TextTheme.of(
                         context,
                       ).bodySmall!.copyWith(color: AppColors.appGreenColor),
@@ -99,7 +101,7 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                           ),
                           Gap(10),
                           Text(
-                            'Premium Plan',
+                            widget.subsriptionOverview!.planName!,
                             style: TextTheme.of(context).bodyMedium!.copyWith(
                               color: AppColors.premiumPlanTextColor,
                               fontSize: 16,
@@ -114,7 +116,7 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                       TextSpan(
                         children: [
                           TextSpan(
-                            text: '\$99',
+                            text: '\$${widget.subsriptionOverview?.amount}',
                             style: TextTheme.of(context).bodyLarge!.copyWith(
                               color: AppColors.primary,
                               fontSize:
@@ -122,7 +124,7 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                             ),
                           ),
                           TextSpan(
-                            text: ' / Year',
+                            text: ' / ${widget.subsriptionOverview?.duration}',
                             style: TextTheme.of(context).bodyMedium!.copyWith(
                               color: AppColors.subscriptionPriceSubColor,
                               fontWeight: FontWeight.w600,
@@ -135,7 +137,7 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                     ),
                     Gap(10),
                     Text(
-                      'Expires On 21 June, 2025',
+                      'Expires On ${widget.subsriptionOverview?.expiryDate}',
                       style: TextTheme.of(context).bodyMedium!.copyWith(
                         color: AppColors.timeTextColor,
                         fontWeight: FontWeight.w500,
@@ -163,7 +165,7 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                               ),
                             ),
                             TextSpan(
-                              text: 'E23FTU6',
+                              text: widget.subsriptionOverview?.discountCode,
                               style: TextTheme.of(context).bodyMedium!.copyWith(
                                 color: AppColors.disabledColor,
                                 fontWeight: FontWeight.w700,

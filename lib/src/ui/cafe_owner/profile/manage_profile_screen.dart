@@ -235,7 +235,9 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                             ObjectFactory().prefs.setAuthToken(token: "");
                             ObjectFactory().prefs.setCafeUserName(
                                 cafeUserName: "");
-                            context.go('/category');
+                           ObjectFactory().prefs.setCafeId(cafeId: '');
+                           ObjectFactory().prefs.getNavigationSource();
+                            context.go('/login');
                           },
                           child: ElevatedButtonWidget(
                             height: 70.h,

@@ -1,4 +1,5 @@
 import 'package:dicetable/src/constants/app_colors.dart';
+import 'package:dicetable/src/ui/cafe_owner/home/bloc/home_bloc.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -134,29 +135,31 @@ class HomePage extends StatelessWidget {
             SliverPadding(
               padding:
               const EdgeInsets.only(bottom: 20),
-              sliver: BlocBuilder<CardCubit, CardState>(
+              sliver: BlocBuilder<HomeBloc, HomeState>(
                 builder: (context, state) {
-                  return AnimationLimiter(
-                    child: SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                            (context, index) {
-                          final card = state.cards[index];
-                          return AnimationConfiguration.staggeredList(
-                            position: index,
-                            duration: const Duration(milliseconds: 375),
-                            child: SlideAnimation(
-                              verticalOffset: 50.0,
-                              child: FadeInAnimation(
-                                child:
-                                ExpandableCard(index: index, card: card),
+                  if(state is HomeLoaded) {
+                    return AnimationLimiter(
+                      child: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                            final card = state.cards;
+                            return AnimationConfiguration.staggeredList(
+                              position: index,
+                              duration: const Duration(milliseconds: 375),
+                              child: SlideAnimation(
+                                verticalOffset: 50.0,
+                                child: FadeInAnimation(
+                                  child:
+                                  ExpandableCard(index: index, card: card),
+                                ),
                               ),
-                            ),
-                          );
-                        },
-                        childCount: state.cards.length,
+                            );
+                          },
+                          childCount: state.cards.length,
+                        ),
                       ),
-                    ),
-                  );
+                    );
+                  }
                 },
               ),
             ),

@@ -88,11 +88,17 @@ class _LoginScreenState extends State<LoginScreen> {
     ObjectFactory().prefs.setCafeId(cafeId: cafeId);
 
     if (isGoogle) {
+
       ObjectFactory().prefs.setCafeUserName(cafeUserName: name);
       ObjectFactory().prefs.setCafeId(cafeId: cafeId);
       ObjectFactory().prefs.setIsLoggedIn(true);
     } else {
-      ObjectFactory().prefs.setIsLoggedIn(false);
+      if(ObjectFactory().prefs.isEmailVerified() == false) {
+        ObjectFactory().prefs.setIsLoggedIn(false);
+      }else {
+        ObjectFactory().prefs.setIsLoggedIn(true);
+
+      }
     }
 
     context.go('/home');
@@ -136,13 +142,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
               // Normal login success
               if (state is LoginSuccessState) {
+                print("Token: ${state.loginRequestResponse.token ?? ""}");
+                print("CafeID: ${state.loginRequestResponse.cafeId ?? ""}");
+                print("Name: ${state.loginRequestResponse.user?.name ?? ""}");
+
                 _handleLoginSuccess(
                   context,
-                  state.loginRequestResponse.token! ?? "",
-                   state.loginRequestResponse.cafeId ?? "",
-                   state.loginRequestResponse.user?.name.toString() ?? '',
+                  state.loginRequestResponse.token ?? "",
+                  state.loginRequestResponse.cafeId ?? "",
+                  state.loginRequestResponse.user?.name ?? '',
                   isGoogle: false,
                 );
+
                 if(state.loginRequestResponse.status == false && state.loginRequestResponse.message ==  "Please verify your email first.") {
                   Fluttertoast.showToast(
                     msg: state.loginRequestResponse.message!,
@@ -160,8 +171,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   _handleLoginSuccess(
                     context,
                     response.token!,
-                    response.user?.name ?? '',
                     response.cafeId ?? '' ,
+                    response.user?.name ?? '',
                     isGoogle: true,
                   );
                 } else {

@@ -48,3 +48,22 @@ final class StartSubscriptionError extends SubscriptionState {
   @override
   List<Object> get props => [errorMessage];
 }
+
+///Subscription Overview
+final class SubscriptionOverviewLoading extends SubscriptionState {
+  @override
+  List<Object> get props => [];
+}
+final class SubscriptionOverviewLoaded extends SubscriptionState {
+  final SubscriptionOverviewResponse subscriptionOverviewResponse;
+  const SubscriptionOverviewLoaded({required this.subscriptionOverviewResponse});
+  @override
+  List<Object> get props => [subscriptionOverviewResponse];
+}
+
+final class SubscriptionOverviewError extends SubscriptionState {
+  final String errorMessage;
+  const SubscriptionOverviewError({required this.errorMessage});
+  @override
+  List<Object> get props => [errorMessage];
+}

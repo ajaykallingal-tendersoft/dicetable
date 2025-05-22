@@ -13,6 +13,8 @@ class UrlsDiceApp {
   static const String googleLogin = '/api/google/auth';
   static const String googleSignUp = '/api/google/signup';
   static const String otpVerify = '/api/otp/verify';
+  static const String venueType = '/api/venue-types';
+
 
   ///Subscription
   static const String subscriptionStart = '/api/subscription/start';

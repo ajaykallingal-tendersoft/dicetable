@@ -1,10 +1,14 @@
 
 import 'package:dicetable/router.dart';
 import 'package:dicetable/src/constants/app_theme.dart';
+import 'package:dicetable/src/resources/api_providers/auth/auth_data_provider.dart';
 import 'package:dicetable/src/resources/api_providers/customer/favourite_data_provider.dart';
+import 'package:dicetable/src/resources/api_providers/venue_owner/home_data_provider.dart';
 import 'package:dicetable/src/resources/api_providers/venue_owner/subscription_data_provider.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/login/cubit/google_sign_in_cubit.dart';
+import 'package:dicetable/src/ui/cafe_owner/authentication/sign_up/bloc/sign_up/sign_up_bloc.dart';
 import 'package:dicetable/src/ui/cafe_owner/home/bloc/card_cubit.dart';
+import 'package:dicetable/src/ui/cafe_owner/home/bloc/home_bloc.dart';
 import 'package:dicetable/src/ui/cafe_owner/notification/notification_cubit.dart';
 import 'package:dicetable/src/ui/cafe_owner/profile/bloc/profile_bloc.dart';
 import 'package:dicetable/src/ui/cafe_owner/subscription/bloc/subscription_bloc.dart';
@@ -47,6 +51,12 @@ class App extends StatelessWidget {
         ),
         BlocProvider(
           create: (context) => SubscriptionBloc(subscriptionDataProvider: SubscriptionDataProvider()),
+        ),
+        BlocProvider(
+          create: (context) => SignUpBloc(authDataProvider: AuthDataProvider()),
+        ),
+        BlocProvider(
+          create: (context) => HomeBloc(homeDataProvider: HomeDataProvider()),
         ),
       ],
       child: ScreenUtilInit(

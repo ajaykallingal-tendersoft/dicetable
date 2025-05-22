@@ -320,11 +320,11 @@ class Prefs {
   //         ? true
   //         : false;
   //
-  // /// for clearing the data in preference
-  // void clearPrefs() async {
-  //   final pref = await SharedPreferences.getInstance();
-  //   await pref.clear();
-  // }
+  /// for clearing the data in preference
+  void clearPrefs() async {
+    final pref = await SharedPreferences.getInstance();
+    await pref.clear();
+  }
   //
   // void setIsUserLoaded(bool status) {
   //   _sharedPreferences!.setBool(_IS_USER_LOADED, status);

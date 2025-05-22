@@ -8,6 +8,8 @@ import 'package:dicetable/src/model/cafe_owner/auth/signUp/google_sign-up_reques
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/google_sign-up_response.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/sign_up_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/sign_up_request_response.dart';
+import 'package:dicetable/src/model/state_model.dart';
+import 'package:dicetable/src/model/venue_type_response.dart';
 import 'package:dicetable/src/resources/api_providers/auth/auth_data_provider.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/sign_up/model/venue_type_model.dart';
 import 'package:dicetable/src/utils/extension/state_model_extension.dart';
@@ -32,13 +34,13 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
     : _formState = SignUpFormState(
         openingHours: {
           for (final day in [
-            'Monday',
-            'Tuesday',
-            'Wednesday',
-            'Thursday',
-            'Friday',
-            'Saturday',
-            'Sunday',
+            'Mon',
+            'Tue',
+            'Wed',
+            'Thu',
+            'Fri',
+            'Sat',
+            'Sun',
           ])
             day: OpeningHour(
               isEnabled: false,
@@ -56,15 +58,17 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
     });
 
     on<ToggleVenueType>((event, emit) {
-      final updatedVenueTypes = Map<String, VenueTypeModel>.from(_formState.venueTypes);
+      final updatedVenueTypes = _formState.venueTypes.map((model) {
+        if (model.id == event.id) {
+          return model.copyWith(isSelected: event.isSelected);
+        }
+        return model;
+      }).toList();
 
-      final current = updatedVenueTypes[event.venueType];
-      if (current != null) {
-        updatedVenueTypes[event.venueType] = current.copyWith(isSelected: event.isSelected);
-        _formState = _formState.copyWith(venueTypes: updatedVenueTypes);
-        emit(_formState);
-      }
+      _formState = _formState.copyWith(venueTypes: updatedVenueTypes);
+      emit(_formState);
     });
+
 
     on<UpdateOpeningHour>((event, emit) {
       final updatedHours = Map<String, OpeningHour>.from(
@@ -345,8 +349,47 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
       }
     });
 
+    on<LoadVenueTypes> (_onFetchVenueType);
+
 
   }
+
+  Future<void> _onFetchVenueType(
+      LoadVenueTypes event,
+      Emitter<SignUpState> emit,
+      ) async {
+    try {
+      emit(_formState.copyWith(isLoadingVenueTypes: true));
+      final response = await authDataProvider.getVenueTypes();
+
+      if (response is SuccessState) {
+        final data = response.value as VenueTypeResponse;
+        final types = data.venueTypes
+            ?.map((venueType) => VenueTypeModel.fromVenueType(venueType))
+            .toList() ?? [];
+
+        _formState = _formState.copyWith(
+          venueTypes: types,
+          isLoadingVenueTypes: false,
+        );
+        emit(_formState);
+      } else {
+        _formState = _formState.copyWith(
+          isLoadingVenueTypes: false,
+          error: (response as ErrorState).msg,
+        );
+        emit(_formState);
+      }
+    } catch (e) {
+      _formState = _formState.copyWith(
+        isLoadingVenueTypes: false,
+        error: e.toString(),
+      );
+      emit(_formState);
+    }
+  }
+
+
 
   Future<bool> isAndroid13OrHigher() async {
     if (!Platform.isAndroid) return false;
@@ -354,7 +397,6 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
     final deviceInfoPlugin = DeviceInfoPlugin();
     final androidInfo = await deviceInfoPlugin.androidInfo;
 
-    // Android 13 is API level 33
     return androidInfo.version.sdkInt >= 33;
   }
 }

@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:dicetable/src/model/cafe_owner/subscription/initial_subscription_plan_response.dart';
+import 'package:dicetable/src/model/cafe_owner/subscription/subscription_overview_response.dart';
 import 'package:dicetable/src/model/cafe_owner/subscription/subscription_start_request.dart';
 import 'package:dicetable/src/model/cafe_owner/subscription/subscription_start_request_response.dart';
 import 'package:dicetable/src/model/state_model.dart';
@@ -16,36 +17,20 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
     on<StartSubscriptionEvent>((event, emit) async {
       emit(StartSubscriptionLoading());
 
-      final result = await subscriptionDataProvider.subscriptionStart(event.subscriptionStartRequest);
+      final StateModel? stateModel = await subscriptionDataProvider.subscriptionStart(event.subscriptionStartRequest);
 
-      if (result!.isError) {
-        final error = result.error;
+      if (stateModel is SuccessState) {
+        final response = stateModel.value as SubscriptionStartResponse;
 
-        if (error is SubscriptionStartResponse) {
-          final firstError =
-              error.errors?.values.first.first ?? "Signup failed.";
-          emit(StartSubscriptionError(errorMessage: firstError));
-        } else if (error is String) {
-          emit(StartSubscriptionError(errorMessage: error));
-        } else {
-          emit(StartSubscriptionError(errorMessage: "Something went wrong."));
-        }
-      } else if (result.isSuccess) {
-        final response = result.data as SubscriptionStartResponse;
+        emit(StartSubscriptionLoaded(subscriptionStartResponse: response));
 
-        if (response.status == true) {
-          emit(StartSubscriptionLoaded(subscriptionStartResponse: response));
-        } else {
-          emit(
-            StartSubscriptionError(
-              errorMessage:
-              response.errors?.values.first.first ?? "Signup failed",
-            ),
-          );
-        }
+      } else if (stateModel is ErrorState) {
+        emit(StartSubscriptionError(errorMessage: stateModel.msg));
       }
+
     });
     on<FetchInitialSubscription> (_onFetchInitialSubscription);
+    on<FetchSubscriptionOverview> (_onFetchSubscriptionOverview);
   }
 
   Future<void> _onFetchInitialSubscription(
@@ -63,6 +48,24 @@ class SubscriptionBloc extends Bloc<SubscriptionEvent, SubscriptionState> {
 
     } else if (stateModel is ErrorState) {
       emit(InitialSubscriptionError(errorMessage: stateModel.msg));
+    }
+  }
+
+  Future<void> _onFetchSubscriptionOverview(
+      FetchSubscriptionOverview event,
+      Emitter<SubscriptionState> emit,
+      ) async {
+    emit(SubscriptionOverviewLoading());
+
+    final StateModel? stateModel = await subscriptionDataProvider.getSubscriptionOverview();
+
+    if (stateModel is SuccessState) {
+      final response = stateModel.value as SubscriptionOverviewResponse;
+
+      emit(SubscriptionOverviewLoaded(subscriptionOverviewResponse: response));
+
+    } else if (stateModel is ErrorState) {
+      emit(SubscriptionOverviewError(errorMessage: stateModel.msg));
     }
   }
 

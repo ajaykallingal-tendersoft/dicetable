@@ -16,7 +16,7 @@ class SubscriptionPromptPromoCodeWidget extends StatelessWidget {
     return BlocBuilder<SubscriptionBloc, SubscriptionState>(
     builder: (context, state) {
       if(state is InitialSubscriptionLoaded) {
-        ObjectFactory().prefs.setCafeId(cafeId: state.initialSubscriptionPlanResponse.data?.cafeId.toString());
+
         return SingleChildScrollView( // Added SingleChildScrollView for small screens
           child: Container(
             padding: const EdgeInsets.all(0),
