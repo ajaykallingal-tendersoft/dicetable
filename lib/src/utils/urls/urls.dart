@@ -28,6 +28,7 @@ class UrlsDiceApp {
 
   static const String getProfile = '/api/cafe/profile/';
   static const String getEditProfile = '/api/cafe/edit/';
+  static const String getEditSumbit = '/api/cafe/update/';
 
   //Customer
   static const String getFavourite = '/api/favourites';

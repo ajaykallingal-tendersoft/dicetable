@@ -26,7 +26,6 @@ class ToggleVenueType extends ProfileEvent {
 class UpdateOpeningHour extends ProfileEvent {
   final String day;
   final ProfileOpeningHour hour;
-
   const UpdateOpeningHour(this.day, this.hour);
 
   @override
@@ -50,95 +49,6 @@ class FetchCafeProfile extends ProfileEvent {
 
   @override
   List<Object?> get props => [id];
-}
-
-class CafeProfile {
-  final int id;
-  final String name;
-  final String venue_description;
-  final String email;
-  final String phone;
-  final String address;
-  final String city;
-  final String postcode;
-  final String photo;
-  final List<VenueType> venueTypes;
-  final List<OpeningHour> openingHours;
-
-  CafeProfile({
-    required this.id,
-    required this.name,
-    required this.venue_description,
-    required this.email,
-    required this.phone,
-    required this.address,
-    required this.city,
-    required this.postcode,
-    required this.photo,
-    required this.venueTypes,
-    required this.openingHours,
-  });
-
-  factory CafeProfile.fromJson(Map<String, dynamic> json) {
-    return CafeProfile(
-      id: json['id'],
-      name: json['name'],
-      venue_description: json['venue_description'],
-      email: json['email'],
-      phone: json['phone'],
-      address: json['address'],
-      city: json['city'],
-      postcode: json['postcode'],
-      photo: json['photo'],
-      venueTypes:
-          (json['venue_type'] as List)
-              .map((e) => VenueType.fromJson(e))
-              .toList(),
-      openingHours:
-          (json['opening_hours'] as List)
-              .map((e) => OpeningHour.fromJson(e))
-              .toList(),
-    );
-  }
-}
-
-class VenueType {
-  final int id;
-  final String title;
-  final bool status;
-
-  VenueType({required this.id, required this.title, required this.status});
-
-  factory VenueType.fromJson(Map<String, dynamic> json) {
-    return VenueType(
-      id: json['id'],
-      title: json['title'],
-      status: json['status'] == 1,
-    );
-  }
-}
-
-class OpeningHour {
-  final String day;
-  final bool isOpen;
-  final String opening;
-  final String closing;
-
-  OpeningHour({
-    required this.day,
-    required this.isOpen,
-    required this.opening,
-    required this.closing,
-  });
-
-  factory OpeningHour.fromJson(Map<String, dynamic> json) {
-    return OpeningHour(
-      day: json['day'],
-      isOpen: json['is_open'] == 1,
-      opening: json['opening'],
-      closing: json['closing'],
-    );
-  }
 }
 
 class EditProfileLoaded extends ProfileState {

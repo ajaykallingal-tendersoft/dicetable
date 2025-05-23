@@ -1,7 +1,9 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:bloc/bloc.dart';
 import 'package:dicetable/src/utils/client/api_client.dart';
+import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -24,23 +26,43 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<FetchEditCafeProfile>(_onFetchCafeEditProfile);
 
     on<ToggleVenueType>((event, emit) {
-      final updated = Map<String, bool>.from(state.venueTypes)
-        ..[event.venueType] = event.isSelected;
+      if (state.cafeProfile == null) return;
 
-      emit(state.copyWith(venueTypes: updated));
+      // Update venueTypes list with toggled selected value
+      final updatedVenueTypes =
+          state.cafeProfile!.venueTypes.map((venue) {
+            if (venue.title == event.venueType) {
+              return venue.copyWith(selected: event.isSelected);
+            }
+            return venue;
+          }).toList();
+
+      // Create a new CafeProfile with updated venueTypes list
+      final updatedCafeProfile = state.cafeProfile!.copyWith(
+        venueTypes: updatedVenueTypes,
+      );
+
+      // Emit a new ProfileState with updated cafeProfile
+      emit(state.copyWith(cafeProfile: updatedCafeProfile));
     });
 
     on<UpdateOpeningHour>((event, emit) {
-      final updatedHours = Map<String, ProfileOpeningHour>.from(
+      final updatedMap = Map<String, ProfileOpeningHour>.from(
         state.openingHours,
-      )..[event.day] = event.hour;
-      emit(state.copyWith(openingHours: updatedHours));
+      );
+
+      updatedMap[event.day] = event.hour;
+      print("Updated Map: ${event.day}");
+      for (var hour in state.cafeProfile!.openingHours) {
+        if (hour.day == event.day) {
+          hour.isOpen = event.hour.isEnabled;
+          print("Updated Map: ${hour}");
+        }
+      }
+      emit(state.copyWith(openingHours: updatedMap));
     });
 
-    on<SubmitProfile>((event, emit) {
-      // You could add validation or API interaction here
-      emit(state);
-    });
+    on<SubmitProfile>(_onSubmitEditProfile);
 
     on<PickImageFromGalleryEvent>((event, emit) async {
       emit(ProfileImageLoadingState());
@@ -93,8 +115,109 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       }
     });
   }
-}
 
+  FutureOr<void> _onFetchCafeProfile(
+    FetchCafeProfile event,
+    Emitter<ProfileState> emit,
+  ) async {
+    emit(ProfileLoading());
+    final apiClient = ApiClient();
+    try {
+      final response = await apiClient.getCafeProfileById(event.id);
+      if (response.statusCode == 200) {
+        emit(ProfileLoaded(profileData: response.data['data']));
+      } else {
+        emit(
+          ProfileLoadError(
+            errorMessage: "Failed with status: ${response.statusCode}",
+          ),
+        );
+      }
+    } catch (e) {
+      emit(ProfileLoadError(errorMessage: "Error: $e"));
+    }
+  }
+
+  FutureOr<void> _onFetchCafeEditProfile(
+    FetchEditCafeProfile event,
+    Emitter<ProfileState> emit,
+  ) async {
+    emit(ProfileLoading());
+    final apiClient = ApiClient();
+    try {
+      final response = await apiClient.getCafeEditProfilebyId(event.id);
+      if (response.statusCode == 200) {
+        final profile = CafeProfile.fromJson(response.data['data']);
+        emit(state.copyWith(cafeProfile: profile));
+      } else {
+        emit(
+          EditProfileLoadError(
+            errorMessage: "Failed with status: ${response.statusCode}",
+          ),
+        );
+      }
+    } catch (e) {
+      emit(EditProfileLoadError(errorMessage: "Error: $e"));
+    }
+  }
+
+  FutureOr<void> _onSubmitEditProfile(
+    SubmitProfile event,
+    Emitter<ProfileState> emit,
+  ) async {
+    List<OpeningHour>? selectedOpeningHours =
+        state.cafeProfile?.openingHours.where((hour) => hour.isOpen).toList();
+    for (var hour in selectedOpeningHours!) {
+      print("Selected Opening Hours: ${hour}");
+    }
+    final apiClient = ApiClient();
+    final data = {
+      "name": state.cafeProfile?.name,
+      "email": state.cafeProfile?.email,
+      "phone": state.cafeProfile?.phone,
+      "address": state.cafeProfile?.address,
+      "postcode": state.cafeProfile?.postcode,
+      "venue_description": state.cafeProfile?.venue_description,
+      "accommodations": [1],
+      "working_days":
+          selectedOpeningHours
+              .map(
+                (hour) => {
+                  "day": hour.day,
+                  "from": hour.opening,
+                  "to": hour.closing,
+                  "isEnabled": hour.isOpen,
+                },
+              )
+              .toList(),
+      "blob": "data:image/png;base64,iVBORw0KG...",
+      "original_name": "profile.png",
+      "password": "password",
+    };
+    try {
+      final response = await apiClient.postCafeEditSubmitProfileById(
+        ObjectFactory().prefs.getCafeId().toString(),
+        data,
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Assuming the API returns the updated profile data
+        // emit(ProfileLoaded(profileData: response.data['data']));
+        emit(state);
+      } else {
+        emit(
+          ProfileLoadError(
+            errorMessage:
+                "Failed to update profile. Status: ${response.statusCode}",
+          ),
+        );
+      }
+    } catch (e) {
+      emit(ProfileLoadError(errorMessage: "Error: $e"));
+    }
+  }
+}
+/*
 Future<void> _onFetchCafeProfile(
   FetchCafeProfile event,
   Emitter<ProfileState> emit,
@@ -127,7 +250,7 @@ Future<void> _onFetchCafeEditProfile(
     final response = await apiClient.getCafeEditProfilebyId(event.id);
     if (response.statusCode == 200) {
       final profile = CafeProfile.fromJson(response.data['data']);
-      emit(EditProfileLoaded(profileData: profile));
+      emit(ProfileState(cafeProfile: profile));
     } else {
       emit(
         EditProfileLoadError(
@@ -139,7 +262,7 @@ Future<void> _onFetchCafeEditProfile(
     emit(EditProfileLoadError(errorMessage: "Error: $e"));
   }
 }
-
+*/
 // Future<void> _onFetchCafeEditProfile(
 //   FetchEditCafeProfile event,
 //   Emitter<ProfileState> emit,

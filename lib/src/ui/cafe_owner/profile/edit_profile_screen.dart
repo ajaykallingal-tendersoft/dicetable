@@ -34,6 +34,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _phoneController = TextEditingController();
   late TextEditingController _addressController = TextEditingController();
   late TextEditingController _postalCodeController = TextEditingController();
+  late EditProfileLoaded pstate;
 
   @override
   void initState() {
@@ -46,25 +47,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       FetchEditCafeProfile(ObjectFactory().prefs.getCafeId().toString()),
     );
     final state = context.read<ProfileBloc>().state;
-
-    // final profileState = widget.profileState;
-    // _venueNameController = TextEditingController(
-    //   text: profileState?.venueName ?? '',
-    // );
-    // _venueDescriptionController = TextEditingController(
-    //   text: profileState?.venueDescription ?? '',
-    // );
-    // _emailController = TextEditingController(text: profileState?.email ?? '');
-    // _passwordController = TextEditingController(
-    //   text: profileState?.password ?? '',
-    // );
-    // _phoneController = TextEditingController(text: profileState?.phone ?? '');
-    // _addressController = TextEditingController(
-    //   text: profileState?.address ?? '',
-    // );
-    // _postalCodeController = TextEditingController(
-    //   text: profileState?.postalCode ?? '',
-    // );
   }
 
   @override
@@ -83,35 +65,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileBloc, ProfileState>(
       builder: (context, state) {
-        if (state is EditProfileLoaded) {
-          final profile = state.profileData;
+        final profile = state.cafeProfile;
 
-          _venueNameController = TextEditingController(
-            text: profile.name ?? '',
-          );
-          _venueDescriptionController = TextEditingController(
-            text: profile.venue_description ?? '',
-          );
-          _emailController = TextEditingController(text: profile.email ?? '');
-          _passwordController = TextEditingController(
-            text: '', // password not provided in API
-          );
-          _phoneController = TextEditingController(text: profile.phone ?? '');
-          _addressController = TextEditingController(
-            text: profile.address ?? '',
-          );
-          _postalCodeController = TextEditingController(
-            text: profile.postcode ?? '',
-          );
-        } else {
-          _venueNameController = TextEditingController();
-          _venueDescriptionController = TextEditingController();
-          _emailController = TextEditingController();
-          _passwordController = TextEditingController();
-          _phoneController = TextEditingController();
-          _addressController = TextEditingController();
-          _postalCodeController = TextEditingController();
-        }
+        _venueNameController = TextEditingController(text: profile?.name ?? '');
+        _venueDescriptionController = TextEditingController(
+          text: profile?.venue_description ?? '',
+        );
+        _emailController = TextEditingController(text: profile?.email ?? '');
+        _passwordController = TextEditingController(
+          text: '', // password not provided in API
+        );
+        _phoneController = TextEditingController(text: profile?.phone ?? '');
+        _addressController = TextEditingController(
+          text: profile?.address ?? '',
+        );
+        _postalCodeController = TextEditingController(
+          text: profile?.postcode ?? '',
+        );
         final image = state.image;
         return Builder(
           builder: (context) {
@@ -278,35 +248,51 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                           ),
                                         ),
                                         Gap(10.h),
-                                        for (final day in [
-                                          'Mon',
-                                          'Tue',
-                                          'Wed',
-                                          'Thu',
-                                          'Fri',
-                                          'Sat',
-                                          'Sun',
-                                        ])
+
+                                        for (final day
+                                            in state
+                                                    .cafeProfile
+                                                    ?.openingHours ??
+                                                [])
                                           ProfileOpeningHoursWidget(
-                                            day: day,
+                                            key: ValueKey(day.day),
+                                            day: day.day ?? '',
                                             data:
-                                                state.openingHours[day] ??
+                                                state.openingHours[day.day] ??
                                                 ProfileOpeningHour(
-                                                  isEnabled: false,
+                                                  isEnabled: day.isOpen,
                                                   from: TimeOfDay(
-                                                    hour: 10,
+                                                    hour: int.parse(
+                                                      day.opening.split(':')[0],
+                                                    ),
                                                     minute: 0,
                                                   ),
                                                   to: TimeOfDay(
-                                                    hour: 12,
+                                                    hour: int.parse(
+                                                      day.closing.split(':')[0],
+                                                    ),
                                                     minute: 0,
                                                   ),
+                                                  day: day.day ?? '',
                                                 ),
                                             onChanged: (updatedHour) {
+                                              final swappedHour = ProfileOpeningHour(
+                                                isEnabled:
+                                                    updatedHour.isEnabled,
+                                                day: updatedHour.day,
+                                                from: TimeOfDay(
+                                                  hour: 0,
+                                                  minute: 0,
+                                                ), // reset 'from' to midnight
+                                                to:
+                                                    updatedHour
+                                                        .from, // 'to' becomes original 'from'
+                                              );
+
                                               context.read<ProfileBloc>().add(
                                                 UpdateOpeningHour(
-                                                  day,
-                                                  updatedHour,
+                                                  day.day,
+                                                  swappedHour,
                                                 ),
                                               );
                                             },

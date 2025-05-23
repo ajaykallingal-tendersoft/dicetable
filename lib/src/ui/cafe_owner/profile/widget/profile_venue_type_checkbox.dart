@@ -11,15 +11,6 @@ class ProfileVenueTypeCheckboxes extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileBloc, ProfileState>(
       builder: (context, state) {
-        // final venueTypes = state.venu\eTypes;
-        late Map<String, bool> venueTypes;
-
-        if (state is EditProfileLoaded) {
-          venueTypes = state.venueTypes;
-        } else {
-          venueTypes = state.venueTypes;
-        }
-        // print(venueTypes.runtimeType);
         return Container(
           width: double.infinity,
           padding: const EdgeInsets.all(16),
@@ -41,19 +32,19 @@ class ProfileVenueTypeCheckboxes extends StatelessWidget {
                 spacing: 8,
                 runSpacing: 8,
                 children:
-                    venueTypes.entries.map((entry) {
+                    state.cafeProfile?.venueTypes.map((venueType) {
                       return SizedBox(
                         width: 150,
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Checkbox(
-                              value: entry.value,
+                              value: venueType.selected,
                               onChanged: (bool? newValue) {
                                 if (newValue != null) {
                                   context.read<ProfileBloc>().add(
                                     ToggleVenueType(
-                                      venueType: entry.key,
+                                      venueType: venueType.title,
                                       isSelected: newValue,
                                     ),
                                   );
@@ -61,10 +52,10 @@ class ProfileVenueTypeCheckboxes extends StatelessWidget {
                               },
                               activeColor: const Color(0xFF003366),
                             ),
-                            const Gap(0),
+                            const SizedBox(width: 8),
                             Expanded(
                               child: Text(
-                                entry.key,
+                                venueType.title,
                                 textAlign: TextAlign.left,
                                 style: const TextStyle(
                                   color: Color(0xFF003366),
@@ -75,7 +66,43 @@ class ProfileVenueTypeCheckboxes extends StatelessWidget {
                           ],
                         ),
                       );
-                    }).toList(),
+                    }).toList() ??
+                    [],
+                // venueTypes.entries.map((entry) {
+                //   return SizedBox(
+                //     width: 150,
+                //     child: Row(
+                //       mainAxisSize: MainAxisSize.min,
+                //       children: [
+                //         Checkbox(
+                //           value: entry.value,
+                //           onChanged: (bool? newValue) {
+                //             if (newValue != null) {
+                //               context.read<ProfileBloc>().add(
+                //                 ToggleVenueType(
+                //                   venueType: entry.key,
+                //                   isSelected: newValue,
+                //                 ),
+                //               );
+                //             }
+                //           },
+                //           activeColor: const Color(0xFF003366),
+                //         ),
+                //         const Gap(0),
+                //         Expanded(
+                //           child: Text(
+                //             entry.key,
+                //             textAlign: TextAlign.left,
+                //             style: const TextStyle(
+                //               color: Color(0xFF003366),
+                //               fontSize: 14,
+                //             ),
+                //           ),
+                //         ),
+                //       ],
+                //     ),
+                //   );
+                // }).toList(),
               ),
             ],
           ),

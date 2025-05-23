@@ -259,7 +259,9 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                           isProfile: true,
                           readOnly: true,
                           controller: TextEditingController(
-                            text: _formatVenueTypes(state.venueTypes),
+                            text: _formatVenueTypesFromList(
+                              state.cafeProfile?.venueTypes,
+                            ),
                           ),
                           hintText: 'Venue Type',
                           textFieldAnnotationText: 'Venue Type',
@@ -327,6 +329,16 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
     }
 
     return selectedTypes.join(', ');
+  }
+
+  // New helper for List<VenueType>?
+  String _formatVenueTypesFromList(List<VenueType>? venueTypes) {
+    if (venueTypes == null || venueTypes.isEmpty) {
+      return 'No venue types selected';
+    }
+    // Replace 'name' with the correct property or method of VenueType
+    final names = venueTypes.map((type) => type.toString()).toList();
+    return names.join(', ');
   }
 
   // For opening hours, create a formatted string with each day and its hours

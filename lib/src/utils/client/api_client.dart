@@ -256,6 +256,24 @@ class ApiClient {
       ),
     );
   }
+
+  Future<Response> postCafeEditSubmitProfileById(
+    String id,
+    Map<String, dynamic> data,
+  ) {
+    return dioDiceApp.post(
+      '${UrlsDiceApp.baseUrlDev}${UrlsDiceApp.getEditSumbit}$id',
+      data: data,
+      options: Options(
+        headers: {
+          "Authorization": ObjectFactory().prefs.getAuthToken(),
+          "Content-Type":
+              "application/json", // or "multipart/form-data" if using file uploads
+        },
+      ),
+    );
+  }
+
   //
   // ///Login
   // Future<Response> loginRequest(LoginRequest loginRequest) {
