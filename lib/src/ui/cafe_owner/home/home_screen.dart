@@ -20,12 +20,12 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   DateTime? currentBackPressTime;
 
-
   void _onTabSelected(int index) {
     setState(() {
       _selectedIndex = index;
     });
   }
+
   Future<bool> onWillPop() async {
     DateTime now = DateTime.now();
     if (currentBackPressTime == null ||
@@ -44,7 +44,6 @@ class _HomeScreenState extends State<HomeScreen> {
       return false;
     }
     return true;
-
   }
 
   @override
@@ -174,7 +173,6 @@ PreferredSizeWidget? _buildAppBar(int index, BuildContext context) {
               ),
             ],
           ),
-
         ],
         actionsPadding: EdgeInsets.only(right: 15),
       );

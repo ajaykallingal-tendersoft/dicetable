@@ -263,6 +263,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 }
               }
 
+              // Error handling
               if (state is LoginFailureState ||
                   state is GoogleLoginErrorState) {
                 final errorMessage =

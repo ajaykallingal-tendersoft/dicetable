@@ -6,6 +6,8 @@ import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/ui/cafe_owner/profile/bloc/profile_bloc.dart';
 import 'package:dicetable/src/ui/cafe_owner/profile/widget/profile_opening_hour_widget.dart';
 import 'package:dicetable/src/ui/cafe_owner/profile/widget/profile_venue_type_checkbox.dart';
+import 'package:dicetable/src/utils/client/api_client.dart';
+import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -32,6 +34,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _phoneController = TextEditingController();
   late TextEditingController _addressController = TextEditingController();
   late TextEditingController _postalCodeController = TextEditingController();
+  late EditProfileLoaded pstate;
 
   @override
   void initState() {
@@ -40,24 +43,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   void _initializeControllers() {
-    final profileState = widget.profileState;
-    _venueNameController = TextEditingController(
-      text: profileState?.venueName ?? '',
+    context.read<ProfileBloc>().add(
+      FetchEditCafeProfile(ObjectFactory().prefs.getCafeId().toString()),
     );
-    _venueDescriptionController = TextEditingController(
-      text: profileState?.venueDescription ?? '',
-    );
-    _emailController = TextEditingController(text: profileState?.email ?? '');
-    _passwordController = TextEditingController(
-      text: profileState?.password ?? '',
-    );
-    _phoneController = TextEditingController(text: profileState?.phone ?? '');
-    _addressController = TextEditingController(
-      text: profileState?.address ?? '',
-    );
-    _postalCodeController = TextEditingController(
-      text: profileState?.postalCode ?? '',
-    );
+    final state = context.read<ProfileBloc>().state;
   }
 
   @override
@@ -76,6 +65,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileBloc, ProfileState>(
       builder: (context, state) {
+        final profile = state.cafeProfile;
+
+        _venueNameController = TextEditingController(text: profile?.name ?? '');
+        _venueDescriptionController = TextEditingController(
+          text: profile?.venue_description ?? '',
+        );
+        _emailController = TextEditingController(text: profile?.email ?? '');
+        _passwordController = TextEditingController(
+          text: '', // password not provided in API
+        );
+        _phoneController = TextEditingController(text: profile?.phone ?? '');
+        _addressController = TextEditingController(
+          text: profile?.address ?? '',
+        );
+        _postalCodeController = TextEditingController(
+          text: profile?.postcode ?? '',
+        );
         final image = state.image;
         return Builder(
           builder: (context) {
@@ -164,7 +170,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   );
                                 },
                               ),
-
                               CustomTextField(
                                 controller: _phoneController,
                                 hintText: 'Phone',
@@ -206,9 +211,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 },
                               ),
 
-                               Gap(10.h),
+                              Gap(10.h),
                               ProfileVenueTypeCheckboxes(),
-                               Gap(17.h),
+                              Gap(17.h),
                               Container(
                                 padding: const EdgeInsets.all(15),
                                 decoration: BoxDecoration(
@@ -242,36 +247,52 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                             ),
                                           ),
                                         ),
-                                         Gap(10.h),
-                                        for (final day in [
-                                          'Mon',
-                                          'Tue',
-                                          'Wed',
-                                          'Thu',
-                                          'Fri',
-                                          'Sat',
-                                          'Sun',
-                                        ])
+                                        Gap(10.h),
+
+                                        for (final day
+                                            in state
+                                                    .cafeProfile
+                                                    ?.openingHours ??
+                                                [])
                                           ProfileOpeningHoursWidget(
-                                            day: day,
+                                            key: ValueKey(day.day),
+                                            day: day.day ?? '',
                                             data:
-                                                state.openingHours[day] ??
+                                                state.openingHours[day.day] ??
                                                 ProfileOpeningHour(
-                                                  isEnabled: false,
+                                                  isEnabled: day.isOpen,
                                                   from: TimeOfDay(
-                                                    hour: 10,
+                                                    hour: int.parse(
+                                                      day.opening.split(':')[0],
+                                                    ),
                                                     minute: 0,
                                                   ),
                                                   to: TimeOfDay(
-                                                    hour: 12,
+                                                    hour: int.parse(
+                                                      day.closing.split(':')[0],
+                                                    ),
                                                     minute: 0,
                                                   ),
+                                                  day: day.day ?? '',
                                                 ),
                                             onChanged: (updatedHour) {
+                                              final swappedHour = ProfileOpeningHour(
+                                                isEnabled:
+                                                    updatedHour.isEnabled,
+                                                day: updatedHour.day,
+                                                from: TimeOfDay(
+                                                  hour: 0,
+                                                  minute: 0,
+                                                ), // reset 'from' to midnight
+                                                to:
+                                                    updatedHour
+                                                        .from, // 'to' becomes original 'from'
+                                              );
+
                                               context.read<ProfileBloc>().add(
                                                 UpdateOpeningHour(
-                                                  day,
-                                                  updatedHour,
+                                                  day.day,
+                                                  swappedHour,
                                                 ),
                                               );
                                             },
@@ -282,7 +303,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 ),
                               ),
 
-                               Gap(30.h),
+                              Gap(30.h),
                               InkWell(
                                 onTap: () {
                                   context.pop(image?.path);
@@ -299,7 +320,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                   textColor: AppColors.primaryWhiteColor,
                                 ),
                               ),
-                               Gap(20.h),
+                              Gap(20.h),
                             ],
                           ),
                         ),
@@ -334,7 +355,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               height: 380.h / 1.8.h,
               child: Container(
                 decoration: BoxDecoration(
-                  borderRadius:  BorderRadius.only(
+                  borderRadius: BorderRadius.only(
                     bottomLeft: Radius.circular(30.r),
                     bottomRight: Radius.circular(30.r),
                   ),
@@ -461,9 +482,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             GoRouter.of(context).push('/notification');
             // context.push('/notification');
           },
-          child:  SvgPicture.asset('assets/svg/notify.svg'),
+          child: SvgPicture.asset('assets/svg/notify.svg'),
         ),
-
       ],
     );
   }
@@ -495,10 +515,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
               ),
               style: ElevatedButton.styleFrom(
-                padding:  EdgeInsets.symmetric(
-                  horizontal: 10.h,
-                  vertical: 2.h,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 10.h, vertical: 2.h),
                 foregroundColor: AppColors.primaryWhiteColor,
                 side: const BorderSide(color: AppColors.primaryWhiteColor),
                 fixedSize: Size(75.w, 26.h),
