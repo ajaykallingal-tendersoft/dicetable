@@ -366,7 +366,7 @@ class AppRouter {
             pageBuilder: (BuildContext context, GoRouterState state) {
               return CustomTransitionPage<void>(
                 key: state.pageKey,
-                child:  CustomerSignUpScreen(),
+                child:  CustomerSignUpScreen(signUpScreenArgument: state.extra as SignUpScreenArgument,),
                 transitionDuration: const Duration(milliseconds: 300),
                 transitionsBuilder: (
                     BuildContext context,
@@ -374,6 +374,7 @@ class AppRouter {
                     Animation<double> secondaryAnimation,
                     Widget child,
                     ) {
+
                   return FadeTransition(
                     opacity: CurveTween(
                       curve: Curves.easeIn,

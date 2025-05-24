@@ -5,6 +5,9 @@ import 'package:dicetable/src/resources/api_providers/auth/auth_data_provider.da
 import 'package:dicetable/src/utils/extension/state_model_extension.dart';
 import 'package:equatable/equatable.dart';
 
+import '../../../../../model/cafe_owner/auth/signUp/google_sign-up_request.dart';
+import '../../../../../model/cafe_owner/auth/signUp/google_sign-up_response.dart';
+
 part 'customer_sign_up_event.dart';
 part 'customer_sign_up_state.dart';
 
@@ -52,6 +55,46 @@ class CustomerSignUpBloc extends Bloc<CustomerSignUpEvent, CustomerSignUpState> 
         }
       }
     });
+    on<SubmitGoogleSignUp>((event, emit) async {
+      emit(GoogleSignUpLoadingState());
+
+
+      final result = await authDataProvider.googleRegisterUser(event.signupRequest);
+
+      if (result!.isError) {
+        final error = result.error;
+
+        if (error is GoogleSignUpRequestResponse) {
+          final firstError =
+              error.errors?.values.first.first ?? "Signup failed.";
+          emit(GoogleSignUpErrorState(errorMessage: firstError));
+        } else if (error is String) {
+          emit(GoogleSignUpErrorState(errorMessage: error));
+          emit(_formState); // Restore form state
+
+        } else {
+          emit(GoogleSignUpErrorState(errorMessage: "Something went wrong."));
+          emit(_formState); // Restore form state
+
+        }
+      } else if (result.isSuccess) {
+        final response = result.data as GoogleSignUpRequestResponse;
+
+        if (response.status == true) {
+          emit(GoogleSignUpSuccessState(googleSignUpRequestResponse: response));
+        } else {
+          emit(
+            GoogleSignUpErrorState(
+              errorMessage:
+              response.errors?.values.first.first ?? "Signup failed",
+            ),
+          );
+          emit(_formState); // Restore form state
+
+        }
+      }
+    });
 
   }
+
 }

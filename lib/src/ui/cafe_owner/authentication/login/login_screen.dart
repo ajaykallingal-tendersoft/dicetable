@@ -76,42 +76,42 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  void _handleLoginSuccess(
-      BuildContext context,
-      String token,
-      String cafeId,
-      String name, {
-        bool isGoogle = false,
-      }) {
-    ObjectFactory().prefs.setAuthToken(token: token);
-    ObjectFactory().prefs.setCafeUserName(cafeUserName: name);
-    ObjectFactory().prefs.setCafeId(cafeId: cafeId);
+  // void _handleLoginSuccess(
+  //     BuildContext context,
+  //     String token,
+  //     String cafeId,
+  //     String name, {
+  //       bool isGoogle = false,
+  //     }) {
+  //   ObjectFactory().prefs.setAuthToken(token: token);
+  //   ObjectFactory().prefs.setCafeUserName(cafeUserName: name);
+  //   ObjectFactory().prefs.setCafeId(cafeId: cafeId);
+  //
+  //   if (isGoogle) {
+  //     //
+  //     ObjectFactory().prefs.setCafeUserName(cafeUserName: name);
+  //     ObjectFactory().prefs.setCafeId(cafeId: cafeId);
+  //     ObjectFactory().prefs.setIsLoggedIn(true);
+  //   } else {
+  //     // if(ObjectFactory().prefs.isEmailVerified() == false) {
+  //     //   ObjectFactory().prefs.setIsLoggedIn(false);
+  //     // }else {
+  //     //   ObjectFactory().prefs.setIsLoggedIn(true);
+  //     //
+  //     // }
+  //   }
 
-    if (isGoogle) {
-      //
-      ObjectFactory().prefs.setCafeUserName(cafeUserName: name);
-      ObjectFactory().prefs.setCafeId(cafeId: cafeId);
-      ObjectFactory().prefs.setIsLoggedIn(true);
-    } else {
-      // if(ObjectFactory().prefs.isEmailVerified() == false) {
-      //   ObjectFactory().prefs.setIsLoggedIn(false);
-      // }else {
-      //   ObjectFactory().prefs.setIsLoggedIn(true);
-      //
-      // }
-    }
-
-    context.go('/home');
-
-    Fluttertoast.showToast(
-      backgroundColor: AppColors.primaryWhiteColor,
-      textColor: AppColors.appGreenColor,
-      gravity: ToastGravity.BOTTOM,
-      msg: isGoogle
-          ? "Successfully Logged In with Google."
-          : "Successfully Logged In.",
-    );
-  }
+  //   context.go('/home');
+  //
+  //   Fluttertoast.showToast(
+  //     backgroundColor: AppColors.primaryWhiteColor,
+  //     textColor: AppColors.appGreenColor,
+  //     gravity: ToastGravity.BOTTOM,
+  //     msg: isGoogle
+  //         ? "Successfully Logged In with Google."
+  //         : "Successfully Logged In.",
+  //   );
+  // }
 
 
   @override
@@ -139,29 +139,46 @@ class _LoginScreenState extends State<LoginScreen> {
               } else {
                 EasyLoading.dismiss();
               }
-
-              // Normal login success
-              if (state is LoginSuccessState) {
-                if(state.loginRequestResponse.user!.isEmailVerified == 1) {
-                  ObjectFactory().prefs.setIsLoggedIn(true);
-                }else {
-                  ObjectFactory().prefs.setIsLoggedIn(false);
-
-                }
-                _handleLoginSuccess(
-                  context,
-                  state.loginRequestResponse.token ?? "",
-                  state.loginRequestResponse.cafeId ?? "",
-                  state.loginRequestResponse.user?.name ?? '',
-                  isGoogle: false,
+              if (state is LoginFailureState) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.message),
+                    backgroundColor: AppColors.appRedColor,
+                  ),
                 );
+              }
+              if (state is LoginSuccessState) {
+               if(state.loginRequestResponse.status == true) {
+                 if(state.loginRequestResponse.token!.isNotEmpty && state.loginRequestResponse.user!.isEmailVerified == 1) {
+                   ObjectFactory().prefs.setIsLoggedIn(true);
+                   ObjectFactory().prefs.setEmailVerified(true);
+                   ObjectFactory().prefs.setAuthToken(token: state.loginRequestResponse.token);
+                   ObjectFactory().prefs.setCafeId(cafeId: state.loginRequestResponse.cafeId);
+                   if( state.loginRequestResponse.user != null &&  state.loginRequestResponse.user!.name != null ) {
+                     ObjectFactory().prefs.setCafeUserName(cafeUserName: state.loginRequestResponse.user!.name);
+                   }
+                   context.go('/home');
+                 }
+               } else if(state.loginRequestResponse.status == false) {
+                 ScaffoldMessenger.of(context).showSnackBar(
+                   SnackBar(
+                     content: Text(state.loginRequestResponse.message!),
+                     backgroundColor: AppColors.appRedColor,
+                   ),
+                 );
+               }
+                // else {
+                //   ObjectFactory().prefs.setIsLoggedIn(false);
+                //   context.go('/verify',extra: VerifyScreenArguments(email: _emailController.text, otp: "", type: "register"));
+                // }
+
                 if(state.loginRequestResponse.status == false && state.loginRequestResponse.message ==  "Please verify your email first." && state.loginRequestResponse.user!.isEmailVerified == 0) {
                   Fluttertoast.showToast(
                     msg: state.loginRequestResponse.message!,
                     backgroundColor: AppColors.primaryWhiteColor,
                     textColor: AppColors.appRedColor,
                   );
-                  context.go('/verify',extra: VerifyScreenArguments(email: _emailController.text, otp: "", type: "register"));
+                  context.go('/verify',extra: VerifyScreenArguments(email: _emailController.text, otp: "", type: "register",from: 'venue_owner'));
                 }
               }
 
@@ -169,13 +186,12 @@ class _LoginScreenState extends State<LoginScreen> {
                 final response = state.googleLoginResponse;
 
                 if (response.status == true && response.token != null) {
-                  _handleLoginSuccess(
-                    context,
-                    response.token!,
-                    response.cafeId ?? '' ,
-                    response.user?.name ?? '',
-                    isGoogle: true,
-                  );
+                  ObjectFactory().prefs.setIsLoggedIn(true);
+                  ObjectFactory().prefs.setIsGoogle(true);
+                  ObjectFactory().prefs.setAuthToken(token: state.googleLoginResponse.token);
+                  ObjectFactory().prefs.setCafeId(cafeId: state.googleLoginResponse.cafeId);
+                  ObjectFactory().prefs.setCafeUserName(cafeUserName: state.googleLoginResponse.user!.name);
+                  context.go('/home');
                 } else {
                   print("Message: ${response.message}");
                   Fluttertoast.showToast(
@@ -247,7 +263,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 }
               }
 
-              // Error handling
               if (state is LoginFailureState ||
                   state is GoogleLoginErrorState) {
                 final errorMessage =

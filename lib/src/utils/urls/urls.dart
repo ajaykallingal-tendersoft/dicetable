@@ -8,7 +8,7 @@ class UrlsDiceApp {
   ///Auth
   static const String register = '/api/register';
   static const String login = '/api/login';
-  static const String forgotPassword = '/api/forgot';
+  static const String forgotPassword = '/api/forgot-password';
   static const String passwordReset = '/api/reset';
   static const String googleLogin = '/api/google/auth';
   static const String googleSignUp = '/api/google/signup';

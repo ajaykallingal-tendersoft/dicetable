@@ -1,3 +1,4 @@
+// card_item.dart
 import 'package:dicetable/src/model/cafe_owner/home/venue_owner_home_screen_response.dart';
 
 import '../../../../model/cafe_owner/home/available_days.dart';
@@ -10,11 +11,11 @@ class CardModel {
   final String? iconImage;
   final String? moreInfo;
   final List<AvailableDay> availableDays;
-  final bool isSelected;
+  final bool isSelected; // This is the 'selected' parameter from your API
   final bool isExpanded;
   final String availabilityText;
   final String promoText;
-  final List<AvailableDay> selectedDays;
+  final List<AvailableDay> selectedDays; // These are the days actually selected on the backend for this table
 
   CardModel({
     required this.id,
@@ -32,11 +33,14 @@ class CardModel {
   });
 
   factory CardModel.fromDiceTable(DiceTable diceTable) {
-    List<AvailableDay> availableDaysList = [];
-    if (diceTable.availableDays != null) {
-      availableDaysList = List<AvailableDay>.from(diceTable.availableDays!);
-    }
+    List<AvailableDay> availableDaysList = diceTable.availableDays ?? [];
 
+    // The 'selectedDays' in the CardModel should strictly come from the API's actual selection.
+    // If diceTable.selected is true, it means there are specific days selected, so use diceTable.availableDays.
+    // If diceTable.selected is false, it implies no specific selection, so we pass an empty list.
+    List<AvailableDay> initialSelectedDaysForCard = (diceTable.selected ?? false)
+        ? (diceTable.availableDays ?? [])
+        : [];
 
     return CardModel(
       id: diceTable.id ?? 0,
@@ -45,9 +49,9 @@ class CardModel {
       description: diceTable.description,
       iconImage: diceTable.iconImage,
       moreInfo: diceTable.moreInfo,
-      availableDays: availableDaysList,
-      isSelected: diceTable.selected ?? false,
-        selectedDays: []
+      availableDays: availableDaysList, // All days provided by the API for this table
+      isSelected: diceTable.selected ?? false, // The 'selected' status from API
+      selectedDays: initialSelectedDaysForCard, // The actual selected days for this dice table
     );
   }
 
@@ -81,4 +85,3 @@ class CardModel {
     );
   }
 }
-

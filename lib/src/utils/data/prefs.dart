@@ -15,6 +15,7 @@ class Prefs {
   static const String _CUSTOMER_USER_NAME = "user_name";
   static const String _CAFE_USER_NAME = "user_name";
   static const String _CAFE_USER_MAIL = "cafe_user_mail";
+  static const String _CUSTOMER_USER_MAIL = "customer_user_mail";
   static const String _CAFE_USER_PHONE = "cafe_user_phone";
   static const String _CAFE_USER_IMAGE = "cafe_user_image";
   static const String _USER_MAIL_VERIFIED = "_user_mail_verified";
@@ -127,6 +128,14 @@ class Prefs {
   Future<void> clearNavigationSource() async {
     await _sharedPreferences!.remove('navigation_source');
   }
+
+  ///saving customer user email
+  void setCustomerUserMail({String? customerUserMail}) {
+    _sharedPreferences!.setString(_CUSTOMER_USER_MAIL, customerUserMail!);
+  }
+
+  ///get method  for customer user mail
+  String? getCustomerUserMail() => _sharedPreferences?.getString(_CUSTOMER_USER_MAIL);
 
   ///saving cafe user email
   void setCafeUserMail({String? cafeUserMail}) {

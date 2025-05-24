@@ -24,4 +24,17 @@ class AvailableDay {
     "open_time": openTime,
     "close_time": closeTime,
   };
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+
+    return other is AvailableDay &&
+        other.day == day &&
+        other.openTime == openTime &&
+        other.closeTime == closeTime;
+  }
+
+  @override
+  int get hashCode => day.hashCode ^ openTime.hashCode ^ closeTime.hashCode;
 }

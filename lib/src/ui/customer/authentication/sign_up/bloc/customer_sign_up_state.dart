@@ -84,3 +84,22 @@ class SignUpFormState extends CustomerSignUpState {
     region,
   ];
 }
+
+///Google signup
+class GoogleSignUpInitial extends CustomerSignUpState {}
+
+class GoogleSignUpLoadingState extends CustomerSignUpState {}
+
+class GoogleSignUpSuccessState extends CustomerSignUpState {
+  final GoogleSignUpRequestResponse googleSignUpRequestResponse;
+  const GoogleSignUpSuccessState({required this.googleSignUpRequestResponse});
+}
+
+class GoogleSignUpErrorState extends CustomerSignUpState {
+  final String errorMessage;
+
+  const GoogleSignUpErrorState({required this.errorMessage});
+
+  @override
+  List<Object?> get props => [errorMessage];
+}

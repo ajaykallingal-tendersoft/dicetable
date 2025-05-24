@@ -26,104 +26,120 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-  create: (context) => ForgotPasswordBloc(authDataProvider: AuthDataProvider()),
-  child: Scaffold(
-      appBar: AppBar(
-        backgroundColor: AppColors.primary,
-        leading: InkWell(
-          onTap: () => context.pop(),
-            child: SvgPicture.asset('assets/svg/back.svg', fit: BoxFit.scaleDown)),
-        title: Text(
-          'Forgot Password',
-          style: TextTheme.of(context).labelLarge,
-          textAlign: TextAlign.left,
+      create: (context) =>
+          ForgotPasswordBloc(authDataProvider: AuthDataProvider()),
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: AppColors.primary,
+          leading: InkWell(
+              onTap: () => context.pop(),
+              child: SvgPicture.asset(
+                  'assets/svg/back.svg', fit: BoxFit.scaleDown)),
+          title: Text(
+            'Forgot Password',
+            style: TextTheme
+                .of(context)
+                .labelLarge,
+            textAlign: TextAlign.left,
+          ),
         ),
-      ),
-      body: SizedBox.expand(
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: AssetImage('assets/png/fp-bg.png'),
-              fit: BoxFit.cover,
+        body: SizedBox.expand(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              image: DecorationImage(
+                image: AssetImage('assets/png/fp-bg.png'),
+                fit: BoxFit.cover,
+              ),
             ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 10),
-            child: Column(
-              children: [
-                Gap(100),
-                Text(
-                  "Enter your Email ID To send the OTP code",
-                  style: TextTheme.of(context).labelLarge!.copyWith(
-                    fontSize: 16,
-                    color: AppColors.primaryBlackColor,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                Gap(30),
-                CustomTextField(
-                  hintText: 'Email Address',
-                  controller: _controller,
-                ),
-                Gap(60),
-                BlocConsumer<ForgotPasswordBloc, ForgotPasswordState>(
-  listener: (context, state) {
-    if(state is ForgotPasswordError) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(state.errorMessage),
-          backgroundColor: AppColors.appRedColor,
-        ),
-      );
-    }
-    if(state is ForgotPasswordLoaded) {
-      if(state.forgotPasswordRequestResponse.message == "We have emailed your password reset link!") {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(state.forgotPasswordRequestResponse.message!),
-            backgroundColor: AppColors.appGreenColor,
-          ),
-        );
-        context.go('/forgot_password_otp',extra: _controller.text);
-      }
-    }
-  },
-  builder: (context, state) {
-    final bool isLoading = state is ForgotPasswordLoading;
-    return InkWell(
-                  onTap: () {
-                    context.read<ForgotPasswordBloc>().add(GetForgotPasswordEvent(forgotPasswordRequest: ForgotPasswordRequest(email: _controller.text),),);
-                  },
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      ElevatedButtonWidget(
-                        height: 70.h,
-                        width: 377.w,
-                        iconEnabled: false,
-                        iconLabel: isLoading ? "" : "SEND",
-                        color: AppColors.primary,
-                        textColor: AppColors.primaryWhiteColor,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 10),
+              child: SingleChildScrollView(
+                physics: BouncingScrollPhysics(),
+                child:  Column(
+                  children: [
+                    Gap(100),
+                    Text(
+                      "Enter your Email ID To send the OTP code",
+                      style: TextTheme
+                          .of(context)
+                          .labelLarge!
+                          .copyWith(
+                        fontSize: 16,
+                        color: AppColors.primaryBlackColor,
                       ),
-                      if (isLoading)
-                        CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<
-                              Color>(
-                            AppColors.primaryWhiteColor,
+                      textAlign: TextAlign.center,
+                    ),
+                    Gap(30),
+                    CustomTextField(
+                      hintText: 'Email Address',
+                      controller: _controller,
+                    ),
+                    Gap(60),
+                    BlocConsumer<ForgotPasswordBloc, ForgotPasswordState>(
+                      listener: (context, state) {
+                        if (state is ForgotPasswordError) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(state.errorMessage),
+                              backgroundColor: AppColors.appRedColor,
+                            ),
+                          );
+                        }
+                        if (state is ForgotPasswordLoaded) {
+                          if (state.forgotPasswordRequestResponse.message ==
+                              "We have emailed your password reset link.") {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                    state.forgotPasswordRequestResponse.message!),
+                                backgroundColor: AppColors.appGreenColor,
+                              ),
+                            );
+                            context.push('/forgot_password_otp',
+                                extra: _controller.text);
+                          }
+                        }
+                      },
+                      builder: (context, state) {
+                        final bool isLoading = state is ForgotPasswordLoading;
+                        return InkWell(
+                          onTap: () {
+                            context.read<ForgotPasswordBloc>().add(
+                              GetForgotPasswordEvent(
+                                forgotPasswordRequest: ForgotPasswordRequest(
+                                    email: _controller.text),),);
+                          },
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              ElevatedButtonWidget(
+                                height: 70.h,
+                                width: 377.w,
+                                iconEnabled: false,
+                                iconLabel: isLoading ? "" : "SEND",
+                                color: AppColors.primary,
+                                textColor: AppColors.primaryWhiteColor,
+                              ),
+                              if (isLoading)
+                                CircularProgressIndicator(
+                                  valueColor: AlwaysStoppedAnimation<
+                                      Color>(
+                                    AppColors.primaryWhiteColor,
+                                  ),
+                                ),
+                            ],
                           ),
-                        ),
-                    ],
-                  ),
 
-                );
-  },
-),
-              ],
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              )
             ),
           ),
         ),
       ),
-    ),
-);
+    );
   }
 }

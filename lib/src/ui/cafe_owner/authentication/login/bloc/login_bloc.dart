@@ -77,8 +77,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         print("PasswordAfter: $password");
 
         if (stateModel.isSuccess) {
-
           emit(LoginSuccessState(loginRequestResponse: stateModel.data as LoginRequestResponse));
+          emit(formState.copyWith());
         } else if (stateModel.isError) {
 
           emit(LoginFailureState(stateModel.error as String));

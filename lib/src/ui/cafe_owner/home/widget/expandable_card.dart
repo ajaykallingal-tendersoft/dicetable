@@ -1,6 +1,8 @@
+import 'package:collection/collection.dart';
 import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/model/cafe_owner/home/available_days.dart';
-import 'package:dicetable/src/model/cafe_owner/home/dice_table_update_request.dart' show DiceTableTypeUpdateRequest;
+import 'package:dicetable/src/model/cafe_owner/home/dice_table_update_request.dart'
+    show DiceTableTypeUpdateRequest;
 import 'package:dicetable/src/ui/cafe_owner/home/bloc/home_bloc.dart';
 import 'package:dicetable/src/ui/cafe_owner/home/model/card_item.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
@@ -9,7 +11,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 
 class ExpandableCard extends StatefulWidget {
   final int index;
@@ -23,52 +24,38 @@ class ExpandableCard extends StatefulWidget {
 
 class _ExpandableCardState extends State<ExpandableCard> {
   late TextEditingController _promoController;
-  List<AvailableDay> selectedDays = [];
+  List<AvailableDay> selectedDays = []; // Local state for selected days
   late int? cafeId;
 
   @override
   void initState() {
     super.initState();
     cafeId = int.tryParse(ObjectFactory().prefs.getCafeId().toString());
-    // Assign selectedDays with a List<AvailableDay>
-    if (widget.card.selectedDays.isNotEmpty) {
-      selectedDays = List<AvailableDay>.from(widget.card.selectedDays);
-    } else if (widget.card.availableDays.isNotEmpty) {
-      // Default to first available day if nothing is selected
-      selectedDays = [widget.card.availableDays.first];
-    } else {
-      selectedDays = [];
-    }
-
-    final initialPromo = widget.card.promoText.isNotEmpty
-        ? widget.card.promoText
-        : (widget.card.description ?? '');
-    _promoController = TextEditingController(text: initialPromo);
+    _promoController = TextEditingController(text: widget.card.promoText);
+    // Initialize selectedDays with the CardModel's API-fetched selectedDays.
+    // This is the starting point for the editable selection within this card.
+    selectedDays = List.from(widget.card.selectedDays);
   }
 
   @override
   void didUpdateWidget(covariant ExpandableCard oldWidget) {
     super.didUpdateWidget(oldWidget);
-
-    // Update selectedDays if changed in the card
-    if (widget.card.selectedDays != oldWidget.card.selectedDays) {
-      setState(() {
-        if (widget.card.selectedDays.isNotEmpty) {
-          selectedDays = List<AvailableDay>.from(widget.card.selectedDays);
-        } else if (widget.card.availableDays.isNotEmpty) {
-          selectedDays = [widget.card.availableDays.first];
-        } else {
-          selectedDays = [];
-        }
-      });
+    // Update promo text controller if the card's promo text changes externally
+    if (widget.card.promoText != oldWidget.card.promoText) {
+      _promoController.text = widget.card.promoText;
     }
-
-    // Update promo controller text if promo text changed
-    if (widget.card.promoText != oldWidget.card.promoText ||
-        widget.card.description != oldWidget.card.description) {
-      _promoController.text = widget.card.promoText.isNotEmpty
-          ? widget.card.promoText
-          : (widget.card.description ?? '');
+    // IMPORTANT: Update local selectedDays only if the underlying card data has changed
+    // from the parent (which happens after an API refresh).
+    // Since AvailableDay now has proper `==` and `hashCode`, List equality check is easier.
+    // However, `List<T>.==` only checks reference. For content, use `const DeepCollectionEquality().equals`.
+    // Or, simpler, just check if the lists are different lengths or contain different elements.
+    if (!const DeepCollectionEquality().equals(
+      widget.card.selectedDays,
+      oldWidget.card.selectedDays,
+    )) {
+      setState(() {
+        selectedDays = List.from(widget.card.selectedDays);
+      });
     }
   }
 
@@ -85,24 +72,25 @@ class _ExpandableCardState extends State<ExpandableCard> {
     return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
         // Update selectedDays when HomeLoaded state provides new CardModel data
+        // This is necessary to reflect the API's latest selections after an update
         if (state is HomeLoaded) {
           final updatedCard = state.cards[widget.index];
-          if (updatedCard.selectedDays != selectedDays) {
+          // After HomeLoaded, update the local selectedDays to reflect the API's current truth.
+          if (!const DeepCollectionEquality().equals(
+            selectedDays,
+            updatedCard.selectedDays,
+          )) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) { // Check if widget is still mounted
+              if (mounted) {
                 setState(() {
-                  selectedDays = List<AvailableDay>.from(updatedCard.selectedDays.isNotEmpty
-                      ? updatedCard.selectedDays
-                      : (updatedCard.availableDays.isNotEmpty
-                      ? [updatedCard.availableDays.first]
-                      : []));
+                  selectedDays = List<AvailableDay>.from(
+                    updatedCard.selectedDays,
+                  );
                 });
               }
             });
           }
         }
-
-        // Default card content
         Widget content = AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -135,7 +123,13 @@ class _ExpandableCardState extends State<ExpandableCard> {
                       children: [
                         Text(
                           card.title,
-                          style: TextTheme.of(context).labelMedium!.copyWith(
+                          style: Theme
+                              .of(
+                            context,
+                          )
+                              .textTheme
+                              .labelMedium!
+                              .copyWith(
                             color: AppColors.primary,
                             fontWeight: FontWeight.bold,
                             fontSize: 18.sp,
@@ -144,7 +138,13 @@ class _ExpandableCardState extends State<ExpandableCard> {
                         if (card.subTitle != null)
                           Text(
                             card.subTitle!,
-                            style: TextTheme.of(context).labelMedium!.copyWith(
+                            style: Theme
+                                .of(
+                              context,
+                            )
+                                .textTheme
+                                .labelMedium!
+                                .copyWith(
                               color: AppColors.shadowColor,
                               fontWeight: FontWeight.w500,
                               fontSize: 14.sp,
@@ -165,7 +165,11 @@ class _ExpandableCardState extends State<ExpandableCard> {
                       card.promoText.isNotEmpty
                           ? card.promoText
                           : (card.description ?? 'No description available'),
-                      style: TextTheme.of(context).bodySmall!.copyWith(
+                      style: Theme
+                          .of(context)
+                          .textTheme
+                          .bodySmall!
+                          .copyWith(
                         color: AppColors.shadowColor,
                         fontWeight: FontWeight.w400,
                         fontSize: 11.sp,
@@ -176,7 +180,9 @@ class _ExpandableCardState extends State<ExpandableCard> {
                   const SizedBox(width: 8),
                   GestureDetector(
                     onTap: () {
-                      context.read<HomeBloc>().add(ToggleCheckEvent(widget.index));
+                      context.read<HomeBloc>().add(
+                        ToggleCheckEvent(widget.index),
+                      );
                     },
                     child: Container(
                       padding: const EdgeInsets.all(4),
@@ -191,7 +197,11 @@ class _ExpandableCardState extends State<ExpandableCard> {
                       child: Icon(
                         Icons.check,
                         size: 17,
-                        color: card.isSelected ? AppColors.primary : Colors.transparent,
+                        color:
+                        card
+                            .isSelected // Use card.isSelected from the model
+                            ? AppColors.primary
+                            : Colors.transparent,
                       ),
                     ),
                   ),
@@ -212,22 +222,18 @@ class _ExpandableCardState extends State<ExpandableCard> {
                           color: AppColors.shadowColor,
                         ),
                       ),
-                      selectedDays.isEmpty
-                          ? Text(
-                        'Not selected',
-                        style: GoogleFonts.roboto(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.shadowColor,
-                        ),
-                      )
-                          : Column(
+                      // Conditional display based on card.isSelected
+                      card.isSelected && selectedDays.isNotEmpty
+                          ? Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: selectedDays.map((d) {
-                          String? open = d.openTime!.length >= 5
+                        children:
+                        selectedDays.map((d) {
+                          String? open =
+                          d.openTime!.length >= 5
                               ? d.openTime!.substring(0, 5)
                               : d.openTime;
-                          String? close = d.closeTime!.length >= 5
+                          String? close =
+                          d.closeTime!.length >= 5
                               ? d.closeTime!.substring(0, 5)
                               : d.closeTime;
                           return Text(
@@ -239,6 +245,14 @@ class _ExpandableCardState extends State<ExpandableCard> {
                             ),
                           );
                         }).toList(),
+                      )
+                          : Text(
+                        'All days', // Display "All days" if not selected
+                        style: GoogleFonts.roboto(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.shadowColor,
+                        ),
                       ),
                     ],
                   ),
@@ -260,7 +274,10 @@ class _ExpandableCardState extends State<ExpandableCard> {
                     },
                     label: const Text(
                       'Edit',
-                      style: TextStyle(fontSize: 9, color: Color(0xFF5B6369)),
+                      style: TextStyle(
+                        fontSize: 9,
+                        color: Color(0xFF5B6369),
+                      ),
                     ),
                     icon: const Icon(
                       Icons.edit,
@@ -272,62 +289,76 @@ class _ExpandableCardState extends State<ExpandableCard> {
                 ],
               ),
               if (card.isExpanded) ...[
-                const Gap(10),
-                TextField(
-                  style: TextTheme.of(context).bodyMedium!.copyWith(
-                    color: AppColors.timeTextColor,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  key: const ValueKey("expandedPromoTextField"),
-                  controller: _promoController,
-                  maxLines: 5,
-                  decoration: InputDecoration(
-                    hintText: "Write your promo here",
-                    filled: true,
-                    fillColor: AppColors.primaryWhiteColor,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                ),
-                const Gap(10),
-                AvailableDaysMultiSelectField(
-                  availableDays: widget.card.availableDays,
-                  initialSelectedDays: selectedDays, // Pass updated selectedDays
-                  onChanged: (days) {
-                    setState(() {
-                      selectedDays = days;
-                    });
-                  },
-                ),
-                const Gap(10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                Column(
+                  // Wrap expanded content in a Column
                   children: [
-                    _buildSaveButton(context, state),
+                    const Gap(10),
+                    TextField(
+
+                      key: ValueKey('promoTextField_${card.id}'),
+                      // <--- CRITICAL for focus
+                      style: Theme
+                          .of(context)
+                          .textTheme
+                          .bodyMedium!
+                          .copyWith(
+                        color: AppColors.timeTextColor,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      controller: _promoController,
+                      maxLines: 5,
+                      keyboardType: TextInputType.text,
+                      decoration: InputDecoration(
+                        hintText: "Write your promo here",
+                        filled: true,
+                        fillColor: AppColors.primaryWhiteColor,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                    const Gap(10),
+                    BlocBuilder<HomeBloc, HomeState>(
+                      builder: (context, state) {
+                        if (state is HomeLoaded) {
+                          final card = state.cards[widget.index];
+                          return AvailableDaysMultiSelectField(
+                            availableDays: card.availableDays,
+                            initialSelectedDays: card.selectedDays,
+                            onChanged: (days) {
+                              setState(() {
+                                selectedDays = days;
+                              });
+                              context.read<HomeBloc>().add(UpdateSelectedDaysEvent(widget.index, days));
+                            },
+                          );
+                        }
+                        return CircularProgressIndicator();
+                      },
+                    ),
+                    const Gap(10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [_buildSaveButton(context, state)],
+                    ),
                   ],
                 ),
-              ]
+              ],
             ],
           ),
         );
-
-        // Handle loading state
         if (state is DiceTableUpdateLoading) {
           return Stack(
             children: [
               content,
-              const Center(
-                child: CircularProgressIndicator(),
-              ),
+              const Center(child: CircularProgressIndicator()),
             ],
           );
         }
-
-        // Handle success state
         if (state is DiceTableUpdateLoaded &&
-            state.response.message == "Dice table types updated successfully." &&
+            state.response.message ==
+                "Dice table types updated successfully." &&
             state.response.status == true) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -339,8 +370,6 @@ class _ExpandableCardState extends State<ExpandableCard> {
             );
           });
         }
-
-        // Handle error state
         if (state is DiceTableUpdateError) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -359,17 +388,26 @@ class _ExpandableCardState extends State<ExpandableCard> {
   }
 
   Widget _buildSaveButton(BuildContext context, HomeState state) {
+    final isPromoNotEmpty = _promoController.text
+        .trim()
+        .isNotEmpty;
+    final isDaysNotEmpty = selectedDays.isNotEmpty;
+
     return ElevatedButton.icon(
-      onPressed: state is DiceTableUpdateLoading
-          ? null // Disable button during loading
+      onPressed: (state is DiceTableUpdateLoading || !isPromoNotEmpty ||
+          !isDaysNotEmpty)
+          ? null
           : () {
+        print('Selected days being sent: $selectedDays');
         context.read<HomeBloc>().add(
           UpdatePromoTextEvent(widget.index, _promoController.text),
         );
         context.read<HomeBloc>().add(
           UpdateAvailabilityTextEvent(
             widget.index,
-            selectedDays
+            selectedDays.isEmpty
+                ? 'All days'
+                : selectedDays
                 .map((d) => "${d.day}: ${d.openTime}-${d.closeTime}")
                 .join(', '),
           ),
@@ -377,12 +415,11 @@ class _ExpandableCardState extends State<ExpandableCard> {
         context.read<HomeBloc>().add(
           UpdateSelectedDaysEvent(widget.index, selectedDays),
         );
-        context.read<HomeBloc>().add(
-          ToggleExpandEvent(widget.index),
-        );
+        context.read<HomeBloc>().add(ToggleExpandEvent(widget.index));
+
         final diceTableIds = [widget.card.id];
         final moreInfos = [_promoController.text];
-        final availableDaysSelected = selectedDays;
+        final availableDaysSelectedForApi = selectedDays;
 
         context.read<HomeBloc>().add(
           DiceTableUpdateEvent(
@@ -390,7 +427,7 @@ class _ExpandableCardState extends State<ExpandableCard> {
               cafeId: cafeId!,
               diceTableId: diceTableIds,
               moreInfo: moreInfos,
-              availableDays: availableDaysSelected,
+              availableDays: availableDaysSelectedForApi,
             ),
           ),
         );
@@ -402,33 +439,44 @@ class _ExpandableCardState extends State<ExpandableCard> {
       icon: const Icon(Icons.save, size: 15),
     );
   }
+
 }
 
 class AvailableDaysMultiSelectField extends StatefulWidget {
   final List<AvailableDay> availableDays;
   final ValueChanged<List<AvailableDay>>? onChanged;
-  final List<AvailableDay>? initialSelectedDays; // Added to receive initial selection
+  final List<AvailableDay>? initialSelectedDays;
 
   const AvailableDaysMultiSelectField({
     required this.availableDays,
     this.onChanged,
-    this.initialSelectedDays, // Added parameter
+    this.initialSelectedDays,
     super.key,
   });
 
   @override
-  State<AvailableDaysMultiSelectField> createState() => _AvailableDaysMultiSelectFieldState();
+  State<AvailableDaysMultiSelectField> createState() =>
+      _AvailableDaysMultiSelectFieldState();
 }
 
-class _AvailableDaysMultiSelectFieldState extends State<AvailableDaysMultiSelectField> {
+class _AvailableDaysMultiSelectFieldState
+    extends State<AvailableDaysMultiSelectField> {
   List<AvailableDay> selectedDays = [];
 
   @override
   void initState() {
     super.initState();
-    // Initialize selectedDays with initialSelectedDays if provided
-    if (widget.initialSelectedDays != null && widget.initialSelectedDays!.isNotEmpty) {
-      selectedDays = List<AvailableDay>.from(widget.initialSelectedDays!);
+    selectedDays = List<AvailableDay>.from(widget.initialSelectedDays ?? []);
+  }
+
+  @override
+  void didUpdateWidget(covariant AvailableDaysMultiSelectField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Only update if the reference changes (use DeepCollectionEquality for deep check if needed)
+    if (widget.initialSelectedDays != oldWidget.initialSelectedDays) {
+      setState(() {
+        selectedDays = List<AvailableDay>.from(widget.initialSelectedDays ?? []);
+      });
     }
   }
 
@@ -436,15 +484,15 @@ class _AvailableDaysMultiSelectFieldState extends State<AvailableDaysMultiSelect
     if (selectedDays.isEmpty) return "Select Available Days";
     return selectedDays
         .map((d) {
-      String? open = d.openTime!.length >= 5 ? d.openTime!.substring(0, 5) : d.openTime;
-      String? close = d.closeTime!.length >= 5 ? d.closeTime!.substring(0, 5) : d.closeTime;
+      final open = d.openTime?.substring(0, 5) ?? "";
+      final close = d.closeTime?.substring(0, 5) ?? "";
       return "${d.day}: $open-$close";
     })
         .join(', ');
   }
 
   Future<void> _showMultiSelectDialog() async {
-    final List<AvailableDay> tempSelected = List.from(selectedDays);
+    List<AvailableDay> tempSelected = List.from(selectedDays);
 
     final result = await showDialog<List<AvailableDay>>(
       context: context,
@@ -453,7 +501,7 @@ class _AvailableDaysMultiSelectFieldState extends State<AvailableDaysMultiSelect
           backgroundColor: AppColors.primaryWhiteColor,
           title: Text(
             'Select Available Days',
-            style: TextTheme.of(context).bodyMedium!.copyWith(
+            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
               color: AppColors.primary,
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -468,11 +516,11 @@ class _AvailableDaysMultiSelectFieldState extends State<AvailableDaysMultiSelect
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       ...widget.availableDays.map((day) {
-                        final isChecked = tempSelected.contains(day);
+                        final isChecked = tempSelected.any((d) => d.day == day.day);
                         return CheckboxListTile(
                           title: Text(
                             "${day.day}: ${day.openTime} - ${day.closeTime}",
-                            style: TextTheme.of(context).bodySmall!.copyWith(
+                            style: Theme.of(context).textTheme.bodySmall!.copyWith(
                               color: AppColors.textPrimaryGrey,
                               fontSize: 13,
                               fontWeight: FontWeight.w500,
@@ -482,9 +530,11 @@ class _AvailableDaysMultiSelectFieldState extends State<AvailableDaysMultiSelect
                           onChanged: (checked) {
                             setModalState(() {
                               if (checked == true) {
-                                tempSelected.add(day);
+                                if (!tempSelected.any((d) => d.day == day.day)) {
+                                  tempSelected.add(day);
+                                }
                               } else {
-                                tempSelected.remove(day);
+                                tempSelected.removeWhere((d) => d.day == day.day);
                               }
                             });
                           },
@@ -498,26 +548,28 @@ class _AvailableDaysMultiSelectFieldState extends State<AvailableDaysMultiSelect
           ),
           actions: [
             TextButton(
+              onPressed: () => Navigator.pop(context, null), // Cancel returns null
               child: Text(
                 'Cancel',
-                style: TextTheme.of(context).bodyMedium!.copyWith(
+                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                   color: AppColors.primary,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              onPressed: () => Navigator.pop(context, null),
             ),
             ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context, tempSelected); // Done returns selection
+              },
               child: Text(
                 'Done',
-                style: TextTheme.of(context).bodyMedium!.copyWith(
+                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                   color: AppColors.primary,
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
                 ),
               ),
-              onPressed: () => Navigator.pop(context, tempSelected),
             ),
           ],
         );
@@ -528,31 +580,47 @@ class _AvailableDaysMultiSelectFieldState extends State<AvailableDaysMultiSelect
       setState(() {
         selectedDays = result;
       });
-      if (widget.onChanged != null) {
-        widget.onChanged!(selectedDays);
-      }
+
+      Future.microtask(() {
+        if (widget.onChanged != null) {
+          widget.onChanged!(selectedDays);
+        }
+      });
+      // if (widget.onChanged != null) {
+      //   widget.onChanged!(selectedDays);
+      // }
     }
+    // If result is null (Cancel), do nothing
   }
 
   @override
   Widget build(BuildContext context) {
-    return TextFormField(
-      style: TextTheme.of(context).bodyMedium!.copyWith(
-        color: AppColors.timeTextColor,
-        fontSize: 13,
-        fontWeight: FontWeight.w500,
-      ),
-      readOnly: true,
-      controller: TextEditingController(text: selectedDaysText),
-      decoration: InputDecoration(
-        hintText: "Select Available Days",
-        // filled: true,
-        border: OutlineInputBorder(
+    return GestureDetector(
+      onTap: _showMultiSelectDialog,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey),
           borderRadius: BorderRadius.circular(12),
         ),
-        suffixIcon: const Icon(Icons.arrow_drop_down),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                selectedDaysText,
+                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                  color: AppColors.timeTextColor,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const Icon(Icons.arrow_drop_down),
+          ],
+        ),
       ),
-      onTap: _showMultiSelectDialog,
     );
   }
 }

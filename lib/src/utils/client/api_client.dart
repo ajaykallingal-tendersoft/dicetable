@@ -23,8 +23,6 @@ class ApiClient {
     // initClientDiceAppLive();
   }
 
-
-
   Dio dioDiceApp = Dio();
 
   BaseOptions _baseOptionsDiceApp = BaseOptions();
@@ -51,44 +49,6 @@ class ApiClient {
   // String? message;
 
   /// client production
-  // initClientDiceAppLive() async {
-  //   _baseOptionsDiceApp = BaseOptions(
-  //     baseUrl: UrlsDiceApp.baseUrlDev,
-  //     connectTimeout: const Duration(seconds: 5000),
-  //     receiveTimeout: const Duration(seconds: 3000),
-  //     followRedirects: true,
-  //     headers: {
-  //       HttpHeaders.contentTypeHeader: 'application/json',
-  //       HttpHeaders.acceptHeader: 'application/json',
-  //     },
-  //     responseType: ResponseType.json,
-  //     receiveDataWhenStatusError: true,
-  //   );
-  //
-  //   dioDiceApp = Dio(_baseOptionsDiceApp);
-  //   dioDiceApp.httpClientAdapter = IOHttpClientAdapter(
-  //     createHttpClient: () {
-  //       // Don't trust any certificate just because their root cert is trusted.
-  //       final HttpClient client =
-  //       HttpClient(context: SecurityContext(withTrustedRoots: false));
-  //       // You can test the intermediate / root cert here. We just ignore it.
-  //       client.badCertificateCallback =
-  //       ((X509Certificate cert, String host, int port) => true);
-  //       return client;
-  //     },
-  //   );
-  //
-  //
-  //   dioDiceApp.interceptors.add(InterceptorsWrapper(
-  //     onRequest: (reqOptions, handler) {
-  //       return handler.next(reqOptions);
-  //     },
-  //     onError: (DioException dioError, handler) {
-  //       return handler.next(dioError);
-  //     },
-  //   ));
-  // }
-
 
   ///client dev
   initClientDiceAppDev() async {
@@ -127,9 +87,32 @@ class ApiClient {
       onRequest: (reqOptions, handler) {
         return handler.next(reqOptions);
       },
+      // onRequest: (options, handler) {
+      //   final token = ObjectFactory().prefs.getAuthToken();
+      //   if (token != null && token.isNotEmpty) {
+      //     options.headers["Authorization"] = token;
+      //   }
+      //   return handler.next(options);
+      // },
+      // onError: (DioException error, handler) async {
+      //   // If 401 error and retry not attempted yet
+      //   if (error.response?.statusCode == 401 && !error.requestOptions.headers.containsKey('x-retry')) {
+      //     final newToken = await refreshToken();
+      //     if (newToken != null) {
+      //       final opts = error.requestOptions;
+      //       opts.headers["Authorization"] = newToken;
+      //       opts.headers["x-retry"] = "true"; // Prevent infinite loop
+      //       final cloneReq = await dioDiceApp.fetch(opts);
+      //       return handler.resolve(cloneReq);
+      //     }
+      //   }
+      //
+      //   return handler.next(error); // Pass error to UI
+      // },
       onError: (DioException dioError, handler) {
         return handler.next(dioError);
       },
+
     ));
   }
 
@@ -272,59 +255,5 @@ Future<Response> getFavourite() {
     }),
   );
 }
-
-
-  //
-  // ///Login
-  // Future<Response> loginRequest(LoginRequest loginRequest) {
-  //   return dioLetsCollect.post(
-  //     options: Options(),
-  //     UrlsLetsCollect.LOGIN_URL,
-  //     data: loginRequest,
-  //   );
-  // }
-
-  // //Forgot Password email
-  // Future<Response> forgotPassword(
-  //     ForgotPasswordEmailRequest forgotPasswordEmailRequest) {
-  //   return dioLetsCollect.post(
-  //     UrlsLetsCollect.FORGOT_PASSWORD_EMAIL,
-  //     data: forgotPasswordEmailRequest,
-  //   );
-  // }
-
-  // //Forgot Password Otp
-  // Future<Response> forgotPasswordOtp(
-  //     ForgotPasswordOtpRequest forgotPasswordOtpRequest) {
-  //   return dioLetsCollect.post(
-  //     UrlsLetsCollect.FORGOT_PASSWORD_OTP,
-  //     data: forgotPasswordOtpRequest,
-  //   );
-  // }
-
-  // //Forgot Password Reset
-  // Future<Response> forgotPasswordReset(
-  //     ForgotPasswordResetRequest forgotPasswordResetRequest) {
-  //   return dioLetsCollect.post(
-  //     UrlsLetsCollect.FORGOT_PASSWORD_RESET,
-  //     data: forgotPasswordResetRequest,
-  //     options: Options(headers: {
-  //       "Authorization": ObjectFactory().prefs.getAuthToken(),
-  //     }),
-  //   );
-  // }
-
-  // ///Home Page
-  // Future<Response> getHomeData() {
-  //   return dioLetsCollect.get(
-  //     UrlsLetsCollect.HOME_DATA,
-  //     options: Options(headers: {
-  //       "Authorization": ObjectFactory().prefs.getAuthToken(),
-  //     }),
-  //   );
-  // }
-
-
-
 
 }

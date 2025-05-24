@@ -7,17 +7,22 @@ import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/resources/api_providers/auth/auth_data_provider.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/login/widget/login_with_google_widget.dart';
 import 'package:dicetable/src/ui/customer/authentication/login/bloc/customer_login_bloc.dart';
+import 'package:dicetable/src/ui/verification/verify_screen_argument.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:dicetable/src/utils/network_connectivity/network_connectivity_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../../cafe_owner/authentication/sign_up/sign_up_screen_argument.dart';
+
 
 class CustomerLoginScreen extends StatefulWidget {
   const CustomerLoginScreen({super.key});
@@ -100,11 +105,6 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                 setState(() {
                   _isConnected = true;
                 });
-                // Fluttertoast.showToast(
-                //   msg: "Back online",
-                //   backgroundColor:  AppColors.appGreenColor,
-                //   textColor: AppColors.primaryWhiteColor,
-                // );
               }
             },
             child: BlocConsumer<CustomerLoginBloc, CustomerLoginState>(
@@ -121,17 +121,12 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
               }
 
               if (state is CustomerLoginSuccessState) {
-                ObjectFactory().prefs.setCustomerAuthToken(token: state.loginRequestResponse.token);
-                // ObjectFactory().prefs.setIsCustomerLoggedIn(true);
-                context.go('/customer_home');
-                Fluttertoast.showToast(
-                  backgroundColor: AppColors.primaryWhiteColor,
-                  textColor: AppColors.appGreenColor,
-                  gravity: ToastGravity.BOTTOM,
-                  msg: "Successfully Logged In.",
-                );
+                EasyLoading.show(status: 'Please wait...');
+              } else if (state is GoogleLoginLoading) {
+                EasyLoading.show(status: 'Please wait...');
+              } else {
+                EasyLoading.dismiss();
               }
-
               if (state is CustomerLoginFailureState) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -139,6 +134,86 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                     backgroundColor: AppColors.appRedColor,
                   ),
                 );
+              }
+
+              if (state is CustomerLoginSuccessState) {
+                if(state.loginRequestResponse.status == true) {
+                  if(state.loginRequestResponse.token!.isNotEmpty && state.loginRequestResponse.user!.isEmailVerified == 1) {
+                    ObjectFactory().prefs.setIsCustomerLoggedIn(true);
+                    ObjectFactory().prefs.setCustomerAuthToken(token: state.loginRequestResponse.token);
+                    ObjectFactory().prefs.setUserId(userId: state.loginRequestResponse.cafeId);
+                    if( state.loginRequestResponse.user != null &&  state.loginRequestResponse.user!.name != null ) {
+                      ObjectFactory().prefs.setCustomerUserName(customerUserName: state.loginRequestResponse.user!.name);
+                    }
+                    context.go('/customer_home');
+                  }
+                }else if(state.loginRequestResponse.status == false){
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(state.loginRequestResponse.message!),
+                      backgroundColor: AppColors.appRedColor,
+                    ),
+                  );
+                }
+                if(state.loginRequestResponse.status == false && state.loginRequestResponse.message ==  "Please verify your email first." && state.loginRequestResponse.user!.isEmailVerified == 0) {
+                  Fluttertoast.showToast(
+                    msg: state.loginRequestResponse.message!,
+                    backgroundColor: AppColors.primaryWhiteColor,
+                    textColor: AppColors.appRedColor,
+                  );
+                  context.go('/verify',extra: VerifyScreenArguments(email: _emailController.text, otp: "", type: "register", from: 'customer'));
+                }
+              }
+              if (state is CustomerLoginFailureState) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.message),
+                    backgroundColor: AppColors.appRedColor,
+                  ),
+                );
+              }
+              if (state is GoogleLoginLoaded) {
+                final response = state.googleLoginResponse;
+
+                if (response.status == true && response.token != null) {
+                  ObjectFactory().prefs.setIsCustomerLoggedIn(true);
+                  ObjectFactory().prefs.setIsGoogle(true);
+                  ObjectFactory().prefs.setCustomerAuthToken(token: state.googleLoginResponse.token);
+                  ObjectFactory().prefs.setUserId(userId: state.googleLoginResponse.cafeId);
+                  ObjectFactory().prefs.setCustomerUserName(customerUserName: state.googleLoginResponse.user!.name);
+                  context.go('/customer_home');
+                  Fluttertoast.showToast(
+                    msg: response.message!,
+                    backgroundColor: AppColors.primaryWhiteColor,
+                    textColor: AppColors.appRedColor,
+                  );
+                }
+
+              }
+              if (state is GoogleLoginErrorState) {
+                print('GoogleLoginErrorState reached');
+                Fluttertoast.showToast(
+                  msg: state.msg,
+                  backgroundColor: AppColors.primaryWhiteColor,
+                  textColor: AppColors.appRedColor,
+                );
+
+                if (state.msg ==
+                    "You are not registered in our app. Please complete the signup process!") {
+                  print('Navigating to /signup');
+                  print( ObjectFactory().prefs.getCustomerUserName()!);
+                  print(ObjectFactory().prefs.getCustomerUserMail()!);
+                  context.push(
+                    '/customer_signUp',
+                    extra: SignUpScreenArgument(
+                      imageBase64: "",
+                      isGoggleSignUp: true,
+                      email: ObjectFactory().prefs.getCustomerUserMail()!,
+                      displayName: ObjectFactory().prefs.getCustomerUserName()!,
+                      phone: "",
+                    ),
+                  );
+                }
               }
 
               if (state is LoginFormState) {
@@ -363,15 +438,6 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                                                 onTap: isLoading
                                                     ? null
                                                     : () {
-                                                  NetworkConnectivityBloc().add(NetworkObserve());
-                                                  if (!_isConnected) {
-                                                    Fluttertoast.showToast(
-                                                      msg: "Please check your internet connection.",
-                                                      backgroundColor: AppColors.appRedColor,
-                                                      textColor: AppColors.primaryWhiteColor,
-                                                    );
-                                                    return;
-                                                  }
                                                   context.read<CustomerLoginBloc>().add(
                                                     FormSubmitted(),
                                                   );
@@ -433,10 +499,16 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                                               Gap(30),
 
                                               LoginOrSignupPrompt(
-                                                spanText: 'Dont have an account yet',
+                                                spanText: 'Don\'t have an account yet',
                                                 promptText: 'Sign Up Now',
                                                 onSignInTap: () {
-                                                  context.push('/customer_signUp');
+                                                  context.push('/customer_signUp',extra: SignUpScreenArgument(
+                                                    isGoggleSignUp: false,
+                                                    email: "",
+                                                    displayName: "",
+                                                    phone: "",
+                                                    imageBase64: "",
+                                                  ),);
                                                 },
                                               ).animate()
                                                   .fadeIn(duration: 500.ms, delay: 1000.ms),

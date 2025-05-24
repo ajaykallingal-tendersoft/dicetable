@@ -3,6 +3,7 @@ import 'package:dicetable/src/model/cafe_owner/auth/login/google_login_request.d
 import 'package:dicetable/src/resources/api_providers/auth/auth_data_provider.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/login/bloc/login_bloc.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/login/cubit/google_sign_in_cubit.dart';
+import 'package:dicetable/src/ui/customer/authentication/sign_up/bloc/customer_sign_up_bloc.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,6 +13,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dicetable/src/utils/network_connectivity/network_connectivity_bloc.dart';
+
+import '../../../../customer/authentication/login/bloc/customer_login_bloc.dart';
 
 class LoginWithGoogleWidget extends StatelessWidget {
   LoginWithGoogleWidget({super.key});
@@ -28,15 +31,19 @@ class LoginWithGoogleWidget extends StatelessWidget {
       child: BlocConsumer<GoogleSignInCubit, GoogleSignInState>(
         listener: (context, state) {
           if (state is GoogleSignInSuccess) {
-            print("Email: ${state.user.email}");
-            print("DisplayName: ${state.user.displayName}");
-            print("DisplayName: ${state.base64Image.toString()}");
             if (userCategory == 'PUBLIC_USER') {
-              ObjectFactory().prefs.setIsCustomerLoggedIn(true);
+              print(state.user.email);
+              BlocProvider.of<CustomerLoginBloc>(context).add(
+                CustomerGoogleLoginEvent(
+                  googleLoginRequest: GoogleLoginRequest(
+                    email: state.user.email!, loginType: 5,
+                  ),
+                ),
+              );
               ObjectFactory().prefs.setCustomerUserName(
                 customerUserName: state.user.displayName,
               );
-              context.go('/customer_home');
+              ObjectFactory().prefs.setCustomerUserMail(customerUserMail: state.user.email);
             } else {
               BlocProvider.of<LoginBloc>(context).add(
                 GetGoogleLoginEvent(
@@ -45,11 +52,8 @@ class LoginWithGoogleWidget extends StatelessWidget {
                   ),
                 ),
               );
-              ObjectFactory().prefs.setCafeUserName(
-                cafeUserName: state.user.displayName,
-              );
+              ObjectFactory().prefs.setCafeUserName(cafeUserName: state.user.displayName,);
               ObjectFactory().prefs.setCafeUserMail(cafeUserMail: state.user.email);
-              // ObjectFactory().prefs.setCafeUserPhone(cafeUserPhone: state.user.phoneNumber);
               ObjectFactory().prefs.setCafeUserImage(cafeUserImage: state.base64Image);
             }
             // Fluttertoast.showToast(

@@ -1,4 +1,3 @@
-
 // To parse this JSON data, do
 //
 //     final venueOwnerHomeScreenResponse = venueOwnerHomeScreenResponseFromJson(jsonString);
@@ -78,5 +77,4 @@ class DiceTable {
     "selected": selected,
   };
 }
-
 
