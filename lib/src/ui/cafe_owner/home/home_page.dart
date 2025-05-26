@@ -11,9 +11,20 @@ import 'package:go_router/go_router.dart';
 import '../notification/notification_cubit.dart';
 import 'widget/expandable_card.dart';
 
-class HomePage extends StatelessWidget {
+
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<HomeBloc>().add(GetHomeDataEvent());
+  }
   @override
   Widget build(BuildContext context) {
     return   Container(
@@ -36,12 +47,12 @@ class HomePage extends StatelessWidget {
           slivers: [
             CupertinoSliverRefreshControl(
               onRefresh: () async {
-                // context.read<CardCubit>().fetchCards();
+                context.read<HomeBloc>().add(GetHomeDataEvent());
               },
             ),
 
             SliverPadding(
-              padding:  EdgeInsets.symmetric(horizontal: 20.h, vertical: 20.h),
+              padding: EdgeInsets.symmetric(horizontal: 20.h, vertical: 20.h),
               sliver: SliverAppBar(
                 backgroundColor: Colors.transparent,
                 expandedHeight: 120.h,
@@ -59,13 +70,13 @@ class HomePage extends StatelessWidget {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                             Text(
+                            Text(
                               "Dice Table",
-                             style: TextTheme.of(context).labelMedium!.copyWith(
-                      color: AppColors.primaryWhiteColor,
-                      fontWeight:  FontWeight.bold,
-                      fontSize: 30.sp,
-                    ),
+                              style: TextTheme.of(context).labelMedium!.copyWith(
+                                color: AppColors.primaryWhiteColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 30.sp,
+                              ),
                             ),
                             BlocBuilder<NotificationCubit, int>(
                               builder: (context, count) {
@@ -115,7 +126,7 @@ class HomePage extends StatelessWidget {
                           ],
                         ),
                         const Gap(20),
-                         Text(
+                        Text(
                           ObjectFactory().prefs.getCafeUserName() ?? "Hi",
                           style: TextTheme.of(context).labelMedium!.copyWith(
                             color: AppColors.primaryWhiteColor,
@@ -126,41 +137,76 @@ class HomePage extends StatelessWidget {
                       ],
                     ),
                   ),
-
                 ),
               ),
             ),
-            // SliverPadding(
-            //   padding:
-            //   const EdgeInsets.only(bottom: 20),
-            //   sliver: BlocBuilder<HomeBloc, HomeState>(
-            //     builder: (context, state) {
-            //       if(state is HomeLoaded) {
-            //         return AnimationLimiter(
-            //           child: SliverList(
-            //             delegate: SliverChildBuilderDelegate(
-            //                   (context, index) {
-            //                 final card = state.cards;
-            //                 return AnimationConfiguration.staggeredList(
-            //                   position: index,
-            //                   duration: const Duration(milliseconds: 375),
-            //                   child: SlideAnimation(
-            //                     verticalOffset: 50.0,
-            //                     child: FadeInAnimation(
-            //                       child:
-            //                       ExpandableCard(index: index, card: card),
-            //                     ),
-            //                   ),
-            //                 );
-            //               },
-            //               childCount: state.cards.length,
-            //             ),
-            //           ),
-            //         );
-            //       }
-            //     },
-            //   ),
-            // ),
+            SliverPadding(
+              padding: const EdgeInsets.only(bottom: 20),
+              sliver: BlocBuilder<HomeBloc, HomeState>(
+                builder: (context, state) {
+                  if (state is HomeLoaded) {
+                    return AnimationLimiter(
+                      child: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                            final card = state.cards[index];
+                            return AnimationConfiguration.staggeredList(
+                              position: index,
+                              duration: const Duration(milliseconds: 375),
+                              child: SlideAnimation(
+                                verticalOffset: 50.0,
+                                child: FadeInAnimation(
+                                  child: ExpandableCard(index: index, card: card),
+                                ),
+                              ),
+                            );
+                          },
+                          childCount: state.cards.length,
+                        ),
+                      ),
+                    );
+                  } else if (state is HomeLoading) {
+                    return const SliverFillRemaining(
+                      child: Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    );
+                  } else if (state is HomeError) {
+                    return SliverFillRemaining(
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              size: 64,
+                              color: Colors.grey[400],
+                            ),
+                            const Gap(16),
+                            Text(
+                              'Error: ${state.errorMessage}',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 16,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const Gap(16),
+                            ElevatedButton(
+                              onPressed: () {
+                                context.read<HomeBloc>().add(GetHomeDataEvent());
+                              },
+                              child: const Text('Retry'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+                  return const SliverToBoxAdapter(child: SizedBox.shrink());
+                },
+              ),
+            ),
           ],
         ),
       ),

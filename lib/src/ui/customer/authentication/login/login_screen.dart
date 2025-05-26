@@ -122,7 +122,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
 
               if (state is CustomerLoginSuccessState) {
                 ObjectFactory().prefs.setCustomerAuthToken(token: state.loginRequestResponse.token);
-                ObjectFactory().prefs.setIsCustomerLoggedIn(true);
+                // ObjectFactory().prefs.setIsCustomerLoggedIn(true);
                 context.go('/customer_home');
                 Fluttertoast.showToast(
                   backgroundColor: AppColors.primaryWhiteColor,

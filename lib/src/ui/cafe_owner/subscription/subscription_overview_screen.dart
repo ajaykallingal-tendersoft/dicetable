@@ -60,13 +60,16 @@ class _SubscriptionOverviewScreenState extends State<SubscriptionOverviewScreen>
         },
         builder: (context, state) {
           if (state is SubscriptionOverviewLoaded) {
+
             return SingleChildScrollView(
               physics: BouncingScrollPhysics(),
               child: Padding(
                 padding: const EdgeInsets.all(26.0),
                 child: Column(
                   children: [
-                    SubscriptionOverviewCard(subsriptionOverview: state.subscriptionOverviewResponse.data?.subsriptionOverview,),
+                    Visibility(
+                      visible: state.subscriptionOverviewResponse.data!.subsriptionOverview != null,
+                        child: SubscriptionOverviewCard(subsriptionOverview: state.subscriptionOverviewResponse.data?.subsriptionOverview,)),
                     Gap(20),
                     BillingHistoryCard(),
                     Gap(20),
