@@ -1,14 +1,21 @@
 import 'dart:async';
+import 'dart:convert' show base64Decode, base64Encode;
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:bloc/bloc.dart';
+import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/utils/client/api_client.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
+import 'package:dio/dio.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart' show EasyLoading;
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
-
+import 'package:fluttertoast/fluttertoast.dart';
+// ignore: depend_on_referenced_packages
+import 'package:mime/mime.dart';
 part 'profile_event.dart';
 part 'profile_state.dart';
 
@@ -27,7 +34,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
 
     on<ToggleVenueType>((event, emit) {
       if (state.cafeProfile == null) return;
-
+      EasyLoading.show(status: '');
       // Update venueTypes list with toggled selected value
       final updatedVenueTypes =
           state.cafeProfile!.venueTypes.map((venue) {
@@ -43,7 +50,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       );
 
       // Emit a new ProfileState with updated cafeProfile
+
       emit(state.copyWith(cafeProfile: updatedCafeProfile));
+
+      EasyLoading.dismiss();
     });
 
     on<UpdateOpeningHour>((event, emit) {
@@ -120,20 +130,25 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     FetchCafeProfile event,
     Emitter<ProfileState> emit,
   ) async {
+    EasyLoading.show(status: '');
     emit(ProfileLoading());
     final apiClient = ApiClient();
     try {
       final response = await apiClient.getCafeProfileById(event.id);
       if (response.statusCode == 200) {
         emit(ProfileLoaded(profileData: response.data['data']));
+
+        EasyLoading.dismiss();
       } else {
         emit(
           ProfileLoadError(
             errorMessage: "Failed with status: ${response.statusCode}",
           ),
         );
+        EasyLoading.dismiss();
       }
     } catch (e) {
+      EasyLoading.dismiss();
       emit(ProfileLoadError(errorMessage: "Error: $e"));
     }
   }
@@ -142,6 +157,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     FetchEditCafeProfile event,
     Emitter<ProfileState> emit,
   ) async {
+    EasyLoading.show(status: '');
     emit(ProfileLoading());
     final apiClient = ApiClient();
     try {
@@ -156,10 +172,34 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           ),
         );
       }
+      EasyLoading.dismiss();
     } catch (e) {
+      EasyLoading.dismiss();
+      Fluttertoast.showToast(
+        msg: "Failed to load subscription data.${e}",
+        backgroundColor: AppColors.primaryWhiteColor,
+        textColor: AppColors.appRedColor,
+      );
       emit(EditProfileLoadError(errorMessage: "Error: $e"));
     }
   }
+
+  // Future<String?> _convertPhotoUrlToBase64(String? photoUrl) async {
+  //   if (photoUrl == null) return null;
+  //   try {
+  //     final dio = Dio();
+  //     final response = await dio.get<List<int>>(
+  //       photoUrl,
+  //       options: Options(responseType: ResponseType.bytes),
+  //     );
+  //     if (response.statusCode == 200 && response.data != null) {
+  //       return base64Encode(response.data!);
+  //     }
+  //   } catch (e) {
+  //     print("Error converting photo URL to base64 using Dio: $e");
+  //   }
+  //   return null;
+  // }
 
   FutureOr<void> _onSubmitEditProfile(
     SubmitProfile event,
@@ -171,6 +211,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       print("Selected Opening Hours: ${hour}");
     }
     final apiClient = ApiClient();
+    // Uint8List imageBytes = base64Decode(state.cafeProfile!.photo);
     final data = {
       "name": state.cafeProfile?.name,
       "email": state.cafeProfile?.email,
@@ -184,27 +225,39 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
               .map(
                 (hour) => {
                   "day": hour.day,
-                  "from": hour.opening,
-                  "to": hour.closing,
-                  "isEnabled": hour.isOpen,
+                  "open": hour.opening,
+                  "close": hour.closing,
+                  "is_open": hour.isOpen,
                 },
               )
               .toList(),
-      "blob": "data:image/png;base64,iVBORw0KG...",
-      "original_name": "profile.png",
-      "password": "password",
+      "blob": state.cafeProfile!.photo,
+      "original_name": "dymmy",
+      "password": "",
     };
+
     try {
       final response = await apiClient.postCafeEditSubmitProfileById(
         ObjectFactory().prefs.getCafeId().toString(),
         data,
       );
-
       if (response.statusCode == 200 || response.statusCode == 201) {
         // Assuming the API returns the updated profile data
-        // emit(ProfileLoaded(profileData: response.data['data']));
-        emit(state);
+        // emit(ProfileLoaded(profileData: state.cafeProfile));
+        EasyLoading.dismiss();
+        Fluttertoast.showToast(
+          msg: "user profile updated successfully",
+          backgroundColor: AppColors.primaryWhiteColor,
+          textColor: AppColors.appGreenColor,
+        );
+        // emit(state);
       } else {
+        EasyLoading.dismiss();
+        Fluttertoast.showToast(
+          msg: "Failed to load subscription data",
+          backgroundColor: AppColors.primaryWhiteColor,
+          textColor: AppColors.appRedColor,
+        );
         emit(
           ProfileLoadError(
             errorMessage:

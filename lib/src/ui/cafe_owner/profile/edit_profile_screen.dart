@@ -249,54 +249,118 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                         ),
                                         Gap(10.h),
 
-                                        for (final day
-                                            in state
-                                                    .cafeProfile
-                                                    ?.openingHours ??
+                                        ...((state.cafeProfile?.openingHours ??
                                                 [])
-                                          ProfileOpeningHoursWidget(
-                                            key: ValueKey(day.day),
-                                            day: day.day ?? '',
-                                            data:
-                                                state.openingHours[day.day] ??
-                                                ProfileOpeningHour(
-                                                  isEnabled: day.isOpen,
-                                                  from: TimeOfDay(
-                                                    hour: int.parse(
-                                                      day.opening.split(':')[0],
+                                            .asMap()
+                                            .entries
+                                            .map((entry) {
+                                              final i = entry.key;
+                                              final day = entry.value;
+                                              return ProfileOpeningHoursWidget(
+                                                key: ValueKey('${day.day}_$i'),
+                                                day: day.day ?? '',
+                                                data:
+                                                    state.openingHours[day
+                                                        .day] ??
+                                                    ProfileOpeningHour(
+                                                      isEnabled: day.isOpen,
+                                                      from: TimeOfDay(
+                                                        hour:
+                                                            int.tryParse(
+                                                              day.opening.split(
+                                                                ':',
+                                                              )[0],
+                                                            ) ??
+                                                            0,
+                                                        minute: 0,
+                                                      ),
+                                                      to: TimeOfDay(
+                                                        hour:
+                                                            int.tryParse(
+                                                              day.closing.split(
+                                                                ':',
+                                                              )[0],
+                                                            ) ??
+                                                            0,
+                                                        minute: 0,
+                                                      ),
+                                                      day: day.day ?? '',
                                                     ),
-                                                    minute: 0,
-                                                  ),
-                                                  to: TimeOfDay(
-                                                    hour: int.parse(
-                                                      day.closing.split(':')[0],
-                                                    ),
-                                                    minute: 0,
-                                                  ),
-                                                  day: day.day ?? '',
-                                                ),
-                                            onChanged: (updatedHour) {
-                                              final swappedHour = ProfileOpeningHour(
-                                                isEnabled:
-                                                    updatedHour.isEnabled,
-                                                day: updatedHour.day,
-                                                from: TimeOfDay(
-                                                  hour: 0,
-                                                  minute: 0,
-                                                ), // reset 'from' to midnight
-                                                to:
-                                                    updatedHour
-                                                        .from, // 'to' becomes original 'from'
-                                              );
+                                                onChanged: (updatedHour) {
+                                                  final swappedHour =
+                                                      ProfileOpeningHour(
+                                                        isEnabled:
+                                                            updatedHour
+                                                                .isEnabled,
+                                                        day: updatedHour.day,
+                                                        from: const TimeOfDay(
+                                                          hour: 0,
+                                                          minute: 0,
+                                                        ),
+                                                        to: updatedHour.from,
+                                                      );
 
-                                              context.read<ProfileBloc>().add(
-                                                UpdateOpeningHour(
-                                                  day.day,
-                                                  swappedHour,
-                                                ),
+                                                  context
+                                                      .read<ProfileBloc>()
+                                                      .add(
+                                                        UpdateOpeningHour(
+                                                          day.day,
+                                                          swappedHour,
+                                                        ),
+                                                      );
+                                                },
                                               );
-                                            },
-                                          ),
+                                            })
+                                            .toList()),
+
+                                        // for (final day
+                                        //     in state
+                                        //             .cafeProfile
+                                        //             ?.openingHours ??
+                                        //         [])
+                                        //   ProfileOpeningHoursWidget(
+                                        //     key: ValueKey(day.day),
+                                        //     day: day.day ?? '',
+                                        //     data:
+                                        //         state.openingHours[day.day] ??
+                                        //         ProfileOpeningHour(
+                                        //           isEnabled: day.isOpen,
+                                        //           from: TimeOfDay(
+                                        //             hour: int.parse(
+                                        //               day.opening.split(':')[0],
+                                        //             ),
+                                        //             minute: 0,
+                                        //           ),
+                                        //           to: TimeOfDay(
+                                        //             hour: int.parse(
+                                        //               day.closing.split(':')[0],
+                                        //             ),
+                                        //             minute: 0,
+                                        //           ),
+                                        //           day: day.day ?? '',
+                                        //         ),
+                                        //     onChanged: (updatedHour) {
+                                        //       final swappedHour = ProfileOpeningHour(
+                                        //         isEnabled:
+                                        //             updatedHour.isEnabled,
+                                        //         day: updatedHour.day,
+                                        //         from: TimeOfDay(
+                                        //           hour: 0,
+                                        //           minute: 0,
+                                        //         ), // reset 'from' to midnight
+                                        //         to:
+                                        //             updatedHour
+                                        //                 .from, // 'to' becomes original 'from'
+                                        //       );
+
+                                        //       context.read<ProfileBloc>().add(
+                                        //         UpdateOpeningHour(
+                                        //           day.day,
+                                        //           swappedHour,
+                                        //         ),
+                                        //       );
+                                        //     },
+                                        //   ),
                                       ],
                                     );
                                   },
@@ -418,7 +482,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             radius: 85.r,
                             backgroundImage:
                                 image != null
-                                    ? FileImage(File(image.path))
+                                    ? FileImage(
+                                      state.cafeProfile?.photo != null
+                                          ? File(state.cafeProfile!.photo!)
+                                          : File(image.path),
+                                    )
                                     : AssetImage('assets/png/profile-img.png'),
                           ),
                         ),

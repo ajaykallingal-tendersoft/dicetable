@@ -266,9 +266,9 @@ class ApiClient {
       data: data,
       options: Options(
         headers: {
+          "followRedirects": false,
+          "validateStatus": (status) => true,
           "Authorization": ObjectFactory().prefs.getAuthToken(),
-          "Content-Type":
-              "application/json", // or "multipart/form-data" if using file uploads
         },
       ),
     );
