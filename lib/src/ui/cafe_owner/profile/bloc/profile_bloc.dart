@@ -244,12 +244,13 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       if (response.statusCode == 200 || response.statusCode == 201) {
         // Assuming the API returns the updated profile data
         // emit(ProfileLoaded(profileData: state.cafeProfile));
-        EasyLoading.dismiss();
         Fluttertoast.showToast(
           msg: "user profile updated successfully",
           backgroundColor: AppColors.primaryWhiteColor,
           textColor: AppColors.appGreenColor,
         );
+        EasyLoading.dismiss();
+
         // emit(state);
       } else {
         EasyLoading.dismiss();
