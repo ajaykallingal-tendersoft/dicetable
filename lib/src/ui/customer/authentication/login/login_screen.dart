@@ -141,7 +141,8 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                   if(state.loginRequestResponse.token!.isNotEmpty && state.loginRequestResponse.user!.isEmailVerified == 1) {
                     ObjectFactory().prefs.setIsCustomerLoggedIn(true);
                     ObjectFactory().prefs.setCustomerAuthToken(token: state.loginRequestResponse.token);
-                    ObjectFactory().prefs.setUserId(userId: state.loginRequestResponse.cafeId);
+                    ObjectFactory().prefs.setCustomerUserMail(customerUserMail: state.loginRequestResponse.user!.email);
+                    ObjectFactory().prefs.setUserId(userId: state.loginRequestResponse.user!.id.toString());
                     if( state.loginRequestResponse.user != null &&  state.loginRequestResponse.user!.name != null ) {
                       ObjectFactory().prefs.setCustomerUserName(customerUserName: state.loginRequestResponse.user!.name);
                     }

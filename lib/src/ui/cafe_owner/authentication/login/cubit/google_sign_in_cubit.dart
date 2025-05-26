@@ -73,6 +73,7 @@ GoogleSignInCubit extends Cubit<GoogleSignInState> {
     } catch (e) {
       print("Sign-out error: $e");
       if (!isClosed) emit(GoogleSignInError());
+
     }
   }
 

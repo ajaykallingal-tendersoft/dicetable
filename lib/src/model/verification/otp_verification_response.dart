@@ -11,23 +11,27 @@ String otpVerificationResponseToJson(OtpVerificationResponse data) => json.encod
 class OtpVerificationResponse {
   final bool? status;
   final User? user;
+  final String? token;
   final String? message;
 
   OtpVerificationResponse({
     this.status,
     this.user,
+    this.token,
     this.message,
   });
 
   factory OtpVerificationResponse.fromJson(Map<String, dynamic> json) => OtpVerificationResponse(
     status: json["status"],
     user: json["user"] == null ? null : User.fromJson(json["user"]),
+    token: json["token"],
     message: json["message"],
   );
 
   Map<String, dynamic> toJson() => {
     "status": status,
     "user": user?.toJson(),
+    "token": token,
     "message": message,
   };
 }

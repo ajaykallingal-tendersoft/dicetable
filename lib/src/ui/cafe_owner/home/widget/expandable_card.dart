@@ -8,6 +8,7 @@ import 'package:dicetable/src/ui/cafe_owner/home/model/card_item.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -40,15 +41,9 @@ class _ExpandableCardState extends State<ExpandableCard> {
   @override
   void didUpdateWidget(covariant ExpandableCard oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Update promo text controller if the card's promo text changes externally
     if (widget.card.promoText != oldWidget.card.promoText) {
       _promoController.text = widget.card.promoText;
     }
-    // IMPORTANT: Update local selectedDays only if the underlying card data has changed
-    // from the parent (which happens after an API refresh).
-    // Since AvailableDay now has proper `==` and `hashCode`, List equality check is easier.
-    // However, `List<T>.==` only checks reference. For content, use `const DeepCollectionEquality().equals`.
-    // Or, simpler, just check if the lists are different lengths or contain different elements.
     if (!const DeepCollectionEquality().equals(
       widget.card.selectedDays,
       oldWidget.card.selectedDays,
@@ -71,11 +66,12 @@ class _ExpandableCardState extends State<ExpandableCard> {
 
     return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
-        // Update selectedDays when HomeLoaded state provides new CardModel data
-        // This is necessary to reflect the API's latest selections after an update
+        if(state is HomeLoading) {
+          EasyLoading.show();
+        }
         if (state is HomeLoaded) {
+          EasyLoading.dismiss();
           final updatedCard = state.cards[widget.index];
-          // After HomeLoaded, update the local selectedDays to reflect the API's current truth.
           if (!const DeepCollectionEquality().equals(
             selectedDays,
             updatedCard.selectedDays,
@@ -112,7 +108,7 @@ class _ExpandableCardState extends State<ExpandableCard> {
               Row(
                 children: [
                   CircleAvatar(
-                    backgroundColor: Colors.blue.shade900,
+                    backgroundColor: AppColors.primary,
                     radius: 30,
                     child: Image.asset('assets/png/dice-type.png'),
                   ),
@@ -199,7 +195,7 @@ class _ExpandableCardState extends State<ExpandableCard> {
                         size: 17,
                         color:
                         card
-                            .isSelected // Use card.isSelected from the model
+                            .isSelected
                             ? AppColors.primary
                             : Colors.transparent,
                       ),
@@ -222,7 +218,6 @@ class _ExpandableCardState extends State<ExpandableCard> {
                           color: AppColors.shadowColor,
                         ),
                       ),
-                      // Conditional display based on card.isSelected
                       card.isSelected && selectedDays.isNotEmpty
                           ? Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,13 +285,12 @@ class _ExpandableCardState extends State<ExpandableCard> {
               ),
               if (card.isExpanded) ...[
                 Column(
-                  // Wrap expanded content in a Column
                   children: [
                     const Gap(10),
                     TextField(
 
                       key: ValueKey('promoTextField_${card.id}'),
-                      // <--- CRITICAL for focus
+
                       style: Theme
                           .of(context)
                           .textTheme
@@ -321,7 +315,11 @@ class _ExpandableCardState extends State<ExpandableCard> {
                     const Gap(10),
                     BlocBuilder<HomeBloc, HomeState>(
                       builder: (context, state) {
+                        if(state is HomeLoading) {
+                          EasyLoading.show();
+                        }
                         if (state is HomeLoaded) {
+                          EasyLoading.dismiss();
                           final card = state.cards[widget.index];
                           return AvailableDaysMultiSelectField(
                             availableDays: card.availableDays,
@@ -334,7 +332,7 @@ class _ExpandableCardState extends State<ExpandableCard> {
                             },
                           );
                         }
-                        return CircularProgressIndicator();
+                         return SizedBox();
                       },
                     ),
                     const Gap(10),
@@ -349,33 +347,30 @@ class _ExpandableCardState extends State<ExpandableCard> {
           ),
         );
         if (state is DiceTableUpdateLoading) {
-          return Stack(
-            children: [
-              content,
-              const Center(child: CircularProgressIndicator()),
-            ],
-          );
+          EasyLoading.show();
         }
         if (state is DiceTableUpdateLoaded &&
             state.response.message ==
                 "Dice table types updated successfully." &&
             state.response.status == true) {
+          EasyLoading.dismiss();
           WidgetsBinding.instance.addPostFrameCallback((_) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text("Dice table updated successfully!"),
-                backgroundColor: Colors.green,
+                backgroundColor: AppColors.appGreenColor,
                 duration: Duration(seconds: 2),
               ),
             );
           });
         }
         if (state is DiceTableUpdateError) {
+          EasyLoading.dismiss();
           WidgetsBinding.instance.addPostFrameCallback((_) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.errorMessage),
-                backgroundColor: Colors.red,
+                backgroundColor: AppColors.appRedColor,
                 duration: const Duration(seconds: 2),
               ),
             );
@@ -419,7 +414,16 @@ class _ExpandableCardState extends State<ExpandableCard> {
 
         final diceTableIds = [widget.card.id];
         final moreInfos = [_promoController.text];
-        final availableDaysSelectedForApi = selectedDays;
+        // final availableDaysSelectedForApi = selectedDays;
+        final List<AvailableDay> availableDaysSelectedForApi = selectedDays.map((day) {
+          return AvailableDay(
+            id: day.id,
+            day: day.day,
+            openTime: day.openTime,
+            closeTime: day.closeTime,
+            isOpen: widget.card.isSelected,
+          );
+        }).toList();
 
         context.read<HomeBloc>().add(
           DiceTableUpdateEvent(
@@ -428,6 +432,7 @@ class _ExpandableCardState extends State<ExpandableCard> {
               diceTableId: diceTableIds,
               moreInfo: moreInfos,
               availableDays: availableDaysSelectedForApi,
+
             ),
           ),
         );

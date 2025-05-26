@@ -11,6 +11,7 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import '../notification/notification_cubit.dart';
 import 'widget/expandable_card.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 
 class HomePage extends StatefulWidget {
@@ -145,6 +146,7 @@ class _HomePageState extends State<HomePage> {
               sliver: BlocBuilder<HomeBloc, HomeState>(
                 builder: (context, state) {
                   if (state is HomeLoaded) {
+                    EasyLoading.dismiss();
                     return AnimationLimiter(
                       child: SliverList(
                         delegate: SliverChildBuilderDelegate(
@@ -166,11 +168,8 @@ class _HomePageState extends State<HomePage> {
                       ),
                     );
                   } else if (state is HomeLoading) {
-                    return const SliverFillRemaining(
-                      child: Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                    );
+                    EasyLoading.show();
+
                   } else if (state is HomeError) {
                     if(state.errorMessage == "UnAuthorized" || state.errorMessage.contains("status code of 401")) {
                       Fluttertoast.showToast(

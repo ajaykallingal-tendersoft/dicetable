@@ -15,6 +15,7 @@ class Prefs {
   static const String _CUSTOMER_USER_NAME = "user_name";
   static const String _CAFE_USER_NAME = "user_name";
   static const String _CAFE_USER_MAIL = "cafe_user_mail";
+  static const String _CUSTOMER_MAIL = "customer_mail";
   static const String _CUSTOMER_USER_MAIL = "customer_user_mail";
   static const String _CAFE_USER_PHONE = "cafe_user_phone";
   static const String _CAFE_USER_IMAGE = "cafe_user_image";
@@ -105,6 +106,14 @@ class Prefs {
 
   ///get method  for auth token
   String? getCustomerAuthToken() => _sharedPreferences?.getString(_CUSTOMER_AUTH_TOKEN);
+
+  ///saving customer mail
+  void setCustomerMail({String? mail}) {
+    _sharedPreferences!.setString(_CUSTOMER_MAIL, mail!);
+  }
+
+  ///get method  customer mail
+  String? getCustomerMail() => _sharedPreferences?.getString(_CUSTOMER_MAIL);
 
   ///saving user decision
   void setUserDecisionName({String? userDecision}) {

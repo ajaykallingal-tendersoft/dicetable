@@ -2,6 +2,7 @@ import 'package:dicetable/src/common/elevated_button_widget.dart';
 import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/model/verification/otp_verify_request.dart';
 import 'package:dicetable/src/resources/api_providers/auth/auth_data_provider.dart';
+import 'package:dicetable/src/ui/cafe_owner/authentication/forgot_password/reset_arguments.dart';
 import 'package:dicetable/src/ui/verification/bloc/verification_bloc.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:flutter/material.dart';
@@ -67,17 +68,14 @@ class _ForgotPasswordOtpScreenState extends State<ForgotPasswordOtpScreen> {
             if (state is VerificationLoaded) {
               EasyLoading.dismiss();
               if (state.otpVerificationResponse.status == true &&
-                  state.otpVerificationResponse.message ==
-                      "Email verified successfully.") {
-                ObjectFactory().prefs.setEmailVerified(true);
-                ObjectFactory().prefs.setIsLoggedIn(true);
+                  state.otpVerificationResponse.token!.isNotEmpty) {
                 Fluttertoast.showToast(
                   backgroundColor: AppColors.primaryWhiteColor,
                   textColor: AppColors.appGreenColor,
                   gravity: ToastGravity.BOTTOM,
                   msg: state.otpVerificationResponse.message!,
                 );
-                context.go('/subscription_prompt');
+                context.go('/reset_password',extra: ResetArguments(email: widget.email, token: state.otpVerificationResponse.token! ?? ""));
               }
             }
             if (state is VerificationErrorState) {

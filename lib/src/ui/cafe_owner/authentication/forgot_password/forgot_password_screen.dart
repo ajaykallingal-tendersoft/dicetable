@@ -87,7 +87,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         }
                         if (state is ForgotPasswordLoaded) {
                           if (state.forgotPasswordRequestResponse.message ==
-                              "We have emailed your password reset link.") {
+                              "OTP has been resent to your email address." && state.forgotPasswordRequestResponse.status == true) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               SnackBar(
                                 content: Text(

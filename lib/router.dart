@@ -1,6 +1,7 @@
 
 import 'package:dicetable/src/ui/cafe_owner/authentication/forgot_password/forgot_password_otp_screen.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/forgot_password/forgot_password_screen.dart';
+import 'package:dicetable/src/ui/cafe_owner/authentication/forgot_password/reset_arguments.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/forgot_password/reset_password_screen.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/login/login_screen.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/sign_up/sign_up_screen.dart';
@@ -180,7 +181,7 @@ class AppRouter {
             pageBuilder: (BuildContext context, GoRouterState state) {
               return CustomTransitionPage<void>(
                 key: state.pageKey,
-                child:  ResetPasswordScreen(email: state.extra as String),
+                child:  ResetPasswordScreen(resetArguments: state.extra as ResetArguments),
                 transitionDuration: const Duration(milliseconds: 300),
                 transitionsBuilder: (
                     BuildContext context,

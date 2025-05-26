@@ -9,6 +9,7 @@ import 'package:dicetable/src/model/cafe_owner/auth/signUp/google_sign-up_respon
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/sign_up_request.dart';
 import 'package:dicetable/src/model/cafe_owner/home/dice_table_update_request.dart';
 import 'package:dicetable/src/model/cafe_owner/subscription/subscription_start_request.dart';
+import 'package:dicetable/src/model/customer/booking/booking_request.dart';
 import 'package:dicetable/src/model/verification/otp_verify_request.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:dicetable/src/utils/urls/urls.dart';
@@ -260,22 +261,6 @@ class ApiClient {
     );
   }
 
-
-
-  ///Customer
-///
-Future<Response> getFavourite() {
-    print("Bearer ${ObjectFactory().prefs.getCustomerAuthToken()}");
-    return dioDiceApp.get(
-      UrlsDiceApp.getFavourite,
-      options: Options(
-        headers: {
-          "Authorization": ObjectFactory().prefs.getCustomerAuthToken(),
-        },
-      ),
-    );
-  }
-
   Future<Response> getCafeProfileById(String id) {
     return dioDiceApp.get(
       '${UrlsDiceApp.baseUrlDev}${UrlsDiceApp.getProfile}$id',
@@ -311,54 +296,47 @@ Future<Response> getFavourite() {
     );
   }
 
-  //
-  // ///Login
-  // Future<Response> loginRequest(LoginRequest loginRequest) {
-  //   return dioLetsCollect.post(
-  //     options: Options(),
-  //     UrlsLetsCollect.LOGIN_URL,
-  //     data: loginRequest,
-  //   );
-  // }
 
-  // //Forgot Password email
-  // Future<Response> forgotPassword(
-  //     ForgotPasswordEmailRequest forgotPasswordEmailRequest) {
-  //   return dioLetsCollect.post(
-  //     UrlsLetsCollect.FORGOT_PASSWORD_EMAIL,
-  //     data: forgotPasswordEmailRequest,
-  //   );
-  // }
+  ///Customer
+  ///
+  //Favourite
+  Future<Response> getFavourite() {
+    print("Bearer ${ObjectFactory().prefs.getCustomerAuthToken()}");
+    return dioDiceApp.get(
+      UrlsDiceApp.getFavourite,
+      options: Options(
+        headers: {
+          "Authorization": ObjectFactory().prefs.getCustomerAuthToken(),
+        },
+      ),
+    );
+  }
 
-  // //Forgot Password Otp
-  // Future<Response> forgotPasswordOtp(
-  //     ForgotPasswordOtpRequest forgotPasswordOtpRequest) {
-  //   return dioLetsCollect.post(
-  //     UrlsLetsCollect.FORGOT_PASSWORD_OTP,
-  //     data: forgotPasswordOtpRequest,
-  //   );
-  // }
+  ///Booking
+  Future<Response> booking(BookingRequest bookingRequest) {
+    print(ObjectFactory().prefs.getCustomerAuthToken());
+    return dioDiceApp.post(
+      UrlsDiceApp.booking,
+      data: bookingRequest,
+      options: Options(headers: {
+        "Authorization": ObjectFactory().prefs.getCustomerAuthToken(),
+      }),
 
-  // //Forgot Password Reset
-  // Future<Response> forgotPasswordReset(
-  //     ForgotPasswordResetRequest forgotPasswordResetRequest) {
-  //   return dioLetsCollect.post(
-  //     UrlsLetsCollect.FORGOT_PASSWORD_RESET,
-  //     data: forgotPasswordResetRequest,
-  //     options: Options(headers: {
-  //       "Authorization": ObjectFactory().prefs.getAuthToken(),
-  //     }),
-  //   );
-  // }
+    );
+  }
 
-  // ///Home Page
-  // Future<Response> getHomeData() {
-  //   return dioLetsCollect.get(
-  //     UrlsLetsCollect.HOME_DATA,
-  //     options: Options(headers: {
-  //       "Authorization": ObjectFactory().prefs.getAuthToken(),
-  //     }),
-  //   );
-  // }
+  Future<Response> getCafeList() {
+    print("Bearer ${ObjectFactory().prefs.getCustomerAuthToken()}");
+    return dioDiceApp.get(
+      UrlsDiceApp.cafeList,
+      options: Options(
+        headers: {
+          "Authorization": ObjectFactory().prefs.getCustomerAuthToken(),
+        },
+      ),
+    );
+  }
+
+
 }
 
