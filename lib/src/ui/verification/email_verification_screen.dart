@@ -74,7 +74,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
               if (state.otpVerificationResponse.status == true &&
                   state.otpVerificationResponse.message ==
                       "Email verified successfully.") {
-                ObjectFactory().prefs.setEmailVerified(true);
+              if(widget.verifyScreenArguments.from == "venue_owner") {
+
                 ObjectFactory().prefs.setIsLoggedIn(true);
                 Fluttertoast.showToast(
                   backgroundColor: AppColors.primaryWhiteColor,
@@ -83,6 +84,17 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                   msg: state.otpVerificationResponse.message!,
                 );
                 context.go('/subscription_prompt');
+              }else if(widget.verifyScreenArguments.from == "customer") {
+
+                ObjectFactory().prefs.setIsCustomerLoggedIn(true);
+                Fluttertoast.showToast(
+                  backgroundColor: AppColors.primaryWhiteColor,
+                  textColor: AppColors.appGreenColor,
+                  gravity: ToastGravity.BOTTOM,
+                  msg: state.otpVerificationResponse.message!,
+                );
+                context.go('/customer_home');
+              }
               }
             }
             if (state is VerificationErrorState) {

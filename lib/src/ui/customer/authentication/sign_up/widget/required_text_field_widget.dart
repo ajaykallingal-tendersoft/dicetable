@@ -7,6 +7,7 @@ import 'package:flutter_svg/svg.dart';
 class RequiredTextField extends StatefulWidget {
   final String hint;
   final bool isRequired;
+  final bool readOnly;
   final TextEditingController? controller;
   final bool obscureText;
   final String? Function(String?)? validator;
@@ -17,6 +18,7 @@ class RequiredTextField extends StatefulWidget {
     super.key,
     required this.hint,
     this.isRequired = false,
+    this.readOnly = false,
     this.controller,
     this.obscureText = false,
     this.validator,
@@ -64,6 +66,7 @@ class _RequiredTextFieldState extends State<RequiredTextField> {
         borderRadius: BorderRadius.circular(15),
       ),
       child: TextFormField(
+        readOnly: widget.readOnly,
         controller: widget.controller,
         obscureText: _obscureText,
         keyboardType: widget.keyboardType,

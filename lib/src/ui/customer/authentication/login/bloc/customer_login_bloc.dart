@@ -5,6 +5,9 @@ import 'package:dicetable/src/resources/api_providers/auth/auth_data_provider.da
 import 'package:dicetable/src/utils/extension/state_model_extension.dart';
 import 'package:equatable/equatable.dart';
 
+import '../../../../../model/cafe_owner/auth/login/google_login_request.dart';
+import '../../../../../model/cafe_owner/auth/login/google_login_request_response.dart';
+
 part 'customer_login_event.dart';
 part 'customer_login_state.dart';
 
@@ -16,6 +19,7 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
     on<EmailChanged>(_onEmailChanged);
     on<PasswordChanged>(_onPasswordChanged);
     on<FormSubmitted>(_onFormSubmitted);
+    on<CustomerGoogleLoginEvent> (_handleGoogleLogin);
 
   }
 
@@ -78,6 +82,10 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
 
         if (stateModel.isSuccess) {
           emit(CustomerLoginSuccessState(loginRequestResponse: stateModel.data as LoginRequestResponse));
+          emit(LoginFormState(
+            email: email,
+            password: password,
+          ));
         } else if (stateModel.isError) {
 
           emit(CustomerLoginFailureState(stateModel.error as String));
@@ -101,5 +109,21 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
       }
     }
   }
+  Future<void> _handleGoogleLogin(CustomerGoogleLoginEvent event, Emitter<CustomerLoginState> emit) async {
+    try {
+      emit(GoogleLoginLoading());
+      await Future.delayed(Duration(seconds: 1));
+
+      final response = await authDataProvider.googleLogin(event.googleLoginRequest);
+      if (response!.data.status == true) {
+        emit(GoogleLoginLoaded(googleLoginResponse: response.data));
+      } else {
+        emit(GoogleLoginErrorState(msg: response.data.message));
+      }
+    } catch (e) {
+      emit(GoogleLoginErrorState(msg: e.toString()));
+    }
+  }
+
 }
 

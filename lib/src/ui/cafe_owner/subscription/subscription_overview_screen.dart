@@ -24,87 +24,94 @@ class _SubscriptionOverviewScreenState extends State<SubscriptionOverviewScreen>
     super.initState();
     context.read<SubscriptionBloc>().add(FetchSubscriptionOverview());
   }
+
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: double.infinity,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.primary,
-            AppColors.primary,
-            AppColors.secondary,
-            AppColors.tertiary,
-          ],
-          stops: [0.0, 0.5, 0.75, 1.0],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
-      ),
-      child: BlocConsumer<SubscriptionBloc, SubscriptionState>(
-        listener: (context, state) {
-          if(state is SubscriptionOverviewLoading) {
-            EasyLoading.show(status: '');
-          }
-          if(state is SubscriptionOverviewLoaded) {
-            EasyLoading.dismiss();
-          }
-          if(state is SubscriptionOverviewError) {
-            EasyLoading.dismiss();
-            Fluttertoast.showToast(
-              msg: "Failed to load subscription data.",
-              backgroundColor: AppColors.primaryWhiteColor,
-              textColor: AppColors.appRedColor,
-            );
-          }
-        },
-        builder: (context, state) {
-          if (state is SubscriptionOverviewLoaded) {
+    return BlocConsumer<SubscriptionBloc, SubscriptionState>(
+      listener: (context, state) {
+        if (state is SubscriptionOverviewLoading) {
+          EasyLoading.show();
+        }
+        if (state is SubscriptionOverviewLoaded) {
+          EasyLoading.dismiss();
+        }
+        if (state is SubscriptionOverviewError) {
+          EasyLoading.dismiss();
+          Fluttertoast.showToast(
+            msg: "Failed to load subscription data.",
+            backgroundColor: AppColors.primaryWhiteColor,
+            textColor: AppColors.appRedColor,
+          );
+        }
+      },
+      builder: (context, state) {
+        Widget child;
 
-            return SingleChildScrollView(
-              physics: BouncingScrollPhysics(),
-              child: Padding(
-                padding: const EdgeInsets.all(26.0),
-                child: Column(
-                  children: [
-                    Visibility(
-                      visible: state.subscriptionOverviewResponse.data!.subsriptionOverview != null,
-                        child: SubscriptionOverviewCard(subsriptionOverview: state.subscriptionOverviewResponse.data?.subsriptionOverview,)),
-                    Gap(20),
-                    BillingHistoryCard(),
-                    Gap(20),
-                    PaymentMethodsCard(),
-                    Gap(20),
-                  ],
-                ),
-              ),
-            );
-          }
-          if (state is SubscriptionOverviewError) {
-            return Center(
+        if (state is SubscriptionOverviewLoaded) {
+          child = SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Padding(
+              padding: const EdgeInsets.all(26.0),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    "Something went wrong.",
-                    style: TextStyle(color: AppColors.appRedColor),
+                  Visibility(
+                    visible: state.subscriptionOverviewResponse.data!.subsriptionOverview != null,
+                    child: SubscriptionOverviewCard(
+                      subsriptionOverview: state.subscriptionOverviewResponse.data?.subsriptionOverview,
+                    ),
                   ),
-                  SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: () {
-                      context.read<SubscriptionBloc>().add(FetchSubscriptionOverview());
-                    },
-                    child: Text("Retry"),
-                  ),
+                  const Gap(20),
+                  const BillingHistoryCard(),
+                  const Gap(20),
+                  const PaymentMethodsCard(),
+                  const Gap(20),
                 ],
               ),
-            );
-          }
+            ),
+          );
+        } else if (state is SubscriptionOverviewError) {
+          child = Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "Something went wrong.",
+                  style: TextStyle(color: AppColors.appRedColor),
+                ),
+                const SizedBox(height: 12),
+                ElevatedButton(
+                  onPressed: () {
+                    context.read<SubscriptionBloc>().add(FetchSubscriptionOverview());
+                  },
+                  child: const Text("Retry"),
+                ),
+              ],
+            ),
+          );
+        } else {
+          child = const Center(
+            child: SizedBox.shrink(),
+          );
+        }
 
-          // Show empty container or shimmer/loading widget if needed
-          return SizedBox.shrink();
-        },
-      ),
+        return Container(
+          height: double.infinity,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.primary,
+                AppColors.primary,
+                AppColors.secondary,
+                AppColors.tertiary,
+              ],
+              stops: const [0.0, 0.5, 0.75, 1.0],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+          ),
+          child: child,
+        );
+      },
     );
   }
 }

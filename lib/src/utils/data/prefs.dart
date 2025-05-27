@@ -15,6 +15,8 @@ class Prefs {
   static const String _CUSTOMER_USER_NAME = "user_name";
   static const String _CAFE_USER_NAME = "user_name";
   static const String _CAFE_USER_MAIL = "cafe_user_mail";
+  static const String _CUSTOMER_MAIL = "customer_mail";
+  static const String _CUSTOMER_USER_MAIL = "customer_user_mail";
   static const String _CAFE_USER_PHONE = "cafe_user_phone";
   static const String _CAFE_USER_IMAGE = "cafe_user_image";
   static const String _USER_MAIL_VERIFIED = "_user_mail_verified";
@@ -105,6 +107,14 @@ class Prefs {
   ///get method  for auth token
   String? getCustomerAuthToken() => _sharedPreferences?.getString(_CUSTOMER_AUTH_TOKEN);
 
+  ///saving customer mail
+  void setCustomerMail({String? mail}) {
+    _sharedPreferences!.setString(_CUSTOMER_MAIL, mail!);
+  }
+
+  ///get method  customer mail
+  String? getCustomerMail() => _sharedPreferences?.getString(_CUSTOMER_MAIL);
+
   ///saving user decision
   void setUserDecisionName({String? userDecision}) {
     _sharedPreferences!.setString(_USER_DECISON, userDecision!);
@@ -127,6 +137,14 @@ class Prefs {
   Future<void> clearNavigationSource() async {
     await _sharedPreferences!.remove('navigation_source');
   }
+
+  ///saving customer user email
+  void setCustomerUserMail({String? customerUserMail}) {
+    _sharedPreferences!.setString(_CUSTOMER_USER_MAIL, customerUserMail!);
+  }
+
+  ///get method  for customer user mail
+  String? getCustomerUserMail() => _sharedPreferences?.getString(_CUSTOMER_USER_MAIL);
 
   ///saving cafe user email
   void setCafeUserMail({String? cafeUserMail}) {

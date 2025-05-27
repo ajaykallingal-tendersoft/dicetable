@@ -8,7 +8,8 @@ import 'package:meta/meta.dart';
 import 'package:http/http.dart' as http;
 part 'google_sign_in_state.dart';
 
-class GoogleSignInCubit extends Cubit<GoogleSignInState> {
+class
+GoogleSignInCubit extends Cubit<GoogleSignInState> {
   GoogleSignInCubit() : super(GoogleSignInInitial());
   Dio dioDiceApp = Dio();
 
@@ -72,6 +73,7 @@ class GoogleSignInCubit extends Cubit<GoogleSignInState> {
     } catch (e) {
       print("Sign-out error: $e");
       if (!isClosed) emit(GoogleSignInError());
+
     }
   }
 

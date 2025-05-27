@@ -538,7 +538,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     context.go('/verify',extra: VerifyScreenArguments(
                       email: state.signUpRequestResponse.user!.email,
                       otp: state.signUpRequestResponse.user!.emailOtp.toString(),
-                      type: "register",
+                      type: "register", from: 'venue_owner',
                     ),);
                   }
                 }

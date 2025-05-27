@@ -11,7 +11,7 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-  static const int splashDelay = 3;
+  static const int splashDelay = 2;
 
   @override
   void initState() {
@@ -26,30 +26,29 @@ class _SplashScreenState extends State<SplashScreen> {
 
   void _navigateToNextScreen() {
     if (!mounted) return;
+
     final isLoggedIn = ObjectFactory().prefs.isLoggedIn() == true;
     final isCustomerLoggedIn = ObjectFactory().prefs.isCustomerLoggedIn() == true;
     final rememberDecision = ObjectFactory().prefs.getRememberDecision() ?? false;
     final userCategory = ObjectFactory().prefs.getUserDecisionName();
-    final isGoogleSignIn = ObjectFactory().prefs.isGoogle() == true;
-    final isEmailVerified = ObjectFactory().prefs.isEmailVerified() == true;
 
     ObjectFactory().prefs.setNavigationSource('splash_screen');
 
     if (isLoggedIn) {
-      if (isGoogleSignIn || isEmailVerified) {
-        context.go('/home');
-      } else {
-        context.go('/login');
-      }
+      // User is a venue owner and logged in
+      context.go('/home');
     } else if (isCustomerLoggedIn) {
+      // User is a public user and logged in
       context.go('/customer_home');
     } else if (rememberDecision && userCategory != null) {
+      // User has selected a category and wants to remember it
       if (userCategory == 'PUBLIC_USER') {
         context.go('/customer_login');
       } else {
         context.go('/login');
       }
     } else {
+      // First launch or no remembered category; show category selection
       context.go('/category');
     }
   }

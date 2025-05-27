@@ -6,10 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import '../notification/notification_cubit.dart';
 import 'widget/expandable_card.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 
 class HomePage extends StatefulWidget {
@@ -45,12 +47,11 @@ class _HomePageState extends State<HomePage> {
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
-            CupertinoSliverRefreshControl(
-              onRefresh: () async {
-                context.read<HomeBloc>().add(GetHomeDataEvent());
-              },
-            ),
-
+            // CupertinoSliverRefreshControl(
+            //   onRefresh: () async {
+            //     context.read<HomeBloc>().add(GetHomeDataEvent());
+            //   },
+            // ),
             SliverPadding(
               padding: EdgeInsets.symmetric(horizontal: 20.h, vertical: 20.h),
               sliver: SliverAppBar(
@@ -145,6 +146,7 @@ class _HomePageState extends State<HomePage> {
               sliver: BlocBuilder<HomeBloc, HomeState>(
                 builder: (context, state) {
                   if (state is HomeLoaded) {
+                    EasyLoading.dismiss();
                     return AnimationLimiter(
                       child: SliverList(
                         delegate: SliverChildBuilderDelegate(
@@ -166,12 +168,17 @@ class _HomePageState extends State<HomePage> {
                       ),
                     );
                   } else if (state is HomeLoading) {
-                    return const SliverFillRemaining(
-                      child: Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                    );
+                    EasyLoading.show();
+
                   } else if (state is HomeError) {
+                    if(state.errorMessage == "UnAuthorized" || state.errorMessage.contains("status code of 401")) {
+                      Fluttertoast.showToast(
+                        backgroundColor: AppColors.primaryWhiteColor,
+                        textColor: AppColors.appGreenColor,
+                        gravity: ToastGravity.BOTTOM,
+                        msg: "Exception caught for UnAuthorized access. Please login again!.",
+                      );
+                    }
                     return SliverFillRemaining(
                       child: Center(
                         child: Column(

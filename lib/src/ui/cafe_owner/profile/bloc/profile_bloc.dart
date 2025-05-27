@@ -135,6 +135,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     final apiClient = ApiClient();
     try {
       final response = await apiClient.getCafeProfileById(event.id);
+      print(response);
       if (response.statusCode == 200) {
         emit(ProfileLoaded(profileData: response.data['data']));
 

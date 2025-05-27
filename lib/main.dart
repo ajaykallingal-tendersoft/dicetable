@@ -43,7 +43,7 @@ void configLoading() {
     ..displayDuration = const Duration(milliseconds: 2000)
     ..indicatorType = EasyLoadingIndicatorType.fadingCircle
     ..loadingStyle = EasyLoadingStyle.custom
-    ..indicatorSize = 45.0
+    ..indicatorSize = 40.0
     ..radius = 10.0
     ..progressColor = AppColors.primaryWhiteColor
     ..backgroundColor = AppColors.primary

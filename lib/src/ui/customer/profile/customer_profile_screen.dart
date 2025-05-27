@@ -270,6 +270,7 @@ class CustomerProfileScreen extends StatelessWidget {
                                 ObjectFactory().prefs.setIsCustomerLoggedIn(false);
                                 ObjectFactory().prefs.setAuthToken(token: "");
                                 ObjectFactory().prefs.setCustomerUserName(customerUserName: "");
+                                ObjectFactory().prefs.getNavigationSource();
                                 context.go('/customer_login');
                               },
                               child: ElevatedButtonWidget(

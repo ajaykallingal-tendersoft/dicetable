@@ -84,7 +84,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     emit(HomeLoading());
     try {
       final response = await homeDataProvider.getVenueOwnerHomeData();
-      if (response != null && response.data.status == true && response.data.diceTables != null) {
+      if (response != null  && response.data.status == true && response.data.diceTables != null) {
         final List<CardModel> cards = response.data.diceTables!
             .map<CardModel>((diceTable) => CardModel.fromDiceTable(diceTable))
             .toList();

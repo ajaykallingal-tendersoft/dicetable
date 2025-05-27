@@ -4,6 +4,7 @@ import 'package:dicetable/src/model/cafe_owner/auth/signUp/sign_up_request.dart'
 import 'package:dicetable/src/resources/api_providers/auth/auth_data_provider.dart';
 import 'package:dicetable/src/ui/customer/authentication/sign_up/bloc/customer_sign_up_bloc.dart';
 import 'package:dicetable/src/ui/customer/authentication/sign_up/widget/required_text_field_widget.dart';
+import 'package:dicetable/src/ui/verification/verify_screen_argument.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,24 +13,71 @@ import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../model/cafe_owner/auth/signUp/google_sign-up_request.dart';
+import '../../../cafe_owner/authentication/sign_up/sign_up_screen_argument.dart';
 
 class CustomerSignUpScreen extends StatefulWidget {
-  const CustomerSignUpScreen({super.key});
+  final SignUpScreenArgument signUpScreenArgument;
+  const CustomerSignUpScreen({super.key,required this.signUpScreenArgument});
 
   @override
   State<CustomerSignUpScreen> createState() => _CustomerSignUpScreenState();
 }
 
 class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _countryController = TextEditingController();
-  final TextEditingController _regionController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
+ late final TextEditingController _nameController ;
+ late final TextEditingController _emailController ;
+ late final TextEditingController _passwordController ;
+  late final TextEditingController _confirmPasswordController ;
+  late final TextEditingController _phoneController ;
+  late final TextEditingController _countryController ;
+  late final TextEditingController _regionController ;
+  late final _formKey = GlobalKey<FormState>();
+  late final bool isGoogleSignUp;
+
+
+ @override
+ void initState() {
+   super.initState();
+   isGoogleSignUp = widget.signUpScreenArgument.isGoggleSignUp;
+
+   _nameController = TextEditingController(
+     text: isGoogleSignUp ? widget.signUpScreenArgument.displayName : '',
+   );
+
+   _emailController = TextEditingController(
+     text: isGoogleSignUp ? widget.signUpScreenArgument.email : '',
+   );
+   _passwordController = TextEditingController();
+   _confirmPasswordController = TextEditingController();
+   _countryController = TextEditingController();
+   _regionController = TextEditingController();
+   _phoneController = TextEditingController();
+
+   if (isGoogleSignUp) {
+     // Delay until the widget tree is built
+     WidgetsBinding.instance.addPostFrameCallback((_) {
+       final bloc = context.read<CustomerSignUpBloc>();
+       bloc.add(UpdateTextField((state) => state.copyWith(
+         name: widget.signUpScreenArgument.displayName,
+         email: widget.signUpScreenArgument.email,
+       )));
+     });
+   }
+ }
+
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
+    _phoneController.dispose();
+    _countryController.dispose();
+    _regionController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,17 +102,62 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                     ),
                   );
                 }
-              } else {
-                ObjectFactory().prefs.setAuthToken(token: state.signUpRequestResponse.token);
-                ObjectFactory().prefs.setCustomerUserName(customerUserName: _nameController.text);
-                ObjectFactory().prefs.setIsCustomerLoggedIn(true);
-                context.go('/customer_home');
+              } else  if (response.status == true)  {
+                ObjectFactory().prefs.setCustomerAuthToken(token: state.signUpRequestResponse.token);
+                ObjectFactory().prefs.setCustomerUserName(customerUserName: state.signUpRequestResponse.user!.name);
+                ObjectFactory().prefs.setUserId(userId: state.signUpRequestResponse.user!.id.toString());
+                ObjectFactory().prefs.setIsGoogle(false);
+                context.go('/verify',extra: VerifyScreenArguments(
+                  from: "customer",
+                  email: state.signUpRequestResponse.user!.email,
+                  otp: state.signUpRequestResponse.user!.emailOtp.toString(),
+                  type: "register",
+                ),);
                 Fluttertoast.showToast(
                   backgroundColor: AppColors.primaryWhiteColor,
                   textColor: AppColors.appGreenColor,
                   gravity: ToastGravity.BOTTOM,
                   msg: state.signUpRequestResponse.message!,
                 );
+              }
+            }
+            if (state is GoogleSignUpSuccessState) {
+              final response = state.googleSignUpRequestResponse;
+              if (response.status == false) {
+                if (response.errors != null &&
+                    response.errors!.isNotEmpty) {
+                  final firstErrorField = response.errors!.keys.first;
+                  final firstErrorMessage =
+                      response.errors![firstErrorField]?.first;
+                  Fluttertoast.showToast(
+                    backgroundColor: AppColors.primaryWhiteColor,
+                    textColor: AppColors.appGreenColor,
+                    gravity: ToastGravity.BOTTOM,
+                    msg: firstErrorMessage ?? "Something went wrong",
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        firstErrorMessage ?? 'Something went wrong',
+                      ),
+                      backgroundColor: AppColors.appRedColor,
+                      duration: const Duration(seconds: 3),
+                    ),
+                  );
+                }
+              } else if(response.status == true){
+                Fluttertoast.showToast(
+                  backgroundColor: AppColors.primaryWhiteColor,
+                  textColor: AppColors.appGreenColor,
+                  gravity: ToastGravity.BOTTOM,
+                  msg: state.googleSignUpRequestResponse.message!,
+                );
+                ObjectFactory().prefs.setCustomerAuthToken(token: state.googleSignUpRequestResponse.token);
+                ObjectFactory().prefs.setUserId(userId: state.googleSignUpRequestResponse.user!.id.toString());
+                ObjectFactory().prefs.setCustomerUserName(customerUserName: state.googleSignUpRequestResponse.user!.name);
+                ObjectFactory().prefs.setIsGoogle(true);
+                ObjectFactory().prefs.setIsCustomerLoggedIn(true);
+                context.go('/customer_home');
               }
             }
 
@@ -127,6 +220,7 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                         children: [
                           Gap(50),
                           RequiredTextField(
+                            readOnly: isGoogleSignUp ? true : false,
                             hint: 'Name',
                             isRequired: true,
                             controller: _nameController,
@@ -145,6 +239,7 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                           ),
                           Gap(10),
                           RequiredTextField(
+                            readOnly: isGoogleSignUp ? true : false,
                             hint: "Email",
                             isRequired: true,
                             controller: _emailController,
@@ -279,72 +374,130 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                                 );
                               }
 
-                              // Otherwise, show the button with onTap functionality
                               return InkWell(
                                 onTap: () {
                                   if (_formKey.currentState!.validate()) {
-                                    if (state is SignUpFormState) {
-                                      final formState = state;
+                                    final name = _nameController.text.trim();
+                                    final email = _emailController.text.trim();
+                                    final password = _passwordController.text.trim();
+                                    final confirmPassword = _confirmPasswordController.text.trim();
+                                    final phone = _phoneController.text.trim();
+                                    final country = _countryController.text.trim();
+                                    final region = _regionController.text.trim();
 
-                                      if (formState.email.isEmpty ||
-                                          formState.password.isEmpty) {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                              'Please fill in all required fields',
-                                            ),
-                                            backgroundColor:
-                                                AppColors.appRedColor,
-                                          ),
-                                        );
-                                        return;
-                                      }
-
-                                      if (formState.password !=
-                                          formState.confirmPassword) {
-                                        ScaffoldMessenger.of(
-                                          context,
-                                        ).showSnackBar(
-                                          const SnackBar(
-                                            content: Text(
-                                              'Passwords do not match',
-                                            ),
-                                            backgroundColor:
-                                                AppColors.appRedColor,
-                                          ),
-                                        );
-                                        return;
-                                      }
-
-                                      final signUpRequest = SignUpRequest(
-                                        name: formState.name,
-                                        email: formState.email,
-                                        password: formState.password,
-                                        passwordConfirmation:
-                                            formState.confirmPassword,
-                                        country: formState.country,
-                                        loginType: 5,
-                                        phone: formState.phone,
-                                        region: formState.region,
-                                      );
-
-                                      print("Name: ${formState.name}");
-                                      print("Email: ${formState.email}");
-                                      print("Password: ${formState.password}");
-                                      print(
-                                        "Confirm password: ${formState.confirmPassword}",
-                                      );
-                                      print("Phone: ${formState.phone}");
-                                      print("Region: ${formState.region}");
-
-                                      context.read<CustomerSignUpBloc>().add(
-                                        SubmitSignUp(
-                                          signupRequest: signUpRequest,
+                                    if (password != confirmPassword) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Passwords do not match'),
+                                          backgroundColor: AppColors.appRedColor,
                                         ),
                                       );
+                                      return;
                                     }
+
+                                    if (isGoogleSignUp) {
+                                      final googleSignUpRequest = GoogleSignUpRequest(
+                                        name: name,
+                                        email: email,
+                                        password: password,
+                                        passwordConfirmation: confirmPassword,
+                                        country: country,
+                                        loginType: 5,
+                                        phone: phone,
+                                        region: region,
+                                      );
+                                      context.read<CustomerSignUpBloc>().add(
+                                        SubmitGoogleSignUp(signupRequest: googleSignUpRequest),
+                                      );
+                                    } else {
+                                      final signUpRequest = SignUpRequest(
+                                        name: name,
+                                        email: email,
+                                        password: password,
+                                        passwordConfirmation: confirmPassword,
+                                        country: country,
+                                        loginType: 5,
+                                        phone: phone,
+                                        region: region,
+                                      );
+                                      context.read<CustomerSignUpBloc>().add(
+                                        SubmitSignUp(signupRequest: signUpRequest),
+                                      );
+                                    }
+
+                                    // if (state is SignUpFormState) {
+                                    //   final formState = state;
+                                    //
+                                    //   if (formState.email.isEmpty ||
+                                    //       formState.password.isEmpty) {
+                                    //     ScaffoldMessenger.of(
+                                    //       context,
+                                    //     ).showSnackBar(
+                                    //       const SnackBar(
+                                    //         content: Text(
+                                    //           'Please fill in all required fields',
+                                    //         ),
+                                    //         backgroundColor:
+                                    //             AppColors.appRedColor,
+                                    //       ),
+                                    //     );
+                                    //     return;
+                                    //   }
+                                    //
+                                    //   if (formState.password !=
+                                    //       formState.confirmPassword) {
+                                    //     ScaffoldMessenger.of(
+                                    //       context,
+                                    //     ).showSnackBar(
+                                    //       const SnackBar(
+                                    //         content: Text(
+                                    //           'Passwords do not match',
+                                    //         ),
+                                    //         backgroundColor:
+                                    //             AppColors.appRedColor,
+                                    //       ),
+                                    //     );
+                                    //     return;
+                                    //   }
+                                    //
+                                    //   if (isGoogleSignUp) {
+                                    //     final googleSignUpRequest =
+                                    //     GoogleSignUpRequest(
+                                    //           name: _nameController.text,
+                                    //           email: _emailController.text,
+                                    //           password: formState.password,
+                                    //           passwordConfirmation:
+                                    //           formState.confirmPassword,
+                                    //           country: formState.country,
+                                    //           loginType: 5,
+                                    //           phone: formState.phone,
+                                    //           region: formState.region,
+                                    //
+                                    //     );
+                                    //     context.read<CustomerSignUpBloc>().add(
+                                    //       SubmitGoogleSignUp(
+                                    //         signupRequest: googleSignUpRequest,
+                                    //       ),
+                                    //     );
+                                    //   } else {
+                                    //     final signUpRequest = SignUpRequest(
+                                    //     name: formState.name,
+                                    //     email: formState.email,
+                                    //     password: formState.password,
+                                    //     passwordConfirmation:
+                                    //     formState.confirmPassword,
+                                    //     country: formState.country,
+                                    //     loginType: 5,
+                                    //     phone: formState.phone,
+                                    //     region: formState.region,
+                                    //   );
+                                    //     context.read<CustomerSignUpBloc>().add(
+                                    //       SubmitSignUp(
+                                    //         signupRequest: signUpRequest,
+                                    //       ),
+                                    //     );
+                                    //   }
+                                    // }
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
