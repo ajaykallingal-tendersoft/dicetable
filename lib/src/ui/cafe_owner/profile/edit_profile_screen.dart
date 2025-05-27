@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dicetable/src/common/custom_text_field.dart';
@@ -10,6 +11,7 @@ import 'package:dicetable/src/utils/client/api_client.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
@@ -63,25 +65,31 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ProfileBloc, ProfileState>(
-      builder: (context, state) {
-        final profile = state.cafeProfile;
+    return BlocConsumer<ProfileBloc, ProfileState>(
+      listener: (context, state) {
+        if (state.cafeProfile != null) {
+          final profile = state.cafeProfile;
 
-        _venueNameController = TextEditingController(text: profile?.name ?? '');
-        _venueDescriptionController = TextEditingController(
-          text: profile?.venue_description ?? '',
-        );
-        _emailController = TextEditingController(text: profile?.email ?? '');
-        _passwordController = TextEditingController(
-          text: '', // password not provided in API
-        );
-        _phoneController = TextEditingController(text: profile?.phone ?? '');
-        _addressController = TextEditingController(
-          text: profile?.address ?? '',
-        );
-        _postalCodeController = TextEditingController(
-          text: profile?.postcode ?? '',
-        );
+          _venueNameController = TextEditingController(
+            text: profile?.name ?? '',
+          );
+          _venueDescriptionController = TextEditingController(
+            text: profile?.venue_description ?? '',
+          );
+          _emailController = TextEditingController(text: profile?.email ?? '');
+          _passwordController = TextEditingController(
+            text: '', // password not provided in API
+          );
+          _phoneController = TextEditingController(text: profile?.phone ?? '');
+          _addressController = TextEditingController(
+            text: profile?.address ?? '',
+          );
+          _postalCodeController = TextEditingController(
+            text: profile?.postcode ?? '',
+          );
+        }
+      },
+      builder: (context, state) {
         final image = state.image;
         return Builder(
           builder: (context) {
@@ -400,6 +408,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
+  ImageProvider _getProfileImageProvider(String? photo) {
+    if (photo == null || !photo.contains(',')) {
+      return const AssetImage('assets/png/profile-img.png');
+    }
+
+    try {
+      final base64Str = photo.split(',')[1]; // remove "data:image/png;base64,"
+      final bytes = base64Decode(base64Str);
+      EasyLoading.dismiss();
+      return MemoryImage(bytes); // ✅ This works with CircleAvatar
+    } catch (e) {
+      EasyLoading.dismiss();
+      return const AssetImage('assets/png/profile-img.png');
+    }
+  }
+
   Widget _buildSliverAppBar() {
     return SliverAppBar(
       expandedHeight: 380.h,
@@ -481,13 +505,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           child: CircleAvatar(
                             radius: 85.r,
                             backgroundImage:
-                                image != null
-                                    ? FileImage(
-                                      state.cafeProfile?.photo != null
-                                          ? File(state.cafeProfile!.photo!)
-                                          : File(image.path),
+                                state.cafeProfile?.photo != null
+                                    ? _getProfileImageProvider(
+                                      state.cafeProfile?.photo,
                                     )
-                                    : AssetImage('assets/png/profile-img.png'),
+                                    : const AssetImage(
+                                          'assets/png/profile-img.png',
+                                        )
+                                        as ImageProvider,
                           ),
                         ),
                         Positioned(

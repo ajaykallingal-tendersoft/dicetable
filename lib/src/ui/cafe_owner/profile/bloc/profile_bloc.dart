@@ -75,10 +75,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     on<SubmitProfile>(_onSubmitEditProfile);
 
     on<PickImageFromGalleryEvent>((event, emit) async {
-      emit(ProfileImageLoadingState());
+      // emit(ProfileImageLoadingState());
 
-      final permissionStatus = await Permission.photos.request();
-      if (permissionStatus.isDenied) {
+      final permissionStatus = await requestPhotoPermission();
+      if (!permissionStatus) {
         emit(ProfileImageErrorState(errorMessage: "Photo permission denied."));
         return;
       }
@@ -87,18 +87,18 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         final pickedImage = await _picker.pickImage(
           source: ImageSource.gallery,
         );
-
         if (pickedImage == null) {
           emit(ProfileImageErrorState(errorMessage: "No image selected."));
           return;
         }
 
         final file = File(pickedImage.path);
-        final fileSize = file.lengthSync();
+        final fileSize = await file.length();
         final ext = pickedImage.name.toLowerCase();
 
-        // Check format and size
-        if (!(ext.endsWith('.png') || ext.endsWith('.jpeg'))) {
+        if (!(ext.endsWith('.png') ||
+            ext.endsWith('.jpeg') ||
+            ext.endsWith('.jpg'))) {
           emit(
             ProfileImageErrorState(
               errorMessage: "Only JPEG or PNG images are allowed.",
@@ -116,10 +116,21 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           return;
         }
 
-        _image = pickedImage;
+        final bytes = await file.readAsBytes();
+        final base64Image = base64Encode(bytes);
+        String prefix;
+        if (ext.endsWith('.png')) {
+          prefix = "data:image/png;base64,";
+        } else {
+          prefix = "data:image/jpeg;base64,";
+        }
+        final base64ImageWithPrefix = prefix + base64Image;
+        final currentState = state;
+        final updatedCafeProfile = currentState.cafeProfile?.copyWith(
+          photo: base64ImageWithPrefix,
+        );
 
-        print(_image!.name);
-        emit(ProfileImageLoadedState(image: _image!));
+        emit(currentState.copyWith(cafeProfile: updatedCafeProfile));
       } catch (e) {
         emit(ProfileImageErrorState(errorMessage: "Failed to pick image: $e"));
       }
@@ -133,6 +144,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     EasyLoading.show(status: '');
     emit(ProfileLoading());
     final apiClient = ApiClient();
+    this._onFetchCafeEditProfile(event.id as FetchEditCafeProfile, emit);
     try {
       final response = await apiClient.getCafeProfileById(event.id);
       print(response);
@@ -270,6 +282,35 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     } catch (e) {
       emit(ProfileLoadError(errorMessage: "Error: $e"));
     }
+  }
+
+  Future<bool> requestPhotoPermission() async {
+    if (Platform.isAndroid) {
+      if (await Permission.photos.isGranted ||
+          await Permission.storage.isGranted) {
+        return true; // Already granted
+      }
+
+      if (await Permission.photos.isDenied ||
+          await Permission.storage.isDenied) {
+        final photosStatus = await Permission.photos.request();
+        final storageStatus = await Permission.storage.request();
+
+        if (photosStatus.isGranted || storageStatus.isGranted) {
+          return true;
+        }
+
+        // Optional: Handle "Permanently Denied"
+        if (photosStatus.isPermanentlyDenied ||
+            storageStatus.isPermanentlyDenied) {
+          openAppSettings(); // Suggest user to manually allow it
+        }
+
+        return false;
+      }
+    }
+
+    return true; // Not Android or no need for permission
   }
 }
 /*

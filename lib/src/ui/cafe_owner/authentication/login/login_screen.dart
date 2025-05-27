@@ -101,21 +101,6 @@ class _LoginScreenState extends State<LoginScreen> {
   //     // }
   //   }
 
-<<<<<<< HEAD
-    if (isGoogle) {
-      //
-      ObjectFactory().prefs.setCafeUserName(cafeUserName: name);
-      ObjectFactory().prefs.setCafeId(cafeId: cafeId);
-      ObjectFactory().prefs.setIsLoggedIn(true);
-    } else {
-      // if(ObjectFactory().prefs.isEmailVerified() == false) {
-      //   ObjectFactory().prefs.setIsLoggedIn(false);
-      // }else {
-      //   ObjectFactory().prefs.setIsLoggedIn(true);
-      //
-      // }
-    }
-=======
   //   context.go('/home');
   //
   //   Fluttertoast.showToast(
@@ -127,8 +112,6 @@ class _LoginScreenState extends State<LoginScreen> {
   //         : "Successfully Logged In.",
   //   );
   // }
->>>>>>> 242697adb933aaeaa30f4f701382f8295f477983
-
 
   @override
   void dispose() {
@@ -155,27 +138,6 @@ class _LoginScreenState extends State<LoginScreen> {
               } else {
                 EasyLoading.dismiss();
               }
-<<<<<<< HEAD
-
-              // Normal login success
-              if (state is LoginSuccessState) {
-                if (state.loginRequestResponse.user!.isEmailVerified == 1) {
-                  ObjectFactory().prefs.setIsLoggedIn(true);
-                } else {
-                  ObjectFactory().prefs.setIsLoggedIn(false);
-                }
-                _handleLoginSuccess(
-                  context,
-                  state.loginRequestResponse.token ?? "",
-                  state.loginRequestResponse.cafeId ?? "",
-                  state.loginRequestResponse.user?.name ?? '',
-                  isGoogle: false,
-                );
-                if (state.loginRequestResponse.status == false &&
-                    state.loginRequestResponse.message ==
-                        "Please verify your email first." &&
-                    state.loginRequestResponse.user!.isEmailVerified == 0) {
-=======
               if (state is LoginFailureState) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
@@ -185,38 +147,56 @@ class _LoginScreenState extends State<LoginScreen> {
                 );
               }
               if (state is LoginSuccessState) {
-               if(state.loginRequestResponse.status == true) {
-                 if(state.loginRequestResponse.token!.isNotEmpty && state.loginRequestResponse.user!.isEmailVerified == 1) {
-                   ObjectFactory().prefs.setIsLoggedIn(true);
-                   ObjectFactory().prefs.setEmailVerified(true);
-                   ObjectFactory().prefs.setAuthToken(token: state.loginRequestResponse.token);
-                   ObjectFactory().prefs.setCafeId(cafeId: state.loginRequestResponse.cafeId);
-                   if( state.loginRequestResponse.user != null &&  state.loginRequestResponse.user!.name != null ) {
-                     ObjectFactory().prefs.setCafeUserName(cafeUserName: state.loginRequestResponse.user!.name);
-                   }
-                   context.go('/home');
-                 }
-               } else if(state.loginRequestResponse.status == false) {
-                 ScaffoldMessenger.of(context).showSnackBar(
-                   SnackBar(
-                     content: Text(state.loginRequestResponse.message!),
-                     backgroundColor: AppColors.appRedColor,
-                   ),
-                 );
-               }
+                if (state.loginRequestResponse.status == true) {
+                  if (state.loginRequestResponse.token!.isNotEmpty &&
+                      state.loginRequestResponse.user!.isEmailVerified == 1) {
+                    ObjectFactory().prefs.setIsLoggedIn(true);
+                    ObjectFactory().prefs.setEmailVerified(true);
+                    ObjectFactory().prefs.setAuthToken(
+                      token: state.loginRequestResponse.token,
+                    );
+                    ObjectFactory().prefs.setCafeId(
+                      cafeId: state.loginRequestResponse.cafeId,
+                    );
+                    if (state.loginRequestResponse.user != null &&
+                        state.loginRequestResponse.user!.name != null) {
+                      ObjectFactory().prefs.setCafeUserName(
+                        cafeUserName: state.loginRequestResponse.user!.name,
+                      );
+                    }
+                    context.go('/home');
+                  }
+                } else if (state.loginRequestResponse.status == false) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(state.loginRequestResponse.message!),
+                      backgroundColor: AppColors.appRedColor,
+                    ),
+                  );
+                }
                 // else {
                 //   ObjectFactory().prefs.setIsLoggedIn(false);
                 //   context.go('/verify',extra: VerifyScreenArguments(email: _emailController.text, otp: "", type: "register"));
                 // }
 
-                if(state.loginRequestResponse.status == false && state.loginRequestResponse.message ==  "Please verify your email first." && state.loginRequestResponse.user!.isEmailVerified == 0) {
->>>>>>> 242697adb933aaeaa30f4f701382f8295f477983
+                if (state.loginRequestResponse.status == false &&
+                    state.loginRequestResponse.message ==
+                        "Please verify your email first." &&
+                    state.loginRequestResponse.user!.isEmailVerified == 0) {
                   Fluttertoast.showToast(
                     msg: state.loginRequestResponse.message!,
                     backgroundColor: AppColors.primaryWhiteColor,
                     textColor: AppColors.appRedColor,
                   );
-                  context.go('/verify',extra: VerifyScreenArguments(email: _emailController.text, otp: "", type: "register",from: 'venue_owner'));
+                  context.go(
+                    '/verify',
+                    extra: VerifyScreenArguments(
+                      email: _emailController.text,
+                      otp: "",
+                      type: "register",
+                      from: 'venue_owner',
+                    ),
+                  );
                 }
               }
 
@@ -226,9 +206,15 @@ class _LoginScreenState extends State<LoginScreen> {
                 if (response.status == true && response.token != null) {
                   ObjectFactory().prefs.setIsLoggedIn(true);
                   ObjectFactory().prefs.setIsGoogle(true);
-                  ObjectFactory().prefs.setAuthToken(token: state.googleLoginResponse.token);
-                  ObjectFactory().prefs.setCafeId(cafeId: state.googleLoginResponse.cafeId);
-                  ObjectFactory().prefs.setCafeUserName(cafeUserName: state.googleLoginResponse.user!.name);
+                  ObjectFactory().prefs.setAuthToken(
+                    token: state.googleLoginResponse.token,
+                  );
+                  ObjectFactory().prefs.setCafeId(
+                    cafeId: state.googleLoginResponse.cafeId,
+                  );
+                  ObjectFactory().prefs.setCafeUserName(
+                    cafeUserName: state.googleLoginResponse.user!.name,
+                  );
                   context.go('/home');
                 } else {
                   print("Message: ${response.message}");
@@ -651,14 +637,16 @@ class _LoginScreenState extends State<LoginScreen> {
                                                     'Dont have an account yet',
                                                 promptText: 'Sign Up Now',
                                                 onSignInTap: () {
-                                                  context.push('/signup',
-                                                      extra: SignUpScreenArgument(
-                                                          isGoggleSignUp: false,
-                                                          email: "",
-                                                          displayName: "",
-                                                          phone: "",
-                                                          imageBase64: "",
-                                                      ),);
+                                                  context.push(
+                                                    '/signup',
+                                                    extra: SignUpScreenArgument(
+                                                      isGoggleSignUp: false,
+                                                      email: "",
+                                                      displayName: "",
+                                                      phone: "",
+                                                      imageBase64: "",
+                                                    ),
+                                                  );
                                                 },
                                               ).animate().fadeIn(
                                                 duration: 500.ms,
