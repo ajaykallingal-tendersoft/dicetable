@@ -144,10 +144,10 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     EasyLoading.show(status: '');
     emit(ProfileLoading());
     final apiClient = ApiClient();
-    this._onFetchCafeEditProfile(event.id as FetchEditCafeProfile, emit);
+
     try {
       final response = await apiClient.getCafeProfileById(event.id);
-      print(response);
+
       if (response.statusCode == 200) {
         emit(ProfileLoaded(profileData: response.data['data']));
 
@@ -246,7 +246,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
               .toList(),
       "blob": state.cafeProfile!.photo,
       "original_name": "dymmy",
-      "password": "",
+      "password": "password",
     };
 
     try {

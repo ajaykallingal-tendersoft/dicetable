@@ -597,7 +597,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
             ),
             ElevatedButton.icon(
-              onPressed: () {},
+              onPressed: () {
+                context.read<ProfileBloc>().add(SubmitProfile());
+              },
               icon: SvgPicture.asset('assets/svg/save-form.svg'),
               label: Text(
                 "SAVE",

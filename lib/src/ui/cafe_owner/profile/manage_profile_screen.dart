@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:dicetable/src/common/custom_text_field.dart';
 import 'package:dicetable/src/common/elevated_button_widget.dart';
@@ -7,6 +8,7 @@ import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/login/cubit/google_sign_in_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
@@ -136,7 +138,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
           child: SafeArea(
             child: CustomScrollView(
               slivers: [
-                _buildSliverAppBar(),
+                _buildSliverAppBar(state),
                 _buildSectionHeader(context),
                 SliverToBoxAdapter(
                   child: Padding(
@@ -370,7 +372,23 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
     return '$hour:$minute $period';
   }
 
-  Widget _buildSliverAppBar() {
+  ImageProvider _getProfileImageProvider(String? photo) {
+    if (photo == null || !photo.contains(',')) {
+      return const AssetImage('assets/png/profile-img.png');
+    }
+
+    try {
+      final base64Str = photo.split(',')[1];
+      final bytes = base64Decode(base64Str);
+      EasyLoading.dismiss();
+      return MemoryImage(bytes);
+    } catch (e) {
+      EasyLoading.dismiss();
+      return const AssetImage('assets/png/profile-img.png');
+    }
+  }
+
+  Widget _buildSliverAppBar(state) {
     return SliverAppBar(
       expandedHeight: 380.h,
       pinned: false,
@@ -448,11 +466,13 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                       child: CircleAvatar(
                         radius: 85.r,
                         backgroundImage:
-                            _imageFile != null
-                                ? FileImage(_imageFile!)
-                                : const AssetImage(
-                                  'assets/png/profile-img.png',
-                                ),
+                            (state is ProfileLoaded &&
+                                    state.profileData['photo'] != null)
+                                ? _getProfileImageProvider(
+                                  state.profileData['photo'],
+                                )
+                                : const AssetImage('assets/png/profile-img.png')
+                                    as ImageProvider,
                       ),
                     ),
                     Positioned(
