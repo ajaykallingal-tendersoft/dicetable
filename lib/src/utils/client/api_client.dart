@@ -10,6 +10,8 @@ import 'package:dicetable/src/model/cafe_owner/auth/signUp/sign_up_request.dart'
 import 'package:dicetable/src/model/cafe_owner/home/dice_table_update_request.dart';
 import 'package:dicetable/src/model/cafe_owner/subscription/subscription_start_request.dart';
 import 'package:dicetable/src/model/customer/booking/booking_request.dart';
+import 'package:dicetable/src/model/customer/cafe/add_favourite_request.dart';
+import 'package:dicetable/src/model/customer/cafe/remove_favourite_request.dart';
 import 'package:dicetable/src/model/verification/otp_verify_request.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:dicetable/src/utils/urls/urls.dart';
@@ -325,6 +327,7 @@ class ApiClient {
     );
   }
 
+  ///CafeList
   Future<Response> getCafeList() {
     print("Bearer ${ObjectFactory().prefs.getCustomerAuthToken()}");
     return dioDiceApp.get(
@@ -337,6 +340,49 @@ class ApiClient {
     );
   }
 
+  ///AddFavourite
+  Future<Response> addFavourite(AddFavouriteRequest addFavouriteRequest) {
+    print(ObjectFactory().prefs.getCustomerAuthToken());
+    return dioDiceApp.post(
+      UrlsDiceApp.addFavourite,
+      data: addFavouriteRequest,
+      options: Options(headers: {
+        "Authorization": ObjectFactory().prefs.getCustomerAuthToken(),
+      }),
+
+    );
+  }
+
+  ///RemoveFavourite
+  Future<Response> removeFavourite(RemoveFavouriteRequest removeFavouriteRequest) {
+    print(ObjectFactory().prefs.getCustomerAuthToken());
+    return dioDiceApp.post(
+      UrlsDiceApp.removeFavourite,
+      data: removeFavouriteRequest,
+      options: Options(headers: {
+        "Authorization": ObjectFactory().prefs.getCustomerAuthToken(),
+      }),
+
+    );
+  }
+
+  ///History
+  Future<Response> getHistory() {
+    final token = ObjectFactory().prefs.getCustomerAuthToken();
+    final userID = ObjectFactory().prefs.getUserId(); // Ensure this exists
+    final url = '${UrlsDiceApp.history}/$userID';
+
+    print("Bearer $token");
+    print("URL: $url");
+
+
+    return dioDiceApp.get(
+      url,
+      options: Options(headers: {
+        "Authorization": token,
+      }),
+    );
+  }
 
 }
 

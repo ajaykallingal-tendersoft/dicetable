@@ -1,4 +1,3 @@
-
 import 'dart:convert';
 
 import 'package:dicetable/src/model/cafe_owner/subscription/subscription_overview_response.dart';
@@ -24,7 +23,6 @@ class SubscriptionDataProvider {
       }
       return null;
     } on DioException catch (e) {
-
       if (e.response!.statusCode == 500) {
         return StateModel.error(
             "The server isn't responding! Please try again later.");
@@ -38,7 +36,6 @@ class SubscriptionDataProvider {
             "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!");
         // Something happened in setting up or sending the request that triggered an Error
       }
-
     }
     return null;
   }
@@ -55,7 +52,6 @@ class SubscriptionDataProvider {
       }
       return null;
     } on DioException catch (e) {
-
       if (e.response!.statusCode == 500) {
         return StateModel.error(
             "The server isn't responding! Please try again later.");
@@ -69,13 +65,13 @@ class SubscriptionDataProvider {
             "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!");
         // Something happened in setting up or sending the request that triggered an Error
       }
-
     }
     return null;
   }
 
 
-  Future<StateModel?> subscriptionStart(SubscriptionStartRequest subscriptionStart) async {
+  Future<StateModel?> subscriptionStart(
+      SubscriptionStartRequest subscriptionStart) async {
     try {
       final response =
       await ObjectFactory().apiClient.subscriptionStart(subscriptionStart);
@@ -89,21 +85,19 @@ class SubscriptionDataProvider {
       }
       return null;
     } on DioException catch (e) {
-
-      if (e.response!.statusCode == 500) {
+      if (e.response != null && e.response!.statusCode == 500) {
         return StateModel.error(
             "The server isn't responding! Please try again later.");
-        // return response!;
-      } else if (e.response!.statusCode == 408) {
+      } else if (e.response != null && e.response!.statusCode == 408) {
         return StateModel.error(
-            "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-        // Something happened in setting up or sending the request that triggered an Error
-      } else if (e.type.name == "connectionError") {
+            "Hello there! It seems like your request took longer than expected to process...");
+      } else if (e.type == DioExceptionType.connectionError) {
         return StateModel.error(
-            "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-        // Something happened in setting up or sending the request that triggered an Error
+            "Connection refused. Please try again later or reach out to support.");
+      } else {
+        return StateModel.error(
+            "Something went wrong. Please try again later.");
       }
-
     }
     return null;
   }

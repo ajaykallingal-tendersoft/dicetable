@@ -10,7 +10,7 @@ String bookingRequestResponseToJson(BookingRequestResponse data) => json.encode(
 
 class BookingRequestResponse {
   final Data? data;
-  final int? status;
+  final bool? status;
   final String? message;
 
   BookingRequestResponse({

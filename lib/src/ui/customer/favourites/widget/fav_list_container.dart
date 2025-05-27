@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/model/customer/cafe/cafe_list_response.dart';
+import 'package:dicetable/src/model/customer/cafe/favourite_list_response.dart';
 import 'package:dicetable/src/ui/customer/cafe_list/cafe_model.dart';
 import 'package:dicetable/src/ui/customer/cafe_list/components/cafe_details_arguments.dart';
 import 'package:flutter/material.dart';
@@ -11,21 +12,24 @@ import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 
 import '../../../../constants/assets.dart';
+import 'fav_details_argument.dart';
 
-class CafeListCard extends StatelessWidget {
-  final Cafe cafes;
-  final VoidCallback? onFavoriteToggle;
-  final bool isLoading; // Add loading state parameter
+class FavListCard extends StatelessWidget {
+  final FavCafe cafes;
 
-  const CafeListCard({
+
+  const FavListCard({
     super.key,
     required this.cafes,
-    required this.onFavoriteToggle,
-    this.isLoading = false, // Default to false
+
   });
 
   @override
   Widget build(BuildContext context) {
+    // Log cafe data for debugging
+    print('Rendering FavListCard: id=${cafes.id}, name=${cafes
+        .name}, photo=${cafes.photo}');
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
@@ -34,9 +38,9 @@ class CafeListCard extends StatelessWidget {
         boxShadow: const [
           BoxShadow(
             color: Colors.black26,
-            offset: Offset(0, 1), // Horizontal and vertical offsets
-            blurRadius: 1.0, // Softness of the shadow
-            spreadRadius: 1.0, // Extent of the shadow
+            offset: Offset(0, 1),
+            blurRadius: 1.0,
+            spreadRadius: 1.0,
           ),
         ],
       ),
@@ -48,28 +52,19 @@ class CafeListCard extends StatelessWidget {
               children: [
                 Expanded(
                   child: Text(
-                    cafes.name! ?? "",
-                    style: TextTheme.of(context).labelMedium!.copyWith(
+                    cafes.name ?? "Unknown Cafe",
+                    style: TextTheme
+                        .of(context)
+                        .labelMedium!
+                        .copyWith(
                       color: AppColors.primary,
-                      fontWeight:  FontWeight.bold,
+                      fontWeight: FontWeight.bold,
                       fontSize: 16.sp,
                     ),
                   ),
                 ),
-                // Updated favorite button with loading state
                 IconButton(
-                  icon: isLoading
-                      ? SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        AppColors.primary,
-                      ),
-                    ),
-                  )
-                      : cafes.favourites!
+                  icon: cafes.favourites == true
                       ? SvgPicture.asset(
                     'assets/svg/favourite1-active.svg',
                     fit: BoxFit.scaleDown,
@@ -78,28 +73,38 @@ class CafeListCard extends StatelessWidget {
                     'assets/svg/favourite1.svg',
                     fit: BoxFit.scaleDown,
                   ),
-                  onPressed: isLoading ? null : onFavoriteToggle, // Disable when loading
+                  onPressed: () {
+                    // Add logic to toggle favorite status if needed
+                    print('Favorite button pressed for cafe: ${cafes.id}');
+                  },
                 ),
               ],
             ),
             Row(
-              // mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Expanded(
                   flex: 1,
                   child: Hero(
-                    tag: cafes.id!,
+                    tag: cafes.id ?? 'unknown',
                     child: ClipRRect(
-                        borderRadius: BorderRadius.circular(15),
-                        child: CachedNetworkImage(
-                          imageUrl: cafes.photo ?? '',
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) =>  Center(
-                            child: Lottie.asset(Assets.JUMBING_DOT,height: 20,width: 20),
-                          ),
-                          errorWidget: (context, url, error) => SvgPicture.asset('assets/svg/cafe-list.svg')
-                        ),
-
+                      borderRadius: BorderRadius.circular(15),
+                      child: CachedNetworkImage(
+                        imageUrl: cafes.photo ?? '',
+                        fit: BoxFit.cover,
+                        placeholder: (context, url) =>
+                            Center(
+                              child: Lottie.asset(
+                                Assets.JUMBING_DOT,
+                                height: 20,
+                                width: 20,
+                              ),
+                            ),
+                        errorWidget: (context, url, error) =>
+                            SvgPicture.asset(
+                              'assets/svg/cafe-list.svg',
+                              fit: BoxFit.cover,
+                            ),
+                      ),
                     ),
                   ),
                 ),
@@ -113,7 +118,11 @@ class CafeListCard extends StatelessWidget {
                     children: [
                       RichText(
                         text: TextSpan(
-                          style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                          style: Theme
+                              .of(context)
+                              .textTheme
+                              .bodySmall!
+                              .copyWith(
                             fontSize: 10.sp,
                             color: AppColors.shadowColor,
                           ),
@@ -123,33 +132,36 @@ class CafeListCard extends StatelessWidget {
                               style: TextStyle(fontWeight: FontWeight.w400),
                             ),
                             TextSpan(
-                              text: cafes.tableTypes?.join(', ') ?? '',
-                              style: const TextStyle(fontWeight: FontWeight.w600),
+                              text: cafes.tableTypes?.join(', ') ?? 'N/A',
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w600),
                             ),
                           ],
                         ),
                       ),
-
                       Gap(8),
                       Text(
-                          cafes.venueDescription ?? "",
-                          maxLines: 5,
-                          textAlign: TextAlign.left,
-                          // overflow: TextOverflow.visible,
-                          style: TextTheme.of(context).bodySmall!.copyWith(
-                            color: AppColors.shadowColor,
-                            fontWeight:  FontWeight.w600,
-                            fontSize: 10.sp,
-                          )
+                        cafes.venueDescription ?? "No description available",
+                        maxLines: 5,
+                        textAlign: TextAlign.left,
+                        style: TextTheme
+                            .of(context)
+                            .bodySmall!
+                            .copyWith(
+                          color: AppColors.shadowColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 10.sp,
+                        ),
                       ),
                       Gap(10),
                       Align(
                         alignment: Alignment.bottomRight,
                         child: TextButton(
                           onPressed: () {
-                            context.push('/cafe_details',
-                              extra: CafeDetailsArguments(
-                                from: "CafeList",
+                            context.push(
+                              '/cafe_details',
+                              extra: FavDetailsArguments(
+                                from: "FavList",
                                 name: cafes.name ?? "Unknown Cafe",
                                 tableType: cafes.tableTypes ?? [],
                                 description: cafes.venueDescription ??
@@ -161,28 +173,30 @@ class CafeListCard extends StatelessWidget {
                             );
                           },
                           child: Text(
-                              "VIEW MORE",
-                              style: TextTheme.of(context).bodySmall!.copyWith(
-                                color: AppColors.primary,
-                                fontWeight:  FontWeight.bold,
-                                fontSize: 11.sp,
-                                decoration: TextDecoration.underline,
-                                decorationColor: AppColors.primary,
-                              )
+                            "VIEW MORE",
+                            style: TextTheme
+                                .of(context)
+                                .bodySmall!
+                                .copyWith(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11.sp,
+                              decoration: TextDecoration.underline,
+                              decorationColor: AppColors.primary,
+                            ),
                           ),
                         ),
                       ),
-
                     ],
                   ),
                 ),
               ],
             ),
-
-
           ],
         ),
       ),
     );
   }
+
+
 }

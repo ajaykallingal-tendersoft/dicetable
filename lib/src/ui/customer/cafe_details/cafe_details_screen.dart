@@ -2,8 +2,11 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dicetable/src/common/elevated_button_widget.dart';
 import 'package:dicetable/src/constants/app_colors.dart';
+import 'package:dicetable/src/model/customer/cafe/cafe_list_response.dart';
+import 'package:dicetable/src/model/customer/cafe/favourite_list_response.dart';
 import 'package:dicetable/src/ui/customer/cafe_details/widget/cafe_details_card.dart';
 import 'package:dicetable/src/ui/customer/cafe_list/components/cafe_details_arguments.dart';
+import 'package:dicetable/src/ui/customer/favourites/widget/fav_details_argument.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -16,11 +19,13 @@ import '../../../model/customer/booking/booking_request.dart';
 import 'bloc/cafe_details_bloc.dart';
 
 class CafeDetailsScreen extends StatefulWidget {
-  final CafeDetailsArguments cafeDetailsArguments;
+  final CafeDetailsArguments? cafeDetailsArguments;
+  final FavDetailsArguments? favDetailsArguments;
 
   const CafeDetailsScreen({
     super.key,
-    required this.cafeDetailsArguments,
+    this.cafeDetailsArguments,
+    this.favDetailsArguments,
   });
 
   @override
@@ -30,19 +35,53 @@ class CafeDetailsScreen extends StatefulWidget {
 class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
   bool _isLoadingDialogShown = false;
 
+  late final String _name;
+  late final List<String> _tableType;
+  late final String _description;
+  late final String _image;
+  late final List<dynamic> _openingHours;
+  late final String _id;
+  late final bool _isFromFavorites;
+
+  @override
+  void initState() {
+    super.initState();
+    _initializeData();
+  }
+
+  void _initializeData() {
+    if (widget.cafeDetailsArguments != null) {
+      _isFromFavorites = false;
+      _name = widget.cafeDetailsArguments!.name;
+      _tableType = widget.cafeDetailsArguments!.tableType;
+      _description = widget.cafeDetailsArguments!.description;
+      _image = widget.cafeDetailsArguments!.image;
+      _openingHours = widget.cafeDetailsArguments!.openingHours as List<WorkingHour>;
+      _id = widget.cafeDetailsArguments!.id;
+    } else if (widget.favDetailsArguments != null) {
+      _isFromFavorites = true;
+      _name = widget.favDetailsArguments!.name;
+      _tableType = widget.favDetailsArguments!.tableType;
+      _description = widget.favDetailsArguments!.description;
+      _image = widget.favDetailsArguments!.image;
+      _openingHours = widget.favDetailsArguments!.openingHours as List<FavWorkingHour>;
+      _id = widget.favDetailsArguments!.id;
+    } else {
+      throw Exception('Both cafeDetailsArguments and favDetailsArguments cannot be null');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<CafeDetailsBloc, CafeDetailsState>(
       listener: (context, state) {
         if (state is CafeBookingLoaded) {
           EasyLoading.dismiss();
-          context.pop();
-          // if (_isLoadingDialogShown) {
-          //   context.pop();
-          //   _isLoadingDialogShown = false;
-          // }
+          if (_isLoadingDialogShown) {
+            context.pop();
+            _isLoadingDialogShown = false;
+          }
 
-          // Show success message
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Booking confirmed successfully!'),
@@ -51,27 +90,22 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
             ),
           );
 
-          // Navigate to confirmation screen or handle success
-          // context.push('/booking-confirmation');
 
         } else if (state is CafeBookingError) {
           EasyLoading.dismiss();
-          context.pop();
-          // if (_isLoadingDialogShown) {
-          //   Navigator.of(context).pop();
-          //   _isLoadingDialogShown = false;
-          // }
+          if (_isLoadingDialogShown) {
+            context.pop();
+            _isLoadingDialogShown = false;
+          }
 
-          // Show error message
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.errorMessage),
-              backgroundColor: Colors.red,
+              backgroundColor: AppColors.appRedColor,
               duration: const Duration(seconds: 3),
             ),
           );
         } else if (state is CafeBookingLoading) {
-
           if (!_isLoadingDialogShown) {
             _showLoadingDialog(context);
             _isLoadingDialogShown = true;
@@ -118,12 +152,12 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
               child: Column(
                 children: [
                   CafeDetailsCard(
-                    name: widget.cafeDetailsArguments.name,
-                    tableType: widget.cafeDetailsArguments.tableType,
-                    description: widget.cafeDetailsArguments.description,
-                    image: widget.cafeDetailsArguments.image,
-                    openingHours: widget.cafeDetailsArguments.openingHours,
-                    id: widget.cafeDetailsArguments.id,
+                    name: _name,
+                    tableType: _tableType,
+                    description: _description,
+                    image: _image,
+                    openingHours: _openingHours,
+                    id: _id,
                   ),
                   const Gap(40),
                   InkWell(
@@ -149,15 +183,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
   void _showBookingDialog(BuildContext context) {
     final TextEditingController checkInController = TextEditingController();
     final TextEditingController checkOutController = TextEditingController();
-    String selectedDiceTableType = "1"; // Default value
-
-    // Define the dice table type options
-    final List<Map<String, String>> diceTableTypes = [
-      {"value": "1", "label": "Table Type 1"},
-      {"value": "2", "label": "Table Type 2"},
-      {"value": "3", "label": "Table Type 3"},
-      {"value": "4", "label": "Table Type 4"},
-    ];
+    String? selectedDiceTableType;
 
     showDialog(
       context: context,
@@ -209,7 +235,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                     onTap: () => _selectTime(dialogContext, checkOutController),
                   ),
                   const SizedBox(height: 16),
-                  // Dice Table Type Dropdown
+                  // Table Type Dropdown
                   DropdownButtonFormField<String>(
                     value: selectedDiceTableType,
                     decoration: InputDecoration(
@@ -218,16 +244,23 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    items: diceTableTypes.map((tableType) {
+                    hint: const Text('Select table type'),
+                    items: _tableType.map((tableType) {
                       return DropdownMenuItem<String>(
-                        value: tableType["value"],
-                        child: Text(tableType["label"]!),
+                        value: tableType,
+                        child: Text(tableType),
                       );
                     }).toList(),
                     onChanged: (String? newValue) {
                       setState(() {
-                        selectedDiceTableType = newValue!;
+                        selectedDiceTableType = newValue;
                       });
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please select a table type';
+                      }
+                      return null;
                     },
                   ),
                 ],
@@ -242,23 +275,18 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    if (checkInController.text.isNotEmpty &&
-                        checkOutController.text.isNotEmpty) {
+                    if (_validateBookingInputs(
+                      checkInController.text,
+                      checkOutController.text,
+                      selectedDiceTableType,
+                      dialogContext,
+                    )) {
                       Navigator.of(dialogContext).pop();
                       _bookNow(
                         context: context,
                         checkInTime: checkInController.text,
                         checkOutTime: checkOutController.text,
-                        diceTableType: selectedDiceTableType,
-                      );
-                    } else {
-                      // Show validation message
-                      ScaffoldMessenger.of(dialogContext).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                              'Please select both check-in and check-out times'),
-                          backgroundColor: Colors.red,
-                        ),
+                        diceTableType: selectedDiceTableType!,
                       );
                     }
                   },
@@ -279,6 +307,56 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
         );
       },
     );
+  }
+
+  bool _validateBookingInputs(
+      String checkIn,
+      String checkOut,
+      String? tableType,
+      BuildContext dialogContext,
+      ) {
+    List<String> errors = [];
+
+    if (checkIn.isEmpty) {
+      errors.add('Please select check-in time');
+    }
+    if (checkOut.isEmpty) {
+      errors.add('Please select check-out time');
+    }
+    if (tableType == null || tableType.isEmpty) {
+      errors.add('Please select a table type');
+    }
+
+    if (checkIn.isNotEmpty && checkOut.isNotEmpty) {
+      final checkInTime = TimeOfDay(
+        hour: int.parse(checkIn.split(':')[0]),
+        minute: int.parse(checkIn.split(':')[1]),
+      );
+      final checkOutTime = TimeOfDay(
+        hour: int.parse(checkOut.split(':')[0]),
+        minute: int.parse(checkOut.split(':')[1]),
+      );
+
+      final checkInMinutes = checkInTime.hour * 60 + checkInTime.minute;
+      final checkOutMinutes = checkOutTime.hour * 60 + checkOutTime.minute;
+
+      if (checkOutMinutes <= checkInMinutes) {
+        errors.add('Check-out time must be after check-in time');
+      }
+    }
+
+    if (errors.isNotEmpty) {
+      ScaffoldMessenger.of(dialogContext).showSnackBar(
+        SnackBar(
+          content: Text(errors.join('\n')),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 4),
+        ),
+      );
+      return false;
+    }
+
+    return true;
   }
 
   Future<void> _selectTime(BuildContext context,
@@ -302,7 +380,6 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
     );
 
     if (picked != null) {
-      // Format time in 24-hour format
       final String formattedTime = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
       controller.text = formattedTime;
     }
@@ -316,8 +393,8 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
   }) async {
     try {
       final bookingRequest = BookingRequest(
-        cafeId: widget.cafeDetailsArguments.id,
-        diceTableType: diceTableType, // Use the selected value
+        cafeId: _id,
+        diceTableType: diceTableType,
         currentDate: DateTime.now(),
         checkInTime: checkInTime,
         checkOutTime: checkOutTime,
@@ -325,17 +402,15 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
         userName: _getCurrentUserName(),
         userEmail: _getCurrentUserEmail(),
         deviceId: await _getDeviceId(),
-        additionalInfo: '', // Add if needed
+        additionalInfo: _isFromFavorites ? 'Booked from favorites' : 'Booked from cafe list',
       );
 
-      // Trigger the booking event
       if (mounted) {
         context.read<CafeDetailsBloc>().add(
           BookingRequestEvent(bookingRequest: bookingRequest),
         );
       }
     } catch (e) {
-      // Handle any errors in creating the booking request
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -344,7 +419,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
             duration: const Duration(seconds: 3),
           ),
         );
-        print(e.toString());
+        print('Booking error: $e');
       }
     }
   }

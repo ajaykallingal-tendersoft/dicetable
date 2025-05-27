@@ -27,7 +27,6 @@ class SubscriptionPromptScreen extends StatefulWidget {
 
 class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
   late final int cafeId;
-
   late final int subscriptionTypeId;
   late final int paymentMethod;
   late final double amount;
@@ -59,6 +58,191 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
     });
   }
 
+  Widget _buildSubscriptionContent(BuildContext context, InitialSubscriptionPlanResponse data) {
+    cafeId = data.data!.cafeId!;
+    ObjectFactory().prefs.setCafeId(cafeId: data.data!.cafeId!.toString());
+    subscriptionTypeId = data.data!.subscriptionTypeId!;
+    paymentMethod = data.data!.paymentMethod!;
+    amount = double.tryParse(data.data!.amount ?? '') ?? 0.0;
+
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 26, vertical: 20),
+        child: Column(
+          children: [
+            Gap(30),
+            SvgPicture.asset(
+              'assets/svg/free-icon.svg',
+              height: 123,
+              width: 123,
+            )
+                .animate()
+                .scale(
+              begin: const Offset(0.7, 0.7),
+              end: const Offset(1, 1),
+              duration: 500.ms,
+              curve: Curves.easeOutBack,
+            )
+                .shake(
+              hz: 4,
+              duration: 400.ms,
+              delay: 500.ms,
+              curve: Curves.easeInOut,
+            )
+                .fadeIn(duration: 400.ms),
+            Gap(30),
+            SingleChildScrollView(
+              child: Container(
+                padding: const EdgeInsets.all(0),
+                decoration: BoxDecoration(
+                  color: AppColors.primaryWhiteColor,
+                  borderRadius: BorderRadius.circular(15.r),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black26,
+                      offset: Offset(0, 1),
+                      blurRadius: 4.0,
+                      spreadRadius: 1.0,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      flex: 2,
+                      child: Padding(
+                        padding: EdgeInsets.all(30.0.r),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Start With A Free 3-Month Trial,\nThen \$ ${data.data!.amount} Per Year!',
+                              textAlign: TextAlign.center,
+                              style: TextTheme.of(context).labelMedium!.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18.sp,
+                              ),
+                            ),
+                            SizedBox(height: 10.h),
+                            Text(
+                              'Enjoy all premium features for ${data.data!.trialDuration} ${data.data!.trialType},\nabsolutely free!',
+                              textAlign: TextAlign.center,
+                              style: TextTheme.of(context).bodySmall!.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 12.sp,
+                              ),
+                            ),
+                            SizedBox(height: 20.h),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Flexible(
+                      child: Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.all(20.r),
+                        decoration: BoxDecoration(
+                          color: AppColors.subscriptionPromptSubColor,
+                          borderRadius: BorderRadius.only(
+                            bottomLeft: Radius.circular(20.r),
+                            bottomRight: Radius.circular(20.r),
+                          ),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Continue After Trial',
+                              style: TextTheme.of(context).bodyMedium!.copyWith(
+                                decoration: TextDecoration.underline,
+                                decorationColor: AppColors.textPrimaryGrey,
+                                color: AppColors.timeTextColor,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 12.sp,
+                              ),
+                            ),
+                            SizedBox(height: 5.h),
+                            Text.rich(
+                              TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: '\$${data.data!.amount}',
+                                    style: TextTheme.of(context).bodyLarge!.copyWith(
+                                      color: AppColors.primary,
+                                      fontSize: 24.sp,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: ' / ${data.data!.type}',
+                                    style: TextTheme.of(context).bodyMedium!.copyWith(
+                                      color: AppColors.subscriptionPriceSubColor,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14.sp,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(height: 5.h),
+                            Text(
+                              'Get all the benefits for just \$${data.data!.amount} ${data.data!.type}.',
+                              textAlign: TextAlign.center,
+                              style: TextTheme.of(context).bodyMedium!.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12.sp,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Gap(30),
+            BlocBuilder<SubscriptionBloc, SubscriptionState>(
+              builder: (context, state) {
+                return InkWell(
+                  splashColor: AppColors.secondary,
+                  splashFactory: InkRipple.splashFactory,
+                  onTap: () {
+                    context.read<SubscriptionBloc>().add(
+                      StartSubscriptionEvent(
+                        subscriptionStartRequest: SubscriptionStartRequest(
+                          cafeId: cafeId,
+                          subscriptionTypeId: subscriptionTypeId,
+                          paymentMethod: paymentMethod,
+                          amount: amount,
+                          autoRenew: true,
+                        ),
+                      ),
+                    );
+                  },
+                  child: ElevatedButtonWidget(
+                    height: 70.h,
+                    width: double.infinity,
+                    iconEnabled: false,
+                    iconLabel: "START FREE TRAIL",
+                    color: AppColors.primary,
+                    textColor: AppColors.primaryWhiteColor,
+                  ),
+                );
+              },
+            )
+                .animate()
+                .fadeIn(duration: 450.ms)
+                .slideY(begin: 0.2, delay: 600.ms),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -80,15 +264,19 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
         child: BlocConsumer<SubscriptionBloc, SubscriptionState>(
           listener: (context, state) {
             if (state is InitialSubscriptionLoading) {
-              EasyLoading.show(status: "Loading");
+              EasyLoading.show();
             }
             if (state is StartSubscriptionLoading) {
-              EasyLoading.show(status: "Loading");
+              EasyLoading.show();
+            }
+            if (state is InitialSubscriptionLoaded) {
+              EasyLoading.dismiss();
             }
             if (state is StartSubscriptionLoaded) {
-
               EasyLoading.dismiss();
-              if(state.subscriptionStartResponse.status == false && state.subscriptionStartResponse.message == "This cafe already has an active subscription.") {
+              if (state.subscriptionStartResponse.status == false &&
+                  state.subscriptionStartResponse.message ==
+                      "This cafe already has an active subscription.") {
                 Fluttertoast.showToast(
                   backgroundColor: AppColors.primaryWhiteColor,
                   textColor: AppColors.appGreenColor,
@@ -96,7 +284,7 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                   msg: state.subscriptionStartResponse.message.toString() ?? "",
                 );
                 context.go('/home');
-              }else {
+              } else {
                 Fluttertoast.showToast(
                   backgroundColor: AppColors.primaryWhiteColor,
                   textColor: AppColors.appGreenColor,
@@ -105,9 +293,8 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                 );
                 context.go('/home');
               }
-
             }
-            if(state is StartSubscriptionError) {
+            if (state is StartSubscriptionError) {
               EasyLoading.dismiss();
               Fluttertoast.showToast(
                 backgroundColor: AppColors.primaryWhiteColor,
@@ -118,575 +305,19 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
             }
           },
           builder: (context, state) {
-            if (state is InitialSubscriptionLoaded) {
-              if (state.initialSubscriptionPlanResponse.message ==
-                      "Subscription type found!" &&
-                  state.initialSubscriptionPlanResponse.data != null) {
-                initialData = state.initialSubscriptionPlanResponse;
-                cafeId = state.initialSubscriptionPlanResponse.data!.cafeId!;
-                ObjectFactory().prefs.setCafeId(cafeId: state.initialSubscriptionPlanResponse.data!.cafeId!.toString());
-                subscriptionTypeId =
-                    state
-                        .initialSubscriptionPlanResponse
-                        .data!
-                        .subscriptionTypeId!;
-                paymentMethod =
-                    state.initialSubscriptionPlanResponse.data!.paymentMethod!;
-                amount =
-                    double.tryParse(
-                      state.initialSubscriptionPlanResponse.data!.amount ?? '',
-                    ) ??
-                    0.0;
-                EasyLoading.dismiss();
-                return SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 26,
-                      vertical: 20,
-                    ),
-                    child: Column(
-                      children: [
-                        Gap(30),
-                        SvgPicture.asset(
-                              'assets/svg/free-icon.svg',
-                              height: 123,
-                              width: 123,
-                            )
-                            .animate()
-                            .scale(
-                              begin: const Offset(0.7, 0.7),
-                              end: const Offset(1, 1),
-                              duration: 500.ms,
-                              curve: Curves.easeOutBack,
-                            )
-                            .shake(
-                              hz: 4,
-                              duration: 400.ms,
-                              delay: 500.ms,
-                              curve: Curves.easeInOut,
-                            )
-                            .fadeIn(duration: 400.ms),
-
-                        Gap(30),
-                        SingleChildScrollView(
-                          // Added SingleChildScrollView for small screens
-                          child: Container(
-                            padding: const EdgeInsets.all(0),
-                            decoration: BoxDecoration(
-                              color: AppColors.primaryWhiteColor,
-                              borderRadius: BorderRadius.circular(15.r),
-                              // Using .r for responsive radius
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Colors.black26,
-                                  offset: Offset(0, 1),
-                                  blurRadius: 4.0,
-                                  spreadRadius: 1.0,
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              // Important for fitting content
-                              children: [
-                                Flexible(
-                                  flex: 2,
-                                  child: Padding(
-                                    padding: EdgeInsets.all(30.0.r),
-                                    // Using .r for responsive padding
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      // Ensure inner Column doesn't take infinite space
-                                      children: [
-                                        Text(
-                                          'Start With A Free 3-Month Trial,\nThen \$ ${state.initialSubscriptionPlanResponse.data!.amount} Per Year!',
-                                          textAlign: TextAlign.center,
-                                          style: TextTheme.of(
-                                            context,
-                                          ).labelMedium!.copyWith(
-                                            color: AppColors.primary,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize:
-                                                18.sp, // Using .sp for responsive font size
-                                          ),
-                                        ),
-                                        SizedBox(height: 10.h),
-                                        // Using .h for responsive height
-                                        Text(
-                                          'Enjoy all premium features for ${state.initialSubscriptionPlanResponse.data!.trialDuration} ${state.initialSubscriptionPlanResponse.data!.trialType},\nabsolutely free!',
-                                          textAlign: TextAlign.center,
-                                          style: TextTheme.of(
-                                            context,
-                                          ).bodySmall!.copyWith(
-                                            color: AppColors.primary,
-                                            fontWeight: FontWeight.w500,
-                                            fontSize:
-                                                12.sp, // Using .sp for responsive font size
-                                          ),
-                                        ),
-                                        SizedBox(height: 20.h),
-                                        // Using .h for responsive height
-                                        // RichText(
-                                        //   text: TextSpan(
-                                        //     children: [
-                                        //       TextSpan(
-                                        //         text: 'Promo Code: ',
-                                        //         style: TextTheme.of(context).bodyMedium!.copyWith(
-                                        //           color: AppColors.tertiary,
-                                        //           fontWeight: FontWeight.w700,
-                                        //           fontSize: 14.sp, // Using .sp for responsive font size
-                                        //         ),
-                                        //       ),
-                                        //       TextSpan(
-                                        //         text: 'E23FTU6',
-                                        //         style: TextTheme.of(context).bodyMedium!.copyWith(
-                                        //           color: AppColors.tertiary,
-                                        //           fontWeight: FontWeight.w700,
-                                        //           fontSize: 14.sp, // Using .sp for responsive font size
-                                        //         ),
-                                        //       ),
-                                        //     ],
-                                        //   ),
-                                        // ),
-                                        // SizedBox(height: 10.h), // Using .h for responsive height
-                                        // TextField(
-                                        //   style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                                        //     color: AppColors.hintColor,
-                                        //     fontWeight: FontWeight.w600,
-                                        //     fontSize: 14.sp, // Using .sp for responsive font size
-                                        //   ),
-                                        //   decoration: InputDecoration(
-                                        //     hintText: 'Enter Promo Code',
-                                        //     hintStyle: TextStyle(
-                                        //       color: AppColors.textPrimaryGrey,
-                                        //       fontWeight: FontWeight.w600,
-                                        //       fontSize: 14.sp, // Using .sp for responsive font size
-                                        //     ),
-                                        //     contentPadding: EdgeInsets.symmetric(horizontal: 16.w), // Using .w for responsive width
-                                        //     border: OutlineInputBorder(
-                                        //       borderSide: BorderSide(color: AppColors.borderColor1),
-                                        //       borderRadius: BorderRadius.circular(10.r), // Using .r for responsive radius
-                                        //     ),
-                                        //     focusedBorder: OutlineInputBorder(
-                                        //       borderSide: BorderSide(color: AppColors.borderColor1),
-                                        //       borderRadius: BorderRadius.circular(10.r), // Using .r for responsive radius
-                                        //     ),
-                                        //     enabledBorder: OutlineInputBorder(
-                                        //       borderSide: BorderSide(color: AppColors.borderColor1),
-                                        //       borderRadius: BorderRadius.circular(10.r), // Using .r for responsive radius
-                                        //     ),
-                                        //   ),
-                                        // )
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                Flexible(
-                                  child: Container(
-                                    width: double.infinity,
-                                    padding: EdgeInsets.all(20.r),
-                                    // Using .r for responsive padding
-                                    decoration: BoxDecoration(
-                                      color:
-                                          AppColors.subscriptionPromptSubColor,
-                                      borderRadius: BorderRadius.only(
-                                        bottomLeft: Radius.circular(20.r),
-                                        // Using .r for responsive radius
-                                        bottomRight: Radius.circular(
-                                          20.r,
-                                        ), // Using .r for responsive radius
-                                      ),
-                                    ),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      // Ensure inner Column doesn't take infinite space
-                                      children: [
-                                        Text(
-                                          'Continue After Trial',
-                                          style: TextTheme.of(
-                                            context,
-                                          ).bodyMedium!.copyWith(
-                                            decoration:
-                                                TextDecoration.underline,
-                                            decorationColor:
-                                                AppColors.textPrimaryGrey,
-                                            color: AppColors.timeTextColor,
-                                            fontWeight: FontWeight.w500,
-                                            fontSize:
-                                                12.sp, // Using .sp for responsive font size
-                                          ),
-                                        ),
-                                        SizedBox(height: 5.h),
-                                        // Using .h for responsive height
-                                        Text.rich(
-                                          TextSpan(
-                                            children: [
-                                              TextSpan(
-                                                text:
-                                                    '\$${state.initialSubscriptionPlanResponse.data!.amount}',
-                                                style: TextTheme.of(
-                                                  context,
-                                                ).bodyLarge!.copyWith(
-                                                  color: AppColors.primary,
-                                                  fontSize:
-                                                      24.sp, // Making the price more prominent responsively
-                                                ),
-                                              ),
-                                              TextSpan(
-                                                text:
-                                                    ' / ${state.initialSubscriptionPlanResponse.data!.type}',
-                                                style: TextTheme.of(
-                                                  context,
-                                                ).bodyMedium!.copyWith(
-                                                  color:
-                                                      AppColors
-                                                          .subscriptionPriceSubColor,
-                                                  fontWeight: FontWeight.w600,
-                                                  fontSize:
-                                                      14.sp, // Using .sp for responsive font size
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        SizedBox(height: 5.h),
-                                        // Using .h for responsive height
-                                        Text(
-                                          'Get all the benefits for just \$${state.initialSubscriptionPlanResponse.data!.amount} ${state.initialSubscriptionPlanResponse.data!.type}.',
-                                          textAlign: TextAlign.center,
-                                          style: TextTheme.of(
-                                            context,
-                                          ).bodyMedium!.copyWith(
-                                            color: AppColors.primary,
-                                            fontWeight: FontWeight.w600,
-                                            fontSize:
-                                                12.sp, // Using .sp for responsive font size
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        Gap(30),
-                        BlocBuilder<SubscriptionBloc, SubscriptionState>(
-                              builder: (context, state) {
-                                return InkWell(
-                                  splashColor: AppColors.secondary,
-                                  splashFactory: InkRipple.splashFactory,
-                                  onTap: () {
-                                    context.read<SubscriptionBloc>().add(
-                                      StartSubscriptionEvent(
-                                        subscriptionStartRequest:
-                                            SubscriptionStartRequest(
-                                              cafeId: cafeId,
-                                              subscriptionTypeId:
-                                                  subscriptionTypeId,
-                                              paymentMethod: paymentMethod,
-                                              amount: amount,
-                                              autoRenew: true,
-                                            ),
-                                      ),
-                                    );
-                                  },
-                                  child: ElevatedButtonWidget(
-                                    height: 70.h,
-                                    width: double.infinity,
-                                    iconEnabled: false,
-                                    iconLabel: "START FREE TRAIL",
-                                    color: AppColors.primary,
-                                    textColor: AppColors.primaryWhiteColor,
-                                  ),
-                                );
-                              },
-                            )
-                            .animate()
-                            .fadeIn(duration: 450.ms)
-                            .slideY(begin: 0.2, delay: 600.ms),
-                      ],
-                    ),
-                  ),
-                );
-              }
+            if (state is InitialSubscriptionLoading || state is StartSubscriptionLoading) {
+              return const SizedBox(); // Empty widget, as EasyLoading handles the overlay
+            }
+            if (state is InitialSubscriptionLoaded &&
+                state.initialSubscriptionPlanResponse.message == "Subscription type found!" &&
+                state.initialSubscriptionPlanResponse.data != null) {
+              initialData = state.initialSubscriptionPlanResponse;
+              return _buildSubscriptionContent(context, state.initialSubscriptionPlanResponse);
             }
             if (state is StartSubscriptionError && initialData != null) {
-              return   SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 26,
-                    vertical: 20,
-                  ),
-                  child: Column(
-                    children: [
-                      Gap(30),
-                      SvgPicture.asset(
-                        'assets/svg/free-icon.svg',
-                        height: 123,
-                        width: 123,
-                      )
-                          .animate()
-                          .scale(
-                        begin: const Offset(0.7, 0.7),
-                        end: const Offset(1, 1),
-                        duration: 500.ms,
-                        curve: Curves.easeOutBack,
-                      )
-                          .shake(
-                        hz: 4,
-                        duration: 400.ms,
-                        delay: 500.ms,
-                        curve: Curves.easeInOut,
-                      )
-                          .fadeIn(duration: 400.ms),
-
-                      Gap(30),
-                      SingleChildScrollView(
-                        // Added SingleChildScrollView for small screens
-                        child: Container(
-                          padding: const EdgeInsets.all(0),
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryWhiteColor,
-                            borderRadius: BorderRadius.circular(15.r),
-                            // Using .r for responsive radius
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Colors.black26,
-                                offset: Offset(0, 1),
-                                blurRadius: 4.0,
-                                spreadRadius: 1.0,
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            // Important for fitting content
-                            children: [
-                              Flexible(
-                                flex: 2,
-                                child: Padding(
-                                  padding: EdgeInsets.all(30.0.r),
-                                  // Using .r for responsive padding
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    // Ensure inner Column doesn't take infinite space
-                                    children: [
-                                      Text(
-                                        'Start With A Free 3-Month Trial,\nThen \$ ${initialData!.data!.amount} Per Year!',
-                                        textAlign: TextAlign.center,
-                                        style: TextTheme.of(
-                                          context,
-                                        ).labelMedium!.copyWith(
-                                          color: AppColors.primary,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize:
-                                          18.sp, // Using .sp for responsive font size
-                                        ),
-                                      ),
-                                      SizedBox(height: 10.h),
-                                      // Using .h for responsive height
-                                      Text(
-                                        'Enjoy all premium features for ${initialData!.data!.trialDuration} ${initialData!.data!.trialType},\nabsolutely free!',
-                                        textAlign: TextAlign.center,
-                                        style: TextTheme.of(
-                                          context,
-                                        ).bodySmall!.copyWith(
-                                          color: AppColors.primary,
-                                          fontWeight: FontWeight.w500,
-                                          fontSize:
-                                          12.sp, // Using .sp for responsive font size
-                                        ),
-                                      ),
-                                      SizedBox(height: 20.h),
-                                      // Using .h for responsive height
-                                      // RichText(
-                                      //   text: TextSpan(
-                                      //     children: [
-                                      //       TextSpan(
-                                      //         text: 'Promo Code: ',
-                                      //         style: TextTheme.of(context).bodyMedium!.copyWith(
-                                      //           color: AppColors.tertiary,
-                                      //           fontWeight: FontWeight.w700,
-                                      //           fontSize: 14.sp, // Using .sp for responsive font size
-                                      //         ),
-                                      //       ),
-                                      //       TextSpan(
-                                      //         text: 'E23FTU6',
-                                      //         style: TextTheme.of(context).bodyMedium!.copyWith(
-                                      //           color: AppColors.tertiary,
-                                      //           fontWeight: FontWeight.w700,
-                                      //           fontSize: 14.sp, // Using .sp for responsive font size
-                                      //         ),
-                                      //       ),
-                                      //     ],
-                                      //   ),
-                                      // ),
-                                      // SizedBox(height: 10.h), // Using .h for responsive height
-                                      // TextField(
-                                      //   style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                                      //     color: AppColors.hintColor,
-                                      //     fontWeight: FontWeight.w600,
-                                      //     fontSize: 14.sp, // Using .sp for responsive font size
-                                      //   ),
-                                      //   decoration: InputDecoration(
-                                      //     hintText: 'Enter Promo Code',
-                                      //     hintStyle: TextStyle(
-                                      //       color: AppColors.textPrimaryGrey,
-                                      //       fontWeight: FontWeight.w600,
-                                      //       fontSize: 14.sp, // Using .sp for responsive font size
-                                      //     ),
-                                      //     contentPadding: EdgeInsets.symmetric(horizontal: 16.w), // Using .w for responsive width
-                                      //     border: OutlineInputBorder(
-                                      //       borderSide: BorderSide(color: AppColors.borderColor1),
-                                      //       borderRadius: BorderRadius.circular(10.r), // Using .r for responsive radius
-                                      //     ),
-                                      //     focusedBorder: OutlineInputBorder(
-                                      //       borderSide: BorderSide(color: AppColors.borderColor1),
-                                      //       borderRadius: BorderRadius.circular(10.r), // Using .r for responsive radius
-                                      //     ),
-                                      //     enabledBorder: OutlineInputBorder(
-                                      //       borderSide: BorderSide(color: AppColors.borderColor1),
-                                      //       borderRadius: BorderRadius.circular(10.r), // Using .r for responsive radius
-                                      //     ),
-                                      //   ),
-                                      // )
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              Flexible(
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: EdgeInsets.all(20.r),
-                                  // Using .r for responsive padding
-                                  decoration: BoxDecoration(
-                                    color:
-                                    AppColors.subscriptionPromptSubColor,
-                                    borderRadius: BorderRadius.only(
-                                      bottomLeft: Radius.circular(20.r),
-                                      // Using .r for responsive radius
-                                      bottomRight: Radius.circular(
-                                        20.r,
-                                      ), // Using .r for responsive radius
-                                    ),
-                                  ),
-                                  child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    // Ensure inner Column doesn't take infinite space
-                                    children: [
-                                      Text(
-                                        'Continue After Trial',
-                                        style: TextTheme.of(
-                                          context,
-                                        ).bodyMedium!.copyWith(
-                                          decoration:
-                                          TextDecoration.underline,
-                                          decorationColor:
-                                          AppColors.textPrimaryGrey,
-                                          color: AppColors.timeTextColor,
-                                          fontWeight: FontWeight.w500,
-                                          fontSize:
-                                          12.sp, // Using .sp for responsive font size
-                                        ),
-                                      ),
-                                      SizedBox(height: 5.h),
-                                      // Using .h for responsive height
-                                      Text.rich(
-                                        TextSpan(
-                                          children: [
-                                            TextSpan(
-                                              text:
-                                              '\$${initialData!.data!.amount}',
-                                              style: TextTheme.of(
-                                                context,
-                                              ).bodyLarge!.copyWith(
-                                                color: AppColors.primary,
-                                                fontSize:
-                                                24.sp, // Making the price more prominent responsively
-                                              ),
-                                            ),
-                                            TextSpan(
-                                              text:
-                                              ' / ${initialData!.data!.type}',
-                                              style: TextTheme.of(
-                                                context,
-                                              ).bodyMedium!.copyWith(
-                                                color:
-                                                AppColors
-                                                    .subscriptionPriceSubColor,
-                                                fontWeight: FontWeight.w600,
-                                                fontSize:
-                                                14.sp, // Using .sp for responsive font size
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      SizedBox(height: 5.h),
-                                      // Using .h for responsive height
-                                      Text(
-                                        'Get all the benefits for just \$${initialData!.data!.amount} ${initialData!.data!.type}.',
-                                        textAlign: TextAlign.center,
-                                        style: TextTheme.of(
-                                          context,
-                                        ).bodyMedium!.copyWith(
-                                          color: AppColors.primary,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize:
-                                          12.sp, // Using .sp for responsive font size
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Gap(30),
-                      BlocBuilder<SubscriptionBloc, SubscriptionState>(
-                        builder: (context, state) {
-                          return InkWell(
-                            splashColor: AppColors.secondary,
-                            splashFactory: InkRipple.splashFactory,
-                            onTap: () {
-                              context.read<SubscriptionBloc>().add(
-                                StartSubscriptionEvent(
-                                  subscriptionStartRequest:
-                                  SubscriptionStartRequest(
-                                    cafeId: cafeId,
-                                    subscriptionTypeId:
-                                    subscriptionTypeId,
-                                    paymentMethod: paymentMethod,
-                                    amount: amount,
-                                    autoRenew: true,
-                                  ),
-                                ),
-                              );
-                            },
-                            child: ElevatedButtonWidget(
-                              height: 70.h,
-                              width: double.infinity,
-                              iconEnabled: false,
-                              iconLabel: "START FREE TRAIL",
-                              color: AppColors.primary,
-                              textColor: AppColors.primaryWhiteColor,
-                            ),
-                          );
-                        },
-                      )
-                          .animate()
-                          .fadeIn(duration: 450.ms)
-                          .slideY(begin: 0.2, delay: 600.ms),
-                    ],
-                  ),
-                ),
-              );
+              return _buildSubscriptionContent(context, initialData!);
             }
-            return SizedBox();
+            return const SizedBox(); // Fallback for unhandled states, EasyLoading may still be active
           },
         ),
       ),

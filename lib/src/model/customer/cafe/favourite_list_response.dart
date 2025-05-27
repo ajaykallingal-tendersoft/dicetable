@@ -1,58 +1,58 @@
 // To parse this JSON data, do
 //
-//     final cafeListResponse = cafeListResponseFromJson(jsonString);
+//     final favouriteListResponse = favouriteListResponseFromJson(jsonString);
 
 import 'dart:convert';
 
-CafeListResponse cafeListResponseFromJson(String str) => CafeListResponse.fromJson(json.decode(str));
+FavouriteListResponse favouriteListResponseFromJson(String str) => FavouriteListResponse.fromJson(json.decode(str));
 
-String cafeListResponseToJson(CafeListResponse data) => json.encode(data.toJson());
+String favouriteListResponseToJson(FavouriteListResponse data) => json.encode(data.toJson());
 
-class CafeListResponse {
+class FavouriteListResponse {
   final bool? status;
-  final List<Cafe>? cafes;
+  final List<FavCafe>? cafes;
   final String? message;
 
-  CafeListResponse({
+  FavouriteListResponse({
     this.status,
     this.cafes,
     this.message,
   });
 
-  CafeListResponse copyWith({
+  FavouriteListResponse copyWith({
     bool? status,
-    List<Cafe>? cafes,
+    List<FavCafe>? cafes,
     String? message,
   }) =>
-      CafeListResponse(
+      FavouriteListResponse(
         status: status ?? this.status,
         cafes: cafes ?? this.cafes,
         message: message ?? this.message,
       );
 
-  factory CafeListResponse.fromJson(Map<String, dynamic> json) => CafeListResponse(
+  factory FavouriteListResponse.fromJson(Map<String, dynamic> json) => FavouriteListResponse(
     status: json["status"],
-    cafes: json["cafes"] == null ? [] : List<Cafe>.from(json["cafes"]!.map((x) => Cafe.fromJson(x))),
+    cafes: json["data"] == null ? [] : List<FavCafe>.from(json["data"]!.map((x) => FavCafe.fromJson(x))),
     message: json["message"],
   );
 
   Map<String, dynamic> toJson() => {
     "status": status,
-    "cafes": cafes == null ? [] : List<dynamic>.from(cafes!.map((x) => x.toJson())),
+    "data": cafes == null ? [] : List<dynamic>.from(cafes!.map((x) => x.toJson())),
     "message": message,
   };
 }
 
-class Cafe {
+class FavCafe {
   final int? id;
   final String? name;
   final String? venueDescription;
   final List<String>? tableTypes;
   final String? photo;
   final bool? favourites;
-  final List<WorkingHour>? workingHours;
+  final List<FavWorkingHour>? workingHours;
 
-  Cafe({
+  FavCafe({
     this.id,
     this.name,
     this.venueDescription,
@@ -62,16 +62,16 @@ class Cafe {
     this.workingHours,
   });
 
-  Cafe copyWith({
+  FavCafe copyWith({
     int? id,
     String? name,
     String? venueDescription,
     List<String>? tableTypes,
     String? photo,
     bool? favourites,
-    List<WorkingHour>? workingHours,
+    List<FavWorkingHour>? workingHours,
   }) =>
-      Cafe(
+      FavCafe(
         id: id ?? this.id,
         name: name ?? this.name,
         venueDescription: venueDescription ?? this.venueDescription,
@@ -81,14 +81,14 @@ class Cafe {
         workingHours: workingHours ?? this.workingHours,
       );
 
-  factory Cafe.fromJson(Map<String, dynamic> json) => Cafe(
+  factory FavCafe.fromJson(Map<String, dynamic> json) => FavCafe(
     id: json["id"],
     name: json["name"],
     venueDescription: json["venue_description"],
     tableTypes: json["table_types"] == null ? [] : List<String>.from(json["table_types"]!.map((x) => x)),
     photo: json["photo"],
     favourites: json["favourites"],
-    workingHours: json["working_hours"] == null ? [] : List<WorkingHour>.from(json["working_hours"]!.map((x) => WorkingHour.fromJson(x))),
+    workingHours: json["working_hours"] == null ? [] : List<FavWorkingHour>.from(json["working_hours"]!.map((x) => FavWorkingHour.fromJson(x))),
   );
 
   Map<String, dynamic> toJson() => {
@@ -102,33 +102,33 @@ class Cafe {
   };
 }
 
-class WorkingHour {
+class FavWorkingHour {
   final String? day;
   final int? isOpen;
   final String? opening;
   final String? closing;
 
-  WorkingHour({
+  FavWorkingHour({
     this.day,
     this.isOpen,
     this.opening,
     this.closing,
   });
 
-  WorkingHour copyWith({
+  FavWorkingHour copyWith({
     String? day,
     int? isOpen,
     String? opening,
     String? closing,
   }) =>
-      WorkingHour(
+      FavWorkingHour(
         day: day ?? this.day,
         isOpen: isOpen ?? this.isOpen,
         opening: opening ?? this.opening,
         closing: closing ?? this.closing,
       );
 
-  factory WorkingHour.fromJson(Map<String, dynamic> json) => WorkingHour(
+  factory FavWorkingHour.fromJson(Map<String, dynamic> json) => FavWorkingHour(
     day: json["day"],
     isOpen: json["is_open"],
     opening: json["opening"],

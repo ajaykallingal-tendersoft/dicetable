@@ -21,6 +21,7 @@ import 'package:dicetable/src/ui/customer/cafe_details/cafe_details_screen.dart'
 import 'package:dicetable/src/ui/customer/cafe_list/cafe_list_screen.dart';
 import 'package:dicetable/src/ui/customer/cafe_list/components/cafe_details_arguments.dart';
 import 'package:dicetable/src/ui/customer/favourites/favourites_screen.dart';
+import 'package:dicetable/src/ui/customer/favourites/widget/fav_details_argument.dart';
 import 'package:dicetable/src/ui/customer/history/history_screen.dart';
 import 'package:dicetable/src/ui/customer/home/home_page.dart';
 import 'package:dicetable/src/ui/customer/home/home_screen.dart';
@@ -504,9 +505,23 @@ class AppRouter {
           GoRoute(
             path: 'cafe_details',
             pageBuilder: (BuildContext context, GoRouterState state) {
+              CafeDetailsArguments? cafeDetailsArgs;
+              FavDetailsArguments? favDetailsArgs;
+
+              if (state.extra is CafeDetailsArguments) {
+                cafeDetailsArgs = state.extra as CafeDetailsArguments;
+              } else if (state.extra is FavDetailsArguments) {
+                favDetailsArgs = state.extra as FavDetailsArguments;
+              } else {
+                throw Exception('Invalid argument type passed to cafe_details route. Expected CafeDetailsArguments or FavDetailsArguments.');
+              }
+
               return CustomTransitionPage<void>(
                 key: state.pageKey,
-                child:  CafeDetailsScreen(cafeDetailsArguments: state.extra as CafeDetailsArguments,),
+                child: CafeDetailsScreen(
+                  cafeDetailsArguments: cafeDetailsArgs,
+                  favDetailsArguments: favDetailsArgs,
+                ),
                 transitionDuration: const Duration(milliseconds: 300),
                 transitionsBuilder: (
                     BuildContext context,

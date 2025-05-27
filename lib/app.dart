@@ -1,8 +1,8 @@
-
 import 'package:dicetable/router.dart';
 import 'package:dicetable/src/constants/app_theme.dart';
 import 'package:dicetable/src/resources/api_providers/auth/auth_data_provider.dart';
 import 'package:dicetable/src/resources/api_providers/customer/booking_data_provider.dart';
+import 'package:dicetable/src/resources/api_providers/customer/cafe_data_provider.dart';
 import 'package:dicetable/src/resources/api_providers/customer/favourite_data_provider.dart';
 import 'package:dicetable/src/resources/api_providers/venue_owner/home_data_provider.dart';
 import 'package:dicetable/src/resources/api_providers/venue_owner/subscription_data_provider.dart';
@@ -12,10 +12,8 @@ import 'package:dicetable/src/ui/cafe_owner/home/bloc/home_bloc.dart';
 import 'package:dicetable/src/ui/cafe_owner/notification/notification_cubit.dart';
 import 'package:dicetable/src/ui/cafe_owner/profile/bloc/profile_bloc.dart';
 import 'package:dicetable/src/ui/cafe_owner/subscription/bloc/subscription_bloc.dart';
-import 'package:dicetable/src/ui/cafe_owner/subscription/subscription_prompt_screen.dart';
 import 'package:dicetable/src/ui/customer/cafe_details/bloc/cafe_details_bloc.dart';
 import 'package:dicetable/src/ui/customer/cafe_list/bloc/cafe_list_bloc.dart';
-import 'package:dicetable/src/ui/customer/favourites/bloc/favourite_bloc.dart';
 import 'package:dicetable/src/utils/network_connectivity/network_connectivity_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -41,11 +39,9 @@ class App extends StatelessWidget {
           create: (context) => ProfileBloc(),
         ),
         BlocProvider(create: (context) => GoogleSignInCubit()),
+
         BlocProvider(
-          create: (context) => FavouriteBloc(favouriteDataProvider: FavouriteDataProvider()),
-        ),
-        BlocProvider(
-          create: (context) => CafeListBloc(),
+          create: (context) => CafeListBloc(cafeDataProvider: CafeDataProvider()),
         ),
         BlocProvider(
           create: (context) => SubscriptionBloc(subscriptionDataProvider: SubscriptionDataProvider()),

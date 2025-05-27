@@ -1,15 +1,15 @@
-import 'package:dicetable/src/model/customer/cafe/cafe_list_response.dart';
+import 'package:dicetable/src/model/customer/cafe/favourite_list_response.dart';
 
-class CafeDetailsArguments {
+class FavDetailsArguments {
   final String from;
   final String id;
   final String name;
   final List<String> tableType;
   final String description;
   final String image;
-  final List<WorkingHour>? openingHours;
+  final List<FavWorkingHour>? openingHours;
 
-  const CafeDetailsArguments({
+  const FavDetailsArguments({
     required this.from,
     required this.id,
     required this.name,

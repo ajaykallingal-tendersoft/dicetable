@@ -35,6 +35,13 @@ class UrlsDiceApp {
   static const String getFavourite = '/api/favourites';
   static const String booking = '/api/booking';
   static const String cafeList = '/api/cafe-list';
+  static const String addFavourite = '/api/favourites/add';
+  static const String removeFavourite = '/api/favourites/remove';
+  static const String history = '/api/customer/activity-history';
+
+
+
+
 
 
 }

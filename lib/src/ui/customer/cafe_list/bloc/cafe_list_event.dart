@@ -1,9 +1,24 @@
 part of 'cafe_list_bloc.dart';
 
-@immutable
-sealed class CafeListEvent {}
-class ToggleFavoriteEvent extends CafeListEvent {
-  final int index;
+sealed class CafeListEvent extends Equatable {
+  const CafeListEvent();
+}
 
-  ToggleFavoriteEvent(this.index);
+class GetCafeListEvent extends CafeListEvent {
+  @override
+  List<Object> get props => [];
+}
+
+class GetFavListEvent extends CafeListEvent {
+  @override
+  List<Object> get props => [];
+}
+
+class ToggleFavoriteEvent extends CafeListEvent {
+  final int cafeIndex;
+
+  const ToggleFavoriteEvent(this.cafeIndex);
+
+  @override
+  List<Object?> get props => [cafeIndex];
 }
