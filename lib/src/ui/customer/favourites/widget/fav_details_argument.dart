@@ -8,6 +8,7 @@ class FavDetailsArguments {
   final String description;
   final String image;
   final List<FavWorkingHour>? openingHours;
+  final bool bookingStatus;
 
   const FavDetailsArguments({
     required this.from,
@@ -16,6 +17,7 @@ class FavDetailsArguments {
     required this.tableType,
     required this.description,
     required this.image,
-    required this.openingHours
+    required this.openingHours,
+    required this.bookingStatus,
   });
 }

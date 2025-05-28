@@ -168,7 +168,7 @@ class FavListCard extends StatelessWidget {
                                     "No description",
                                 image: cafes.photo ?? '',
                                 openingHours: cafes.workingHours,
-                                id: cafes.id.toString(),
+                                id: cafes.id.toString(), bookingStatus: cafes.bookingStatus ?? false,
                               ),
                             );
                           },

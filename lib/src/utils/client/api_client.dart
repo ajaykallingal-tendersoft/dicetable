@@ -5,20 +5,20 @@ import 'package:dicetable/src/model/cafe_owner/auth/forgot_password/password_res
 import 'package:dicetable/src/model/cafe_owner/auth/login/google_login_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/login/login_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/google_sign-up_request.dart';
-import 'package:dicetable/src/model/cafe_owner/auth/signUp/google_sign-up_response.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/sign_up_request.dart';
 import 'package:dicetable/src/model/cafe_owner/home/dice_table_update_request.dart';
 import 'package:dicetable/src/model/cafe_owner/subscription/subscription_start_request.dart';
 import 'package:dicetable/src/model/customer/booking/booking_request.dart';
 import 'package:dicetable/src/model/customer/cafe/add_favourite_request.dart';
+import 'package:dicetable/src/model/customer/cafe/cafe_search_request.dart';
 import 'package:dicetable/src/model/customer/cafe/remove_favourite_request.dart';
+import 'package:dicetable/src/model/customer/profile/customer_profile_update_request.dart';
 import 'package:dicetable/src/model/verification/otp_verify_request.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:dicetable/src/utils/urls/urls.dart';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 
-import '../../model/cafe_owner/home/dice_table_update_request.dart';
 
 class ApiClient {
   ApiClient() {
@@ -383,6 +383,53 @@ class ApiClient {
       }),
     );
   }
+  ///GetCustomerProfile
+  Future<Response> getCustomerProfile() {
+    final token = ObjectFactory().prefs.getCustomerAuthToken();
+    final userID = ObjectFactory().prefs.getUserId();
+    final url = '${UrlsDiceApp.getCustomerProfile}/$userID';
 
+    print("Bearer $token");
+    print("URL: $url");
+
+
+    return dioDiceApp.get(
+      url,
+      options: Options(headers: {
+        "Authorization": token,
+      }),
+    );
+  }
+  ///UpdateCustomerProfile
+  Future<Response> updateCustomerProfile(CustomerUpdateProfileRequest request) {
+    final token = ObjectFactory().prefs.getCustomerAuthToken();
+    final userID = ObjectFactory().prefs.getUserId();
+    final url = '${UrlsDiceApp.updateCustomerProfile}/$userID';
+
+    print("Bearer $token");
+    print("URL: $url");
+
+
+    return dioDiceApp.post(
+      url,
+      data: request,
+      options: Options(headers: {
+        "Authorization": token,
+      }),
+    );
+  }
+
+  ///CafeSearch
+  Future<Response> cafeSearch(CafeSearchRequest cafeSearchRequest) {
+    print(ObjectFactory().prefs.getCustomerAuthToken());
+    return dioDiceApp.post(
+      UrlsDiceApp.cafeSearch,
+      data: cafeSearchRequest,
+      options: Options(headers: {
+        "Authorization": ObjectFactory().prefs.getCustomerAuthToken(),
+      }),
+
+    );
+  }
 }
 

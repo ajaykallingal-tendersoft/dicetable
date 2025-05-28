@@ -1,8 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:dicetable/src/common/elevated_button_widget.dart';
 import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/constants/assets.dart';
-import 'package:dicetable/src/model/customer/cafe/cafe_list_response.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
@@ -16,6 +14,7 @@ class CafeDetailsCard extends StatelessWidget {
   final String description;
   final String image;
   final List<dynamic>? openingHours;
+  final bool bookingStatus;
 
   const CafeDetailsCard({
     super.key,
@@ -24,6 +23,7 @@ class CafeDetailsCard extends StatelessWidget {
     required this.description,
     required this.image,
     this.openingHours, required this.id,
+    required this.bookingStatus,
   });
 
   @override

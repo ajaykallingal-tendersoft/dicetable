@@ -50,6 +50,7 @@ class Cafe {
   final List<String>? tableTypes;
   final String? photo;
   final bool? favourites;
+  final bool? bookingStatus;
   final List<WorkingHour>? workingHours;
 
   Cafe({
@@ -59,6 +60,7 @@ class Cafe {
     this.tableTypes,
     this.photo,
     this.favourites,
+    this.bookingStatus,
     this.workingHours,
   });
 
@@ -69,6 +71,7 @@ class Cafe {
     List<String>? tableTypes,
     String? photo,
     bool? favourites,
+    bool? bookingStatus,
     List<WorkingHour>? workingHours,
   }) =>
       Cafe(
@@ -78,6 +81,7 @@ class Cafe {
         tableTypes: tableTypes ?? this.tableTypes,
         photo: photo ?? this.photo,
         favourites: favourites ?? this.favourites,
+        bookingStatus: bookingStatus ?? this.bookingStatus,
         workingHours: workingHours ?? this.workingHours,
       );
 
@@ -88,6 +92,7 @@ class Cafe {
     tableTypes: json["table_types"] == null ? [] : List<String>.from(json["table_types"]!.map((x) => x)),
     photo: json["photo"],
     favourites: json["favourites"],
+    bookingStatus: json["booking_status"],
     workingHours: json["working_hours"] == null ? [] : List<WorkingHour>.from(json["working_hours"]!.map((x) => WorkingHour.fromJson(x))),
   );
 
@@ -98,6 +103,7 @@ class Cafe {
     "table_types": tableTypes == null ? [] : List<dynamic>.from(tableTypes!.map((x) => x)),
     "photo": photo,
     "favourites": favourites,
+    "booking_status": bookingStatus,
     "working_hours": workingHours == null ? [] : List<dynamic>.from(workingHours!.map((x) => x.toJson())),
   };
 }

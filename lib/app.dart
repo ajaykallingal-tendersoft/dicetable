@@ -4,10 +4,12 @@ import 'package:dicetable/src/resources/api_providers/auth/auth_data_provider.da
 import 'package:dicetable/src/resources/api_providers/customer/booking_data_provider.dart';
 import 'package:dicetable/src/resources/api_providers/customer/cafe_data_provider.dart';
 import 'package:dicetable/src/resources/api_providers/customer/favourite_data_provider.dart';
+import 'package:dicetable/src/resources/api_providers/customer/profile_data_provider.dart';
 import 'package:dicetable/src/resources/api_providers/venue_owner/home_data_provider.dart';
 import 'package:dicetable/src/resources/api_providers/venue_owner/subscription_data_provider.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/login/cubit/google_sign_in_cubit.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/sign_up/bloc/sign_up/sign_up_bloc.dart';
+import 'package:dicetable/src/ui/customer/profile/bloc/customer_profile_bloc.dart';
 import 'package:dicetable/src/ui/cafe_owner/home/bloc/home_bloc.dart';
 import 'package:dicetable/src/ui/cafe_owner/notification/notification_cubit.dart';
 import 'package:dicetable/src/ui/cafe_owner/profile/bloc/profile_bloc.dart';
@@ -29,8 +31,7 @@ class App extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<NetworkConnectivityBloc>(
-          create: (BuildContext context) =>
-          NetworkConnectivityBloc()..add(NetworkObserve()),
+          create: (BuildContext context) => NetworkConnectivityBloc()..add(NetworkObserve()),
         ),
         BlocProvider<NotificationCubit>(
           create: (context) => NotificationCubit(),
@@ -55,6 +56,9 @@ class App extends StatelessWidget {
         BlocProvider(
           create: (context) => CafeDetailsBloc(bookingDataProvider: BookingDataProvider()),
         ),
+        BlocProvider(
+          create: (context) => CustomerProfileBloc(customerProfileDataProvider: CustomerProfileDataProvider()),
+        ),
       ],
       child: ScreenUtilInit(
         designSize: const Size(430, 932),
@@ -69,16 +73,13 @@ class App extends StatelessWidget {
             routeInformationParser: AppRouter.router.routeInformationParser,
             theme: AppTheme.lightTheme,
             builder: (context, widget) {
-              // Wrap with EasyLoading first
               widget = EasyLoading.init()(context, widget);
-              // Then wrap with ResponsiveBreakpoints
               widget = ResponsiveBreakpoints.builder(
-                child: widget!,
+                child: widget,
                 breakpoints: [
                   const Breakpoint(start: 0, end: 450, name: MOBILE),
                   const Breakpoint(start: 451, end: 800, name: TABLET),
                   const Breakpoint(start: 801, end: 1920, name: DESKTOP),
-                  const Breakpoint(start: 1921, end: double.infinity, name: '4K'),
                 ],
               );
               return widget;

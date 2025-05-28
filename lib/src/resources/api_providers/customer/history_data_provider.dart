@@ -4,7 +4,7 @@ import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:dio/dio.dart';
 
 class HistoryDataProvider {
-  Future<StateModel?> getFavourite() async {
+  Future<StateModel?> getHistory() async {
 
     try {
       final response = await ObjectFactory().apiClient.getHistory();

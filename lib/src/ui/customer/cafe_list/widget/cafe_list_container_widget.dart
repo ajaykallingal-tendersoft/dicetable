@@ -51,34 +51,38 @@ class CafeListCard extends StatelessWidget {
                     cafes.name! ?? "",
                     style: TextTheme.of(context).labelMedium!.copyWith(
                       color: AppColors.primary,
-                      fontWeight:  FontWeight.bold,
+                      fontWeight: FontWeight.bold,
                       fontSize: 16.sp,
                     ),
                   ),
                 ),
                 // Updated favorite button with loading state
                 IconButton(
-                  icon: isLoading
-                      ? SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        AppColors.primary,
-                      ),
-                    ),
-                  )
-                      : cafes.favourites!
-                      ? SvgPicture.asset(
-                    'assets/svg/favourite1-active.svg',
-                    fit: BoxFit.scaleDown,
-                  )
-                      : SvgPicture.asset(
-                    'assets/svg/favourite1.svg',
-                    fit: BoxFit.scaleDown,
-                  ),
-                  onPressed: isLoading ? null : onFavoriteToggle, // Disable when loading
+                  icon:
+                      isLoading
+                          ? SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                AppColors.primary,
+                              ),
+                            ),
+                          )
+                          : cafes.favourites!
+                          ? SvgPicture.asset(
+                            'assets/svg/favourite1-active.svg',
+                            fit: BoxFit.scaleDown,
+                          )
+                          : SvgPicture.asset(
+                            'assets/svg/favourite1.svg',
+                            fit: BoxFit.scaleDown,
+                          ),
+                  onPressed:
+                      isLoading
+                          ? null
+                          : onFavoriteToggle, // Disable when loading
                 ),
               ],
             ),
@@ -90,16 +94,22 @@ class CafeListCard extends StatelessWidget {
                   child: Hero(
                     tag: cafes.id!,
                     child: ClipRRect(
-                        borderRadius: BorderRadius.circular(15),
-                        child: CachedNetworkImage(
-                          imageUrl: cafes.photo ?? '',
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) =>  Center(
-                            child: Lottie.asset(Assets.JUMBING_DOT,height: 20,width: 20),
-                          ),
-                          errorWidget: (context, url, error) => SvgPicture.asset('assets/svg/cafe-list.svg')
-                        ),
-
+                      borderRadius: BorderRadius.circular(15),
+                      child: CachedNetworkImage(
+                        imageUrl: cafes.photo ?? '',
+                        fit: BoxFit.cover,
+                        placeholder:
+                            (context, url) => Center(
+                              child: Lottie.asset(
+                                Assets.JUMBING_DOT,
+                                height: 20,
+                                width: 20,
+                              ),
+                            ),
+                        errorWidget:
+                            (context, url, error) =>
+                                SvgPicture.asset('assets/svg/cafe-list.svg'),
+                      ),
                     ),
                   ),
                 ),
@@ -113,7 +123,9 @@ class CafeListCard extends StatelessWidget {
                     children: [
                       RichText(
                         text: TextSpan(
-                          style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodySmall!.copyWith(
                             fontSize: 10.sp,
                             color: AppColors.shadowColor,
                           ),
@@ -124,7 +136,9 @@ class CafeListCard extends StatelessWidget {
                             ),
                             TextSpan(
                               text: cafes.tableTypes?.join(', ') ?? '',
-                              style: const TextStyle(fontWeight: FontWeight.w600),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ],
                         ),
@@ -132,54 +146,53 @@ class CafeListCard extends StatelessWidget {
 
                       Gap(8),
                       Text(
-                          cafes.venueDescription ?? "",
-                          maxLines: 5,
-                          textAlign: TextAlign.left,
-                          // overflow: TextOverflow.visible,
-                          style: TextTheme.of(context).bodySmall!.copyWith(
-                            color: AppColors.shadowColor,
-                            fontWeight:  FontWeight.w600,
-                            fontSize: 10.sp,
-                          )
+                        cafes.venueDescription ?? "",
+                        maxLines: 5,
+                        textAlign: TextAlign.left,
+                        // overflow: TextOverflow.visible,
+                        style: TextTheme.of(context).bodySmall!.copyWith(
+                          color: AppColors.shadowColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 10.sp,
+                        ),
                       ),
                       Gap(10),
                       Align(
                         alignment: Alignment.bottomRight,
                         child: TextButton(
                           onPressed: () {
-                            context.push('/cafe_details',
+                            context.push(
+                              '/cafe_details',
                               extra: CafeDetailsArguments(
                                 from: "CafeList",
                                 name: cafes.name ?? "Unknown Cafe",
                                 tableType: cafes.tableTypes ?? [],
-                                description: cafes.venueDescription ??
-                                    "No description",
+                                description:
+                                    cafes.venueDescription ?? "No description",
                                 image: cafes.photo ?? '',
                                 openingHours: cafes.workingHours,
                                 id: cafes.id.toString(),
+                                bookingStatus: cafes.bookingStatus ?? false,
                               ),
                             );
                           },
                           child: Text(
-                              "VIEW MORE",
-                              style: TextTheme.of(context).bodySmall!.copyWith(
-                                color: AppColors.primary,
-                                fontWeight:  FontWeight.bold,
-                                fontSize: 11.sp,
-                                decoration: TextDecoration.underline,
-                                decorationColor: AppColors.primary,
-                              )
+                            "VIEW MORE",
+                            style: TextTheme.of(context).bodySmall!.copyWith(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11.sp,
+                              decoration: TextDecoration.underline,
+                              decorationColor: AppColors.primary,
+                            ),
                           ),
                         ),
                       ),
-
                     ],
                   ),
                 ),
               ],
             ),
-
-
           ],
         ),
       ),

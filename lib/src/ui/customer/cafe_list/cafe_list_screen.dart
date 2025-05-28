@@ -160,7 +160,7 @@ class _CafeListScreenState extends State<CafeListScreen> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(state.errorMessage),
-                            backgroundColor: Colors.red,
+                            backgroundColor: AppColors.appRedColor,
                           ),
                         );
                       }

@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:dicetable/src/model/customer/cafe/add_favourite_request.dart';
 import 'package:dicetable/src/model/customer/cafe/cafe_list_response.dart';
+import 'package:dicetable/src/model/customer/cafe/cafe_search_request.dart';
+import 'package:dicetable/src/model/customer/cafe/cafe_search_response.dart';
 import 'package:dicetable/src/model/customer/cafe/favourite_list_response.dart';
 import 'package:dicetable/src/model/customer/cafe/remove_favourite_request.dart';
 import 'package:dicetable/src/model/state_model.dart';
@@ -98,7 +100,6 @@ class CafeDataProvider {
     return null;
   }
 
-
   ///CafeList
   Future<StateModel?> getCafeList() async {
 
@@ -118,6 +119,37 @@ class CafeDataProvider {
         return StateModel.error(
             "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!");
       }
+    }
+    return null;
+  }
+
+  ///CafeSearch
+  Future<StateModel?> cafeSearch(CafeSearchRequest cafeSearchRequest) async {
+    try {
+      final response =
+      await ObjectFactory().apiClient.cafeSearch(cafeSearchRequest);
+      print(response.toString());
+      String jsonRequest = jsonEncode(cafeSearchRequest);
+      print("Request Payload:");
+      print(jsonRequest);
+      if (response.statusCode == 200) {
+        return StateModel<CafeSearchResponse>.success(
+            CafeSearchResponse.fromJson(response.data));
+      }
+      return null;
+    } on DioException catch (e) {
+
+      if (e.response!.statusCode == 500) {
+        return StateModel.error(
+            "The server isn't responding! Please try again later.");
+      } else if (e.response!.statusCode == 408) {
+        return StateModel.error(
+            "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!");
+      } else if (e.type.name == "connectionError") {
+        return StateModel.error(
+            "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!");
+      }
+
     }
     return null;
   }

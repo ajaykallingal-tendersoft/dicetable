@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dicetable/src/common/elevated_button_widget.dart';
 import 'package:dicetable/src/constants/app_colors.dart';
+import 'package:dicetable/src/model/customer/booking/withdraw_booking_request.dart';
 import 'package:dicetable/src/model/customer/cafe/cafe_list_response.dart';
 import 'package:dicetable/src/model/customer/cafe/favourite_list_response.dart';
 import 'package:dicetable/src/ui/customer/cafe_details/widget/cafe_details_card.dart';
@@ -42,6 +43,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
   late final List<dynamic> _openingHours;
   late final String _id;
   late final bool _isFromFavorites;
+  late final bool _bookingStatus;
 
   @override
   void initState() {
@@ -56,18 +58,24 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
       _tableType = widget.cafeDetailsArguments!.tableType;
       _description = widget.cafeDetailsArguments!.description;
       _image = widget.cafeDetailsArguments!.image;
-      _openingHours = widget.cafeDetailsArguments!.openingHours as List<WorkingHour>;
+      _openingHours =
+          widget.cafeDetailsArguments!.openingHours as List<WorkingHour>;
       _id = widget.cafeDetailsArguments!.id;
+      _bookingStatus = widget.cafeDetailsArguments!.bookingStatus;
     } else if (widget.favDetailsArguments != null) {
       _isFromFavorites = true;
       _name = widget.favDetailsArguments!.name;
       _tableType = widget.favDetailsArguments!.tableType;
       _description = widget.favDetailsArguments!.description;
       _image = widget.favDetailsArguments!.image;
-      _openingHours = widget.favDetailsArguments!.openingHours as List<FavWorkingHour>;
+      _openingHours =
+          widget.favDetailsArguments!.openingHours as List<FavWorkingHour>;
       _id = widget.favDetailsArguments!.id;
+      _bookingStatus = widget.favDetailsArguments!.bookingStatus;
     } else {
-      throw Exception('Both cafeDetailsArguments and favDetailsArguments cannot be null');
+      throw Exception(
+        'Both cafeDetailsArguments and favDetailsArguments cannot be null',
+      );
     }
   }
 
@@ -89,8 +97,6 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
               duration: Duration(seconds: 3),
             ),
           );
-
-
         } else if (state is CafeBookingError) {
           EasyLoading.dismiss();
           if (_isLoadingDialogShown) {
@@ -128,7 +134,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
             Padding(
               padding: const EdgeInsets.only(right: 15),
               child: SvgPicture.asset('assets/svg/notify.svg'),
-            )
+            ),
           ],
         ),
         body: Container(
@@ -158,6 +164,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                     image: _image,
                     openingHours: _openingHours,
                     id: _id,
+                    bookingStatus: _bookingStatus,
                   ),
                   const Gap(40),
                   InkWell(
@@ -166,7 +173,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                       height: 70.h,
                       width: double.infinity,
                       iconEnabled: false,
-                      iconLabel: 'SHOW INTEREST',
+                      iconLabel:  _bookingStatus ? "Withdraw interest" : "SHOW INTEREST",
                       color: AppColors.primary,
                       textColor: AppColors.primaryWhiteColor,
                     ),
@@ -245,12 +252,13 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                       ),
                     ),
                     hint: const Text('Select table type'),
-                    items: _tableType.map((tableType) {
-                      return DropdownMenuItem<String>(
-                        value: tableType,
-                        child: Text(tableType),
-                      );
-                    }).toList(),
+                    items:
+                        _tableType.map((tableType) {
+                          return DropdownMenuItem<String>(
+                            value: tableType,
+                            child: Text(tableType),
+                          );
+                        }).toList(),
                     onChanged: (String? newValue) {
                       setState(() {
                         selectedDiceTableType = newValue;
@@ -310,11 +318,11 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
   }
 
   bool _validateBookingInputs(
-      String checkIn,
-      String checkOut,
-      String? tableType,
-      BuildContext dialogContext,
-      ) {
+    String checkIn,
+    String checkOut,
+    String? tableType,
+    BuildContext dialogContext,
+  ) {
     List<String> errors = [];
 
     if (checkIn.isEmpty) {
@@ -359,8 +367,10 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
     return true;
   }
 
-  Future<void> _selectTime(BuildContext context,
-      TextEditingController controller) async {
+  Future<void> _selectTime(
+    BuildContext context,
+    TextEditingController controller,
+  ) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
@@ -369,9 +379,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
           data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
           child: Theme(
             data: Theme.of(context).copyWith(
-              colorScheme: ColorScheme.light(
-                primary: AppColors.primary,
-              ),
+              colorScheme: ColorScheme.light(primary: AppColors.primary),
             ),
             child: child!,
           ),
@@ -380,8 +388,39 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
     );
 
     if (picked != null) {
-      final String formattedTime = '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+      final String formattedTime =
+          '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
       controller.text = formattedTime;
+    }
+  }
+
+  Future<void> _withdrawBooking({
+    required BuildContext context,
+    required String checkInTime,
+    required String checkOutTime,
+    required String diceTableType,
+  }) async {
+    try {
+      final bookingRequest = WithdrawBookingRequest(
+        cafeId: _id,
+      );
+
+      if (mounted) {
+        // context.read<CafeDetailsBloc>().add(
+        //   BookingRequestEvent(bookingRequest: bookingRequest),
+        // );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error creating booking request: ${e.toString()}'),
+            backgroundColor:AppColors.appRedColor,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+        print('Booking error: $e');
+      }
     }
   }
 
@@ -402,7 +441,10 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
         userName: _getCurrentUserName(),
         userEmail: _getCurrentUserEmail(),
         deviceId: await _getDeviceId(),
-        additionalInfo: _isFromFavorites ? 'Booked from favorites' : 'Booked from cafe list',
+        additionalInfo:
+            _isFromFavorites
+                ? 'Booked from favorites'
+                : 'Booked from cafe list',
       );
 
       if (mounted) {
@@ -415,7 +457,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error creating booking request: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor:AppColors.appRedColor,
             duration: const Duration(seconds: 3),
           ),
         );
@@ -492,4 +534,3 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
     }
   }
 }
-

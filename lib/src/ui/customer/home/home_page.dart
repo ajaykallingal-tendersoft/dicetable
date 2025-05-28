@@ -52,11 +52,6 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
         child: CustomScrollView(
           physics: const NeverScrollableScrollPhysics(),
           slivers: [
-            CupertinoSliverRefreshControl(
-              onRefresh: () async {
-                // context.read<CardCubit>().fetchCards();
-              },
-            ),
 
             SliverPadding(
               padding:  EdgeInsets.symmetric(horizontal: 20.h, vertical: 20.h),

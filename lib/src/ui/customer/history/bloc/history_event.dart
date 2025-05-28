@@ -1,6 +1,11 @@
 part of 'history_bloc.dart';
 
-@immutable
-sealed class HistoryEvent {}
+sealed class HistoryEvent extends Equatable {
+  const HistoryEvent();
+}
 
-class LoadHistoryEvent extends HistoryEvent {}
+class GetHistoryListEvent extends HistoryEvent {
+  @override
+  List<Object?> get props => [];
+
+}
