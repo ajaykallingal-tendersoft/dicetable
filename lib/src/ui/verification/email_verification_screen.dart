@@ -59,7 +59,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
           backgroundColor: AppColors.primary,
           leading: SizedBox(),
           title: Text(
-            'Dice app',
+            'Verification',
             style: TextTheme.of(context).labelLarge,
             textAlign: TextAlign.left,
           ),

@@ -29,7 +29,7 @@
 		<key>UIMainStoryboardFile</key>
 		<string>Main</string>
 		<key>NSLocationWhenInUseUsageDescription</key>
-        <string>We need your location while updating your profile to list the venues based on your location.</string>
+		<string>We need your location while updating your profile to list the venues based on your location.</string>
 		<!-- Camera access -->
 		<key>NSCameraUsageDescription</key>
 		<string>Dicetable needs access to your camera to allow photo uploads and profile pictures.</string>

@@ -263,7 +263,12 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                               ObjectFactory().prefs.setIsCustomerLoggedIn(false);
                               ObjectFactory().prefs.setAuthToken(token: "");
                               ObjectFactory().prefs.setCustomerUserName(customerUserName: "");
-                              context.go('/customer_login');
+                              if(ObjectFactory().prefs.getRememberDecision() == true) {
+                                context.go('/customer_login');
+                              }else {
+                                context.go('/category');
+                              }
+
                             },
                             child: ElevatedButtonWidget(
                               height: 50.h,

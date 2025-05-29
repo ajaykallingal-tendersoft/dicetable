@@ -292,7 +292,11 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                             );
                             ObjectFactory().prefs.setCafeId(cafeId: '');
                             ObjectFactory().prefs.getNavigationSource();
-                            context.go('/login');
+                           if(ObjectFactory().prefs.getRememberDecision() == true) {
+                             context.go('/login');
+                           }else {
+                             context.go('/category');
+                           }
                           },
                           child: ElevatedButtonWidget(
                             height: 70.h,
@@ -515,20 +519,21 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
               ),
             ),
             ElevatedButton.icon(
-              onPressed: () async {
-                final profileState = context.read<ProfileBloc>().state;
-                final dynamic result = await context.push(
-                  // Capture the result
-                  '/edit_profile',
-                  extra: profileState,
-                );
-                setState(() {
-                  if (result is String) {
-                    _imageFile = File(result);
-                  }
-                });
-                _initializeControllers();
-              },
+              onPressed: () {},
+              // async {
+              //   final profileState = context.read<ProfileBloc>().state;
+              //   final dynamic result = await context.push(
+              //     // Capture the result
+              //     '/edit_profile',
+              //     extra: profileState,
+              //   );
+              //   setState(() {
+              //     if (result is String) {
+              //       _imageFile = File(result);
+              //     }
+              //   });
+              //   _initializeControllers();
+              // },
               icon: SvgPicture.asset('assets/svg/edit-btn.svg'),
               label: Text(
                 "EDIT",

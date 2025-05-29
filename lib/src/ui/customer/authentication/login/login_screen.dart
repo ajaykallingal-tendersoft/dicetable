@@ -128,6 +128,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                 EasyLoading.dismiss();
               }
               if (state is CustomerLoginFailureState) {
+                EasyLoading.dismiss();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(state.message),
@@ -138,6 +139,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
 
               if (state is CustomerLoginSuccessState) {
                 if(state.loginRequestResponse.status == true) {
+                  EasyLoading.dismiss();
                   if(state.loginRequestResponse.token!.isNotEmpty && state.loginRequestResponse.user!.isEmailVerified == 1) {
                     ObjectFactory().prefs.setIsCustomerLoggedIn(true);
                     ObjectFactory().prefs.setCustomerAuthToken(token: state.loginRequestResponse.token);
@@ -149,6 +151,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                     context.go('/customer_home');
                   }
                 }else if(state.loginRequestResponse.status == false){
+                  EasyLoading.dismiss();
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(state.loginRequestResponse.message!),
@@ -166,6 +169,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                 }
               }
               if (state is CustomerLoginFailureState) {
+                EasyLoading.dismiss();
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(state.message),
@@ -175,12 +179,12 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
               }
               if (state is GoogleLoginLoaded) {
                 final response = state.googleLoginResponse;
-
+                EasyLoading.dismiss();
                 if (response.status == true && response.token != null) {
                   ObjectFactory().prefs.setIsCustomerLoggedIn(true);
                   ObjectFactory().prefs.setIsGoogle(true);
                   ObjectFactory().prefs.setCustomerAuthToken(token: state.googleLoginResponse.token);
-                  ObjectFactory().prefs.setUserId(userId: state.googleLoginResponse.cafeId);
+                  ObjectFactory().prefs.setUserId(userId: state.googleLoginResponse.user!.id.toString());
                   ObjectFactory().prefs.setCustomerUserName(customerUserName: state.googleLoginResponse.user!.name);
                   context.go('/customer_home');
                   Fluttertoast.showToast(
@@ -192,6 +196,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
 
               }
               if (state is GoogleLoginErrorState) {
+                EasyLoading.dismiss();
                 print('GoogleLoginErrorState reached');
                 Fluttertoast.showToast(
                   msg: state.msg,
@@ -414,7 +419,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                                                 splashColor: AppColors.secondary,
                                                 splashFactory: InkRipple.splashFactory,
                                                 onTap: () {
-                                                  context.push('/forgot_password');
+                                                  context.push('/forgot_password',extra: "customer");
                                                 },
                                                 child: Align(
                                                   alignment: Alignment.centerRight,
@@ -516,7 +521,8 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
 
                                               // Skip sign in with pulse animation
                                               TextButton(
-                                                onPressed: () => context.go('/customer_home'),
+                                                onPressed: () {},
+                                                // => context.go('/customer_home'),
                                                 child: Text(
                                                   'SKIP SIGN IN',
                                                   style: Theme.of(

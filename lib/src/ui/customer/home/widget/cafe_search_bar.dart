@@ -3,8 +3,11 @@
 import 'dart:async';
 
 import 'package:dicetable/src/constants/app_colors.dart';
+import 'package:dicetable/src/model/customer/cafe/cafe_search_request.dart';
+import 'package:dicetable/src/ui/customer/home/bloc/customer_home_bloc.dart';
 import 'package:dicetable/src/ui/customer/home/widget/filter_bottom_sheet.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:go_router/go_router.dart';
@@ -32,8 +35,21 @@ class _CafeSearchBarState extends State<CafeSearchBar> {
   void _onSearchChanged(String query) {
     if (_debounce?.isActive ?? false) _debounce!.cancel();
     _debounce = Timer(const Duration(milliseconds: 400), () {
-      widget.onSearch(query.trim());
+      _performSearch(query.trim());
     });
+  }
+
+
+  void _performSearch(String searchQuery) {
+    final searchRequest = CafeSearchRequest(
+      search: searchQuery,
+      openTime: '',
+      closeTime: '',
+      diceTableFilter: [],
+      accommodationsFilter: [],
+    );
+
+    context.read<CustomerHomeBloc>().add(SearchCafesEvent(searchRequest));
   }
 
 

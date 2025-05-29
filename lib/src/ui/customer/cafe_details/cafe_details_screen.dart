@@ -173,7 +173,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                       height: 70.h,
                       width: double.infinity,
                       iconEnabled: false,
-                      iconLabel:  _bookingStatus ? "Withdraw interest" : "SHOW INTEREST",
+                      iconLabel:  "SHOW INTEREST",
                       color: AppColors.primary,
                       textColor: AppColors.primaryWhiteColor,
                     ),

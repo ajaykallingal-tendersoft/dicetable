@@ -24,7 +24,7 @@ class CategoryScreen extends StatefulWidget {
 }
 
 class _CategoryScreenState extends State<CategoryScreen> {
-  bool rememberDecision = false;
+  bool rememberDecision = true;
   DateTime? currentBackPressTime;
 
   Future<bool> onWillPop() {

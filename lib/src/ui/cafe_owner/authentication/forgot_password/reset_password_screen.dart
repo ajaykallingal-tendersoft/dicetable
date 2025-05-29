@@ -5,6 +5,7 @@ import 'package:dicetable/src/model/cafe_owner/auth/forgot_password/password_res
 import 'package:dicetable/src/resources/api_providers/auth/auth_data_provider.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/forgot_password/bloc/passowrdReset/password_reset_bloc.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/forgot_password/reset_arguments.dart';
+import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -109,7 +110,11 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                                 backgroundColor: AppColors.appGreenColor,
                               ),
                             );
-                            context.go('/login');
+                           if(ObjectFactory().prefs.getUserDecisionName() == "PUBLIC_USER") {
+                             context.go('/customer_login');
+                           }else {
+                             context.go('/login');
+                           }
                           }
                         }
                       },

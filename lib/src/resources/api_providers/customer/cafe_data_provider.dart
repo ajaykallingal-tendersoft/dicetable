@@ -25,6 +25,7 @@ class CafeDataProvider {
         return StateModel<FavouriteListResponse>.success(
             FavouriteListResponse.fromJson(response.data));
       } else {
+
         return null;
       }    }  on DioException catch (e) {
       if (e.response != null && e.response!.statusCode == 500) {
@@ -133,8 +134,8 @@ class CafeDataProvider {
       print("Request Payload:");
       print(jsonRequest);
       if (response.statusCode == 200) {
-        return StateModel<CafeSearchResponse>.success(
-            CafeSearchResponse.fromJson(response.data));
+        return StateModel<SearchRequestResponse>.success(
+            SearchRequestResponse.fromJson(response.data));
       }
       return null;
     } on DioException catch (e) {

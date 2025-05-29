@@ -160,6 +160,7 @@ class _LoginScreenState extends State<LoginScreen> {
                    context.go('/home');
                  }
                } else if(state.loginRequestResponse.status == false) {
+                 EasyLoading.dismiss();
                  ScaffoldMessenger.of(context).showSnackBar(
                    SnackBar(
                      content: Text(state.loginRequestResponse.message!),
@@ -183,8 +184,8 @@ class _LoginScreenState extends State<LoginScreen> {
               }
 
               if (state is GoogleLoginLoaded) {
+                EasyLoading.dismiss();
                 final response = state.googleLoginResponse;
-
                 if (response.status == true && response.token != null) {
                   ObjectFactory().prefs.setIsLoggedIn(true);
                   ObjectFactory().prefs.setIsGoogle(true);
@@ -193,6 +194,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ObjectFactory().prefs.setCafeUserName(cafeUserName: state.googleLoginResponse.user!.name);
                   context.go('/home');
                 } else {
+                  EasyLoading.dismiss();
                   print("Message: ${response.message}");
                   Fluttertoast.showToast(
                     msg: response.message ?? "Google login failed",
@@ -232,6 +234,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 }
               }
               if (state is GoogleLoginErrorState) {
+                EasyLoading.dismiss();
                 print('GoogleLoginErrorState reached');
                 Fluttertoast.showToast(
                   msg: state.msg,
@@ -266,6 +269,7 @@ class _LoginScreenState extends State<LoginScreen> {
               // Error handling
               if (state is LoginFailureState ||
                   state is GoogleLoginErrorState) {
+                EasyLoading.dismiss();
                 final errorMessage =
                     state is LoginFailureState
                         ? state.message
@@ -475,7 +479,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                     InkRipple.splashFactory,
                                                 onTap: () {
                                                   context.push(
-                                                    '/forgot_password',
+                                                    '/forgot_password',extra: "cafe-owner"
                                                   );
                                                 },
                                                 child: Align(
@@ -532,36 +536,17 @@ class _LoginScreenState extends State<LoginScreen> {
                                                                     FormSubmitted(),
                                                                   );
                                                             },
-                                                    child: Stack(
-                                                      alignment:
-                                                          Alignment.center,
-                                                      children: [
-                                                        ElevatedButtonWidget(
-                                                          height: 70.h,
-                                                          width:
-                                                              double.infinity,
-                                                          iconEnabled: false,
-                                                          iconLabel:
-                                                              isLoading
-                                                                  ? ""
-                                                                  : "LOGIN",
-                                                          color:
-                                                              AppColors.primary,
-                                                          textColor:
-                                                              AppColors
-                                                                  .primaryWhiteColor,
-                                                        ),
-                                                        if (isLoading)
-                                                          CircularProgressIndicator(
-                                                            valueColor:
-                                                                AlwaysStoppedAnimation<
-                                                                  Color
-                                                                >(
-                                                                  AppColors
-                                                                      .primaryWhiteColor,
-                                                                ),
-                                                          ),
-                                                      ],
+                                                    child: ElevatedButtonWidget(
+                                                      height: 70.h,
+                                                      width:
+                                                      double.infinity,
+                                                      iconEnabled: false,
+                                                      iconLabel: "LOGIN",
+                                                      color:
+                                                      AppColors.primary,
+                                                      textColor:
+                                                      AppColors
+                                                          .primaryWhiteColor,
                                                     ),
                                                   )
                                                   .animate()

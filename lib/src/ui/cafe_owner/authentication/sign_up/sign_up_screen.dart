@@ -292,7 +292,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           const Gap(10),
                           for (final day in [
                             'Mon',
-                            'Tues',
+                            'Tue',
                             'Wed',
                             'Thu',
                             'Fri',
