@@ -1,4 +1,5 @@
 import 'package:dicetable/src/constants/app_colors.dart';
+import 'package:dicetable/src/model/customer/cafe/cafe_search_request.dart';
 import 'package:dicetable/src/ui/customer/home/widget/cafe_marker_map_widget.dart';
 import 'package:dicetable/src/ui/customer/home/widget/cafe_search_bar.dart';
 import 'package:dicetable/src/ui/customer/home/widget/filter_bottom_sheet.dart';
@@ -20,7 +21,22 @@ class CustomerHomePage extends StatefulWidget {
 
 class _CustomerHomePageState extends State<CustomerHomePage> {
 
+@override
+  void initState() {
+    super.initState();
+    _performSearch();
+  }
+void _performSearch() {
+  final searchRequest = CafeSearchRequest(
+    search: "",
+    openTime: '',
+    closeTime: '',
+    diceTableFilter: [],
+    accommodationsFilter: [],
+  );
 
+  context.read<CustomerHomeBloc>().add(SearchCafesEvent(searchRequest));
+}
   void showFilterBottomSheet(BuildContext context) {
     showModalBottomSheet(
       constraints: BoxConstraints(
@@ -92,6 +108,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                                 fontSize: 30.sp,
                               ),
                             ),
+
                             InkWell(
                               onTap: () {
                                 GoRouter.of(context).push('/notification');
