@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/model/customer/cafe/cafe_list_response.dart';
-import 'package:dicetable/src/ui/customer/cafe_list/cafe_model.dart';
 import 'package:dicetable/src/ui/customer/cafe_list/components/cafe_details_arguments.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -123,21 +122,26 @@ class CafeListCard extends StatelessWidget {
                     children: [
                       RichText(
                         text: TextSpan(
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodySmall!.copyWith(
-                            fontSize: 10.sp,
-                            color: AppColors.shadowColor,
-                          ),
                           children: [
-                            const TextSpan(
+                             TextSpan(
                               text: 'Table Type:\n',
-                              style: TextStyle(fontWeight: FontWeight.w400),
+                              style: TextTheme.of(context).bodySmall!.copyWith(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 10.sp,
+                              ),
+                            ),
+                            WidgetSpan(
+                              child: SizedBox(height: 15), // vertical spacing
                             ),
                             TextSpan(
-                              text: cafes.tableTypes?.join(', ') ?? '',
-                              style: const TextStyle(
+                              text: cafes.tableTypes != null && cafes.tableTypes!.isNotEmpty
+                                  ? cafes.tableTypes!.join(', ')
+                                  : 'No table types available',
+                              style: TextTheme.of(context).bodySmall!.copyWith(
+                                color: AppColors.textPrimary,
                                 fontWeight: FontWeight.w600,
+                                fontSize: 12.sp,
                               ),
                             ),
                           ],
@@ -151,9 +155,9 @@ class CafeListCard extends StatelessWidget {
                         textAlign: TextAlign.left,
                         // overflow: TextOverflow.visible,
                         style: TextTheme.of(context).bodySmall!.copyWith(
-                          color: AppColors.shadowColor,
+                          color: AppColors.textPrimary,
                           fontWeight: FontWeight.w600,
-                          fontSize: 10.sp,
+                          fontSize: 11.sp,
                         ),
                       ),
                       Gap(10),
@@ -178,7 +182,7 @@ class CafeListCard extends StatelessWidget {
                           },
                           child: Text(
                             "VIEW MORE",
-                            style: TextTheme.of(context).bodySmall!.copyWith(
+                            style: TextTheme.of(context).bodyLarge!.copyWith(
                               color: AppColors.primary,
                               fontWeight: FontWeight.bold,
                               fontSize: 11.sp,

@@ -1,9 +1,13 @@
-import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
-
 import 'package:bloc/bloc.dart';
-import 'package:dicetable/src/utils/client/api_client.dart';
-import 'package:dicetable/src/utils/data/object_factory.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:dicetable/src/model/cafe_owner/profile/profile_view_response.dart';
+import 'package:dicetable/src/model/cafe_owner/profile/profile_edit_view_response.dart';
+import 'package:dicetable/src/model/cafe_owner/profile/profile_update_request.dart';
+import 'package:dicetable/src/model/cafe_owner/profile/profile_update_response.dart';
+import 'package:dicetable/src/model/state_model.dart';
+import 'package:dicetable/src/resources/api_providers/venue_owner/profile_data_provider.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -13,318 +17,285 @@ part 'profile_event.dart';
 part 'profile_state.dart';
 
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
+  final ProfileDataProvider profileDataProvider;
   final ImagePicker _picker = ImagePicker();
-  XFile? _image;
+  String base64Encoded = '';
 
-  ProfileBloc() : super(ProfileState()) {
+  ProfileBloc({required this.profileDataProvider}) : super(const ProfileState()) {
     on<UpdateTextField>((event, emit) {
       emit(event.update(state));
     });
 
-    on<FetchCafeProfile>(_onFetchCafeProfile);
-
-    on<FetchEditCafeProfile>(_onFetchCafeEditProfile);
+    // on<UpdateCity>((event, emit) { // Added
+    //   emit(state.copyWith(city: event.city));
+    // });
 
     on<ToggleVenueType>((event, emit) {
-      if (state.cafeProfile == null) return;
-
-      // Update venueTypes list with toggled selected value
-      final updatedVenueTypes =
-          state.cafeProfile!.venueTypes.map((venue) {
-            if (venue.title == event.venueType) {
-              return venue.copyWith(selected: event.isSelected);
-            }
-            return venue;
-          }).toList();
-
-      // Create a new CafeProfile with updated venueTypes list
-      final updatedCafeProfile = state.cafeProfile!.copyWith(
-        venueTypes: updatedVenueTypes,
-      );
-
-      // Emit a new ProfileState with updated cafeProfile
-      emit(state.copyWith(cafeProfile: updatedCafeProfile));
+      final currentIds = List<int>.from(state.selectedVenueTypeIds);
+      if (event.isSelected) {
+        if (!currentIds.contains(event.venueTypeId)) {
+          currentIds.add(event.venueTypeId);
+        }
+      } else {
+        currentIds.remove(event.venueTypeId);
+      }
+      emit(state.copyWith(selectedVenueTypeIds: currentIds));
     });
 
     on<UpdateOpeningHour>((event, emit) {
-      final updatedMap = Map<String, ProfileOpeningHour>.from(
-        state.openingHours,
-      );
-
-      updatedMap[event.day] = event.hour;
-      print("Updated Map: ${event.day}");
-      for (var hour in state.cafeProfile!.openingHours) {
-        if (hour.day == event.day) {
-          hour.isOpen = event.hour.isEnabled;
-          print("Updated Map: ${hour}");
-        }
-      }
-      emit(state.copyWith(openingHours: updatedMap));
+      final updatedHours = Map<String, ProfileOpeningHour>.from(state.openingHours)
+        ..[event.day] = event.hour;
+      emit(state.copyWith(openingHours: updatedHours));
     });
 
-    on<SubmitProfile>(_onSubmitEditProfile);
-
+    // on<PickImageFromGalleryEvent>((event, emit) async {
+    //   emit(ProfileImageLoadingState.fromState(state));
+    //
+    //   final permissionStatus = await Permission.photos.request();
+    //
+    //   if (permissionStatus.isDenied || permissionStatus.isPermanentlyDenied) {
+    //     emit(ProfileImagePermissionDeniedState.fromState(
+    //       state,
+    //       isPermanentlyDenied: permissionStatus.isPermanentlyDenied,
+    //       errorMessage: permissionStatus.isPermanentlyDenied
+    //           ? "Photo permission is permanently denied. Please enable it from settings to upload images."
+    //           : "Photo permission is required to upload images.",
+    //     ));
+    //     return;
+    //   }
+    //
+    //   try {
+    //     final pickedImage = await _picker.pickImage(source: ImageSource.gallery);
+    //     if (pickedImage == null) {
+    //       emit(ProfileImageErrorState.fromState(state));
+    //       return;
+    //     }
+    //
+    //     final file = File(pickedImage.path);
+    //     final fileSize = file.lengthSync();
+    //     final fileName = pickedImage.name.toLowerCase();
+    //
+    //     final isValidFormat = fileName.endsWith('.png') ||
+    //         fileName.endsWith('.jpg') ||
+    //         fileName.endsWith('.jpeg');
+    //
+    //     if (!isValidFormat) {
+    //       emit(ProfileImageErrorState.fromState(state, errorMessage: "Only JPEG or PNG images are allowed."));
+    //       return;
+    //     }
+    //
+    //     if (fileSize > 5 * 1024 * 1024) {
+    //       emit(ProfileImageErrorState.fromState(state, errorMessage: "Image size must be under 5MB."));
+    //       return;
+    //     }
+    //
+    //     final bytes = await file.readAsBytes();
+    //     final base64Image = base64Encode(bytes);
+    //     base64Encoded = "data:image/png;base64,$base64Image";
+    //     emit(ProfileImageLoadedState.fromState(
+    //       state,
+    //       image: pickedImage,
+    //       blob: base64Encoded,
+    //       originalName: pickedImage.name,
+    //     ));
+    //   } catch (e) {
+    //     emit(ProfileImageErrorState.fromState(state, errorMessage: "Failed to pick image: $e"));
+    //   }
+    // });
     on<PickImageFromGalleryEvent>((event, emit) async {
-      emit(ProfileImageLoadingState());
+      emit(ProfileImageLoadingState.fromState(state));
 
-      final permissionStatus = await Permission.photos.request();
-      if (permissionStatus.isDenied) {
-        emit(ProfileImageErrorState(errorMessage: "Photo permission denied."));
+      // Android 13+ (SDK 33) requires Permission.photos, below requires Permission.storage
+      Future<bool> isAndroid13OrHigher() async {
+        if (!Platform.isAndroid) return false;
+
+        final deviceInfoPlugin = DeviceInfoPlugin();
+        final androidInfo = await deviceInfoPlugin.androidInfo;
+
+        return androidInfo.version.sdkInt >= 33;
+      }
+
+      PermissionStatus permissionStatus;
+
+      if (Platform.isAndroid) {
+        final is13OrHigher = await isAndroid13OrHigher();
+        if (is13OrHigher) {
+          permissionStatus = await Permission.photos.request();
+        } else {
+          permissionStatus = await Permission.storage.request();
+        }
+      } else {
+        // iOS and others
+        permissionStatus = await Permission.photos.request();
+      }
+
+      if (permissionStatus.isDenied || permissionStatus.isPermanentlyDenied) {
+        emit(ProfileImagePermissionDeniedState.fromState(
+          state,
+          isPermanentlyDenied: permissionStatus.isPermanentlyDenied,
+          errorMessage: permissionStatus.isPermanentlyDenied
+              ? "Photo permission is permanently denied. Please enable it from settings to upload images."
+              : "Photo permission is required to upload images.",
+        ));
         return;
       }
 
       try {
-        final pickedImage = await _picker.pickImage(
-          source: ImageSource.gallery,
-        );
-
+        final pickedImage = await _picker.pickImage(source: ImageSource.gallery);
         if (pickedImage == null) {
-          emit(ProfileImageErrorState(errorMessage: "No image selected."));
+          emit(ProfileImageErrorState.fromState(state));
           return;
         }
 
         final file = File(pickedImage.path);
         final fileSize = file.lengthSync();
-        final ext = pickedImage.name.toLowerCase();
+        final fileName = pickedImage.name.toLowerCase();
 
-        // Check format and size
-        if (!(ext.endsWith('.png') || ext.endsWith('.jpeg'))) {
-          emit(
-            ProfileImageErrorState(
-              errorMessage: "Only JPEG or PNG images are allowed.",
-            ),
-          );
+        final isValidFormat = fileName.endsWith('.png') ||
+            fileName.endsWith('.jpg') ||
+            fileName.endsWith('.jpeg');
+
+        if (!isValidFormat) {
+          emit(ProfileImageErrorState.fromState(state, errorMessage: "Only JPEG or PNG images are allowed."));
           return;
         }
 
         if (fileSize > 5 * 1024 * 1024) {
-          emit(
-            ProfileImageErrorState(
-              errorMessage: "Image size must be under 5MB.",
-            ),
-          );
+          emit(ProfileImageErrorState.fromState(state, errorMessage: "Image size must be under 5MB."));
           return;
         }
 
-        _image = pickedImage;
-
-        print(_image!.name);
-        emit(ProfileImageLoadedState(image: _image!));
+        final bytes = await file.readAsBytes();
+        final base64Image = base64Encode(bytes);
+        base64Encoded = "data:image/png;base64,$base64Image";
+        emit(ProfileImageLoadedState.fromState(
+          state,
+          image: pickedImage,
+          blob: base64Encoded,
+          originalName: pickedImage.name,
+        ));
       } catch (e) {
-        emit(ProfileImageErrorState(errorMessage: "Failed to pick image: $e"));
+        emit(ProfileImageErrorState.fromState(state, errorMessage: "Failed to pick image: $e"));
+      }
+    });
+
+    on<GetProfileViewEvent>((event, emit) async {
+      emit(const ProfileViewLoading());
+      final StateModel? stateModel = await profileDataProvider.getCafeProfileById();
+      if (stateModel is SuccessState) {
+        final response = stateModel.value as ProfileViewResponse;
+        emit(ProfileViewLoaded(
+          profileViewResponse: response,
+          venueName: response.data?.name ?? '',
+          venueDescription: response.data?.venueDescription ?? '',
+          email: response.data?.email ?? '',
+          phone: response.data?.phone ?? '',
+          address: response.data?.address ?? '',
+          // city: response.data?.city ?? '',
+          postalCode: response.data?.postcode ?? '',
+          venueType: response.data?.venueType ?? '',
+          openingHours: response.data?.openingHours?.asMap().map((_, hour) => MapEntry(
+            hour.day ?? '',
+            ProfileOpeningHour(
+              isEnabled: hour.isOpen ?? false,
+              from: _parseTimeOfDay(hour.opening ?? '10:00'),
+              to: _parseTimeOfDay(hour.closing ?? '12:00'),
+            ),
+          )) ?? state.openingHours,
+        ));
+      } else if (stateModel is ErrorState) {
+        emit(ProfileViewError(errorMessage: stateModel.msg));
+      }
+    });
+
+    on<GetProfileEditViewEvent>((event, emit) async {
+      emit(const ProfileEditViewLoading());
+      final StateModel? stateModel = await profileDataProvider.getCafeEditProfileById();
+      if (stateModel is SuccessState) {
+        final data = stateModel.value as ProfileEditViewResponse;
+
+        final selectedVenueTypeIds = data.data?.venueType
+            ?.where((type) => type.status == true)
+            .map((type) => type.id!)
+            .toList() ?? [];
+
+        final Map<String, ProfileOpeningHour> processedOpeningHours = {};
+
+        // Initialize all days with default values first
+        for (String day in ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']) {
+          processedOpeningHours[day] = ProfileOpeningHour(
+            isEnabled: false,
+            from: TimeOfDay(hour: 10, minute: 0),
+            to: TimeOfDay(hour: 22, minute: 0),
+            id: null,
+          );
+        }
+
+        if (data.data?.openingHours != null) {
+          for (var hour in data.data!.openingHours!) {
+            if (hour.day != null) {
+              // Convert the day name from API to lowercase before using as a key
+              final String lowerCaseDay = hour.day!.toLowerCase();
+              processedOpeningHours[lowerCaseDay] = ProfileOpeningHour(
+                id: hour.id,
+                isEnabled: hour.isOpen ?? false,
+                from: _parseTimeOfDay(hour.opening ?? '10:00:00'),
+                to: _parseTimeOfDay(hour.closing ?? '22:00:00'),
+              );
+            }
+          }
+        }
+
+        debugPrint('Processed Opening Hours in Bloc (Corrected): $processedOpeningHours'); // Updated debug print
+
+        emit(ProfileEditViewLoaded(
+          profileEditViewResponse: data,
+          venueName: data.data?.name ?? '',
+          venueDescription: data.data?.venueDescription ?? '',
+          email: data.data?.email ?? '',
+          phone: data.data?.phone ?? '',
+          address: data.data?.address ?? '',
+          // city: data.data?.city ?? '',
+          postalCode: data.data?.postcode ?? '',
+          venueTypes: data.data?.venueType ?? [],
+          selectedVenueTypeIds: selectedVenueTypeIds,
+          openingHours: processedOpeningHours,
+          image: null,
+          blob: null,
+          originalName: null,
+        ));
+      } else if (stateModel is ErrorState) {
+        emit(ProfileEditViewError(errorMessage: stateModel.msg));
+      }
+    });
+
+    on<ToggleEditModeEvent>((event, emit) {
+      if (!state.isEditMode) {
+        add(GetProfileEditViewEvent());
+      } else {
+        emit(state.copyWith(isEditMode: false));
+      }
+    });
+
+    on<SubmitProfile>((event, emit) async {
+      emit(const ProfileUpdateLoading());
+      final StateModel? stateModel = await profileDataProvider.profileUpdateById(event.profileUpdateRequest);
+      if (stateModel is SuccessState) {
+        final response = stateModel.value as ProfileUpdateResponse;
+        if (response.status) {
+          emit(ProfileUpdateSuccess(profileUpdateResponse: response));
+          add(GetProfileViewEvent());
+        } else {
+          emit(ProfileUpdateError(errorMessage: response.message ?? 'Failed to update profile'));
+        }
+      } else if (stateModel is ErrorState) {
+        emit(ProfileUpdateError(errorMessage: stateModel.msg));
       }
     });
   }
 
-  FutureOr<void> _onFetchCafeProfile(
-    FetchCafeProfile event,
-    Emitter<ProfileState> emit,
-  ) async {
-    emit(ProfileLoading());
-    final apiClient = ApiClient();
-    try {
-      final response = await apiClient.getCafeProfileById(event.id);
-      print(response);
-      if (response.statusCode == 200) {
-        emit(ProfileLoaded(profileData: response.data['data']));
-      } else {
-        emit(
-          ProfileLoadError(
-            errorMessage: "Failed with status: ${response.statusCode}",
-          ),
-        );
-      }
-    } catch (e) {
-      emit(ProfileLoadError(errorMessage: "Error: $e"));
-    }
-  }
-
-  FutureOr<void> _onFetchCafeEditProfile(
-    FetchEditCafeProfile event,
-    Emitter<ProfileState> emit,
-  ) async {
-    emit(ProfileLoading());
-    final apiClient = ApiClient();
-    try {
-      final response = await apiClient.getCafeEditProfilebyId(event.id);
-      if (response.statusCode == 200) {
-        final profile = CafeProfile.fromJson(response.data['data']);
-        emit(state.copyWith(cafeProfile: profile));
-      } else {
-        emit(
-          EditProfileLoadError(
-            errorMessage: "Failed with status: ${response.statusCode}",
-          ),
-        );
-      }
-    } catch (e) {
-      emit(EditProfileLoadError(errorMessage: "Error: $e"));
-    }
-  }
-
-  FutureOr<void> _onSubmitEditProfile(
-    SubmitProfile event,
-    Emitter<ProfileState> emit,
-  ) async {
-    List<OpeningHour>? selectedOpeningHours =
-        state.cafeProfile?.openingHours.where((hour) => hour.isOpen).toList();
-    for (var hour in selectedOpeningHours!) {
-      print("Selected Opening Hours: ${hour}");
-    }
-    final apiClient = ApiClient();
-    final data = {
-      "name": state.cafeProfile?.name,
-      "email": state.cafeProfile?.email,
-      "phone": state.cafeProfile?.phone,
-      "address": state.cafeProfile?.address,
-      "postcode": state.cafeProfile?.postcode,
-      "venue_description": state.cafeProfile?.venue_description,
-      "accommodations": [1],
-      "working_days":
-          selectedOpeningHours
-              .map(
-                (hour) => {
-                  "day": hour.day,
-                  "from": hour.opening,
-                  "to": hour.closing,
-                  "isEnabled": hour.isOpen,
-                },
-              )
-              .toList(),
-      "blob": "data:image/png;base64,iVBORw0KG...",
-      "original_name": "profile.png",
-      "password": "password",
-    };
-    try {
-      final response = await apiClient.postCafeEditSubmitProfileById(
-        ObjectFactory().prefs.getCafeId().toString(),
-        data,
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        // Assuming the API returns the updated profile data
-        // emit(ProfileLoaded(profileData: response.data['data']));
-        emit(state);
-      } else {
-        emit(
-          ProfileLoadError(
-            errorMessage:
-                "Failed to update profile. Status: ${response.statusCode}",
-          ),
-        );
-      }
-    } catch (e) {
-      emit(ProfileLoadError(errorMessage: "Error: $e"));
-    }
+  TimeOfDay _parseTimeOfDay(String time) {
+    final parts = time.split(':');
+    return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
   }
 }
-/*
-Future<void> _onFetchCafeProfile(
-  FetchCafeProfile event,
-  Emitter<ProfileState> emit,
-) async {
-  emit(ProfileLoading());
-  final apiClient = ApiClient();
-  try {
-    final response = await apiClient.getCafeProfileById(event.id);
-    if (response.statusCode == 200) {
-      emit(ProfileLoaded(profileData: response.data['data']));
-    } else {
-      emit(
-        ProfileLoadError(
-          errorMessage: "Failed with status: ${response.statusCode}",
-        ),
-      );
-    }
-  } catch (e) {
-    emit(ProfileLoadError(errorMessage: "Error: $e"));
-  }
-}
-
-Future<void> _onFetchCafeEditProfile(
-  FetchEditCafeProfile event,
-  Emitter<ProfileState> emit,
-) async {
-  emit(ProfileLoading());
-  final apiClient = ApiClient();
-  try {
-    final response = await apiClient.getCafeEditProfilebyId(event.id);
-    if (response.statusCode == 200) {
-      final profile = CafeProfile.fromJson(response.data['data']);
-      emit(ProfileState(cafeProfile: profile));
-    } else {
-      emit(
-        EditProfileLoadError(
-          errorMessage: "Failed with status: ${response.statusCode}",
-        ),
-      );
-    }
-  } catch (e) {
-    emit(EditProfileLoadError(errorMessage: "Error: $e"));
-  }
-}
-*/
-// Future<void> _onFetchCafeEditProfile(
-//   FetchEditCafeProfile event,
-//   Emitter<ProfileState> emit,
-// ) async {
-//   emit(ProfileLoading());
-//   final apiClient = ApiClient();
-//   try {
-//     final response = await apiClient.getCafeEditProfilebyId(event.id);
-//     if (response.statusCode == 200) {
-//       final cafeProfile = CafeProfile.fromJson(response.data['data']);
-
-//       // Convert the opening hours and venue types to correct formats
-//       final openingHours = <String, ProfileOpeningHour>{};
-//       for (var entry in cafeProfile.openingHours.entries) {
-//         openingHours[entry.key] = ProfileOpeningHour(
-//           isEnabled: entry.value['isEnabled'],
-//           from: _parseTime(entry.value['from']),
-//           to: _parseTime(entry.value['to']),
-//         );
-//       }
-
-//       final venueTypes = Map<String, bool>.from(cafeProfile.venueTypes as Map);
-
-//       emit(
-//         ProfileState(
-//           venueName: cafeProfile.venueName ?? '',
-//           venueDescription: cafeProfile.venueDescription ?? '',
-//           email: cafeProfile.email ?? '',
-//           phone: cafeProfile.phone ?? '',
-//           address: cafeProfile.address ?? '',
-//           postalCode: cafeProfile.postalCode ?? '',
-//           venueTypes: venueTypes,
-//           openingHours: openingHours,
-//           image: null, // or use XFile.fromData if available
-//         ),
-//       );
-//     } else {
-//       emit(
-//         ProfileLoadError(
-//           errorMessage: "Failed with status: ${response.statusCode}",
-//         ),
-//       );
-//     }
-//   } catch (e) {
-//     emit(ProfileLoadError(errorMessage: "Error: $e"));
-//   }
-// }
-
-// extension on CafeProfile {
-//   get venueName => null;
-
-//   get venueDescription => null;
-
-//   get postalCode => null;
-// }
-
-// extension on List<OpeningHour> {
-//   get entries => null;
-// }
-
-// TimeOfDay _parseTime(String time) {
-//   final parts = time.split(":");
-//   return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
-// }

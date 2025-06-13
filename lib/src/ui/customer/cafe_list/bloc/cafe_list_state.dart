@@ -1,5 +1,7 @@
 part of 'cafe_list_bloc.dart';
 
+
+
 sealed class CafeListState extends Equatable {
   const CafeListState();
 }
@@ -20,7 +22,6 @@ class CafeListLoaded extends CafeListState {
     required this.cafeListResponse,
   });
 
-  // Copy method for updating state
   CafeListLoaded copyWith({
     CafeListResponse? cafeListResponse,
   }) {
@@ -72,4 +73,47 @@ final class FavListError extends CafeListState {
   const FavListError({required this.errorMessage});
   @override
   List<Object> get props => [errorMessage];
+}
+
+class FilterLoading extends CafeListState {
+  @override
+  List<Object> get props => [];
+}
+
+class FilterLoaded extends CafeListState {
+  final GetFilterOptionsResponse getFilterOptionsResponse;
+  const FilterLoaded({required this.getFilterOptionsResponse});
+  @override
+  List<Object> get props => [getFilterOptionsResponse];
+}
+class FilterError extends CafeListState {
+  final String message;
+
+  const FilterError(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+class UpdateFilter extends CafeListState {
+  final Set<String> selectedTableTypes;
+  final Set<String> selectedVenueTypes;
+  final TimeOfDay openTime;
+  final TimeOfDay closeTime;
+
+  const UpdateFilter({
+    required this.selectedTableTypes,
+    required this.selectedVenueTypes,
+    required this.openTime,
+    required this.closeTime,
+  });
+
+  @override
+  List<Object> get props => [selectedTableTypes, selectedVenueTypes, openTime, closeTime];
+}
+
+class FilterClear extends CafeListState {
+  const FilterClear();
+
+  @override
+  List<Object> get props => [];
 }

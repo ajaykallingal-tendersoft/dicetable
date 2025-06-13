@@ -8,8 +8,11 @@ import 'package:dicetable/src/ui/customer/home/widget/bottom_navigation_bar.dart
 import 'package:dicetable/src/ui/customer/profile/customer_profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+
+import 'bloc/customer_home_bloc.dart';
 
 class CustomerHomeScreen extends StatefulWidget {
   const CustomerHomeScreen({super.key});
@@ -49,12 +52,20 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
 
   }
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CustomerHomeBloc>().add(FetchLocationEvent(context: context));
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: onWillPop,
       child: Scaffold(
         extendBody: true,
-        // appBar: _buildAppBar(_selectedIndex, context),
+
         body: AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
           transitionBuilder: (Widget child, Animation<double> animation) {

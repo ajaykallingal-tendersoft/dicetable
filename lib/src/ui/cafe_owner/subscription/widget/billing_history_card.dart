@@ -111,44 +111,48 @@ class _BillingHistoryCardState extends State<BillingHistoryCard> {
                   children: [
                     // Table Header
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: const [
                         Expanded(
+                          flex: 2,
                           child: Text(
                             'DATE',
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
-                              fontSize: 12,
+                              fontSize: 11,
                               color: AppColors.textPrimaryGrey,
                             ),
                           ),
                         ),
                         Expanded(
+                          flex: 2,
                           child: Text(
                             'PERIOD',
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
-                              fontSize: 12,
+                              fontSize: 11,
                               color: AppColors.textPrimaryGrey,
                             ),
                           ),
                         ),
                         Expanded(
+                          flex: 1,
                           child: Text(
                             'STATUS',
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
-                              fontSize: 12,
+                              fontSize: 11,
                               color: AppColors.textPrimaryGrey,
                             ),
                           ),
                         ),
                         Expanded(
+                          flex: 1,
                           child: Text(
                             'AMOUNT',
                             style: TextStyle(
                               fontWeight: FontWeight.w500,
-                              fontSize: 12,
+                              fontSize: 11,
                               color: AppColors.textPrimaryGrey,
                             ),
                           ),
@@ -167,10 +171,10 @@ class _BillingHistoryCardState extends State<BillingHistoryCard> {
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               Expanded(
-
+                                flex: 2,
                                 child: Text(
                                   data['date']!,
                                   style: const TextStyle(
@@ -181,7 +185,7 @@ class _BillingHistoryCardState extends State<BillingHistoryCard> {
                                 ),
                               ),
                               Expanded(
-
+                                flex: 2,
                                 child: Text(
                                   data['period']!,
                                   style: const TextStyle(
@@ -193,7 +197,7 @@ class _BillingHistoryCardState extends State<BillingHistoryCard> {
                               ),
                               Gap(8),
                               Expanded(
-
+                                flex: 1,
                                 child: Text(
                                   data['status']!,
                                   style: const TextStyle(
@@ -204,7 +208,7 @@ class _BillingHistoryCardState extends State<BillingHistoryCard> {
                                 ),
                               ),
                               Expanded(
-
+                                flex: 1,
                                 child: Text(
                                   data['amount']!,
                                   style: const TextStyle(

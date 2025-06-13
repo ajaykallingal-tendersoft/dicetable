@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dicetable/src/model/customer/cafe/add_favourite_request.dart';
+import 'package:dicetable/src/model/customer/cafe/cafe_list_request.dart';
 import 'package:dicetable/src/model/customer/cafe/cafe_list_response.dart';
 import 'package:dicetable/src/model/customer/cafe/cafe_search_request.dart';
 import 'package:dicetable/src/model/customer/cafe/cafe_search_response.dart';
@@ -9,6 +10,7 @@ import 'package:dicetable/src/model/customer/cafe/remove_favourite_request.dart'
 import 'package:dicetable/src/model/state_model.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:dio/dio.dart';
+import 'package:dicetable/src/model/customer/cafe/get_filter_options_response.dart';
 
 import '../../../model/customer/cafe/add_favourite_response.dart';
 import '../../../model/customer/cafe/remove_favourite_respomse.dart';
@@ -102,10 +104,10 @@ class CafeDataProvider {
   }
 
   ///CafeList
-  Future<StateModel?> getCafeList() async {
+  Future<StateModel?> getCafeList(CafeListRequest request) async {
 
     try {
-      final response = await ObjectFactory().apiClient.getCafeList();
+      final response = await ObjectFactory().apiClient.getCafeList(request);
       if (response.statusCode == 200) {
         print(response.toString());
         return StateModel<CafeListResponse>.success(
@@ -151,6 +153,29 @@ class CafeDataProvider {
             "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!");
       }
 
+    }
+    return null;
+  }
+
+  ///GetFilterOptions
+  Future<StateModel?> getFilterOptions() async {
+
+    try {
+      final response = await ObjectFactory().apiClient.getFilterOptions();
+      if (response.statusCode == 200) {
+        print(response.toString());
+        return StateModel<GetFilterOptionsResponse>.success(
+            GetFilterOptionsResponse.fromJson(response.data));
+      } else {
+        return null;
+      }    }  on DioException catch (e) {
+      if (e.response != null && e.response!.statusCode == 500) {
+        return StateModel.error(
+            "The server isn't responding! Please try again later.");
+      } else if (e.response != null && e.response!.statusCode == 408) {
+        return StateModel.error(
+            "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!");
+      }
     }
     return null;
   }

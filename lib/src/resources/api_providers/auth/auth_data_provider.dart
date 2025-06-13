@@ -4,6 +4,7 @@ import 'package:dicetable/src/model/cafe_owner/auth/forgot_password/forgot_passw
 import 'package:dicetable/src/model/cafe_owner/auth/forgot_password/forgot_password_request_response.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/forgot_password/password_reset_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/forgot_password/password_reset_request_response.dart';
+import 'package:dicetable/src/model/cafe_owner/auth/forgot_password/resend_otp_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/login/google_login_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/login/google_login_request_response.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/login/login_request.dart';
@@ -180,6 +181,49 @@ class AuthDataProvider {
     }
   }
 
+  ///Resend OTP
+  Future<StateModel?> resendOtp(ResendOtpRequest resendOtpRequest) async {
+    try {
+      final response = await ObjectFactory().apiClient.resendOtp(resendOtpRequest);
+      print(response.toString());
+
+      final responseData = response.data is Map<String, dynamic>
+          ? response.data
+          : json.decode(response.data.toString());
+
+      final parsedResponse = ForgotPasswordRequestResponse.fromJson(responseData);
+
+      if (response.statusCode == 200) {
+        return StateModel<ForgotPasswordRequestResponse>.success(parsedResponse);
+      } else {
+        String errorMessage = parsedResponse.message ?? "Unexpected error occurred (${response.statusCode})";
+        return StateModel.error(errorMessage);
+      }
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      final responseData = e.response?.data;
+
+      String fallbackMessage = "Something went wrong";
+
+      if (responseData != null && responseData is Map<String, dynamic>) {
+        final parsedError = ForgotPasswordRequestResponse.fromJson(responseData);
+        fallbackMessage = parsedError.message ?? fallbackMessage;
+      }
+
+      if (statusCode == 500) {
+        return StateModel.error("Server error. Please try again later.");
+      } else if (statusCode == 408) {
+        return StateModel.error("Request timed out. Please try again later.");
+      } else if (e.type == DioExceptionType.connectionError) {
+        return StateModel.error("Connection error. Please check your internet.");
+      }
+
+      return StateModel.error(fallbackMessage);
+    } catch (e) {
+      return StateModel.error("Unexpected error: ${e.toString()}");
+    }
+  }
+
   ///PasswordReset
   Future<StateModel?> passwordReset(PasswordResetRequest passwordReset) async {
     try {
@@ -296,6 +340,7 @@ class AuthDataProvider {
         return StateModel<OtpVerificationResponse>.success(
             OtpVerificationResponse.fromJson(response.data));
       }
+
       return null;
     } on DioException catch (e) {
 

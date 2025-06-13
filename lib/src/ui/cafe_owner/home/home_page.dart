@@ -53,10 +53,10 @@ class _HomePageState extends State<HomePage> {
             //   },
             // ),
             SliverPadding(
-              padding: EdgeInsets.symmetric(horizontal: 20.h, vertical: 20.h),
+              padding: EdgeInsets.symmetric(horizontal: 20.h, vertical: 10.h),
               sliver: SliverAppBar(
                 backgroundColor: Colors.transparent,
-                expandedHeight: 120.h,
+                expandedHeight: 110.h,
                 leading: const SizedBox(),
                 flexibleSpace: FlexibleSpaceBar(
                   centerTitle: false,
@@ -72,7 +72,7 @@ class _HomePageState extends State<HomePage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Dice Table",
+                              "DICE TABLE",
                               style: TextTheme.of(context).labelMedium!.copyWith(
                                 color: AppColors.primaryWhiteColor,
                                 fontWeight: FontWeight.bold,
@@ -126,9 +126,9 @@ class _HomePageState extends State<HomePage> {
                             )
                           ],
                         ),
-                        const Gap(20),
+                        const Gap(30),
                         Text(
-                          ObjectFactory().prefs.getCafeUserName() ?? "Hi",
+                          "Hi, ${ObjectFactory().prefs.getCafeUserName()}" ?? "Hi",
                           style: TextTheme.of(context).labelMedium!.copyWith(
                             color: AppColors.primaryWhiteColor,
                             fontWeight: FontWeight.w600,

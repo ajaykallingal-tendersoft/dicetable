@@ -13,6 +13,8 @@ class SignUpRequest {
   final List<String>? accommodations;
   final Map<String, Map<String, dynamic>>? workingDays;
   final String? blob;
+  final String? fcmToken;
+
 
 
   SignUpRequest({
@@ -30,6 +32,7 @@ class SignUpRequest {
     this.accommodations,
     this.workingDays,
     this.blob,
+    this.fcmToken,
   });
 
   Map<String, dynamic> toJson() {
@@ -75,6 +78,12 @@ class SignUpRequest {
     }
     if (blob != null) {
       json['blob'] = blob;
+    }
+    if (fcmToken != null) {
+      json['fcm_token'] = fcmToken;
+    }
+    if (fcmToken != null) {
+      json['fcm_token'] = fcmToken;
     }
 
     return json;

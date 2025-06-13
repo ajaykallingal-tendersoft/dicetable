@@ -1,8 +1,8 @@
+// required_text_field_widget.dart
 import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
-
 
 class RequiredTextField extends StatefulWidget {
   final String hint;
@@ -10,9 +10,10 @@ class RequiredTextField extends StatefulWidget {
   final bool readOnly;
   final TextEditingController? controller;
   final bool obscureText;
-  final String? Function(String?)? validator;
   final TextInputType keyboardType;
   final Function(String)? onChanged;
+  final bool isEmail;
+  final String? errorText;
 
   const RequiredTextField({
     super.key,
@@ -21,9 +22,10 @@ class RequiredTextField extends StatefulWidget {
     this.readOnly = false,
     this.controller,
     this.obscureText = false,
-    this.validator,
     this.keyboardType = TextInputType.text,
     this.onChanged,
+    this.isEmail = false,
+    this.errorText,
   });
 
   @override
@@ -39,68 +41,73 @@ class _RequiredTextFieldState extends State<RequiredTextField> {
     _obscureText = widget.obscureText;
   }
 
+  void _handleTextChange(String value) {
+    // Call the original onChanged callback if provided
+    if (widget.onChanged != null) {
+      widget.onChanged!(value);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final labelText = widget.isRequired
-        ? TextSpan(
+    final labelText = TextSpan(
       text: widget.hint,
       style: Theme.of(context).textTheme.bodyMedium!.copyWith(
         color: AppColors.textPrimaryGrey,
         fontWeight: FontWeight.w600,
         fontSize: 14.sp,
       ),
-      children: const [
+      children: widget.isRequired
+          ? const [
         TextSpan(
           text: ' *',
           style: TextStyle(color: AppColors.appRedColor),
         ),
+      ]
+          : const [
+        TextSpan(
+          text: ' (Optional)',
+          style: TextStyle(color: AppColors.textPrimaryGrey),
+        ),
       ],
-    )
-        : TextSpan(text: widget.hint);
+    );
 
     return Container(
       height: 70.h,
-      margin: const EdgeInsets.all(13),
+      margin: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: AppColors.primaryWhiteColor,
         borderRadius: BorderRadius.circular(15),
       ),
       child: TextFormField(
+        textAlignVertical: TextAlignVertical.center,
         readOnly: widget.readOnly,
         controller: widget.controller,
         obscureText: _obscureText,
         keyboardType: widget.keyboardType,
-        onChanged: widget.onChanged,
-        validator: widget.validator ??
-                (value) {
-              if (widget.isRequired && (value == null || value.trim().isEmpty)) {
-                return '${widget.hint} is required';
-              }
-              return null;
-            },
+        onChanged: _handleTextChange,
         style: Theme.of(context).textTheme.bodyMedium!.copyWith(
           color: AppColors.textPrimaryGrey,
           fontWeight: FontWeight.w600,
           fontSize: 14.sp,
         ),
         decoration: InputDecoration(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          isDense: true,
           filled: true,
           fillColor: AppColors.primaryWhiteColor,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(15),
             borderSide: BorderSide.none,
           ),
-          hintStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
-            color: AppColors.textPrimaryGrey,
-            fontWeight: FontWeight.w600,
-            fontSize: 14.sp,
-          ),
           hintText: null,
-          label: widget.isRequired
-              ? RichText(text: labelText)
-              : Text(widget.hint, style: Theme.of(context).textTheme.bodyMedium),
           floatingLabelBehavior: FloatingLabelBehavior.never,
+          label: RichText(text: labelText),
+          errorText: widget.errorText,
+          errorStyle: TextStyle(
+            color: AppColors.appRedColor,
+            fontSize: 12.sp,
+          ),
           suffixIcon: widget.obscureText
               ? InkWell(
             onTap: () {

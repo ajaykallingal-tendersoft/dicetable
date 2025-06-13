@@ -5,8 +5,10 @@ sealed class CafeListEvent extends Equatable {
 }
 
 class GetCafeListEvent extends CafeListEvent {
-  @override
-  List<Object> get props => [];
+  final CafeListRequest cafeListRequest;
+  const GetCafeListEvent({required this.cafeListRequest});
+   @override
+  List<Object> get props => [cafeListRequest];
 }
 
 class GetFavListEvent extends CafeListEvent {
@@ -21,4 +23,34 @@ class ToggleFavoriteEvent extends CafeListEvent {
 
   @override
   List<Object?> get props => [cafeIndex];
+}
+
+class FilterOptionsEvent extends CafeListEvent {
+  @override
+  List<Object?> get props => [];
+}
+
+class FiltersUpdateEvent extends CafeListEvent {
+  final Set<String> selectedTableTypes;
+  final Set<String> selectedVenueTypes;
+  final TimeOfDay openTime;
+  final TimeOfDay closeTime;
+
+  const FiltersUpdateEvent({
+    required this.selectedTableTypes,
+    required this.selectedVenueTypes,
+    required this.openTime,
+    required this.closeTime,
+  });
+
+  @override
+  List<Object> get props => [selectedTableTypes, selectedVenueTypes, openTime, closeTime];
+}
+
+
+class FiltersClearEvent extends CafeListEvent {
+  const FiltersClearEvent();
+
+  @override
+  List<Object> get props => [];
 }

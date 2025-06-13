@@ -2,9 +2,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/model/customer/cafe/cafe_list_response.dart';
 import 'package:dicetable/src/model/customer/cafe/favourite_list_response.dart';
+import 'package:dicetable/src/ui/customer/cafe_list/bloc/cafe_list_bloc.dart';
 import 'package:dicetable/src/ui/customer/cafe_list/cafe_model.dart';
 import 'package:dicetable/src/ui/customer/cafe_list/components/cafe_details_arguments.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
@@ -16,19 +18,20 @@ import 'fav_details_argument.dart';
 
 class FavListCard extends StatelessWidget {
   final FavCafe cafes;
-
+  final int index;
+  final bool isLoading; // Add loading state parameter
 
   const FavListCard({
     super.key,
     required this.cafes,
-
+    required this.index,
+    this.isLoading = false, // Default to false
   });
 
   @override
   Widget build(BuildContext context) {
     // Log cafe data for debugging
-    print('Rendering FavListCard: id=${cafes.id}, name=${cafes
-        .name}, photo=${cafes.photo}');
+    print('Rendering FavListCard: id=${cafes.id}, name=${cafes.name}, photo=${cafes.photo}');
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -53,18 +56,27 @@ class FavListCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     cafes.name ?? "Unknown Cafe",
-                    style: TextTheme
-                        .of(context)
-                        .labelMedium!
-                        .copyWith(
+                    style: TextTheme.of(context).labelMedium!.copyWith(
                       color: AppColors.primary,
                       fontWeight: FontWeight.bold,
                       fontSize: 16.sp,
                     ),
                   ),
                 ),
+                // Updated favorite button with loading state
                 IconButton(
-                  icon: cafes.favourites == true
+                  icon: isLoading
+                      ? SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        AppColors.primary,
+                      ),
+                    ),
+                  )
+                      : cafes.favourites == true
                       ? SvgPicture.asset(
                     'assets/svg/favourite1-active.svg',
                     fit: BoxFit.scaleDown,
@@ -73,8 +85,12 @@ class FavListCard extends StatelessWidget {
                     'assets/svg/favourite1.svg',
                     fit: BoxFit.scaleDown,
                   ),
-                  onPressed: () {
-                    // Add logic to toggle favorite status if needed
+                  onPressed: isLoading
+                      ? null // Disable when loading
+                      : () {
+                    context.read<CafeListBloc>().add(
+                      ToggleFavoriteEvent(index),
+                    );
                     print('Favorite button pressed for cafe: ${cafes.id}');
                   },
                 ),
@@ -91,19 +107,17 @@ class FavListCard extends StatelessWidget {
                       child: CachedNetworkImage(
                         imageUrl: cafes.photo ?? '',
                         fit: BoxFit.cover,
-                        placeholder: (context, url) =>
-                            Center(
-                              child: Lottie.asset(
-                                Assets.JUMBING_DOT,
-                                height: 20,
-                                width: 20,
-                              ),
-                            ),
-                        errorWidget: (context, url, error) =>
-                            SvgPicture.asset(
-                              'assets/svg/cafe-list.svg',
-                              fit: BoxFit.cover,
-                            ),
+                        placeholder: (context, url) => Center(
+                          child: Lottie.asset(
+                            Assets.JUMBING_DOT,
+                            height: 20,
+                            width: 20,
+                          ),
+                        ),
+                        errorWidget: (context, url, error) => SvgPicture.asset(
+                          'assets/svg/cafe-list.svg',
+
+                        ),
                       ),
                     ),
                   ),
@@ -118,23 +132,31 @@ class FavListCard extends StatelessWidget {
                     children: [
                       RichText(
                         text: TextSpan(
-                          style: Theme
-                              .of(context)
-                              .textTheme
-                              .bodySmall!
-                              .copyWith(
+                          style: Theme.of(context).textTheme.bodySmall!.copyWith(
                             fontSize: 10.sp,
                             color: AppColors.shadowColor,
                           ),
                           children: [
-                            const TextSpan(
+                            TextSpan(
                               text: 'Table Type:\n',
-                              style: TextStyle(fontWeight: FontWeight.w400),
+                              style: TextTheme.of(context).bodySmall!.copyWith(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 10.sp,
+                              ),
+                            ),
+                            WidgetSpan(
+                              child: SizedBox(height: 15), // vertical spacing
                             ),
                             TextSpan(
-                              text: cafes.tableTypes?.join(', ') ?? 'N/A',
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.w600),
+                              text: cafes.tableTypes != null && cafes.tableTypes!.isNotEmpty
+                                  ? cafes.tableTypes!.join(', ')
+                                  : 'No table types available',
+                              style: TextTheme.of(context).bodySmall!.copyWith(
+                                color: AppColors.textPrimary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12.sp,
+                              ),
                             ),
                           ],
                         ),
@@ -144,10 +166,7 @@ class FavListCard extends StatelessWidget {
                         cafes.venueDescription ?? "No description available",
                         maxLines: 5,
                         textAlign: TextAlign.left,
-                        style: TextTheme
-                            .of(context)
-                            .bodySmall!
-                            .copyWith(
+                        style: TextTheme.of(context).bodySmall!.copyWith(
                           color: AppColors.shadowColor,
                           fontWeight: FontWeight.w600,
                           fontSize: 10.sp,
@@ -164,20 +183,17 @@ class FavListCard extends StatelessWidget {
                                 from: "FavList",
                                 name: cafes.name ?? "Unknown Cafe",
                                 tableType: cafes.tableTypes ?? [],
-                                description: cafes.venueDescription ??
-                                    "No description",
+                                description: cafes.venueDescription ?? "No description",
                                 image: cafes.photo ?? '',
                                 openingHours: cafes.workingHours,
-                                id: cafes.id.toString(), bookingStatus: cafes.bookingStatus ?? false,
+                                id: cafes.id.toString(),
+                                bookingStatus: cafes.bookingStatus ?? false,
                               ),
                             );
                           },
                           child: Text(
                             "VIEW MORE",
-                            style: TextTheme
-                                .of(context)
-                                .bodySmall!
-                                .copyWith(
+                            style: TextTheme.of(context).bodyLarge!.copyWith(
                               color: AppColors.primary,
                               fontWeight: FontWeight.bold,
                               fontSize: 11.sp,
@@ -197,6 +213,4 @@ class FavListCard extends StatelessWidget {
       ),
     );
   }
-
-
 }

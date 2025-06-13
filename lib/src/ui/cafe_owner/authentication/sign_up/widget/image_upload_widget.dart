@@ -12,7 +12,9 @@ import 'package:gap/gap.dart';
 import 'package:lottie/lottie.dart';
 
 class ImageUploadWidget extends StatefulWidget {
-  const ImageUploadWidget({super.key});
+  final bool showValidationErrors;
+  final  SignUpFormState state;
+  const ImageUploadWidget({super.key, required this.showValidationErrors, required this.state});
 
   @override
   State<ImageUploadWidget> createState() => _ImageUploadWidgetState();
@@ -163,6 +165,18 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
                       ),
                     ),
                   ),
+                  const Gap(10),
+                  if (widget.showValidationErrors && state is SignUpFormState)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 16.0, top: 4.0),
+                      child: Text(
+                        'Please upload an image to continue.',
+                        style: TextStyle(
+                          color: AppColors.appRedColor,
+                          fontSize: 12.sp,
+                        ),
+                      ),
+                    ),
                 ]
               ],
             ),

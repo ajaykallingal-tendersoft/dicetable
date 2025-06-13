@@ -4,6 +4,9 @@ class GoogleSignUpRequestResponse {
   final User? user;
   final String? message;
   final String? cafeId;
+  final String? expiresAt;
+  final int? otpLength;
+  final int? resendAvailableInSeconds;
   final Map<String, List<String>>? errors;
   final Map<String, dynamic> extra;
 
@@ -13,12 +16,17 @@ class GoogleSignUpRequestResponse {
     this.user,
     this.message,
     this.cafeId,
+    this.expiresAt,
+    this.otpLength,
+    this.resendAvailableInSeconds,
     this.errors,
     this.extra = const {},
   });
 
   factory GoogleSignUpRequestResponse.fromJson(Map<String, dynamic> json) {
-    final knownKeys = {'status', 'token', 'user', 'message', 'errors'};
+    final knownKeys = {'status', 'token', 'user', 'message', 'errors', 'expires_at',
+      'otp_length',
+      'resend_available_in_seconds'};
 
     return GoogleSignUpRequestResponse(
       status: json['status'] ?? false,
@@ -28,6 +36,9 @@ class GoogleSignUpRequestResponse {
           : null,
       message: json['message'],
       cafeId: json['cafe_id'],
+      expiresAt: json['expires_at'],
+      otpLength: json['otp_length'],
+      resendAvailableInSeconds: json['resend_available_in_seconds'],
       errors: json['errors'] != null
           ? Map<String, List<String>>.from(
           json['errors'].map((key, value) =>

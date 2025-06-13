@@ -27,16 +27,18 @@ class _ExpandableCardState extends State<ExpandableCard> {
   late TextEditingController _promoController;
   List<AvailableDay> selectedDays = []; // Local state for selected days
   late int? cafeId;
+  List<Color> iconColor = [
+    AppColors.tableTypeLogoColor1, AppColors.tableTypeLogoColor2, AppColors.tableTypeLogoColor3, AppColors.tableTypeLogoColor4
+  ];
 
   @override
   void initState() {
     super.initState();
     cafeId = int.tryParse(ObjectFactory().prefs.getCafeId().toString());
-    _promoController = TextEditingController(text: widget.card.promoText);
-    // Initialize selectedDays with the CardModel's API-fetched selectedDays.
-    // This is the starting point for the editable selection within this card.
+    _promoController = TextEditingController(text: widget.card.moreInfo);
     selectedDays = List.from(widget.card.selectedDays);
   }
+
 
   @override
   void didUpdateWidget(covariant ExpandableCard oldWidget) {
@@ -108,7 +110,7 @@ class _ExpandableCardState extends State<ExpandableCard> {
               Row(
                 children: [
                   CircleAvatar(
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: iconColor[widget.index],
                     radius: 30,
                     child: Image.asset('assets/png/dice-type.png'),
                   ),
@@ -158,8 +160,8 @@ class _ExpandableCardState extends State<ExpandableCard> {
                 children: [
                   Expanded(
                     child: Text(
-                      card.promoText.isNotEmpty
-                          ? card.promoText
+                      card.description!.isNotEmpty
+                          ? card.description!
                           : (card.description ?? 'No description available'),
                       style: Theme
                           .of(context)
@@ -242,7 +244,7 @@ class _ExpandableCardState extends State<ExpandableCard> {
                         }).toList(),
                       )
                           : Text(
-                        'All days', // Display "All days" if not selected
+                        'All Days', // Display "All days" if not selected
                         style: GoogleFonts.roboto(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
@@ -401,7 +403,7 @@ class _ExpandableCardState extends State<ExpandableCard> {
           UpdateAvailabilityTextEvent(
             widget.index,
             selectedDays.isEmpty
-                ? 'All days'
+                ? 'All Days'
                 : selectedDays
                 .map((d) => "${d.day}: ${d.openTime}-${d.closeTime}")
                 .join(', '),
@@ -417,7 +419,7 @@ class _ExpandableCardState extends State<ExpandableCard> {
         // final availableDaysSelectedForApi = selectedDays;
         final List<AvailableDay> availableDaysSelectedForApi = selectedDays.map((day) {
           return AvailableDay(
-            id: day.id,
+            // id: day.id,
             day: day.day,
             openTime: day.openTime,
             closeTime: day.closeTime,
@@ -477,7 +479,6 @@ class _AvailableDaysMultiSelectFieldState
   @override
   void didUpdateWidget(covariant AvailableDaysMultiSelectField oldWidget) {
     super.didUpdateWidget(oldWidget);
-    // Only update if the reference changes (use DeepCollectionEquality for deep check if needed)
     if (widget.initialSelectedDays != oldWidget.initialSelectedDays) {
       setState(() {
         selectedDays = List<AvailableDay>.from(widget.initialSelectedDays ?? []);
@@ -486,7 +487,7 @@ class _AvailableDaysMultiSelectFieldState
   }
 
   String get selectedDaysText {
-    if (selectedDays.isEmpty) return "Select Available Days";
+    if (selectedDays.isEmpty) return "All Days";
     return selectedDays
         .map((d) {
       final open = d.openTime?.substring(0, 5) ?? "";
@@ -505,7 +506,7 @@ class _AvailableDaysMultiSelectFieldState
         return AlertDialog(
           backgroundColor: AppColors.primaryWhiteColor,
           title: Text(
-            'Select Available Days',
+            'Select available days',
             style: Theme.of(context).textTheme.bodyMedium!.copyWith(
               color: AppColors.primary,
               fontSize: 16,
@@ -524,7 +525,7 @@ class _AvailableDaysMultiSelectFieldState
                         final isChecked = tempSelected.any((d) => d.day == day.day);
                         return CheckboxListTile(
                           title: Text(
-                            "${day.day}: ${day.openTime} - ${day.closeTime}",
+                            "${day.day}: ${day.openTime!.substring(0, 5)} - ${day.closeTime!.substring(0, 5)}",
                             style: Theme.of(context).textTheme.bodySmall!.copyWith(
                               color: AppColors.textPrimaryGrey,
                               fontSize: 13,

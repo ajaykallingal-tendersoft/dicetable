@@ -1,4 +1,5 @@
 import 'package:dicetable/src/constants/app_colors.dart';
+import 'package:dicetable/src/model/customer/cafe/favourite_list_response.dart';
 import 'package:dicetable/src/ui/customer/cafe_list/bloc/cafe_list_bloc.dart';
 import 'package:dicetable/src/ui/customer/favourites/widget/fav_list_container.dart';
 import 'package:flutter/cupertino.dart';
@@ -22,6 +23,28 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<CafeListBloc>().add(GetFavListEvent());
     });
+  }
+
+  FavCafe _convertCafeToFavCafe(dynamic cafe) {
+    if (cafe is FavCafe) {
+      return cafe;
+    }
+    return FavCafe(
+      id: cafe.id,
+      name: cafe.name,
+      photo: cafe.photo,
+      venueDescription: cafe.venueDescription,
+      tableTypes: cafe.tableTypes,
+      workingHours: (cafe.workingHours as List<dynamic>?)
+          ?.map((wh) => FavWorkingHour(
+        day: wh.day,
+        opening: wh.opening,
+        closing: wh.closing,
+      ))
+          .toList(),
+      favourites: cafe.favourites,
+      bookingStatus: cafe.bookingStatus,
+    );
   }
 
   @override
@@ -56,29 +79,26 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
               EasyLoading.dismiss();
               print('FavListError: ${state.errorMessage}');
             }
+
+            if (state is FavoriteToggleLoading) {
+
+            }
           },
           builder: (context, state) {
             if (state is FavListLoading) {
-              // Return an empty widget to preserve the gradient background
-              // EasyLoading overlay will handle the loading UI
+
               return const SizedBox.expand();
             }
             return CustomScrollView(
               physics: const BouncingScrollPhysics(),
               slivers: [
-                CupertinoSliverRefreshControl(
-                  onRefresh: () async {
-                    context.read<CafeListBloc>().add(GetFavListEvent());
-                  },
-                ),
                 SliverAppBar(
                   backgroundColor: Colors.transparent,
-                  expandedHeight: 100.h,
                   centerTitle: false,
                   titleSpacing: 20,
                   leadingWidth: 0,
                   title: Text(
-                    "Favorites",
+                    "Favourites",
                     style: TextTheme.of(context).labelMedium!.copyWith(
                       color: AppColors.primaryWhiteColor,
                       fontWeight: FontWeight.w600,
@@ -139,9 +159,10 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                 SliverToBoxAdapter(
                   child: BlocBuilder<CafeListBloc, CafeListState>(
                     builder: (context, state) {
+                      // Handle loaded favorite list
                       if (state is FavListLoaded) {
                         if (state.favListResponse.cafes == null || state.favListResponse.cafes!.isEmpty) {
-                          return Container(
+                          return SizedBox(
                             height: MediaQuery.of(context).size.height * 0.6,
                             child: Center(
                               child: Text(
@@ -165,12 +186,55 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                               final cafe = favoriteCafes[index];
                               return FavListCard(
                                 cafes: cafe,
+                                index: index,
+                                isLoading: false, // No loading for normal state
                               );
                             },
                           );
                         }
                       }
-                      if (state is FavListError) {
+
+                      // Handle favorite toggle loading state
+                      else if (state is FavoriteToggleLoading) {
+                        // Get the cafe list from the loading state
+                        final cafeList = state.cafeListResponse.cafes ?? [];
+
+                        if (cafeList.isEmpty) {
+                          return SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.6,
+                            child: Center(
+                              child: Text(
+                                "No favourites yet",
+                                style: TextStyle(
+                                  color: AppColors.primaryWhiteColor,
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+
+                        return ListView.builder(
+                          physics: const NeverScrollableScrollPhysics(),
+                          shrinkWrap: true,
+                          itemCount: cafeList.length,
+                          itemBuilder: (context, index) {
+                            final cafe = cafeList[index];
+                            final favCafe = _convertCafeToFavCafe(cafe);
+                            final isThisCafeLoading = state.toggledCafeIndex == index;
+
+                            return FavListCard(
+                              cafes: favCafe,
+                              index: index,
+                              isLoading: isThisCafeLoading,
+                            );
+                          },
+                        );
+                      }
+
+                      // Handle error state
+                      else if (state is FavListError) {
                         return Center(
                           child: Padding(
                             padding: EdgeInsets.symmetric(vertical: 20.h),
@@ -207,6 +271,7 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                           ),
                         );
                       }
+
                       return const SizedBox(); // Fallback for unhandled states
                     },
                   ),

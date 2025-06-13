@@ -57,7 +57,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       if (password.isEmpty) {
         passwordError = 'Password is required';
       } else if (password.length < 6) {
-        passwordError = 'Password must be at least 6 characters';
+        passwordError = 'Invalid password';
       }
 
       if (emailError != null || passwordError != null) {

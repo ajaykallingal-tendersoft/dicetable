@@ -52,7 +52,8 @@ class ProfileOpeningHoursWidget extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Row(
+          !isEnabled
+              ? Row(
             children: [
               SizedBox(
                 height: 35,
@@ -71,26 +72,73 @@ class ProfileOpeningHoursWidget extends StatelessWidget {
                   ),
                 ),
               ),
+              const SizedBox(width: 8), // Small spacing between Switch and Day
+              Text(
+                day,
+                style: TextTheme.of(context).labelLarge!.copyWith(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                  color: AppColors.primary,
+                ),
+              ),
+              // const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  'Closed',
+                  textAlign: TextAlign.center,
+                  style: TextTheme.of(context).bodyMedium!.copyWith(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.timeTextColor,
+                  ),
+                ),
+              ),
+              Icon(
+                Icons.expand_more,
+                color: AppColors.textPrimaryGrey,
+              ),
+            ],
+          )
+              : Row(
+            children: [
+              SizedBox(
+                height: 35,
+                width: 55,
+                child: FittedBox(
+                  fit: BoxFit.fill,
+                  child: Switch(
+                    activeColor: AppColors.primaryWhiteColor,
+                    activeTrackColor: AppColors.tertiary,
+                    inactiveThumbColor: AppColors.disabledColor,
+                    inactiveTrackColor: AppColors.primaryWhiteColor,
+                    value: isEnabled,
+                    onChanged: (val) {
+                      onChanged(data.copyWith(isEnabled: val));
+                    },
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   day,
-                  style: TextTheme.of(context).bodyMedium!.copyWith(
-                    fontWeight: FontWeight.w700,
+                  style: TextTheme.of(context).labelLarge!.copyWith(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
                     color: AppColors.primary,
                   ),
                 ),
               ),
               Text(
-                isEnabled ? displayTime : '',
+                displayTime,
                 style: TextTheme.of(context).bodyMedium!.copyWith(
                   fontWeight: FontWeight.w600,
                   color: AppColors.timeTextColor,
                 ),
               ),
               const SizedBox(width: 10),
-              const Icon(
+              Icon(
                 Icons.expand_more,
-                color: AppColors.textPrimaryGrey,
+                color: AppColors.timeTextColor,
               ),
             ],
           ),

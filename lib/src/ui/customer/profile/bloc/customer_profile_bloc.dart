@@ -1,10 +1,13 @@
 import 'package:bloc/bloc.dart';
+import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/model/customer/profile/customer_get_profile_response.dart';
 import 'package:dicetable/src/model/customer/profile/customer_profile_update_request.dart';
 import 'package:dicetable/src/model/customer/profile/customer_update_profile_response.dart';
 import 'package:dicetable/src/model/state_model.dart';
 import 'package:dicetable/src/resources/api_providers/customer/profile_data_provider.dart';
 import 'package:equatable/equatable.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 
 part 'customer_profile_event.dart';
@@ -33,6 +36,7 @@ class CustomerProfileBloc extends Bloc<CustomerProfileEvent, CustomerProfileStat
         emit(state.copyWith(
           isLoading: false,
           profile: stateModel.value,
+          isEditMode: false,
         ));
       } else if (stateModel is ErrorState) {
         emit(state.copyWith(
@@ -152,6 +156,13 @@ class CustomerProfileBloc extends Bloc<CustomerProfileEvent, CustomerProfileStat
             profile: getStateModel.value,
             errorMessage: null,
           ));
+          Fluttertoast.showToast(
+            backgroundColor: AppColors.primaryWhiteColor,
+            textColor: AppColors.appGreenColor,
+            gravity: ToastGravity.BOTTOM,
+            msg: "Profile updated successfully!",
+          );
+
         } else {
           emit(state.copyWith(
             isLoading: false,

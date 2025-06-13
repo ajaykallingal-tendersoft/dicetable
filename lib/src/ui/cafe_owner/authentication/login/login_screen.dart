@@ -64,7 +64,6 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _ensureVisible(GlobalKey key) {
-    // Delay slightly to allow keyboard to appear
     Future.delayed(Duration(milliseconds: 300), () {
       if (key.currentContext != null) {
         Scrollable.ensureVisible(
@@ -75,43 +74,6 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     });
   }
-
-  // void _handleLoginSuccess(
-  //     BuildContext context,
-  //     String token,
-  //     String cafeId,
-  //     String name, {
-  //       bool isGoogle = false,
-  //     }) {
-  //   ObjectFactory().prefs.setAuthToken(token: token);
-  //   ObjectFactory().prefs.setCafeUserName(cafeUserName: name);
-  //   ObjectFactory().prefs.setCafeId(cafeId: cafeId);
-  //
-  //   if (isGoogle) {
-  //     //
-  //     ObjectFactory().prefs.setCafeUserName(cafeUserName: name);
-  //     ObjectFactory().prefs.setCafeId(cafeId: cafeId);
-  //     ObjectFactory().prefs.setIsLoggedIn(true);
-  //   } else {
-  //     // if(ObjectFactory().prefs.isEmailVerified() == false) {
-  //     //   ObjectFactory().prefs.setIsLoggedIn(false);
-  //     // }else {
-  //     //   ObjectFactory().prefs.setIsLoggedIn(true);
-  //     //
-  //     // }
-  //   }
-
-  //   context.go('/home');
-  //
-  //   Fluttertoast.showToast(
-  //     backgroundColor: AppColors.primaryWhiteColor,
-  //     textColor: AppColors.appGreenColor,
-  //     gravity: ToastGravity.BOTTOM,
-  //     msg: isGoogle
-  //         ? "Successfully Logged In with Google."
-  //         : "Successfully Logged In.",
-  //   );
-  // }
 
 
   @override
@@ -133,9 +95,9 @@ class _LoginScreenState extends State<LoginScreen> {
               debugPrint('Login state: $state');
 
               if (state is LoginLoadingState) {
-                EasyLoading.show(status: 'Please wait...');
+                EasyLoading.show();
               } else if (state is GoogleLoginLoading) {
-                EasyLoading.show(status: 'Please wait...');
+                EasyLoading.show();
               } else {
                 EasyLoading.dismiss();
               }
@@ -595,7 +557,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                               Gap(30),
                                               LoginOrSignupPrompt(
                                                 spanText:
-                                                    'Dont have an account yet',
+                                                    'Don\'t have an account yet',
                                                 promptText: 'Sign Up Now',
                                                 onSignInTap: () {
                                                   context.push('/signup',

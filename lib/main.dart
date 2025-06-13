@@ -1,34 +1,138 @@
+import 'dart:async';
+import 'dart:isolate';
 import 'package:dicetable/src/constants/app_colors.dart';
+import 'package:dicetable/src/utils/data/notification_service.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'app.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-
+import 'app.dart';
 import 'app_bloc_observer.dart';
 
-//
-// Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message)async {
-//   await Firebase.initializeApp();
-// }
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
-  Bloc.observer = AppBlocObserver();
-  runApp(App());
+}
 
-  // FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
-  // FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-  // FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  ///Setting prefs
-  final SharedPreferences sharedPreferences =
-  await SharedPreferences.getInstance();
-  ObjectFactory().setPrefs(sharedPreferences);
+Future<void> main() async {
+  await runZonedGuarded<Future<void>>(() async {
+    WidgetsFlutterBinding.ensureInitialized();
 
-  ///setting Overlay
+    Bloc.observer = AppBlocObserver();
+
+    // Set custom error widget to prevent red screen
+    ErrorWidget.builder = (FlutterErrorDetails details) {
+      return Material(
+        color: AppColors.primary,
+        child: Center(
+          child: Text(
+            'Oops! Something went wrong.',
+            style: TextStyle(color: AppColors.appRedColor, fontSize: 18),
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    };
+
+    await _initializeApp();
+    runApp(App());
+  }, _handleUncaughtError);
+}
+
+Future<void> _initializeApp() async {
+  try {
+    // Firebase init
+    await Firebase.initializeApp();
+
+    // Error handlers (Flutter, PlatformDispatcher, Isolate)
+    await _setupErrorHandlers();
+
+    // App dependencies (prefs, system UI)
+    await _initializeAppDependencies();
+
+    // Initialize notifications after dependencies are set up
+    await _initializeNotifications();
+
+    // Loading configuration
+    configLoading();
+
+    // Register background handler
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
+  } catch (e, st) {
+    _handleInitializationError(e, st);
+    rethrow;
+  }
+}
+Future<void> handleAutoBackupOnFreshInstall() async {
+  final prefs = await SharedPreferences.getInstance();
+  const String installKey = 'hasBeenInitialized';
+
+  final isInitialized = prefs.getBool(installKey) ?? false;
+
+  if (!isInitialized) {
+    // This means it's a fresh install or first time launch
+    await prefs.clear(); // clear auto-restored values
+    await prefs.setBool(installKey, true); // set flag
+  }
+}
+Future<void> _initializeNotifications() async {
+  try {
+    final notificationService = NotificationServices();
+    await notificationService.initializeWithoutContext();
+
+    if (kDebugMode) {
+      print('Notifications initialized successfully');
+    }
+  } catch (e) {
+    if (kDebugMode) {
+      print('Failed to initialize notifications: $e');
+    }
+    // Don't rethrow - notifications are not critical for app startup
+  }
+}
+Future<void> _setupErrorHandlers() async {
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    _logError(details.exception, details.stack);
+  };
+
+  PlatformDispatcher.instance.onError = (error, stack) {
+    _logError(error, stack);
+    return true;
+  };
+
+  Isolate.current.addErrorListener(RawReceivePort((pair) {
+    final List<dynamic> errorAndStacktrace = pair;
+    final error = errorAndStacktrace[0];
+    final stackTrace = errorAndStacktrace[1];
+    _logError(error, stackTrace);
+  }).sendPort);
+}
+
+Future<void> _initializeAppDependencies() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+
+  const String installKey = 'hasBeenInitialized';
+  final isInitialized = prefs.getBool(installKey) ?? false;
+
+  if (!isInitialized) {
+    await prefs.clear();
+
+    // Re-fetch to avoid stale or corrupted prefs instance
+    prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(installKey, true);
+
+    print("Fresh install detected. Preferences cleared.");
+  }
+
+  ObjectFactory().setPrefs(prefs);
+
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
@@ -36,6 +140,40 @@ Future<void> main() async {
       statusBarBrightness: Brightness.light,
     ),
   );
+}
+
+
+void _handleUncaughtError(Object error, StackTrace stackTrace) {
+  _logError(error, stackTrace);
+}
+
+void _handleInitializationError(Object error, StackTrace stackTrace) {
+  _logError(error, stackTrace);
+}
+
+void _logError(Object error, StackTrace? stackTrace) {
+  try {
+    if (kDebugMode) {
+      debugPrint('ERROR: $error');
+      if (stackTrace != null) debugPrintStack(stackTrace: stackTrace);
+    }
+
+    // Future integration: FirebaseCrashlytics.instance.recordError(...);
+    _storeErrorLocally(error, stackTrace);
+  } catch (_) {
+    debugPrint('Failed to log error');
+  }
+}
+
+void _storeErrorLocally(Object error, StackTrace? stackTrace) {
+  final errorLog = {
+    'timestamp': DateTime.now().toIso8601String(),
+    'error': error.toString(),
+    'stackTrace': stackTrace?.toString(),
+  };
+
+  // Save to disk, DB, shared prefs etc.
+  debugPrint('🪵 Stored error: $errorLog');
 }
 
 void configLoading() {

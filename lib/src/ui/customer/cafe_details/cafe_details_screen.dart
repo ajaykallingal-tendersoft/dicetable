@@ -6,6 +6,7 @@ import 'package:dicetable/src/model/customer/booking/withdraw_booking_request.da
 import 'package:dicetable/src/model/customer/cafe/cafe_list_response.dart';
 import 'package:dicetable/src/model/customer/cafe/favourite_list_response.dart';
 import 'package:dicetable/src/ui/customer/cafe_details/widget/cafe_details_card.dart';
+import 'package:dicetable/src/ui/customer/cafe_list/bloc/cafe_list_bloc.dart';
 import 'package:dicetable/src/ui/customer/cafe_list/components/cafe_details_arguments.dart';
 import 'package:dicetable/src/ui/customer/favourites/widget/fav_details_argument.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
@@ -43,7 +44,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
   late final List<dynamic> _openingHours;
   late final String _id;
   late final bool _isFromFavorites;
-  late final bool _bookingStatus;
+  late bool _bookingStatus;
 
   @override
   void initState() {
@@ -83,27 +84,49 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
   Widget build(BuildContext context) {
     return BlocListener<CafeDetailsBloc, CafeDetailsState>(
       listener: (context, state) {
-        if (state is CafeBookingLoaded) {
-          EasyLoading.dismiss();
+        if (state is CafeBookingLoading) {
+          if (!_isLoadingDialogShown) {
+            _showLoadingDialog(context);
+            _isLoadingDialogShown = true;
+          }
+        } else if (state is CafeBookingLoaded) {
           if (_isLoadingDialogShown) {
-            context.pop();
+            Navigator.of(
+              context,
+              rootNavigator: true,
+            ).pop(); // Dismiss the loading dialog
             _isLoadingDialogShown = false;
           }
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Booking confirmed successfully!'),
-              backgroundColor: AppColors.appGreenColor,
-              duration: Duration(seconds: 3),
-            ),
-          );
+          if (state.bookingRequestResponse.status == true) {
+            setState(() {
+              _bookingStatus = true;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.bookingRequestResponse.message!),
+                backgroundColor: AppColors.appGreenColor,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  state.bookingRequestResponse.message ?? 'Booking failed',
+                ),
+                backgroundColor: AppColors.appRedColor,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
         } else if (state is CafeBookingError) {
-          EasyLoading.dismiss();
           if (_isLoadingDialogShown) {
-            context.pop();
+            Navigator.of(
+              context,
+              rootNavigator: true,
+            ).pop(); // Dismiss the loading dialog
             _isLoadingDialogShown = false;
           }
-
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.errorMessage),
@@ -111,11 +134,56 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
               duration: const Duration(seconds: 3),
             ),
           );
-        } else if (state is CafeBookingLoading) {
+        } else if (state is WithdrawBookingLoading) {
           if (!_isLoadingDialogShown) {
             _showLoadingDialog(context);
             _isLoadingDialogShown = true;
           }
+        } else if (state is WithdrawBookingLoaded) {
+          if (_isLoadingDialogShown) {
+            Navigator.of(
+              context,
+              rootNavigator: true,
+            ).pop(); // Dismiss the loading dialog
+            _isLoadingDialogShown = false;
+          }
+          if (state.withdrawBookingResponse.status == true) {
+            setState(() {
+              _bookingStatus = false;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.withdrawBookingResponse.message!),
+                backgroundColor: AppColors.appGreenColor,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  state.withdrawBookingResponse.message ?? 'Withdrawal failed',
+                ),
+                backgroundColor: AppColors.appRedColor,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+        } else if (state is WithdrawBookingError) {
+          if (_isLoadingDialogShown) {
+            Navigator.of(
+              context,
+              rootNavigator: true,
+            ).pop(); // Dismiss the loading dialog
+            _isLoadingDialogShown = false;
+          }
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.errorMessage),
+              backgroundColor: AppColors.appRedColor,
+              duration: const Duration(seconds: 3),
+            ),
+          );
         }
       },
       child: Scaffold(
@@ -128,12 +196,61 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
               fit: BoxFit.scaleDown,
               color: AppColors.primaryWhiteColor,
             ),
-            onPressed: () => context.pop(),
+            onPressed: () {
+              context.pop();
+
+              if( _isFromFavorites == false) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  // context.read<CafeListBloc>().add(GetCafeListEvent(cafeListRequest: null));
+                });
+              }else {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  // context.read<CafeListBloc>().add(GetFavListEvent());
+                });
+              }
+
+            },
           ),
+          actionsPadding: EdgeInsets.only(right: 10),
           actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 15),
-              child: SvgPicture.asset('assets/svg/notify.svg'),
+            InkWell(
+              onTap: () {
+                context.push('/notification');
+              },
+              child: Stack(
+                children: [
+                  const Icon(
+                    Icons.notifications_outlined,
+                    color: AppColors.primaryWhiteColor,
+                    size: 35,
+                  ),
+                  Positioned(
+                    right: 0,
+                    top: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: const BoxDecoration(
+                        color: AppColors.appRedColor,
+                        shape: BoxShape.circle,
+                      ),
+                      constraints: const BoxConstraints(
+                        minWidth: 16,
+                        minHeight: 16,
+                      ),
+                      child: const Center(
+                        child: Text(
+                          '8',
+                          style: TextStyle(
+                            color: AppColors.primaryWhiteColor,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -168,12 +285,19 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                   ),
                   const Gap(40),
                   InkWell(
-                    onTap: () => _showBookingDialog(context),
+                    onTap:
+                        () =>
+                            _bookingStatus == true
+                                ? _showWithdrawDialog(context)
+                                : _showBookingDialog(context),
                     child: ElevatedButtonWidget(
                       height: 70.h,
                       width: double.infinity,
                       iconEnabled: false,
-                      iconLabel:  "SHOW INTEREST",
+                      iconLabel:
+                          _bookingStatus
+                              ? "WITHDRAW INTEREST"
+                              : "SHOW INTEREST",
                       color: AppColors.primary,
                       textColor: AppColors.primaryWhiteColor,
                     ),
@@ -204,40 +328,132 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
               ),
               title: Text(
                 'Select Time & Table Type',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
+                style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                   color: AppColors.primary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16.sp,
                 ),
               ),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Check-in Time
                   TextField(
+                    // Input text style: Initially grey, can change dynamically if needed
+                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                      color: AppColors.textPrimaryGrey, // Default text color
+                      fontWeight: FontWeight.w500,
+                      fontSize: 15.sp,
+                    ),
                     controller: checkInController,
                     readOnly: true,
                     decoration: InputDecoration(
+                      // Label style: Initially grey
+                      labelStyle: Theme.of(
+                        context,
+                      ).textTheme.bodySmall!.copyWith(
+                        color: AppColors.textPrimaryGrey,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 15.sp,
+                      ),
                       labelText: 'Check-in Time',
-                      hintText: 'Select check-in time',
+                      // Hint style: Grey
+                      hintStyle: Theme.of(
+                        context,
+                      ).textTheme.bodySmall!.copyWith(
+                        color: AppColors.textPrimaryGrey,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 15.sp,
+                      ),
+                      hintText: 'Check-in time',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(
+                          color: AppColors.textPrimaryGrey,
+                        ), // Default border color
                       ),
-                      suffixIcon: const Icon(Icons.access_time),
+                      enabledBorder: OutlineInputBorder(
+                        // Border when enabled but not focused
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(
+                          color: AppColors.textPrimaryGrey,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        // Border when focused
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(
+                          color: AppColors.primary,
+                        ), // Primary color when focused
+                      ),
+                      floatingLabelStyle: Theme.of(
+                        context,
+                      ).textTheme.bodySmall!.copyWith(
+                        // Label when focused
+                        color: AppColors.primary, // Primary color when focused
+                        fontWeight: FontWeight.w500,
+                        fontSize: 15.sp,
+                      ),
+                      suffixIcon: const Icon(
+                        Icons.access_time,
+                        color: AppColors.textPrimaryGrey,
+                      ), // Default icon color
                     ),
                     onTap: () => _selectTime(dialogContext, checkInController),
                   ),
                   const SizedBox(height: 16),
                   // Check-out Time
                   TextField(
+                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                      color: AppColors.textPrimaryGrey, // Default text color
+                      fontWeight: FontWeight.w500,
+                      fontSize: 15.sp,
+                    ),
                     controller: checkOutController,
                     readOnly: true,
                     decoration: InputDecoration(
+                      labelStyle: Theme.of(
+                        context,
+                      ).textTheme.bodySmall!.copyWith(
+                        color: AppColors.textPrimaryGrey,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 15.sp,
+                      ),
                       labelText: 'Check-out Time',
-                      hintText: 'Select check-out time',
+                      hintStyle: Theme.of(
+                        context,
+                      ).textTheme.bodySmall!.copyWith(
+                        color: AppColors.textPrimaryGrey,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 15.sp,
+                      ),
+                      hintText: 'Check-out time',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(
+                          color: AppColors.textPrimaryGrey,
+                        ),
                       ),
-                      suffixIcon: const Icon(Icons.access_time),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(
+                          color: AppColors.textPrimaryGrey,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: AppColors.primary),
+                      ),
+                      floatingLabelStyle: Theme.of(
+                        context,
+                      ).textTheme.bodySmall!.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 15.sp,
+                      ),
+                      suffixIcon: const Icon(
+                        Icons.access_time,
+                        color: AppColors.textPrimaryGrey,
+                      ),
                     ),
                     onTap: () => _selectTime(dialogContext, checkOutController),
                   ),
@@ -246,17 +462,67 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                   DropdownButtonFormField<String>(
                     value: selectedDiceTableType,
                     decoration: InputDecoration(
+                      labelStyle: Theme.of(
+                        context,
+                      ).textTheme.bodySmall!.copyWith(
+                        color: AppColors.textPrimaryGrey,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 15.sp,
+                      ),
                       labelText: 'Table Type',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(
+                          color: AppColors.textPrimaryGrey,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(
+                          color: AppColors.textPrimaryGrey,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: AppColors.primary),
+                      ),
+                      floatingLabelStyle: Theme.of(
+                        context,
+                      ).textTheme.bodySmall!.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 15.sp,
                       ),
                     ),
-                    hint: const Text('Select table type'),
+                    hint: Text(
+                      'Select table type',
+                      style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                        color: AppColors.textPrimaryGrey,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14.sp,
+                      ),
+                    ),
+                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                      color: AppColors.textPrimaryGrey,
+                      // Default selected item text color
+                      fontWeight: FontWeight.w500,
+                      fontSize: 15.sp,
+                    ),
                     items:
                         _tableType.map((tableType) {
                           return DropdownMenuItem<String>(
                             value: tableType,
-                            child: Text(tableType),
+                            child: Text(
+                              tableType,
+                              style: Theme.of(
+                                context,
+                              ).textTheme.bodySmall!.copyWith(
+                                color: AppColors.primary,
+                                // Always primary color for items in the dropdown list
+                                fontWeight: FontWeight.w500,
+                                fontSize: 14.sp,
+                              ),
+                            ),
                           );
                         }).toList(),
                     onChanged: (String? newValue) {
@@ -275,10 +541,14 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
               ),
               actions: [
                 TextButton(
-                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  onPressed: () => dialogContext.pop(),
                   child: Text(
                     'Cancel',
-                    style: TextStyle(color: Colors.grey[600]),
+                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                      color: AppColors.shadowColor,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14.sp,
+                    ),
                   ),
                 ),
                 ElevatedButton(
@@ -289,7 +559,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                       selectedDiceTableType,
                       dialogContext,
                     )) {
-                      Navigator.of(dialogContext).pop();
+                      dialogContext.pop();
                       _bookNow(
                         context: context,
                         checkInTime: checkInController.text,
@@ -306,7 +576,83 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                   ),
                   child: Text(
                     'Book Now',
-                    style: TextStyle(color: AppColors.primaryWhiteColor),
+                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                      color: AppColors.primaryWhiteColor,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14.sp,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showWithdrawDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              title: Text(
+                'Are you sure?',
+                style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16.sp,
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    "Are you sure you want to withdraw your interest in this cafe? If you proceed, your active booking will be canceled. You will no longer have a reservation.",
+                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                      color: AppColors.textPrimaryGrey,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 15.sp,
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => dialogContext.pop(),
+                  child: Text(
+                    'Cancel',
+                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                      color: AppColors.shadowColor,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14.sp,
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    dialogContext.pop();
+                    _withdrawBooking();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    'Continue',
+                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                      color: AppColors.primaryWhiteColor,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14.sp,
+                    ),
                   ),
                 ),
               ],
@@ -357,7 +703,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
       ScaffoldMessenger.of(dialogContext).showSnackBar(
         SnackBar(
           content: Text(errors.join('\n')),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.appRedColor,
           duration: const Duration(seconds: 4),
         ),
       );
@@ -379,7 +725,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
           data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
           child: Theme(
             data: Theme.of(context).copyWith(
-              colorScheme: ColorScheme.light(primary: AppColors.primary),
+              colorScheme: const ColorScheme.light(primary: AppColors.primary),
             ),
             child: child!,
           ),
@@ -394,32 +740,25 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
     }
   }
 
-  Future<void> _withdrawBooking({
-    required BuildContext context,
-    required String checkInTime,
-    required String checkOutTime,
-    required String diceTableType,
-  }) async {
+  Future<void> _withdrawBooking() async {
     try {
-      final bookingRequest = WithdrawBookingRequest(
-        cafeId: _id,
-      );
+      final request = WithdrawBookingRequest(cafeId: _id);
 
       if (mounted) {
-        // context.read<CafeDetailsBloc>().add(
-        //   BookingRequestEvent(bookingRequest: bookingRequest),
-        // );
+        context.read<CafeDetailsBloc>().add(
+          WithdrawBookingRequestEvent(withdrawBookingRequest: request),
+        );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error creating booking request: ${e.toString()}'),
-            backgroundColor:AppColors.appRedColor,
+            backgroundColor: AppColors.appRedColor,
             duration: const Duration(seconds: 3),
           ),
         );
-        print('Booking error: $e');
+        debugPrint('Booking error: $e');
       }
     }
   }
@@ -457,11 +796,11 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error creating booking request: ${e.toString()}'),
-            backgroundColor:AppColors.appRedColor,
+            backgroundColor: AppColors.appRedColor,
             duration: const Duration(seconds: 3),
           ),
         );
-        print('Booking error: $e');
+        debugPrint('Booking error: $e');
       }
     }
   }
@@ -470,17 +809,30 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
-              ),
-              const SizedBox(height: 16),
-              const Text('Processing your booking...'),
-            ],
+      builder: (BuildContext dialogContext) {
+        return PopScope(
+          canPop: false,
+          child: AlertDialog(
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                RefreshProgressIndicator(
+                  backgroundColor: AppColors.primary,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    AppColors.primaryWhiteColor,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Processing your request...',
+                  style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14.sp,
+                  ),
+                ), // Generic message
+              ],
+            ),
           ),
         );
       },
@@ -492,7 +844,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
       final userId = ObjectFactory().prefs.getUserId();
       return userId?.toString() ?? '';
     } catch (e) {
-      print('Error getting user ID: $e');
+      debugPrint('Error getting user ID: $e');
       return '';
     }
   }
@@ -502,7 +854,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
       final userName = ObjectFactory().prefs.getCustomerUserName();
       return userName?.toString() ?? '';
     } catch (e) {
-      print('Error getting user name: $e');
+      debugPrint('Error getting user name: $e');
       return '';
     }
   }
@@ -512,7 +864,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
       final userMail = ObjectFactory().prefs.getCustomerUserMail();
       return userMail?.toString() ?? '';
     } catch (e) {
-      print('Error getting user email: $e');
+      debugPrint('Error getting user email: $e');
       return '';
     }
   }
@@ -529,7 +881,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
       }
       return '';
     } catch (e) {
-      print('Error getting device ID: $e');
+      debugPrint('Error getting device ID: $e');
       return '';
     }
   }

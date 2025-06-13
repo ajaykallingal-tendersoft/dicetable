@@ -1,4 +1,6 @@
 // card_item.dart
+import 'dart:ui';
+
 import 'package:dicetable/src/model/cafe_owner/home/venue_owner_home_screen_response.dart';
 
 import '../../../../model/cafe_owner/home/available_days.dart';

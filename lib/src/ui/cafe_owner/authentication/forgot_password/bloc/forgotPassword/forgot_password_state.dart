@@ -26,3 +26,23 @@ final class ForgotPasswordError extends ForgotPasswordState {
   @override
   List<Object> get props => [errorMessage];
 }
+
+
+
+final class ResendOtpLoading extends ForgotPasswordState {
+  @override
+  List<Object> get props => [];
+}
+
+final class ResendOtpSuccess extends ForgotPasswordState {
+  final ForgotPasswordRequestResponse forgotPasswordRequestResponse;
+  const ResendOtpSuccess({required this.forgotPasswordRequestResponse});
+  @override
+  List<Object> get props => [forgotPasswordRequestResponse];
+}
+final class ResendOtpError extends ForgotPasswordState {
+  final String errorMessage;
+  const ResendOtpError({required this.errorMessage});
+  @override
+  List<Object> get props => [errorMessage];
+}

@@ -1,56 +1,34 @@
 part of 'profile_bloc.dart';
 
-/*sealed class ProfileState extends Equatable {
-  const ProfileState();
-}*/
-
-final class ProfileInitial extends ProfileState {
-  @override
-  List<Object> get props => [];
-}
-
 class ProfileOpeningHour extends Equatable {
   final bool isEnabled;
   final TimeOfDay from;
   final TimeOfDay to;
-  final String day;
+  final int? id;
 
   const ProfileOpeningHour({
     required this.isEnabled,
     required this.from,
     required this.to,
-    required this.day,
+    this.id,
   });
 
   ProfileOpeningHour copyWith({
     bool? isEnabled,
     TimeOfDay? from,
     TimeOfDay? to,
+    int? id,
   }) {
     return ProfileOpeningHour(
       isEnabled: isEnabled ?? this.isEnabled,
       from: from ?? this.from,
       to: to ?? this.to,
-      day: day,
+      id: id ?? this.id,
     );
-  }
-
-  factory ProfileOpeningHour.fromJson(Map<String, dynamic> json) {
-    return ProfileOpeningHour(
-      isEnabled: json['is_open'] ?? false,
-      from: _parseTime(json['opening']),
-      to: _parseTime(json['closing']),
-      day: json['day'] ?? '',
-    );
-  }
-
-  static TimeOfDay _parseTime(String timeString) {
-    final parts = timeString.split(':');
-    return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
   }
 
   @override
-  List<Object?> get props => [isEnabled, from, to, day];
+  List<Object?> get props => [isEnabled, from, to, id];
 }
 
 class ProfileState extends Equatable {
@@ -58,37 +36,44 @@ class ProfileState extends Equatable {
   final String venueDescription;
   final String email;
   final String password;
-  final String confirmPassword;
   final String phone;
   final String address;
+  final String city;
   final String postalCode;
-  // final Map<String, bool> venueTypes;
+  final String venueType;
+  final List<VenueType> venueTypes;
+  final List<int> selectedVenueTypeIds;
   final Map<String, ProfileOpeningHour> openingHours;
   final XFile? image;
-  final CafeProfile? cafeProfile;
+  final String? blob;
+  final String? originalName;
+  final bool isEditMode;
+  final ProfileViewResponse? profileViewResponse;
+  final ProfileEditViewResponse? profileEditViewResponse;
+  final String? errorMessage;
+  final bool isLoading;
 
   const ProfileState({
     this.venueName = '',
     this.venueDescription = '',
     this.email = '',
     this.password = '',
-    this.confirmPassword = '',
     this.phone = '',
     this.address = '',
+    this.city = '',
     this.postalCode = '',
-    // this.venueTypes = const {
-    //   // 'Restuarant': true,
-    //   // 'Cafe': true,
-    //   // 'Bakeries': true,
-    //   // 'Dessert Venue': true,
-    //   // 'Pub&Bars': false,
-    //   // 'Clubs': false,
-    //   // 'Activity Venue': false,
-    //   // 'Hotel Restaurant/Cafe': false,
-    // },
+    this.venueType = "",
+    this.venueTypes = const [],
+    this.selectedVenueTypeIds = const [],
     this.openingHours = const {},
     this.image,
-    this.cafeProfile,
+    this.blob,
+    this.originalName,
+    this.isEditMode = false,
+    this.profileViewResponse,
+    this.profileEditViewResponse,
+    this.errorMessage,
+    this.isLoading = false,
   });
 
   ProfileState copyWith({
@@ -96,28 +81,48 @@ class ProfileState extends Equatable {
     String? venueDescription,
     String? email,
     String? password,
-    String? confirmPassword,
     String? phone,
     String? address,
+    String? city,
     String? postalCode,
-    Map<String, bool>? venueTypes,
+    String? venueType,
+    List<VenueType>? venueTypes,
+    List<int>? selectedVenueTypeIds,
     Map<String, ProfileOpeningHour>? openingHours,
     XFile? image,
-    CafeProfile? cafeProfile,
+    String? blob,
+    String? originalName,
+    bool? isEditMode,
+    ProfileViewResponse? profileViewResponse,
+    ProfileEditViewResponse? profileEditViewResponse,
+    String? errorMessage,
+    bool? isLoading,
   }) {
     return ProfileState(
       venueName: venueName ?? this.venueName,
       venueDescription: venueDescription ?? this.venueDescription,
       email: email ?? this.email,
       password: password ?? this.password,
-      confirmPassword: confirmPassword ?? this.confirmPassword,
       phone: phone ?? this.phone,
       address: address ?? this.address,
+      city: city ?? this.city,
       postalCode: postalCode ?? this.postalCode,
-      //  Cafes venueTypes: venueTypes ?? this.venueTypes,
-      openingHours: openingHours ?? this.openingHours,
+      venueType: venueType ?? this.venueType,
+      venueTypes: venueTypes != null ? List<VenueType>.from(venueTypes) : List<VenueType>.from(this.venueTypes),
+      selectedVenueTypeIds: selectedVenueTypeIds != null
+          ? List<int>.from(selectedVenueTypeIds)
+          : List<int>.from(this.selectedVenueTypeIds),
+      openingHours: openingHours != null
+          ? Map<String, ProfileOpeningHour>.from(openingHours)
+          : Map<String, ProfileOpeningHour>.from(this.openingHours),
       image: image ?? this.image,
-      cafeProfile: cafeProfile ?? this.cafeProfile,
+      blob: blob ?? this.blob,
+      originalName: originalName ?? this.originalName,
+      isEditMode: isEditMode ?? this.isEditMode,
+      profileViewResponse: profileViewResponse ?? this.profileViewResponse,
+      profileEditViewResponse: profileEditViewResponse ?? this.profileEditViewResponse,
+      errorMessage: errorMessage ?? this.errorMessage,
+      isLoading: isLoading ?? this.isLoading,
     );
   }
 
@@ -127,174 +132,318 @@ class ProfileState extends Equatable {
     venueDescription,
     email,
     password,
-    confirmPassword,
     phone,
     address,
+    city,
     postalCode,
-    // venueTypes,
+    venueType,
+    venueTypes,
+    selectedVenueTypeIds,
     openingHours,
     image,
-    cafeProfile,
+    blob,
+    originalName,
+    isEditMode,
+    profileViewResponse,
+    profileEditViewResponse,
+    errorMessage,
+    isLoading,
   ];
 }
 
-class ProfileImageLoadingState extends ProfileState {}
+class ProfileImageLoadingState extends ProfileState {
+  const ProfileImageLoadingState({
+    required super.venueName,
+    required super.venueDescription,
+    required super.email,
+    required super.password,
+    required super.phone,
+    required super.address,
+    required super.city,
+    required super.postalCode,
+    required super.venueType,
+    required super.venueTypes,
+    required super.selectedVenueTypeIds,
+    required super.openingHours,
+    super.image,
+    super.blob,
+    super.originalName,
+    required super.isEditMode,
+    super.profileViewResponse,
+    super.profileEditViewResponse,
+    super.errorMessage,
+  }) : super(isLoading: true);
+
+  factory ProfileImageLoadingState.fromState(ProfileState state) {
+    return ProfileImageLoadingState(
+      venueName: state.venueName,
+      venueDescription: state.venueDescription,
+      email: state.email,
+      password: state.password,
+      phone: state.phone,
+      address: state.address,
+      city: state.city,
+      postalCode: state.postalCode,
+      venueType: state.venueType,
+      venueTypes: state.venueTypes,
+      selectedVenueTypeIds: state.selectedVenueTypeIds,
+      openingHours: state.openingHours,
+      image: state.image,
+      blob: state.blob,
+      originalName: state.originalName,
+      isEditMode: state.isEditMode,
+      profileViewResponse: state.profileViewResponse,
+      profileEditViewResponse: state.profileEditViewResponse,
+      errorMessage: state.errorMessage,
+    );
+  }
+}
 
 class ProfileImageLoadedState extends ProfileState {
-  final XFile image;
+  const ProfileImageLoadedState({
+    required super.venueName,
+    required super.venueDescription,
+    required super.email,
+    required super.password,
+    required super.phone,
+    required super.address,
+    required super.city,
+    required super.postalCode,
+    required super.venueType,
+    required super.venueTypes,
+    required super.selectedVenueTypeIds,
+    required super.openingHours,
+    required super.image,
+    required super.blob,
+    required super.originalName,
+    required super.isEditMode,
+    super.profileViewResponse,
+    super.profileEditViewResponse,
+    super.errorMessage,
+  }) : super(isLoading: false);
 
-  const ProfileImageLoadedState({required this.image});
+  factory ProfileImageLoadedState.fromState(
+      ProfileState state, {
+        required XFile image,
+        required String blob,
+        required String originalName,
+      }) {
+    return ProfileImageLoadedState(
+      venueName: state.venueName,
+      venueDescription: state.venueDescription,
+      email: state.email,
+      password: state.password,
+      phone: state.phone,
+      address: state.address,
+      city: state.city,
+      postalCode: state.postalCode,
+      venueType: state.venueType,
+      venueTypes: state.venueTypes,
+      selectedVenueTypeIds: state.selectedVenueTypeIds,
+      openingHours: state.openingHours,
+      image: image,
+      blob: blob,
+      originalName: originalName,
+      isEditMode: state.isEditMode,
+      profileViewResponse: state.profileViewResponse,
+      profileEditViewResponse: state.profileEditViewResponse,
+      errorMessage: state.errorMessage,
+    );
+  }
 }
 
 class ProfileImageErrorState extends ProfileState {
+  const ProfileImageErrorState({
+    required super.venueName,
+    required super.venueDescription,
+    required super.email,
+    required super.password,
+    required super.phone,
+    required super.address,
+    required super.city,
+    required super.postalCode,
+    required super.venueType,
+    required super.venueTypes,
+    required super.selectedVenueTypeIds,
+    required super.openingHours,
+    super.image,
+    super.blob,
+    super.originalName,
+    required super.isEditMode,
+    super.profileViewResponse,
+    super.profileEditViewResponse,
+     super.errorMessage,
+  }) : super(isLoading: false);
+
+  factory ProfileImageErrorState.fromState(
+      ProfileState state, {
+         String? errorMessage,
+      }) {
+    return ProfileImageErrorState(
+      venueName: state.venueName,
+      venueDescription: state.venueDescription,
+      email: state.email,
+      password: state.password,
+      phone: state.phone,
+      address: state.address,
+      city: state.city,
+      postalCode: state.postalCode,
+      venueType: state.venueType,
+      venueTypes: state.venueTypes,
+      selectedVenueTypeIds: state.selectedVenueTypeIds,
+      openingHours: state.openingHours,
+      image: state.image,
+      blob: state.blob,
+      originalName: state.originalName,
+      isEditMode: state.isEditMode,
+      profileViewResponse: state.profileViewResponse,
+      profileEditViewResponse: state.profileEditViewResponse,
+      errorMessage: errorMessage,
+    );
+  }
+}
+
+class ProfileImagePermissionDeniedState extends ProfileState {
+  final bool isPermanentlyDenied;
+
+  const ProfileImagePermissionDeniedState({
+    required super.venueName,
+    required super.venueDescription,
+    required super.email,
+    required super.password,
+    required super.phone,
+    required super.address,
+    required super.city,
+    required super.postalCode,
+    required super.venueType,
+    required super.venueTypes,
+    required super.selectedVenueTypeIds,
+    required super.openingHours,
+    super.image,
+    super.blob,
+    super.originalName,
+    required super.isEditMode,
+    super.profileViewResponse,
+    super.profileEditViewResponse,
+     super.errorMessage,
+    required this.isPermanentlyDenied,
+  }) : super(isLoading: false);
+
+  factory ProfileImagePermissionDeniedState.fromState(
+      ProfileState state, {
+        required bool isPermanentlyDenied,
+        required String errorMessage,
+      }) {
+    return ProfileImagePermissionDeniedState(
+      venueName: state.venueName,
+      venueDescription: state.venueDescription,
+      email: state.email,
+      password: state.password,
+      phone: state.phone,
+      address: state.address,
+      city: state.city,
+      postalCode: state.postalCode,
+      venueType: state.venueType,
+      venueTypes: state.venueTypes,
+      selectedVenueTypeIds: state.selectedVenueTypeIds,
+      openingHours: state.openingHours,
+      image: state.image,
+      blob: state.blob,
+      originalName: state.originalName,
+      isEditMode: state.isEditMode,
+      profileViewResponse: state.profileViewResponse,
+      profileEditViewResponse: state.profileEditViewResponse,
+      errorMessage: errorMessage,
+      isPermanentlyDenied: isPermanentlyDenied,
+    );
+  }
+
+  @override
+  List<Object?> get props => [...super.props, isPermanentlyDenied];
+}
+
+class ProfileViewLoading extends ProfileState {
+  const ProfileViewLoading() : super(isLoading: true);
+}
+
+class ProfileViewLoaded extends ProfileState {
+  @override
+  final ProfileViewResponse profileViewResponse;
+  const ProfileViewLoaded({
+    required this.profileViewResponse,
+    required super.venueName,
+    required super.venueDescription,
+    required super.email,
+    required super.phone,
+    required super.address,
+    // required super.city, // Added
+    required super.postalCode,
+    required super.venueType,
+    required super.openingHours,
+  }) : super(
+    profileViewResponse: profileViewResponse,
+  );
+}
+
+class ProfileViewError extends ProfileState {
   final String errorMessage;
-
-  const ProfileImageErrorState({required this.errorMessage});
+  const ProfileViewError({required this.errorMessage}) : super(errorMessage: errorMessage);
 }
 
-class ProfileLoading extends ProfileState {}
-
-class ProfileLoaded extends ProfileState {
-  final Map<String, dynamic> profileData;
-
-  ProfileLoaded({required this.profileData});
+class ProfileEditViewLoading extends ProfileState {
+  const ProfileEditViewLoading() : super(isLoading: true);
 }
 
-class ProfileLoadError extends ProfileState {
+class ProfileEditViewLoaded extends ProfileState {
+  final ProfileEditViewResponse profileEditViewResponse;
+  const ProfileEditViewLoaded({
+    required this.profileEditViewResponse,
+    required String venueName,
+    required String venueDescription,
+    required String email,
+    required String phone,
+    required String address,
+    // required String city, // Added
+    required String postalCode,
+    required List<VenueType> venueTypes,
+    required List<int> selectedVenueTypeIds,
+    required Map<String, ProfileOpeningHour> openingHours,
+    XFile? image,
+    String? blob, // Added
+    String? originalName, // Added
+  }) : super(
+    profileEditViewResponse: profileEditViewResponse,
+    venueName: venueName,
+    venueDescription: venueDescription,
+    email: email,
+    phone: phone,
+    address: address,
+    // city: city,
+    postalCode: postalCode,
+    venueTypes: venueTypes,
+    selectedVenueTypeIds: selectedVenueTypeIds,
+    openingHours: openingHours,
+    image: image,
+    blob: blob,
+    originalName: originalName,
+    isEditMode: true,
+  );
+}
+class ProfileEditViewError extends ProfileState {
   final String errorMessage;
-
-  ProfileLoadError({required this.errorMessage});
+  const ProfileEditViewError({required this.errorMessage}) : super(errorMessage: errorMessage);
 }
 
-class CafeProfile {
-  final int id;
-  final String name;
-  final String venue_description;
-  final String email;
-  final String phone;
-  final String address;
-  final String city;
-  final String postcode;
-  final String photo;
-  final List<VenueType> venueTypes;
-  final List<OpeningHour> openingHours;
-
-  CafeProfile({
-    required this.id,
-    required this.name,
-    required this.venue_description,
-    required this.email,
-    required this.phone,
-    required this.address,
-    required this.city,
-    required this.postcode,
-    required this.photo,
-    required this.venueTypes,
-    required this.openingHours,
-  });
-
-  factory CafeProfile.fromJson(Map<String, dynamic> json) {
-    return CafeProfile(
-      id: json['id'],
-      name: json['name'],
-      venue_description: json['venue_description'],
-      email: json['email'],
-      phone: json['phone'],
-      address: json['address'],
-      city: json['city'],
-      postcode: json['postcode'],
-      photo: json['photo'],
-      venueTypes:
-          (json['venue_type'] as List)
-              .map((e) => VenueType.fromJson(e))
-              .toList(),
-      openingHours:
-          (json['opening_hours'] as List)
-              .map((e) => OpeningHour.fromJson(e))
-              .toList(),
-    );
-  }
-
-  CafeProfile copyWith({
-    int? id,
-    String? name,
-    String? venueDescription,
-    String? email,
-    String? phone,
-    String? address,
-    String? city,
-    String? postcode,
-    String? photo,
-    List<VenueType>? venueTypes,
-    List<OpeningHour>? openingHours,
-  }) {
-    return CafeProfile(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      venue_description: venueDescription ?? this.venue_description,
-      email: email ?? this.email,
-      phone: phone ?? this.phone,
-      address: address ?? this.address,
-      city: city ?? this.city,
-      postcode: postcode ?? this.postcode,
-      photo: photo ?? this.photo,
-      venueTypes: venueTypes ?? this.venueTypes,
-      openingHours: openingHours ?? this.openingHours,
-    );
-  }
+class ProfileUpdateLoading extends ProfileState {
+  const ProfileUpdateLoading() : super(isLoading: true);
 }
 
-class VenueType {
-  final int id;
-  final String title;
-  final bool status;
-  final bool selected;
-
-  VenueType({
-    required this.id,
-    required this.title,
-    required this.status,
-    this.selected = false,
-  });
-
-  factory VenueType.fromJson(Map<String, dynamic> json) {
-    return VenueType(
-      id: json['id'],
-      title: json['title'],
-      status: json['status'] == 1,
-      selected: json['selected'] ?? false,
-    );
-  }
-
-  VenueType copyWith({int? id, String? title, bool? status, bool? selected}) {
-    return VenueType(
-      id: id ?? this.id,
-      title: title ?? this.title,
-      status: status ?? this.status,
-      selected: selected ?? this.selected, // ✅ Important for toggle
-    );
-  }
+class ProfileUpdateSuccess extends ProfileState {
+  final ProfileUpdateResponse profileUpdateResponse;
+  const ProfileUpdateSuccess({required this.profileUpdateResponse});
 }
 
-class OpeningHour {
-  final String day;
-  bool isOpen;
-  String opening;
-  String closing;
-
-  OpeningHour({
-    required this.day,
-    required this.isOpen,
-    required this.opening,
-    required this.closing,
-  });
-
-  factory OpeningHour.fromJson(Map<String, dynamic> json) {
-    return OpeningHour(
-      day: json['day'],
-      isOpen: json['is_open'] == 1,
-      opening: json['opening'],
-      closing: json['closing'],
-    );
-  }
+class ProfileUpdateError extends ProfileState {
+  final String errorMessage;
+  const ProfileUpdateError({required this.errorMessage}) : super(errorMessage: errorMessage);
 }

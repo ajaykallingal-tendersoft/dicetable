@@ -1,6 +1,8 @@
 import 'package:dicetable/src/constants/app_colors.dart';
+import 'package:dicetable/src/model/customer/cafe/cafe_list_request.dart';
 import 'package:dicetable/src/ui/customer/cafe_list/bloc/cafe_list_bloc.dart';
 import 'package:dicetable/src/ui/customer/cafe_list/widget/cafe_list_container_widget.dart';
+import 'package:dicetable/src/ui/customer/cafe_list/widget/cafe_list_filter.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,6 +11,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+import 'package:dicetable/src/utils/data/object_factory.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+
 
 
 class CafeListScreen extends StatefulWidget {
@@ -19,13 +24,82 @@ class CafeListScreen extends StatefulWidget {
 }
 
 class _CafeListScreenState extends State<CafeListScreen> {
+  late final String latitude;
+  late final String longitude;
   @override
   void initState() {
     super.initState();
+    print("Latitude::${ObjectFactory().prefs.getLatitude().toString()}");
+    print("Latitude::${ObjectFactory().prefs.getLongitude().toString()}");
+
+    latitude = ObjectFactory().prefs.getLatitude().toString();
+    longitude = ObjectFactory().prefs.getLongitude().toString();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<CafeListBloc>().add(GetCafeListEvent());
+      _fetchCafeListWithLocation();
     });
   }
+  void _fetchCafeListWithLocation() {
+    final double? lat = latitude != null ? double.tryParse(latitude) : 0.0;
+    final double? lon = longitude != null ? double.tryParse(longitude) : 0.0;
+
+    if (lat != null && lon != null) {
+      context.read<CafeListBloc>().add(
+        GetCafeListEvent(
+          cafeListRequest: CafeListRequest(
+            latitude: lat,
+            longitude: lon,
+            diceTableFilter: [],
+            accommodationsFilter: [],
+            openTime: "",
+            closeTime: "",
+            search: "",
+          ),
+        ),
+      );
+    } else {
+      context.read<CafeListBloc>().add(
+        GetCafeListEvent(
+          cafeListRequest: CafeListRequest(
+            latitude: 0.0, // Fallback value
+            longitude: 0.0,
+            diceTableFilter: [],
+            accommodationsFilter: [],
+            openTime: "",
+            closeTime: "",
+            search: "",
+          ),
+        ),
+      );
+      Fluttertoast.showToast(
+        msg: "Location data unavailable. Using default location.",
+        toastLength: Toast.LENGTH_LONG,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: AppColors.appRedColor,
+        textColor: AppColors.primaryWhiteColor,
+      );
+    }
+  }
+  void showFilterBottomSheet(BuildContext context) async { // Make it async
+    await showModalBottomSheet(
+      constraints: BoxConstraints(
+        maxHeight: MediaQuery
+            .sizeOf(context)
+            .height * 0.9,
+        minWidth: double.infinity,
+      ),
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) =>
+          FractionallySizedBox(
+              child: const CafeListFilter()),
+    );
+
+    _fetchCafeListWithLocation();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -52,110 +126,117 @@ class _CafeListScreenState extends State<CafeListScreen> {
                   // context.read<CardCubit>().fetchCards();
                 },
               ),
-
-              SliverPadding(
-                padding:  EdgeInsets.symmetric(horizontal: 20.h, vertical: 20.h),
-                sliver: SliverAppBar(
-                  backgroundColor: Colors.transparent,
-                  expandedHeight: 140.h,
-                  leading: const SizedBox(),
-                  flexibleSpace: FlexibleSpaceBar(
-                    centerTitle: false,
-                    collapseMode: CollapseMode.parallax,
-                    stretchModes: const [
-                      StretchMode.zoomBackground,
-                    ],
-                    background: SizedBox.fromSize(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Dice Table",
-                                style: TextTheme.of(context).labelMedium!.copyWith(
-                                  color: AppColors.primaryWhiteColor,
-                                  fontWeight:  FontWeight.bold,
-                                  fontSize: 30.sp,
-                                ),
+              SliverAppBar(
+                pinned: false,
+                backgroundColor: Colors.transparent,
+                expandedHeight: 10.h,
+                leading: SizedBox.shrink(),
+                elevation: 0,
+                flexibleSpace: FlexibleSpaceBar(
+                  collapseMode: CollapseMode.parallax,
+                  background: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 20.h),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Dice Table",
+                              style: TextTheme.of(context).labelMedium!.copyWith(
+                                color: AppColors.primaryWhiteColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 30.sp,
                               ),
-                              InkWell(
-                                onTap: () {
-                                  context.push('/notification');
-                                },
-                                child: Stack(
-                                  children: [
-                                    const Icon(
-                                      Icons.notifications_outlined,
-                                      color: AppColors.primaryWhiteColor,
-                                      size: 35,
-                                    ),
-                                    // if (count > 0)
-                                    Positioned(
-                                      right: 0,
-                                      top: 0,
-                                      child: Container(
-                                        padding: const EdgeInsets.all(4),
-                                        decoration: const BoxDecoration(
-                                          color: AppColors.appRedColor,
-                                          shape: BoxShape.circle,
-                                        ),
-                                        constraints: const BoxConstraints(
-                                          minWidth: 16,
-                                          minHeight: 16,
-                                        ),
-                                        child: Center(
-                                          child: Text(
-                                            '8',
-                                            style: const TextStyle(
-                                              color: AppColors.primaryWhiteColor,
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
-                                            ),
+                            ),
+                            InkWell(
+                              onTap: () {
+                                context.push('/notification');
+                              },
+                              child: Stack(
+                                children: [
+                                  const Icon(
+                                    Icons.notifications_outlined,
+                                    color: AppColors.primaryWhiteColor,
+                                    size: 35,
+                                  ),
+                                  Positioned(
+                                    right: 0,
+                                    top: 0,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(4),
+                                      decoration: const BoxDecoration(
+                                        color: AppColors.appRedColor,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      constraints: const BoxConstraints(
+                                        minWidth: 16,
+                                        minHeight: 16,
+                                      ),
+                                      child: const Center(
+                                        child: Text(
+                                          '8',
+                                          style: TextStyle(
+                                            color: AppColors.primaryWhiteColor,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
                                           ),
                                         ),
                                       ),
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 10.h),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              SliverAppBar(
+                pinned: true,
+                backgroundColor: AppColors.primary,
+                automaticallyImplyLeading: false,
+                elevation: 0,
+                toolbarHeight: 50.h,
+                flexibleSpace: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20.h),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          "Cafes near by you",
+                          style: TextTheme.of(context).labelMedium!.copyWith(
+                            color: AppColors.primaryWhiteColor,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14.sp,
                           ),
-                          const Gap(20),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Cafes near by you",
-                                style: TextTheme.of(context).labelMedium!.copyWith(
-                                  color: AppColors.primaryWhiteColor,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 14.sp,
-                                ),
-                              ),
-                              IconButton(
-                                icon: SvgPicture.asset(
-                                  'assets/svg/search-filter.svg',
-                                  fit: BoxFit.scaleDown,
-                                  color: AppColors.primaryWhiteColor,
-                                ),
-                                onPressed: () {},
-                              ),
-                            ],
+                        ),
+                        IconButton(
+                          icon: SvgPicture.asset(
+                            'assets/svg/search-filter.svg',
+                            fit: BoxFit.scaleDown,
+                            color: AppColors.primaryWhiteColor,
                           ),
-                        ],
-                      ),
+                          onPressed: () => showFilterBottomSheet(context),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
               SliverPadding(
-                padding: EdgeInsets.only(bottom: 50),
+                padding: EdgeInsets.only(bottom: 10,top: 0),
                 sliver: SliverToBoxAdapter(
                   child: BlocConsumer<CafeListBloc, CafeListState>(
                     listener: (context, state) {
-                      // Handle error states or show success messages
                       if (state is CafeListError) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
@@ -166,32 +247,45 @@ class _CafeListScreenState extends State<CafeListScreen> {
                       }
                     },
                     builder: (context, state) {
+                      final double? lat = latitude != null ? double.tryParse(latitude) : null;
+                      final double? lon = longitude != null ? double.tryParse(longitude) : null;
                       if (state is CafeListLoading) {
                         EasyLoading.show();
                       } else if (state is CafeListLoaded) {
                         EasyLoading.dismiss();
+                        if (state.cafeListResponse.cafes != null && state.cafeListResponse.cafes!.isNotEmpty) {
+                          return ListView.builder(
+                            physics: NeverScrollableScrollPhysics(),
+                            shrinkWrap: true,
+                            itemCount: state.cafeListResponse.cafes!.length,
+                            itemBuilder: (context, index) {
+                              final cafe = state.cafeListResponse.cafes![index];
+                              return CafeListCard(
+                                cafes: cafe,
+                                isLoading: false,
+                                onFavoriteToggle: () => context.read<CafeListBloc>().add(
+                                    ToggleFavoriteEvent(index)
+                                ),
+                              );
+                            },
+                          );
+                        } else {
+                          return Center(
+                            child: Text(
+                              'No cafes found.',
+                              style: TextStyle(color: AppColors.primaryWhiteColor),
+                            ),
+                          );
+                        }
+                      }
+                      else if (state is FavoriteToggleLoading) {
                         return ListView.builder(
+                          padding: EdgeInsets.zero,
                           physics: NeverScrollableScrollPhysics(),
                           shrinkWrap: true,
-                          itemCount: state.cafeListResponse.cafes!.length,
+                          itemCount: state.cafeListResponse!.cafes!.length,
                           itemBuilder: (context, index) {
-                            final cafe = state.cafeListResponse.cafes![index];
-                            return CafeListCard(
-                              cafes: cafe,
-                              isLoading: false, // No specific loading for this cafe
-                              onFavoriteToggle: () => context.read<CafeListBloc>().add(
-                                  ToggleFavoriteEvent(index)
-                              ),
-                            );
-                          },
-                        );
-                      } else if (state is FavoriteToggleLoading) {
-                        return ListView.builder(
-                          physics: NeverScrollableScrollPhysics(),
-                          shrinkWrap: true,
-                          itemCount: state.cafeListResponse.cafes!.length,
-                          itemBuilder: (context, index) {
-                            final cafe = state.cafeListResponse.cafes![index];
+                            final cafe = state.cafeListResponse!.cafes![index];
                             final isThisCafeLoading = state.toggledCafeIndex == index;
 
                             return CafeListCard(
@@ -238,7 +332,19 @@ class _CafeListScreenState extends State<CafeListScreen> {
                                 Gap(16),
                                 ElevatedButton(
                                   onPressed: () {
-                                    context.read<CafeListBloc>().add(GetCafeListEvent());
+                                    context.read<CafeListBloc>().add(
+                                      GetCafeListEvent(
+                                        cafeListRequest: CafeListRequest(
+                                          latitude: lat!,
+                                          longitude: lon!,
+                                          diceTableFilter: [],
+                                          accommodationsFilter: [],
+                                          openTime: "",
+                                          closeTime: "",
+                                          search: "",
+                                        ),
+                                      ),
+                                    );
                                   },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppColors.primaryWhiteColor,

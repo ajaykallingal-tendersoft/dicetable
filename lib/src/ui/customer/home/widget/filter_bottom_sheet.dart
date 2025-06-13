@@ -1,9 +1,17 @@
 import 'package:dicetable/src/constants/app_colors.dart';
+import 'package:dicetable/src/constants/assets.dart';
+import 'package:dicetable/src/model/customer/cafe/cafe_search_request.dart';
+import 'package:dicetable/src/model/customer/cafe/get_filter_options_response.dart';
+import 'package:dicetable/src/ui/customer/home/bloc/customer_home_bloc.dart';
 import 'package:dicetable/src/ui/customer/home/widget/styled_checkbox.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
+import 'package:go_router/go_router.dart';
+import 'package:lottie/lottie.dart';
 
 class FilterBottomSheet extends StatefulWidget {
   const FilterBottomSheet({super.key});
@@ -13,34 +21,158 @@ class FilterBottomSheet extends StatefulWidget {
 }
 
 class _FilterBottomSheetState extends State<FilterBottomSheet> {
-  TimeOfDay? openTime = const TimeOfDay(hour: 10, minute: 0);
-  TimeOfDay? closeTime = const TimeOfDay(hour: 14, minute: 0);
-  final List<String> tableTypes = [
-    'Business Networking',
-    'Social Solos',
-    'Solo Singles',
-    'Prime Time - Over 60’s',
-  ];
-  final List<String> venueTypes = [
-    'Resturant',
-    'Cafe',
-    'Bakeries',
-    'Dessert Venue',
-    'Pub&Bars',
-    'Clubs',
-    'Activity Venue',
-    'Hotel Restaurant/Cafe',
-  ];
-  final Set<String> selectedTableTypes = {
-    'Business Networking',
-    'Social Solos',
-  };
-  final Set<String> selectedVenueTypes = {'Resturant', 'Cafe', 'Bakeries'};
+  late Set<String> selectedTableTypes;
+  late Set<String> selectedVenueTypes;
+  late TimeOfDay openTime;
+  late TimeOfDay closeTime;
+
+  @override
+  void initState() {
+    super.initState();
+    final bloc = context.read<CustomerHomeBloc>();
+    selectedTableTypes = Set.from(bloc.selectedTableTypes);
+    selectedVenueTypes = Set.from(bloc.selectedVenueTypes);
+    openTime = bloc.openTime;
+    closeTime = bloc.closeTime;
+    bloc.add(GetFilterOptionsEvent());
+  }
+
+  Widget _buildActionButtons(GetFilterOptionsResponse filterResponse) {
+    return Column(
+      children: [
+        InkWell(
+          onTap: _clearAllFilters,
+          child: Container(
+            height: 40.h,
+            decoration: BoxDecoration(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            child: Center(
+              child: Text(
+                'Clear All Filters',
+                style: TextTheme
+                    .of(context)
+                    .labelMedium!
+                    .copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 14.sp,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ),
+          ),
+        ),
+        SizedBox(height: 16.h),
+        Row(
+          children: [
+            // Cancel Button
+            Expanded(
+              child: InkWell(
+                onTap: () => Navigator.pop(context),
+                child: Container(
+                  height: 50.h,
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryWhiteColor,
+                    border: Border.all(color: AppColors.primary, width: 1.5),
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'Cancel',
+                      style: TextTheme
+                          .of(context)
+                          .labelMedium!
+                          .copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16.sp,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(width: 16.w),
+            // Apply Button
+            Expanded(
+              child: InkWell(
+                onTap: () => _applyFilters(filterResponse),
+                child: Container(
+                  height: 50.h,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'Apply',
+                      style: TextTheme
+                          .of(context)
+                          .labelMedium!
+                          .copyWith(
+                        color: AppColors.primaryWhiteColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16.sp,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  void _clearAllFilters() {
+    setState(() {
+      openTime = const TimeOfDay(hour: 10, minute: 0);
+      closeTime = const TimeOfDay(hour: 14, minute: 0);
+      selectedTableTypes.clear();
+      selectedVenueTypes.clear();
+    });
+
+    final bloc = context.read<CustomerHomeBloc>();
+    bloc.add(const ClearFiltersEvent());
+  }
+
+  void _applyFilters(GetFilterOptionsResponse filterResponse) {
+    context.read<CustomerHomeBloc>().add(UpdateFiltersEvent(
+      selectedTableTypes: selectedTableTypes,
+      selectedVenueTypes: selectedVenueTypes,
+      openTime: openTime,
+      closeTime: closeTime,
+    ));
+
+    final List<String> diceTableTitles = selectedTableTypes.toList();
+    final List<String> venueTypeTitles = selectedVenueTypes.toList();
+
+    final String openTimeString =
+        '${openTime.hour.toString().padLeft(2, '0')}:${openTime.minute
+        .toString().padLeft(2, '0')}';
+    final String closeTimeString =
+        '${closeTime.hour.toString().padLeft(2, '0')}:${closeTime.minute
+        .toString().padLeft(2, '0')}';
+
+    final searchRequest = CafeSearchRequest(
+      search: "",
+      openTime: openTimeString,
+      closeTime: closeTimeString,
+      diceTableFilter: diceTableTitles,
+      accommodationsFilter: venueTypeTitles,
+    );
+
+    context.read<CustomerHomeBloc>().add(SearchCafesEvent(searchRequest));
+    context.pop();
+  }
 
   Future<void> pickTime(bool isOpen) async {
     final picked = await showTimePicker(
       context: context,
-      initialTime: isOpen ? openTime! : closeTime!,
+      initialTime: isOpen ? openTime : closeTime,
     );
     if (picked != null) {
       setState(() {
@@ -93,39 +225,135 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
             borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
           ),
           child: SingleChildScrollView(
-            physics: BouncingScrollPhysics(),
-            // controller: controller,
+            physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.all(26),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "FILTERS",
-                      style: TextTheme.of(context).bodyMedium!.copyWith(
-                        color: AppColors.textPrimaryGrey,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14.sp,
+            child: BlocConsumer<CustomerHomeBloc, CustomerHomeState>(
+              listener: (context, state) {
+                if (state is FilterOptionsLoading) {
+                  EasyLoading.show();
+                } else if (state is FilterOptionsLoaded ||
+                    state is FilterOptionsError) {
+                  EasyLoading.dismiss();
+                }
+                if (state is FiltersUpdated) {
+                  setState(() {
+                    selectedTableTypes = Set.from(state.selectedTableTypes);
+                    selectedVenueTypes = Set.from(state.selectedVenueTypes);
+                    openTime = state.openTime;
+                    closeTime = state.closeTime;
+                  });
+                } else if (state is FiltersCleared) {
+                  setState(() {
+                    selectedTableTypes.clear();
+                    selectedVenueTypes.clear();
+                    openTime = const TimeOfDay(hour: 10, minute: 0);
+                    closeTime = const TimeOfDay(hour: 14, minute: 0);
+                  });
+                }
+              },
+              builder: (context, state) {
+                if (state is FilterOptionsLoaded &&
+                    state.getFilterOptionsResponse.diceTables!.isNotEmpty &&
+                    state.getFilterOptionsResponse.venueTypes!.isNotEmpty) {
+                  final List<String> tableTypes = state.getFilterOptionsResponse
+                      .diceTables!
+                      .map((diceTable) => diceTable.title ?? '')
+                      .where((title) => title.isNotEmpty)
+                      .toList();
+
+                  final List<String> venueTypes = state.getFilterOptionsResponse
+                      .venueTypes!
+                      .map((venueType) => venueType.title ?? '')
+                      .where((title) => title.isNotEmpty)
+                      .toList();
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "FILTERS",
+                            style: TextTheme
+                                .of(context)
+                                .bodyMedium!
+                                .copyWith(
+                              color: AppColors.textPrimaryGrey,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14.sp,
+                            ),
+                          ),
+                          IconButton(
+                            icon: SvgPicture.asset(
+                                'assets/svg/filter-close.svg'),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
                       ),
+                      Gap(30.h),
+                      _buildSectionTitle("HOURS"),
+                      _buildHoursPicker(),
+                      Gap(20.h),
+                      _buildSectionTitle("TYPE OF TABLE"),
+                      _buildCustomCheckboxList(tableTypes, selectedTableTypes,
+                          _updateSelectedTableType),
+                      Gap(20.h),
+                      _buildSectionTitle("VENUE TYPE"),
+                      _buildCustomCheckboxGrid(venueTypes, selectedVenueTypes,
+                          _updateSelectedVenueType),
+                      Gap(30.h),
+                      _buildActionButtons(state.getFilterOptionsResponse),
+                    ],
+                  );
+                } else if (state is FilterOptionsError) {
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Error loading filters: ${state.message}',
+                          style: TextTheme
+                              .of(context)
+                              .bodyMedium!
+                              .copyWith(
+                            color: AppColors.primary,
+                            fontSize: 14.sp,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 16.h),
+                        ElevatedButton(
+                          onPressed: () =>
+                              context.read<CustomerHomeBloc>().add(
+                                  GetFilterOptionsEvent()),
+                          child: Text(
+                            'Retry',
+                            style: TextTheme
+                                .of(context)
+                                .labelMedium!
+                                .copyWith(
+                              color: AppColors.primaryWhiteColor,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16.sp,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 20.w, vertical: 10.h),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.r),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    IconButton(
-                      icon: SvgPicture.asset('assets/svg/filter-close.svg',),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ],
-                ),
-                Gap(30.h),
-                _buildSectionTitle("HOURS"),
-                _buildHoursPicker(),
-                Gap(20.h),
-                _buildSectionTitle("TYPE OF TABLE"),
-                _buildCustomCheckboxList(tableTypes, selectedTableTypes, _updateSelectedTableType),
-                Gap(20.h),
-                _buildSectionTitle("VENUE TYPE"),
-                _buildCustomCheckboxGrid(venueTypes, selectedVenueTypes, _updateSelectedVenueType),
-              ],
+                  );
+                }
+                return  Center(child: Lottie.asset(
+                    Assets.JUMBING_DOT, width: 40, height: 40));
+              },
             ),
           ),
         );
@@ -138,7 +366,10 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Text(
         title,
-        style: TextTheme.of(context).labelMedium!.copyWith(
+        style: TextTheme
+            .of(context)
+            .labelMedium!
+            .copyWith(
           color: AppColors.primary,
           fontWeight: FontWeight.bold,
           fontSize: 16.sp,
@@ -150,7 +381,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   Widget _buildHoursPicker() {
     return Container(
       height: 98.h,
-      padding: EdgeInsets.all(10),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: AppColors.primaryWhiteColor,
         borderRadius: BorderRadius.circular(15.r),
@@ -159,21 +390,27 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
       child: Row(
         children: [
           Expanded(
-            child: _buildTimeField("Open", openTime!, () => pickTime(true)),
+            child: _buildTimeField("Open", openTime, () => pickTime(true)),
           ),
           Align(
             alignment: Alignment.center,
             child: Padding(
               padding: const EdgeInsets.only(left: 10, top: 10, right: 28),
-              child: Text("To",  style: TextTheme.of(context).bodySmall!.copyWith(
-                color: AppColors.timeTextColor,
-                fontWeight: FontWeight.w600,
-                fontSize: 12.sp,
-              ),),
+              child: Text(
+                "To",
+                style: TextTheme
+                    .of(context)
+                    .bodySmall!
+                    .copyWith(
+                  color: AppColors.timeTextColor,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12.sp,
+                ),
+              ),
             ),
           ),
           Expanded(
-            child: _buildTimeField("Close", closeTime!, () => pickTime(false)),
+            child: _buildTimeField("Close", closeTime, () => pickTime(false)),
           ),
         ],
       ),
@@ -184,14 +421,18 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label,
-          style: TextTheme.of(context).bodySmall!.copyWith(
+        Text(
+          label,
+          style: TextTheme
+              .of(context)
+              .bodySmall!
+              .copyWith(
             color: AppColors.shadowColor,
             fontWeight: FontWeight.w600,
             fontSize: 14.sp,
           ),
         ),
-         SizedBox(height: 4.h),
+        SizedBox(height: 4.h),
         InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(8),
@@ -210,10 +451,16 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                SvgPicture.asset('assets/svg/f-clock.svg',fit: BoxFit.scaleDown,),
+                SvgPicture.asset(
+                  'assets/svg/f-clock.svg',
+                  fit: BoxFit.scaleDown,
+                ),
                 Text(
                   time.format(context),
-                  style: TextTheme.of(context).bodySmall!.copyWith(
+                  style: TextTheme
+                      .of(context)
+                      .bodySmall!
+                      .copyWith(
                     color: AppColors.timeTextColor,
                     fontWeight: FontWeight.w600,
                     fontSize: 12.sp,
@@ -224,7 +471,6 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                   color: AppColors.timeTextColor,
                   size: 15,
                 ),
-                // const Icon(Icons.keyboard_arrow_down),
               ],
             ),
           ),
@@ -233,9 +479,10 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     );
   }
 
-  Widget _buildCustomCheckboxList(List<String> items, Set<String> selectedSet, Function(String, bool) onChanged) {
+  Widget _buildCustomCheckboxList(List<String> items, Set<String> selectedSet,
+      Function(String, bool) onChanged) {
     return Container(
-      padding: EdgeInsets.all(10),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: AppColors.primaryWhiteColor,
         border: Border.all(color: AppColors.filterContentBorder),
@@ -256,11 +503,16 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(item,  style: TextTheme.of(context).labelMedium!.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14.sp,
-                  ),
+                  child: Text(
+                    item,
+                    style: TextTheme
+                        .of(context)
+                        .labelMedium!
+                        .copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14.sp,
+                    ),
                   ),
                 ),
               ],
@@ -270,9 +522,10 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
       ),
     );
   }
-  Widget _buildCustomCheckboxGrid(List<String> items, Set<String> selectedSet, Function(String, bool) onChanged) {
+
+  Widget _buildCustomCheckboxGrid(List<String> items, Set<String> selectedSet,
+      Function(String, bool) onChanged) {
     return Container(
-      // height: 175.h,
       decoration: BoxDecoration(
         color: AppColors.primaryWhiteColor,
         border: Border.all(color: AppColors.filterContentBorder),
@@ -280,11 +533,11 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
       ),
       padding: const EdgeInsets.all(8.0),
       child: GridView.builder(
-        shrinkWrap: true, // Important to use within a SingleChildScrollView
-        physics: ClampingScrollPhysics(), // Disable GridView's scrolling
+        shrinkWrap: true,
+        physics: const ClampingScrollPhysics(),
         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2, // Define the number of columns in your grid
-          childAspectRatio: 3, // Adjust as needed for the aspect ratio of each item
+          crossAxisCount: 2,
+          childAspectRatio: 3,
           crossAxisSpacing: 2.w,
           mainAxisSpacing: 2.h,
         ),
@@ -307,7 +560,10 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                 child: Text(
                   item,
                   textAlign: TextAlign.left,
-                  style: TextTheme.of(context).labelMedium!.copyWith(
+                  style: TextTheme
+                      .of(context)
+                      .labelMedium!
+                      .copyWith(
                     color: AppColors.primary,
                     fontWeight: FontWeight.w600,
                     fontSize: 14.sp,

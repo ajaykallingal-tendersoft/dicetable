@@ -13,6 +13,8 @@ class GoogleSignUpRequest {
   final List<String>? accommodations;
   final Map<String, Map<String, dynamic>>? workingDays;
   final String? blob;
+  final String? fcmToken;
+
 
 
   GoogleSignUpRequest({
@@ -30,6 +32,8 @@ class GoogleSignUpRequest {
     this.accommodations,
     this.workingDays,
     this.blob,
+    this.fcmToken,
+
   });
 
   Map<String, dynamic> toJson() {
@@ -76,6 +80,10 @@ class GoogleSignUpRequest {
     if (blob != null) {
       json['blob'] = blob;
     }
+    if (fcmToken != null) {
+      json['fcm_token'] = fcmToken;
+    }
+
 
     return json;
   }

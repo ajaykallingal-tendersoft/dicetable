@@ -159,7 +159,7 @@ class AppRouter {
             pageBuilder: (BuildContext context, GoRouterState state) {
               return CustomTransitionPage<void>(
                 key: state.pageKey,
-                child:  ForgotPasswordOtpScreen(email: state.extra as String),
+                child:  ForgotPasswordOtpScreen(resetArguments: state.extra as ResetArguments),
                 transitionDuration: const Duration(milliseconds: 300),
                 transitionsBuilder: (
                     BuildContext context,

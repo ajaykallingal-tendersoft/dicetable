@@ -13,6 +13,9 @@ class LoginRequestResponse {
   final String? message;
   final String? error;
   final Map<String, dynamic>? errors;
+  final String? expiresAt;
+  final int? otpLength;
+  final int? resendAvailableInSeconds;
 
   LoginRequestResponse({
     this.status,
@@ -23,6 +26,9 @@ class LoginRequestResponse {
     this.cafeId,
     this.error,
     this.errors,
+    this.expiresAt,
+    this.otpLength,
+    this.resendAvailableInSeconds,
   });
 
   factory LoginRequestResponse.fromJson(Map<String, dynamic> json) => LoginRequestResponse(
@@ -34,6 +40,9 @@ class LoginRequestResponse {
     error: json["error"],
     errors: json["errors"],
     user: json["user"] != null ? User.fromJson(json["user"]) : null,
+    expiresAt: json["expiresAt"],
+    otpLength: json["otpLength"],
+    resendAvailableInSeconds: json["resendAvailableInSeconds"],
 
   );
 
@@ -47,6 +56,10 @@ class LoginRequestResponse {
     if (error != null) data["error"] = error;
     if (errors != null) data["errors"] = errors;
     if (user != null) data["user"] = user!.toJson();
+    if (expiresAt != null) data["expiresAt"] = expiresAt;
+    if (otpLength != null) data["otpLength"] = otpLength;
+    if (resendAvailableInSeconds != null) data["resendAvailableInSeconds"] = resendAvailableInSeconds;
+
     return data;
   }
 

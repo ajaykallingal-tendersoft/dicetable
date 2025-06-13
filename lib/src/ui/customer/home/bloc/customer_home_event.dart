@@ -26,3 +26,40 @@ class ResetSearchEvent extends CustomerHomeEvent {
   @override
   List<Object?> get props => [];
 }
+
+class GetFilterOptionsEvent extends CustomerHomeEvent {
+  @override
+  List<Object?> get props => [];
+}
+class UpdateFiltersEvent extends CustomerHomeEvent {
+  final Set<String> selectedTableTypes;
+  final Set<String> selectedVenueTypes;
+  final TimeOfDay openTime;
+  final TimeOfDay closeTime;
+
+  const UpdateFiltersEvent({
+    required this.selectedTableTypes,
+    required this.selectedVenueTypes,
+    required this.openTime,
+    required this.closeTime,
+  });
+
+  @override
+  List<Object> get props => [selectedTableTypes, selectedVenueTypes, openTime, closeTime];
+}
+
+class ClearFiltersEvent extends CustomerHomeEvent {
+  const ClearFiltersEvent();
+
+  @override
+  List<Object> get props => [];
+}
+
+
+class FetchLocationEvent extends CustomerHomeEvent {
+  final BuildContext context;
+  const FetchLocationEvent({required this.context});
+
+  @override
+  List<Object> get props => [context];
+}

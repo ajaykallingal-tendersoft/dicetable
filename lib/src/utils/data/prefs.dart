@@ -17,7 +17,7 @@ class Prefs {
   static const String _CAFE_USER_MAIL = "cafe_user_mail";
   static const String _CUSTOMER_MAIL = "customer_mail";
   static const String _CUSTOMER_USER_MAIL = "customer_user_mail";
-  static const String _CAFE_USER_PHONE = "cafe_user_phone";
+  static const String _CAFE_USER_PHONE = "_CAFE_USER_IMAGE";
   static const String _CAFE_USER_IMAGE = "cafe_user_image";
   static const String _USER_MAIL_VERIFIED = "_user_mail_verified";
   static const String _IS_GOOGLE = "is_google";
@@ -53,6 +53,11 @@ class Prefs {
   static const String _SET_GET_INT = "flag";
   static const String _SET_LANG = "Lang";
   static const String _IS_PROFILE_UPDATED = "is_PROFILE_UPDATED";
+  static const String _LATITUDE_ = "lat";
+  static const String _LONGITUDE_ = "long";
+  static const String _CLEAR_USER_IMAGE = "clear_image";
+  static const String _IS_FIRST_LAUNCH = "is_first_launch";
+  static const String _PENDING_NOTIFICATION_NAVIGATION = 'pending_notification_navigation';
 
 
 
@@ -62,6 +67,19 @@ class Prefs {
 
   set sharedPreferences(SharedPreferences value) {
     _sharedPreferences = value;
+  }
+
+
+  ///saving cafe user image
+  void setImageData({String? cafeUserImage}) {
+    _sharedPreferences!.setString(_CAFE_USER_IMAGE, cafeUserImage!);
+  }
+
+  ///get method  for cafe user image
+  String? getImageData() => _sharedPreferences?.getString(_CAFE_USER_IMAGE);
+
+  Future<void> clearImageData() async {
+    await _sharedPreferences!.remove('_CAFE_USER_IMAGE');
   }
 
   ///saving cafe user name
@@ -178,47 +196,24 @@ class Prefs {
   ///get method  for cafeID
   String? getCafeId() => _sharedPreferences!.getString(_CAFE_ID);
 
-  // ///saving  layout id
-  // void saveLayoutId({String? layoutId}) {
-  //   _sharedPreferences!.setString(_LAYOUT_ID, layoutId!);
-  // }
-  //
-  // ///get method  layout id
-  // String? getLayoutId() => _sharedPreferences!.getString(_LAYOUT_ID);
-  //
-  // ///saving  layout id
-  // void saveCompareCategoryId({String? categoryId}) {
-  //   _sharedPreferences!.setString(_COMPARE_CATEGORY_ID, categoryId!);
-  // }
-  //
-  // ///get method  for auth token
-  // String? getCompareCategoryId() =>
-  //     _sharedPreferences!.getString(_COMPARE_CATEGORY_ID);
-  //
-  // ///saving  layout id
-  // void saveCustomerNote({String? customerNote}) {
-  //   _sharedPreferences!.setString(_CUSTOMER_NOTE, customerNote!);
-  // }
-  //
-  // ///get method  for auth token
-  // String? getCustomerNote() => _sharedPreferences!.getString(_CUSTOMER_NOTE);
-  //
-  // ///saving  layout id
-  // void saveSortId({String? sortId}) {
-  //   _sharedPreferences!.setString(_SORT_ID, sortId!);
-  // }
-  //
-  // ///get method  for auth token
-  // String? getSortId() => _sharedPreferences!.getString(_SORT_ID);
-  //
-  // ///saving  layout id
-  // void saveFilterCategoryId({String? categoryId}) {
-  //   _sharedPreferences!.setString(_FILTER_CATEGORY_ID, categoryId!);
-  // }
-  //
-  // ///get method  for auth token
-  // String? getFilterCategoryId() =>
-  //     _sharedPreferences!.getString(_FILTER_CATEGORY_ID);
+  ///Get method for latitude
+  void setLatitude({String? lat}) {
+    _sharedPreferences!.setString(_LATITUDE_, lat!);
+  }
+
+  ///get method  for latitude
+  String? getLatitude() => _sharedPreferences!.getString(_LATITUDE_);
+
+
+
+  ///Get method for longitude
+  void setLongitude({String? long}) {
+    _sharedPreferences!.setString(_LONGITUDE_, long!);
+  }
+
+  ///get method  for longitude
+  String? getLongitude() => _sharedPreferences!.getString(_LONGITUDE_);
+
 
   ///saving  the auth token as a String
   void setFcmToken({String? token}) async {
@@ -227,6 +222,26 @@ class Prefs {
 
   ///get method  for auth token
   String? getFcmToken() => _sharedPreferences!.getString(_FCM_TOKEN);
+
+
+  /// Set First Launch
+  void setIsFirstLaunch(bool status) {
+    _sharedPreferences?.setBool(_IS_FIRST_LAUNCH, status);
+  }
+
+  /// Get First Launch
+  bool isFirstLaunch() {
+    return _sharedPreferences?.getBool(_IS_FIRST_LAUNCH) ?? true;
+  }
+
+  void setPendingNotificationNavigation(bool status) {
+    _sharedPreferences?.setBool(_PENDING_NOTIFICATION_NAVIGATION, status);
+  }
+
+  /// Get Pending Notification Navigation
+  bool? getPendingNotificationNavigation() {
+    return _sharedPreferences?.getBool(_PENDING_NOTIFICATION_NAVIGATION);
+  }
 
   ///after login set isLoggedIn true
   ///before logout set isLoggedIn false
@@ -283,61 +298,6 @@ class Prefs {
 
 
 
-  // void setShowBirthdayWish(bool status) {
-  //   _sharedPreferences!.setBool(_IS_SHOW_BIRTHDAY_WISH!, status);
-  // }
-
-  ///checking that is logged in or not
-  // bool? isShowBirthdayWish() =>
-  //     _sharedPreferences!.getBool(_IS_SHOW_BIRTHDAY_WISH!) != null &&
-  //         _sharedPreferences!.getBool(_IS_SHOW_BIRTHDAY_WISH!) == true
-  //         ? true
-  //         : false;
-  //
-  // void setShowVoting(bool status) {
-  //   _sharedPreferences!.setBool(_IS_SHOW_VOTING!, status);
-  // }
-
-  // ///checking that is logged in or not
-  // bool? isShowVoting() =>
-  //     _sharedPreferences!.getBool(_IS_SHOW_VOTING!) != null &&
-  //         _sharedPreferences!.getBool(_IS_SHOW_VOTING!) == true
-  //         ? true
-  //         : false;
-
-  // void setMobNotNumVerified(bool status) {
-  //   _sharedPreferences!.setBool(_IS_MOB_NUM_VERIFIED, status);
-  // }
-  //
-  // ///checking that is logged in or not
-  // bool? isMobNotNumVerified() =>
-  //     _sharedPreferences!.getBool(_IS_MOB_NUM_VERIFIED) != null &&
-  //         _sharedPreferences!.getBool(_IS_MOB_NUM_VERIFIED) == true
-  //         ? true
-  //         : false;
-  //
-  // void setIsReferralLoaded(bool status) {
-  //   _sharedPreferences!.setBool(_IS_REFERRAL_LOADED, status);
-  // }
-  //
-  // ///checking that is logged in or not
-  // bool? isReferralLoaded() =>
-  //     _sharedPreferences!.getBool(_IS_REFERRAL_LOADED) != null &&
-  //         _sharedPreferences!.getBool(_IS_REFERRAL_LOADED) == true
-  //         ? true
-  //         : false;
-  //
-  // void setIsHelpCenterLoaded(bool status) {
-  //   _sharedPreferences!.setBool(_IS_HELP_CENTER_LOADED, status);
-  // }
-  //
-  // ///checking that is logged in or not
-  // bool? isHelpCenterLoaded() =>
-  //     _sharedPreferences!.getBool(_IS_HELP_CENTER_LOADED) != null &&
-  //         _sharedPreferences!.getBool(_IS_HELP_CENTER_LOADED) == true
-  //         ? true
-  //         : false;
-  //
   /// for clearing the data in preference
   void clearPrefs() async {
     final pref = await SharedPreferences.getInstance();
@@ -529,103 +489,6 @@ class Prefs {
   //
   // ///get method  for user mail
   // String? getUserMail() => _sharedPreferences?.getString(_USER_MAIL);
-
-
-
-///  referral data
-// void saveReferralContent(ReferralScreenResponse result) {
-//   String jsonString = jsonEncode(result);
-//   _sharedPreferences!.setString(_REFERRAL_DATA!, jsonString);
-// }
-
-/// get referral data
-// ReferralScreenResponse getReferralContent() {
-//   Map<String, dynamic>? resultMap =
-//   jsonDecode(_sharedPreferences!.getString(_REFERRAL_DATA!)!);
-//   var result = new ReferralScreenResponse.fromJson(resultMap!);
-//   return result;
-// }
-
-// ///  help center data
-// void saveHelpCenterDetails(HelpCenterDetails result) {
-//   String jsonString = jsonEncode(result);
-//   _sharedPreferences!.setString(_HELP_CENTER_DATA!, jsonString);
-// }
-
-/// get referral data
-// HelpCenterDetails getHelpCenterDetails() {
-//   Map<String, dynamic>? resultMap =
-//   jsonDecode(_sharedPreferences!.getString(_HELP_CENTER_DATA!)!);
-//   var result = new HelpCenterDetails.fromJson(resultMap!);
-//   return result;
-// }
-
-// ///saving  the recent search list
-// void saveRecentSearch({List<String>? searchList}) {
-//   _sharedPreferences!.setStringList(_RECENT_SEARCH_LIST!, searchList!);
-// }
-
-// ///get method  recent search list
-// List<String>? getRecentSearchList() =>
-//     _sharedPreferences!.getStringList(_RECENT_SEARCH_LIST!);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// ///saving the filter list
-// void saveFilterList({required List<String> filterList}) {
-//   _sharedPreferences!.setStringList(_SELECTED_FILTER_LIST!, filterList);
-// }
-
-// /// get the filter list
-// List<String>? getFilterList() =>
-//     _sharedPreferences!.getStringList(_SELECTED_FILTER_LIST!);
-
-
-
-
-///  save categories data
-// void saveAllCategories(CategoryResponse result) {
-//   String jsonString = jsonEncode(result);
-//   _sharedPreferences!.setString(_CATEGORY_LIST!, jsonString);
-// }
-
-// CategoryResponse? getAllCategories() {
-//   Map<String, dynamic>? resultMap =
-//   jsonDecode(_sharedPreferences!.getString(_CATEGORY_LIST!)!);
-//   var result = new CategoryResponse.fromJson(resultMap!);
-//   return result;
-// }
-
-
-
-
-
-
-
-/// save States list
-// void saveStateList(StateResponse result) {
-//   String jsonString = jsonEncode(result);
-//   _sharedPreferences!.setString(_STATE_LIST!, jsonString);
-// }
-
-// StateResponse? getStateList() {
-//   Map<String, dynamic>? resultMap =
-//   jsonDecode(_sharedPreferences!.getString(_STATE_LIST!)!);
-//   var result = new StateResponse.fromJson(resultMap!);
-//   return result;
-// }
 
 
 

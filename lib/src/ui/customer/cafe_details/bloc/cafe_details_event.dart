@@ -11,3 +11,10 @@ class BookingRequestEvent extends CafeDetailsEvent {
   List<Object?> get props => [bookingRequest];
 
 }
+class WithdrawBookingRequestEvent extends CafeDetailsEvent {
+  final WithdrawBookingRequest withdrawBookingRequest;
+  const WithdrawBookingRequestEvent({required this.withdrawBookingRequest});
+  @override
+  List<Object?> get props => [withdrawBookingRequest];
+
+}

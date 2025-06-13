@@ -10,7 +10,6 @@ import 'package:dicetable/src/resources/api_providers/auth/auth_data_provider.da
 import 'package:dicetable/src/ui/cafe_owner/authentication/sign_up/sign_up_screen_argument.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/sign_up/widget/image_upload_widget.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/sign_up/widget/opening_hours_widget.dart';
-
 import 'package:dicetable/src/ui/cafe_owner/authentication/sign_up/widget/venue_type_checkboxes.dart';
 import 'package:dicetable/src/ui/verification/bloc/verification_bloc.dart';
 import 'package:dicetable/src/ui/verification/verify_screen_argument.dart';
@@ -22,7 +21,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
-
 import 'bloc/sign_up/sign_up_bloc.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -37,30 +35,26 @@ class SignUpScreen extends StatefulWidget {
 class _SignUpScreenState extends State<SignUpScreen> {
   late final TextEditingController _venueNameController;
   late final TextEditingController _venueDescriptionController;
-
   late final TextEditingController _emailController;
   late final TextEditingController _passwordController;
   late final TextEditingController _confirmPasswordController;
   late final TextEditingController _phoneController;
-
   late final TextEditingController _addressController;
-
   late final TextEditingController _postalCodeController;
-
   late final TextEditingController _countryController;
-
   late final TextEditingController _regionController;
   late final bool isGoogleSignUp;
+  bool showValidationErrors = false;
 
   @override
   void initState() {
     super.initState();
+
     isGoogleSignUp = widget.signUpScreenArgument.isGoggleSignUp;
 
     _venueNameController = TextEditingController(
       text: isGoogleSignUp ? ObjectFactory().prefs.getCafeUserName() : '',
     );
-
     _emailController = TextEditingController(
       text: isGoogleSignUp ? ObjectFactory().prefs.getCafeUserMail() : '',
     );
@@ -74,6 +68,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     _phoneController = TextEditingController();
 
     context.read<SignUpBloc>().add(LoadVenueTypes());
+    context.read<SignUpBloc>().add(ClearImageEvent());
   }
 
   @override
@@ -91,22 +86,39 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.dispose();
   }
 
+  bool _validateForm(SignUpFormState state) {
+    return state.venueName.isNotEmpty &&
+        state.venueDescription.isNotEmpty &&
+        state.email.isNotEmpty &&
+        RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(state.email) &&
+        ((state.password.isNotEmpty)) &&
+        (state.password == state.confirmPassword) &&
+        state.phone.isNotEmpty &&
+        state.address.isNotEmpty &&
+        state.postalCode.isNotEmpty &&
+        state.venueTypes.any((venue) => venue.isSelected) &&
+        state.openingHours.values.any((hour) => hour.isEnabled) &&
+        state.base64Image != null &&
+        state.base64Image!.isNotEmpty;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return  Scaffold(
+    return Scaffold(
       appBar: AppBar(
         backgroundColor: AppColors.primary,
         leading: const BackButton(color: AppColors.primaryWhiteColor),
         title: Text(
           'Create Account',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
             color: AppColors.primaryWhiteColor,
+            fontSize: 20.sp,
           ),
         ),
       ),
       body: GestureDetector(
         onTap: () {
-          FocusScopeNode currentFocus = FocusScope.of(context);
+          FocusScope.of(context).unfocus();
         },
         child: Container(
           height: double.infinity,
@@ -130,384 +142,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
               vertical: 20,
             ),
             child: BlocConsumer<SignUpBloc, SignUpState>(
-              builder: (context, state) {
-                return Column(
-                  children: [
-                    CustomTextField(
-                      controller: _venueNameController,
-                      readOnly:
-                      widget.signUpScreenArgument.isGoggleSignUp
-                          ? true
-                          : false,
-                      hintText: 'Venue Name',
-                      onChanged: (value) {
-                        context.read<SignUpBloc>().add(
-                          UpdateTextField(
-                                (state) => state.copyWith(venueName: value),
-                          ),
-                        );
-                      },
-                    ),
-                    CustomTextField(
-                      hintText: 'Your Venue description here',
-                      maxLines: 5,
-                      height: 116.h,
-                      controller: _venueDescriptionController,
-                      onChanged: (value) {
-                        context.read<SignUpBloc>().add(
-                          UpdateTextField(
-                                (state) =>
-                                state.copyWith(venueDescription: value),
-                          ),
-                        );
-                      },
-                    ),
-                    CustomTextField(
-                      controller: _emailController,
-                      hintText: 'Email',
-                      readOnly:
-                      widget.signUpScreenArgument.isGoggleSignUp
-                          ? true
-                          : false,
-                      onChanged: (value) {
-                        context.read<SignUpBloc>().add(
-                          UpdateTextField(
-                                (state) => state.copyWith(email: value),
-                          ),
-                        );
-                      },
-                    ),
-                    CustomTextField(
-                      controller: _passwordController,
-                      hintText: 'Password',
-                      isPassword: true,
-                      onChanged: (value) {
-                        context.read<SignUpBloc>().add(
-                          UpdateTextField(
-                                (state) => state.copyWith(password: value),
-                          ),
-                        );
-                      },
-                    ),
-                    CustomTextField(
-                      controller: _confirmPasswordController,
-                      hintText: 'Confirm Password',
-                      isPassword: true,
-                      onChanged: (value) {
-                        context.read<SignUpBloc>().add(
-                          UpdateTextField(
-                                (state) =>
-                                state.copyWith(confirmPassword: value),
-                          ),
-                        );
-                      },
-                    ),
-                    CustomTextField(
-                      controller: _phoneController,
-                      hintText: 'Phone',
-                      onChanged: (value) {
-                        context.read<SignUpBloc>().add(
-                          UpdateTextField(
-                                (state) => state.copyWith(phone: value),
-                          ),
-                        );
-                      },
-                    ),
-                    CustomTextField(
-                      controller: _countryController,
-                      hintText: 'Country',
-                      onChanged: (value) {
-                        context.read<SignUpBloc>().add(
-                          UpdateTextField(
-                                (state) => state.copyWith(country: value),
-                          ),
-                        );
-                      },
-                    ),
-                    CustomTextField(
-                      controller: _regionController,
-                      hintText: 'Region',
-                      onChanged: (value) {
-                        context.read<SignUpBloc>().add(
-                          UpdateTextField(
-                                (state) => state.copyWith(region: value),
-                          ),
-                        );
-                      },
-                    ),
-                    CustomTextField(
-                      controller: _addressController,
-                      hintText: 'Street Address And City',
-                      onChanged: (value) {
-                        context.read<SignUpBloc>().add(
-                          UpdateTextField(
-                                (state) => state.copyWith(address: value),
-                          ),
-                        );
-                      },
-                    ),
-                    CustomTextField(
-                      controller: _postalCodeController,
-                      hintText: 'Postal Code',
-                      onChanged: (value) {
-                        context.read<SignUpBloc>().add(
-                          UpdateTextField(
-                                (state) => state.copyWith(postalCode: value),
-                          ),
-                        );
-                      },
-                    ),
-                    const Gap(10),
-                    const VenueTypeCheckboxes(),
-                    // Already updated separately
-                    const Gap(17),
-                    Container(
-                      padding: const EdgeInsets.all(15),
-                      decoration: BoxDecoration(
-                        color: AppColors.signUpContainerColor,
-                        borderRadius: BorderRadius.circular(15),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.shadowColor,
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(left: 5.0),
-                            child: Text(
-                              'Opening Hours',
-                              style: Theme.of(
-                                context,
-                              ).textTheme.labelMedium?.copyWith(
-                                fontSize: 14,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                          ),
-                          const Gap(10),
-                          for (final day in [
-                            'Mon',
-                            'Tue',
-                            'Wed',
-                            'Thu',
-                            'Fri',
-                            'Sat',
-                            'Sun',
-                          ])
-                            OpeningHoursWidget(
-                              day: day,
-                              data:
-                              (state is SignUpFormState)
-                                  ? (state.openingHours[day] ??
-                                  const OpeningHour(
-                                    isEnabled: false,
-                                    from: TimeOfDay(
-                                      hour: 10,
-                                      minute: 0,
-                                    ),
-                                    to: TimeOfDay(
-                                      hour: 12,
-                                      minute: 0,
-                                    ),
-                                  ))
-                                  : const OpeningHour(
-                                isEnabled: false,
-                                from: TimeOfDay(
-                                  hour: 10,
-                                  minute: 0,
-                                ),
-                                to: TimeOfDay(
-                                  hour: 12,
-                                  minute: 0,
-                                ),
-                              ),
-                              onChanged: (updatedHour) {
-                                context.read<SignUpBloc>().add(
-                                  UpdateOpeningHour(
-                                    day: day,
-                                    hour: updatedHour,
-                                  ),
-                                );
-                              },
-                            ),
-                        ],
-                      ),
-                    ),
-                    const Gap(17),
-                    ImageUploadWidget(),
-                    const Gap(30),
-                    BlocBuilder<SignUpBloc, SignUpState>(
-                      builder: (context, state) {
-                        if (state is SignUpFormState) {
-                          final formState = state;
-                          return InkWell(
-                            splashColor: AppColors.secondary,
-                            splashFactory: InkRipple.splashFactory,
-                            onTap: () {
-                              String formatTime(TimeOfDay time) {
-                                final hours = time.hour
-                                    .toString()
-                                    .padLeft(2, '0');
-                                final minutes = time.minute
-                                    .toString()
-                                    .padLeft(2, '0');
-                                return '$hours:$minutes';
-                              }
-
-                              final selectedVenueTypeIds = formState.venueTypes
-                                  .where((model) => model.isSelected)
-                                  .map((model) => model.id.toString())
-                                  .toList();
-
-                              final workingDaysMap =
-                              <String, Map<String, dynamic>>{};
-                              formState.openingHours.forEach((
-                                  day,
-                                  value,
-                                  ) {
-                                final dayLower = day.toLowerCase();
-                                if (value.isEnabled) {
-                                  workingDaysMap[dayLower] = {
-                                    "is_open": true,
-                                    "open": formatTime(value.from),
-                                    "close": formatTime(value.to),
-                                  };
-                                } else {
-                                  workingDaysMap[dayLower] = {
-                                    "is_open": false,
-                                    "open": "00:00",
-                                    "close": "00:00",
-                                  };
-                                }
-                              });
-                              // if (formState.password !=
-                              //     formState.confirmPassword) {
-                              //   ScaffoldMessenger.of(context)
-                              //       .showSnackBar(
-                              //     const SnackBar(
-                              //       content: Text(
-                              //           'Passwords do not match'),
-                              //       backgroundColor: AppColors
-                              //           .appRedColor,
-                              //     ),
-                              //   );
-                              //   return;
-                              // }
-                              // if (formState.email.isEmpty ||
-                              //     formState.password.isEmpty) {
-                              //   ScaffoldMessenger.of(context)
-                              //       .showSnackBar(
-                              //     const SnackBar(
-                              //       content: Text(
-                              //           'Please fill in all required fields'),
-                              //       backgroundColor: AppColors
-                              //           .appRedColor,
-                              //     ),
-                              //   );
-                              //   return;
-                              // }
-
-                              if (isGoogleSignUp) {
-                                final googleSignUpRequest =
-                                GoogleSignUpRequest(
-                                  name: _venueNameController.text,
-                                  venueDescription:
-                                  formState.venueDescription,
-                                  email: _emailController.text,
-                                  password: formState.password,
-                                  passwordConfirmation:
-                                  formState.confirmPassword,
-                                  address: formState.address,
-                                  country: formState.country,
-                                  loginType: 3,
-                                  phone: formState.phone,
-                                  postcode: formState.postalCode,
-                                  region: formState.region,
-                                  accommodations:
-                                  selectedVenueTypeIds,
-                                  workingDays: workingDaysMap,
-                                  blob:
-                                  widget
-                                      .signUpScreenArgument
-                                      .imageBase64,
-                                );
-
-                                context.read<SignUpBloc>().add(
-                                  SubmitGoogleSignUp(
-                                    signupRequest: googleSignUpRequest,
-                                  ),
-                                );
-                              } else {
-                                final signUpRequest = SignUpRequest(
-                                  name: formState.venueName,
-                                  venueDescription:
-                                  formState.venueDescription,
-                                  email: formState.email,
-
-                                  password: formState.password,
-                                  passwordConfirmation:
-                                  formState.confirmPassword,
-                                  address: formState.address,
-                                  country: formState.country,
-                                  loginType: 3,
-                                  phone: formState.phone,
-                                  postcode: formState.postalCode,
-                                  region: formState.region,
-                                  accommodations: selectedVenueTypeIds,
-                                  workingDays: workingDaysMap,
-                                  blob: formState.base64Image,
-                                );
-                                context.read<SignUpBloc>().add(
-                                  SubmitSignUp(
-                                    signupRequest: signUpRequest,
-                                  ),
-                                );
-                              }
-                            },
-                            child: ElevatedButtonWidget(
-                              height: 70.h,
-                              width: double.infinity,
-                              iconEnabled: false,
-                              iconLabel: 'SIGN UP',
-                              color: AppColors.primary,
-                              textColor: AppColors.primaryWhiteColor,
-                            ),
-                          );
-                        } else if (state is SignUpLoadingState ||
-                            state is GoogleSignUpLoadingState) {
-                          return RefreshProgressIndicator(
-                            color: AppColors.primaryWhiteColor,
-                            backgroundColor: AppColors.primary,
-                          );
-                        } else {
-                          return SizedBox.shrink();
-                        }
-                      },
-                    ),
-                    const Gap(20),
-                    LoginOrSignupPrompt(
-                      spanText: 'Already have an account',
-                      promptText: 'Sign in now',
-                      onSignInTap: () => context.go('/login'),
-                    ),
-                  ],
-                );
-              },
               listener: (context, state) {
                 if (state is SignUpSuccessState) {
                   final response = state.signUpRequestResponse;
                   if (response.status == false) {
-                    if (response.errors != null &&
-                        response.errors!.isNotEmpty) {
+                    if (response.errors != null && response.errors!.isNotEmpty) {
                       final firstErrorField = response.errors!.keys.first;
-                      final firstErrorMessage =
-                          response.errors![firstErrorField]?.first;
-
+                      final firstErrorMessage = response.errors![firstErrorField]?.first;
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
@@ -535,33 +176,28 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ObjectFactory().prefs.setIsGoogle(false);
                     ObjectFactory().prefs.setEmailVerified(false);
 
-                    context.go('/verify',extra: VerifyScreenArguments(
-                      email: state.signUpRequestResponse.user!.email,
-                      otp: state.signUpRequestResponse.user!.emailOtp.toString(),
-                      type: "register", from: 'venue_owner',
-                    ),);
+                    context.go(
+                      '/verify',
+                      extra: VerifyScreenArguments(
+                        email: state.signUpRequestResponse.user!.email,
+                        otp: state.signUpRequestResponse.user!.emailOtp.toString(),
+                        type: "register",
+                        from: 'venue_owner',
+                      ),
+                    );
                   }
-                }
-                if (state is GoogleSignUpSuccessState) {
+                } else if (state is GoogleSignUpSuccessState) {
                   final response = state.googleSignUpRequestResponse;
                   if (response.status == false) {
-                    if (response.errors != null &&
-                        response.errors!.isNotEmpty) {
+                    if (response.errors != null && response.errors!.isNotEmpty) {
                       final firstErrorField = response.errors!.keys.first;
-                      final firstErrorMessage =
-                          response.errors![firstErrorField]?.first;
-                      Fluttertoast.showToast(
-                        backgroundColor: AppColors.primaryWhiteColor,
-                        textColor: AppColors.appGreenColor,
-                        gravity: ToastGravity.BOTTOM,
-                        msg: firstErrorMessage ?? "Something went wrong",
-                      );
+                      final firstErrorMessage = response.errors![firstErrorField]?.first;
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
                             firstErrorMessage ?? 'Something went wrong',
                           ),
-                          backgroundColor: AppColors.appRedColor,
+                          backgroundColor: AppColors.appGreenColor,
                           duration: const Duration(seconds: 3),
                         ),
                       );
@@ -585,25 +221,386 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ObjectFactory().prefs.setIsLoggedIn(true);
                     context.go('/subscription_prompt');
                   }
-                }
-                if (state is GoogleSignUpErrorState) {
+                } else if (state is SignUpErrorState || state is GoogleSignUpErrorState) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(state.errorMessage),
-                      backgroundColor: AppColors.appGreenColor,
-                      duration: Duration(seconds: 2),
+                      content: Text(
+                        state is SignUpErrorState
+                            ? state.errorMessage
+                            : (state as GoogleSignUpErrorState).errorMessage,
+                      ),
+                      backgroundColor: AppColors.appRedColor,
+                      duration: const Duration(seconds: 3),
                     ),
                   );
                 }
-                if (state is SignUpErrorState) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(state.errorMessage),
-                      backgroundColor: AppColors.appGreenColor,
-                      duration: Duration(seconds: 2),
+              },
+              builder: (context, state) {
+                final isLoading = state is SignUpLoadingState || state is GoogleSignUpLoadingState;
+                final formState = state is SignUpFormState ? state : null;
+
+                return Column(
+                  children: [
+                    CustomTextField(
+                      controller: _venueNameController,
+                      readOnly: isGoogleSignUp,
+                      hintText: 'Venue Name',
+                      errorText: showValidationErrors && formState != null && _venueNameController.text.isEmpty
+                          ? 'Venue name is required'
+                          : null,
+                      onChanged: (value) {
+                        context.read<SignUpBloc>().add(
+                          UpdateTextField(
+                                (state) => state.copyWith(venueName: value),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                }
+                    CustomTextField(
+                      hintText: 'Your Venue description here',
+                      maxLines: 5,
+                      height: 116.h,
+                      controller: _venueDescriptionController,
+                      errorText: showValidationErrors && formState != null && _venueDescriptionController.text.isEmpty
+                          ? 'Venue description is required'
+                          : null,
+                      onChanged: (value) {
+                        context.read<SignUpBloc>().add(
+                          UpdateTextField(
+                                (state) => state.copyWith(venueDescription: value),
+                          ),
+                        );
+                      },
+                    ),
+                    CustomTextField(
+                      controller: _emailController,
+                      hintText: 'Email',
+                      readOnly: isGoogleSignUp,
+                      errorText: showValidationErrors && formState != null
+                          ? (_emailController.text.isEmpty
+                          ? 'Email is required'
+                          : !RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(_emailController.text)
+                          ? 'Invalid email format'
+                          : null)
+                          : null,
+                      onChanged: (value) {
+                        context.read<SignUpBloc>().add(
+                          UpdateTextField(
+                                (state) => state.copyWith(email: value),
+                          ),
+                        );
+                      },
+                    ),
+
+                      CustomTextField(
+                        controller: _passwordController,
+                        hintText: 'Password',
+                        isPassword: true,
+                        errorText: showValidationErrors && formState != null
+                            ? (_passwordController.text.isEmpty
+                            ? 'Password is required'
+                            : _passwordController.text.length < 6
+                            ? 'Password must be at least 6 characters'
+                            : null)
+                            : null,
+                        onChanged: (value) {
+                          context.read<SignUpBloc>().add(
+                            UpdateTextField(
+                                  (state) => state.copyWith(password: value),
+                            ),
+                          );
+                        },
+                      ),
+                      CustomTextField(
+                        controller: _confirmPasswordController,
+                        hintText: 'Confirm Password',
+                        isPassword: true,
+                        errorText: showValidationErrors && formState != null
+                            ? (_confirmPasswordController.text.isEmpty
+                            ? 'Confirm password is required'
+                            : _confirmPasswordController.text != _passwordController.text
+                            ? 'Passwords do not match'
+                            : null)
+                            : null,
+                        onChanged: (value) {
+                          context.read<SignUpBloc>().add(
+                            UpdateTextField(
+                                  (state) => state.copyWith(confirmPassword: value),
+                            ),
+                          );
+                        },
+                      ),
+
+                    CustomTextField(
+                      controller: _phoneController,
+                      hintText: 'Phone',
+                      errorText: showValidationErrors && formState != null && _phoneController.text.isEmpty
+                          ? 'Phone number is required'
+                          : null,
+                      onChanged: (value) {
+                        context.read<SignUpBloc>().add(
+                          UpdateTextField(
+                                (state) => state.copyWith(phone: value),
+                          ),
+                        );
+                      },
+                    ),
+                    // CustomTextField(
+                    //   controller: _countryController,
+                    //   hintText: 'Country',
+                    //   errorText: showValidationErrors && formState != null && _countryController.text.isEmpty
+                    //       ? 'Country is required'
+                    //       : null,
+                    //   onChanged: (value) {
+                    //     context.read<SignUpBloc>().add(
+                    //       UpdateTextField(
+                    //             (state) => state.copyWith(country: value),
+                    //       ),
+                    //     );
+                    //   },
+                    // ),
+                    // CustomTextField(
+                    //   controller: _regionController,
+                    //   hintText: 'Region',
+                    //   errorText: showValidationErrors && formState != null && _regionController.text.isEmpty
+                    //       ? 'Region is required'
+                    //       : null,
+                    //   onChanged: (value) {
+                    //     context.read<SignUpBloc>().add(
+                    //       UpdateTextField(
+                    //             (state) => state.copyWith(region: value),
+                    //       ),
+                    //     );
+                    //   },
+                    // ),
+                    CustomTextField(
+                      controller: _addressController,
+                      hintText: 'Street Address And City',
+                      errorText: showValidationErrors && formState != null && _addressController.text.isEmpty
+                          ? 'Address is required'
+                          : null,
+                      onChanged: (value) {
+                        context.read<SignUpBloc>().add(
+                          UpdateTextField(
+                                (state) => state.copyWith(address: value),
+                          ),
+                        );
+                      },
+                    ),
+                    CustomTextField(
+                      controller: _postalCodeController,
+                      hintText: 'Postal Code',
+                      errorText: showValidationErrors && formState != null && _postalCodeController.text.isEmpty
+                          ? 'Postal code is required'
+                          : null,
+                      onChanged: (value) {
+                        context.read<SignUpBloc>().add(
+                          UpdateTextField(
+                                (state) => state.copyWith(postalCode: value),
+                          ),
+                        );
+                      },
+                    ),
+                    const Gap(10),
+                    BlocBuilder<SignUpBloc, SignUpState>(
+                      builder: (context, state) {
+                        final venueTypes = state is SignUpFormState ? state.venueTypes : [];
+                        final hasSelectedVenue = venueTypes.any((venue) => venue.isSelected);
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            VenueTypeCheckboxes(state: SignUpFormState(),hasSelectedVenue: !hasSelectedVenue,showValidationErrors: showValidationErrors,),
+
+                          ],
+                        );
+                      },
+                    ),
+                    const Gap(17),
+                    Container(
+                      padding: const EdgeInsets.all(15),
+                      decoration: BoxDecoration(
+                        color: AppColors.signUpContainerColor,
+                        borderRadius: BorderRadius.circular(15),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.shadowColor,
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(left: 5.0),
+                            child: Text(
+                              'Opening Hours',
+                              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                                fontSize: 14,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ),
+                          const Gap(10),
+                          BlocBuilder<SignUpBloc, SignUpState>(
+                            builder: (context, state) {
+                              final openingHours = state is SignUpFormState ? state.openingHours : {};
+                              final hasEnabledDay = openingHours.values.any((hour) => hour.isEnabled);
+                              return Column(
+                                children: [
+                                  for (final day in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'])
+                                    OpeningHoursWidget(
+                                      day: day,
+                                      data: openingHours[day] ??
+                                          const OpeningHour(
+                                            isEnabled: false,
+                                            from: TimeOfDay(hour: 10, minute: 0),
+                                            to: TimeOfDay(hour: 12, minute: 0),
+                                          ),
+                                      onChanged: (updatedHour) {
+                                        context.read<SignUpBloc>().add(
+                                          UpdateOpeningHour(
+                                            day: day,
+                                            hour: updatedHour,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  if (showValidationErrors && !hasEnabledDay && state is SignUpFormState)
+                                    Padding(
+                                      padding: const EdgeInsets.only(left: 16.0, top: 4.0),
+                                      child: Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Text(
+                                          'Please enable at least one day',
+                                          style: TextStyle(
+                                            color: AppColors.appRedColor,
+                                            fontSize: 12.sp,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Gap(17),
+                    ImageUploadWidget(showValidationErrors: showValidationErrors,state: SignUpFormState(),),
+                    const Gap(30),
+                    BlocBuilder<SignUpBloc, SignUpState>(
+                      builder: (context, state) {
+                        if (isLoading) {
+                          return RefreshProgressIndicator(
+                            color: AppColors.primaryWhiteColor,
+                            backgroundColor: AppColors.primary,
+                          );
+                        } else if (state is SignUpFormState) {
+                          final isFormValid = _validateForm(state);
+                          return InkWell(
+                            splashColor: isFormValid ? AppColors.secondary : Colors.transparent,
+                            splashFactory: isFormValid ? InkRipple.splashFactory : NoSplash.splashFactory,
+                            onTap: () {
+                              setState(() {
+                                showValidationErrors = true;
+                              });
+                              if (isFormValid) {
+                                String formatTime(TimeOfDay time) {
+                                  final hours = time.hour.toString().padLeft(2, '0');
+                                  final minutes = time.minute.toString().padLeft(2, '0');
+                                  return '$hours:$minutes';
+                                }
+
+                                final selectedVenueTypeIds = state.venueTypes
+                                    .where((model) => model.isSelected)
+                                    .map((model) => model.id.toString())
+                                    .toList();
+
+                                final workingDaysMap = <String, Map<String, dynamic>>{};
+                                state.openingHours.forEach((day, value) {
+                                  final dayLower = day.toLowerCase();
+                                  workingDaysMap[dayLower] = {
+                                    "is_open": value.isEnabled,
+                                    "open": formatTime(value.from),
+                                    "close": formatTime(value.to),
+                                  };
+                                });
+
+                                if (isGoogleSignUp) {
+                                  final googleSignUpRequest = GoogleSignUpRequest(
+                                    name: _venueNameController.text,
+                                    venueDescription: state.venueDescription,
+                                    email: _emailController.text,
+                                    password: state.password,
+                                    passwordConfirmation: state.confirmPassword,
+                                    address: state.address,
+                                    // country: state.country,
+                                    loginType: 3,
+                                    phone: state.phone,
+                                    postcode: state.postalCode,
+                                    // region: state.region,
+                                    accommodations: selectedVenueTypeIds,
+                                    workingDays: workingDaysMap,
+                                    blob: widget.signUpScreenArgument.imageBase64 ?? state.base64Image,
+                                    fcmToken: ObjectFactory().prefs.getFcmToken(),
+
+                                  );
+
+                                  context.read<SignUpBloc>().add(
+                                    SubmitGoogleSignUp(
+                                      signupRequest: googleSignUpRequest,
+                                    ),
+                                  );
+                                } else {
+                                  final signUpRequest = SignUpRequest(
+                                    name: state.venueName,
+                                    venueDescription: state.venueDescription,
+                                    email: state.email,
+                                    password: state.password,
+                                    passwordConfirmation: state.confirmPassword,
+                                    address: state.address,
+                                    // country: state.country,
+                                    loginType: 3,
+                                    phone: state.phone,
+                                    postcode: state.postalCode,
+                                    // region: state.region,
+                                    accommodations: selectedVenueTypeIds,
+                                    workingDays: workingDaysMap,
+                                    blob: state.base64Image,
+                                    fcmToken: ObjectFactory().prefs.getFcmToken(),
+                                  );
+                                  context.read<SignUpBloc>().add(
+                                    SubmitSignUp(
+                                      signupRequest: signUpRequest,
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                            child: ElevatedButtonWidget(
+                              height: 70.h,
+                              width: double.infinity,
+                              iconEnabled: false,
+                              iconLabel: 'SIGN UP',
+                              color: AppColors.primary,
+                              textColor: AppColors.primaryWhiteColor,
+                            ),
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      },
+                    ),
+                    const Gap(20),
+                    LoginOrSignupPrompt(
+                      spanText: 'Already have an account',
+                      promptText: 'Sign in now',
+                      onSignInTap: () => context.go('/login'),
+                    ),
+                  ],
+                );
               },
             ),
           ),

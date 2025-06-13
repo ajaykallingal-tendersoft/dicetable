@@ -52,6 +52,10 @@ class AppColors {
   static const filterGradient1 = Color(0xFFE4EBF0);
   static const filterGradient2 = Color(0xFFE4EBF0);
   static const filterContentBorder = Color(0xFFC1C6C9);
+  static const tableTypeLogoColor1 = Color(0xFF2E86DE);
+  static const tableTypeLogoColor2 = Color(0xFF2BCAF4);
+  static const tableTypeLogoColor3 = Color(0xFF4442E3);
+  static const tableTypeLogoColor4 = Color(0xFF3DD89C);
 
 
 

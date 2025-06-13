@@ -2,14 +2,18 @@ import 'dart:io';
 
 import 'package:dicetable/src/model/cafe_owner/auth/forgot_password/forgot_password_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/forgot_password/password_reset_request.dart';
+import 'package:dicetable/src/model/cafe_owner/auth/forgot_password/resend_otp_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/login/google_login_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/login/login_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/google_sign-up_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/sign_up_request.dart';
 import 'package:dicetable/src/model/cafe_owner/home/dice_table_update_request.dart';
+import 'package:dicetable/src/model/cafe_owner/profile/profile_update_request.dart';
 import 'package:dicetable/src/model/cafe_owner/subscription/subscription_start_request.dart';
 import 'package:dicetable/src/model/customer/booking/booking_request.dart';
+import 'package:dicetable/src/model/customer/booking/withdraw_booking_request.dart';
 import 'package:dicetable/src/model/customer/cafe/add_favourite_request.dart';
+import 'package:dicetable/src/model/customer/cafe/cafe_list_request.dart';
 import 'package:dicetable/src/model/customer/cafe/cafe_search_request.dart';
 import 'package:dicetable/src/model/customer/cafe/remove_favourite_request.dart';
 import 'package:dicetable/src/model/customer/profile/customer_profile_update_request.dart';
@@ -164,6 +168,13 @@ class ApiClient {
 
     );
   }
+  //Resend Otp
+  Future<Response> resendOtp(ResendOtpRequest resendOtpRequest) {
+    return dioDiceApp.post(
+      UrlsDiceApp.resendOtp,
+      data: resendOtpRequest,
+    );
+  }
   //PasswordReset
   Future<Response> passwordReset(PasswordResetRequest passwordResetRequest) {
     return dioDiceApp.post(
@@ -263,40 +274,57 @@ class ApiClient {
     );
   }
 
-  Future<Response> getCafeProfileById(String id) {
+
+  Future<Response> getCafeProfileById() {
+    final token = ObjectFactory().prefs.getAuthToken();
+    final cafeID = ObjectFactory().prefs.getCafeId(); // Ensure this exists
+    final url = '${UrlsDiceApp.getProfile}$cafeID';
+
+    print("Bearer $token");
+    print("URL: $url");
+
     return dioDiceApp.get(
-      '${UrlsDiceApp.baseUrlDev}${UrlsDiceApp.getProfile}$id',
-      options: Options(
-        headers: {"Authorization": ObjectFactory().prefs.getAuthToken()},
-      ),
+      url,
+      options: Options(headers: {
+        "Authorization": token,
+      }),
     );
   }
 
-  Future<Response> getCafeEditProfilebyId(String id) {
+  Future<Response> getCafeEditProfileById() {
+    final token = ObjectFactory().prefs.getAuthToken();
+    final cafeID = ObjectFactory().prefs.getCafeId(); // Ensure this exists
+    final url = '${UrlsDiceApp.getEditProfile}$cafeID';
+
+    print("Bearer $token");
+    print("URL: $url");
+
     return dioDiceApp.get(
-      '${UrlsDiceApp.baseUrlDev}${UrlsDiceApp.getEditProfile}$id',
-      options: Options(
-        headers: {"Authorization": ObjectFactory().prefs.getAuthToken()},
-      ),
+      url,
+      options: Options(headers: {
+        "Authorization": token,
+      }),
     );
   }
 
-  Future<Response> postCafeEditSubmitProfileById(
-    String id,
-    Map<String, dynamic> data,
-  ) {
+
+  Future<Response> profileUpdateById(ProfileUpdateRequest request) {
+    final token = ObjectFactory().prefs.getAuthToken();
+    final cafeID = ObjectFactory().prefs.getCafeId(); // Ensure this exists
+    final url = '${UrlsDiceApp.profileUpdate}$cafeID';
+
+    print("Bearer $token");
+    print("URL: $url");
+
     return dioDiceApp.post(
-      '${UrlsDiceApp.baseUrlDev}${UrlsDiceApp.getEditSumbit}$id',
-      data: data,
-      options: Options(
-        headers: {
-          "Authorization": ObjectFactory().prefs.getAuthToken(),
-          "Content-Type":
-              "application/json", // or "multipart/form-data" if using file uploads
-        },
-      ),
+      url,
+      data: request,
+      options: Options(headers: {
+        "Authorization": token,
+      }),
     );
   }
+
 
 
   ///Customer
@@ -328,10 +356,11 @@ class ApiClient {
   }
 
   ///CafeList
-  Future<Response> getCafeList() {
+  Future<Response> getCafeList(CafeListRequest request) {
     print("Bearer ${ObjectFactory().prefs.getCustomerAuthToken()}");
-    return dioDiceApp.get(
+    return dioDiceApp.post(
       UrlsDiceApp.cafeList,
+      data: request,
       options: Options(
         headers: {
           "Authorization": ObjectFactory().prefs.getCustomerAuthToken(),
@@ -431,5 +460,34 @@ class ApiClient {
 
     );
   }
+
+  ///Get Filter Options
+  Future<Response> getFilterOptions() {
+    print("Bearer ${ObjectFactory().prefs.getCustomerAuthToken()}");
+    return dioDiceApp.get(
+      UrlsDiceApp.getFilters,
+      options: Options(
+        headers: {
+          "Authorization": ObjectFactory().prefs.getCustomerAuthToken(),
+        },
+      ),
+    );
+  }
+
+  ///Withdraw
+  Future<Response> withdrawBooking( WithdrawBookingRequest request) {
+    print(ObjectFactory().prefs.getCustomerAuthToken());
+    return dioDiceApp.post(
+      UrlsDiceApp.withdrawBooking,
+      data: request,
+      options: Options(headers: {
+        "Authorization": ObjectFactory().prefs.getCustomerAuthToken(),
+      }),
+
+    );
+  }
+
+
+
 }
 

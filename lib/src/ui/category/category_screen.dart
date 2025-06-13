@@ -1,10 +1,7 @@
-import 'dart:io';
-
 import 'package:dicetable/src/common/divider_with_center_text.dart';
 import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/common/elevated_button_widget.dart';
 import 'package:dicetable/src/ui/category/widget/category_description_text.dart';
-import 'package:dicetable/src/ui/category/widget/remember_decision.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -24,7 +21,7 @@ class CategoryScreen extends StatefulWidget {
 }
 
 class _CategoryScreenState extends State<CategoryScreen> {
-  bool rememberDecision = true;
+  bool rememberDecision = false;
   DateTime? currentBackPressTime;
 
   Future<bool> onWillPop() {
@@ -177,17 +174,49 @@ class _CategoryScreenState extends State<CategoryScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                Checkbox(
-                                  value: rememberDecision,
-                                  onChanged: (value) {
+                                // Custom Checkbox
+                                InkWell(
+                                  onTap: () {
                                     setState(() {
-                                      rememberDecision = value ?? false;
+                                      rememberDecision = !rememberDecision; // Toggle the value
                                     });
                                   },
+                                  child: Container(
+                                    margin: EdgeInsets.all(6),
+                                    width: 22.w,
+                                    height: 22.h,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(5), // Rounded borders
+                                      border: Border.all(
+                                        color: AppColors.primaryWhiteColor, // Border color
+                                        width: 1,
+                                      ),
+                                      color: rememberDecision // Fill color based on rememberDecision
+                                          ? AppColors.primaryWhiteColor
+                                          : Colors.transparent, // Transparent when unchecked
+                                    ),
+                                    child: AnimatedSwitcher(
+                                      duration: const Duration(milliseconds: 200),
+                                      child: rememberDecision
+                                          ? Center(
+
+                                        child: SvgPicture.asset(
+                                          'assets/svg/check.svg',
+                                          fit: BoxFit.cover,
+                                          color: AppColors.primary, // Color of the checkmark
+                                        ),
+                                      )
+                                          : const SizedBox.shrink(),
+                                    ),
+                                  ),
                                 ),
-                                const Text(
+                                Text(
                                   "Remember this decision",
-                                  style: TextStyle(color: Colors.white),
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: AppColors.primaryWhiteColor,
+                                    fontSize: 14.sp,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ],
                             ),

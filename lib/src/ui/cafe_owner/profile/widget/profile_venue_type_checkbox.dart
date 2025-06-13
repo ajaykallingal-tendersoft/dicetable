@@ -11,6 +11,8 @@ class ProfileVenueTypeCheckboxes extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ProfileBloc, ProfileState>(
       builder: (context, state) {
+        final venueTypes = state.venueTypes;
+
         return Container(
           width: double.infinity,
           padding: const EdgeInsets.all(16),
@@ -23,86 +25,51 @@ class ProfileVenueTypeCheckboxes extends StatelessWidget {
             children: [
               Text(
                 'Venue Type',
-                style: TextTheme.of(
-                  context,
-                ).labelMedium!.copyWith(fontSize: 14, color: AppColors.primary),
+                style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                  fontSize: 14,
+                  color: AppColors.primary,
+                ),
               ),
               const SizedBox(height: 16),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children:
-                    state.cafeProfile?.venueTypes.map((venueType) {
-                      return SizedBox(
-                        width: 150,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Checkbox(
-                              value: venueType.selected,
-                              onChanged: (bool? newValue) {
-                                if (newValue != null) {
-                                  context.read<ProfileBloc>().add(
-                                    ToggleVenueType(
-                                      venueType: venueType.title,
-                                      isSelected: newValue,
-                                    ),
-                                  );
-                                }
-                              },
-                              activeColor: const Color(0xFF003366),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                venueType.title,
-                                textAlign: TextAlign.left,
-                                style: const TextStyle(
-                                  color: Color(0xFF003366),
-                                  fontSize: 14,
+                children: venueTypes.map((type) {
+                  final isSelected = state.selectedVenueTypeIds.contains(type.id);
+                  return SizedBox(
+                    width: 150,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Checkbox(
+                          value: isSelected,
+                          onChanged: (bool? newValue) {
+                            if (newValue != null && type.id != null) {
+                              context.read<ProfileBloc>().add(
+                                ToggleVenueType(
+                                  venueTypeId: type.id!,
+                                  isSelected: newValue,
                                 ),
-                              ),
-                            ),
-                          ],
+                              );
+                            }
+                          },
+                          activeColor: const Color(0xFF003366),
                         ),
-                      );
-                    }).toList() ??
-                    [],
-                // venueTypes.entries.map((entry) {
-                //   return SizedBox(
-                //     width: 150,
-                //     child: Row(
-                //       mainAxisSize: MainAxisSize.min,
-                //       children: [
-                //         Checkbox(
-                //           value: entry.value,
-                //           onChanged: (bool? newValue) {
-                //             if (newValue != null) {
-                //               context.read<ProfileBloc>().add(
-                //                 ToggleVenueType(
-                //                   venueType: entry.key,
-                //                   isSelected: newValue,
-                //                 ),
-                //               );
-                //             }
-                //           },
-                //           activeColor: const Color(0xFF003366),
-                //         ),
-                //         const Gap(0),
-                //         Expanded(
-                //           child: Text(
-                //             entry.key,
-                //             textAlign: TextAlign.left,
-                //             style: const TextStyle(
-                //               color: Color(0xFF003366),
-                //               fontSize: 14,
-                //             ),
-                //           ),
-                //         ),
-                //       ],
-                //     ),
-                //   );
-                // }).toList(),
+                        const Gap(0),
+                        Expanded(
+                          child: Text(
+                            type.title ?? '',
+                            textAlign: TextAlign.left,
+                            style: const TextStyle(
+                              color: Color(0xFF003366),
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
               ),
             ],
           ),

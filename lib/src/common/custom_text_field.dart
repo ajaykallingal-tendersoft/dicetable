@@ -1,8 +1,6 @@
 import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:gap/gap.dart';
 
 class CustomTextField extends StatefulWidget {
   final String hintText;
@@ -15,6 +13,7 @@ class CustomTextField extends StatefulWidget {
   final bool readOnly;
   final String? textFieldAnnotationText;
   final double height;
+  final String? errorText;
 
   const CustomTextField({
     super.key,
@@ -28,6 +27,8 @@ class CustomTextField extends StatefulWidget {
     this.readOnly = false,
     this.textFieldAnnotationText,
     this.height = 60,
+    this.errorText,
+
   });
 
   @override
@@ -95,7 +96,11 @@ class _CustomTextFieldState extends State<CustomTextField> {
                 readOnly: widget.readOnly,
                 controller: widget.controller,
                 obscureText: widget.isPassword ? _obscureText : false,
-                onChanged: widget.onChanged,
+                onChanged: (text) {
+                  if (widget.onChanged != null) {
+                    widget.onChanged!(text);
+                  }
+                },
                 maxLines: isMultiline ? widget.maxLines : 1,
                 keyboardType: isMultiline
                     ? TextInputType.multiline
@@ -113,8 +118,11 @@ class _CustomTextFieldState extends State<CustomTextField> {
                   fontSize: 12,
                 ),
                 decoration: InputDecoration(
+                  errorText: widget.errorText,
+                  // helperText: ' ', // <-- This line reserves space for error
                   isDense: true,
                   hintText: widget.hintText,
+                  // alignLabelWithHint: true,
                   hintStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
                     color: AppColors.textPrimaryGrey,
                     fontWeight: FontWeight.w600,
@@ -147,9 +155,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
                     ),
                   )
                       : null,
-
-
                 ),
+
               ),
             ),
           ),

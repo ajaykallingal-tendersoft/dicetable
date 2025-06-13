@@ -6,35 +6,41 @@ sealed class ProfileEvent extends Equatable {
 
 class UpdateTextField extends ProfileEvent {
   final Function(ProfileState) update;
-
   const UpdateTextField(this.update);
-
   @override
   List<Object?> get props => [update];
 }
 
+// class UpdateCity extends ProfileEvent { // Added
+//   final String city;
+//   const UpdateCity(this.city);
+//   @override
+//   List<Object?> get props => [city];
+// }
+
 class ToggleVenueType extends ProfileEvent {
-  final String venueType;
+  final int venueTypeId;
   final bool isSelected;
 
-  const ToggleVenueType({required this.venueType, required this.isSelected});
+  const ToggleVenueType({required this.venueTypeId, required this.isSelected});
 
   @override
-  List<Object?> get props => [venueType, isSelected];
+  List<Object?> get props => [venueTypeId, isSelected];
 }
 
 class UpdateOpeningHour extends ProfileEvent {
   final String day;
   final ProfileOpeningHour hour;
   const UpdateOpeningHour(this.day, this.hour);
-
   @override
   List<Object?> get props => [day, hour];
 }
 
 class SubmitProfile extends ProfileEvent {
+  final ProfileUpdateRequest profileUpdateRequest;
+  const SubmitProfile({required this.profileUpdateRequest});
   @override
-  List<Object?> get props => [];
+  List<Object?> get props => [profileUpdateRequest];
 }
 
 class PickImageFromGalleryEvent extends ProfileEvent {
@@ -42,35 +48,17 @@ class PickImageFromGalleryEvent extends ProfileEvent {
   List<Object?> get props => [];
 }
 
-class FetchCafeProfile extends ProfileEvent {
-  final String id;
-
-  const FetchCafeProfile(this.id);
-
+class GetProfileViewEvent extends ProfileEvent {
   @override
-  List<Object?> get props => [id];
+  List<Object?> get props => [];
 }
 
-class EditProfileLoaded extends ProfileState {
-  final CafeProfile profileData; // ✅ new version
-
-  const EditProfileLoaded({required this.profileData});
-
+class GetProfileEditViewEvent extends ProfileEvent {
   @override
-  List<Object> get props => [profileData];
+  List<Object?> get props => [];
 }
 
-class EditProfileLoadError extends ProfileState {
-  final String errorMessage;
-
-  EditProfileLoadError({required this.errorMessage});
-}
-
-class FetchEditCafeProfile extends ProfileEvent {
-  final String id;
-
-  const FetchEditCafeProfile(this.id);
-
+class ToggleEditModeEvent extends ProfileEvent {
   @override
-  List<Object?> get props => [id];
+  List<Object?> get props => [];
 }

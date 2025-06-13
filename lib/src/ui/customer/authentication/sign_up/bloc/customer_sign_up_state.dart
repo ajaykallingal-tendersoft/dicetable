@@ -1,6 +1,5 @@
 part of 'customer_sign_up_bloc.dart';
 
-
 abstract class CustomerSignUpState extends Equatable {
   const CustomerSignUpState();
 
@@ -11,12 +10,14 @@ abstract class CustomerSignUpState extends Equatable {
 final class CustomerSignUpInitial extends CustomerSignUpState {}
 
 class CustomerSignUpLoadingState extends CustomerSignUpState {}
+
 class CustomerSignUpSuccessState extends CustomerSignUpState {
-final SignUpRequestResponse signUpRequestResponse;
-const CustomerSignUpSuccessState({required this.signUpRequestResponse});
+  final SignUpRequestResponse signUpRequestResponse;
+  const CustomerSignUpSuccessState({required this.signUpRequestResponse});
   @override
   List<Object?> get props => [signUpRequestResponse];
 }
+
 class CustomerSignUpErrorState extends CustomerSignUpState {
   final String errorMessage;
   const CustomerSignUpErrorState({required this.errorMessage});
@@ -32,8 +33,13 @@ class SignUpFormState extends CustomerSignUpState {
   final String phone;
   final String country;
   final String region;
-  // final String address;
-  // final String postalCode;
+  final String? nameError;
+  final String? emailError;
+  final String? passwordError;
+  final String? confirmPasswordError;
+  final String? phoneError;
+  final String? countryError;
+  final String? regionError;
 
   const SignUpFormState({
     this.name = '',
@@ -43,8 +49,13 @@ class SignUpFormState extends CustomerSignUpState {
     this.phone = '',
     this.country = '',
     this.region = '',
-    // this.address = '',
-    // this.postalCode = '',
+    this.nameError,
+    this.emailError,
+    this.passwordError,
+    this.confirmPasswordError,
+    this.phoneError,
+    this.countryError,
+    this.regionError,
   });
 
   SignUpFormState copyWith({
@@ -55,10 +66,13 @@ class SignUpFormState extends CustomerSignUpState {
     String? phone,
     String? country,
     String? region,
-    // String? address,
-    // String? postalCode,
-
-
+    String? nameError,
+    String? emailError,
+    String? passwordError,
+    String? confirmPasswordError,
+    String? phoneError,
+    String? countryError,
+    String? regionError,
   }) {
     return SignUpFormState(
       name: name ?? this.name,
@@ -68,8 +82,13 @@ class SignUpFormState extends CustomerSignUpState {
       phone: phone ?? this.phone,
       country: country ?? this.country,
       region: region ?? this.region,
-      // address: address ?? this.address,
-      // postalCode: postalCode ?? this.postalCode,
+      nameError: nameError,
+      emailError: emailError,
+      passwordError: passwordError,
+      confirmPasswordError: confirmPasswordError,
+      phoneError: phoneError,
+      countryError: countryError,
+      regionError: regionError,
     );
   }
 
@@ -82,10 +101,17 @@ class SignUpFormState extends CustomerSignUpState {
     phone,
     country,
     region,
+    nameError,
+    emailError,
+    passwordError,
+    confirmPasswordError,
+    phoneError,
+    countryError,
+    regionError,
   ];
 }
 
-///Google signup
+/// Google signup
 class GoogleSignUpInitial extends CustomerSignUpState {}
 
 class GoogleSignUpLoadingState extends CustomerSignUpState {}

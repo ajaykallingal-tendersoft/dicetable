@@ -110,6 +110,8 @@ class VenueErrorState extends SignUpState {
   List<Object?> get props => [errorMessage];
 }
 
+
+
 class SignUpFormState extends SignUpState {
   final String venueName;
   final String venueDescription;

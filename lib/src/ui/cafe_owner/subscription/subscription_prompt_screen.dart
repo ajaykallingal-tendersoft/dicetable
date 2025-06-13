@@ -136,6 +136,58 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                               ),
                             ),
                             SizedBox(height: 20.h),
+
+                            RichText(
+                              text: TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: 'Promo Code: ',
+                                    style: TextTheme.of(context).bodyMedium!.copyWith(
+                                      color: AppColors.tertiary,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 14.sp, // Using .sp for responsive font size
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: 'E23FTU6',
+                                    style: TextTheme.of(context).bodyMedium!.copyWith(
+                                      color: AppColors.tertiary,
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 14.sp, // Using .sp for responsive font size
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(height: 10.h), // Using .h for responsive height
+                            TextField(
+                              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                color: AppColors.hintColor,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14.sp, // Using .sp for responsive font size
+                              ),
+                              decoration: InputDecoration(
+                                hintText: 'Enter Promo Code',
+                                hintStyle: TextStyle(
+                                  color: AppColors.textPrimaryGrey,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14.sp, // Using .sp for responsive font size
+                                ),
+                                contentPadding: EdgeInsets.symmetric(horizontal: 16.w), // Using .w for responsive width
+                                border: OutlineInputBorder(
+                                  borderSide: BorderSide(color: AppColors.borderColor1),
+                                  borderRadius: BorderRadius.circular(10.r), // Using .r for responsive radius
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: AppColors.borderColor1),
+                                  borderRadius: BorderRadius.circular(10.r), // Using .r for responsive radius
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(color: AppColors.borderColor1),
+                                  borderRadius: BorderRadius.circular(10.r), // Using .r for responsive radius
+                                ),
+                              ),
+                            )
                           ],
                         ),
                       ),

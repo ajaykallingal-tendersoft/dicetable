@@ -6,7 +6,9 @@ import 'package:dicetable/src/resources/api_providers/customer/cafe_data_provide
 import 'package:dicetable/src/resources/api_providers/customer/favourite_data_provider.dart';
 import 'package:dicetable/src/resources/api_providers/customer/profile_data_provider.dart';
 import 'package:dicetable/src/resources/api_providers/venue_owner/home_data_provider.dart';
+import 'package:dicetable/src/resources/api_providers/venue_owner/profile_data_provider.dart';
 import 'package:dicetable/src/resources/api_providers/venue_owner/subscription_data_provider.dart';
+import 'package:dicetable/src/ui/cafe_owner/authentication/forgot_password/bloc/forgotPassword/forgot_password_bloc.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/login/cubit/google_sign_in_cubit.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/sign_up/bloc/sign_up/sign_up_bloc.dart';
 import 'package:dicetable/src/ui/customer/home/bloc/customer_home_bloc.dart';
@@ -17,6 +19,7 @@ import 'package:dicetable/src/ui/cafe_owner/profile/bloc/profile_bloc.dart';
 import 'package:dicetable/src/ui/cafe_owner/subscription/bloc/subscription_bloc.dart';
 import 'package:dicetable/src/ui/customer/cafe_details/bloc/cafe_details_bloc.dart';
 import 'package:dicetable/src/ui/customer/cafe_list/bloc/cafe_list_bloc.dart';
+import 'package:dicetable/src/ui/verification/bloc/verification_bloc.dart';
 import 'package:dicetable/src/utils/network_connectivity/network_connectivity_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -38,7 +41,7 @@ class App extends StatelessWidget {
           create: (context) => NotificationCubit(),
         ),
         BlocProvider<ProfileBloc>(
-          create: (context) => ProfileBloc(),
+          create: (context) => ProfileBloc(profileDataProvider: ProfileDataProvider()),
         ),
         BlocProvider(create: (context) => GoogleSignInCubit()),
 
@@ -63,6 +66,16 @@ class App extends StatelessWidget {
         BlocProvider(
           create: (context) => CustomerHomeBloc(cafeDataProvider: CafeDataProvider()),
         ),
+        BlocProvider(
+          create: (context) => CustomerHomeBloc(cafeDataProvider: CafeDataProvider()),
+        ),
+        BlocProvider(
+          create: (context) => ForgotPasswordBloc(authDataProvider: AuthDataProvider()),
+        ),
+        BlocProvider(
+          create: (context) =>
+              VerificationBloc(authDataProvider: AuthDataProvider()),
+        )
       ],
       child: ScreenUtilInit(
         designSize: const Size(430, 932),

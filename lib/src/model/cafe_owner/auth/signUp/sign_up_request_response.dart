@@ -4,6 +4,9 @@ class SignUpRequestResponse {
   final User? user;
   final String? message;
   final String? cafeId;
+  final String? expiresAt;
+  final int? otpLength;
+  final int? resendAvailableInSeconds;
   final Map<String, dynamic>? errors;
   final Map<String, dynamic> extra; // To hold any additional dynamic fields
 
@@ -13,6 +16,9 @@ class SignUpRequestResponse {
     this.user,
     this.message,
     this.cafeId,
+    this.expiresAt,
+    this.otpLength,
+    this.resendAvailableInSeconds,
     this.errors,
     this.extra = const {},
   });
@@ -24,10 +30,13 @@ class SignUpRequestResponse {
     final user = json['user'] != null ? User.fromJson(json['user']) : null;
     final message = json['message'] as String?;
     final cafeId = json['cafe_id'] as String?;
+   final  expiresAt = json["expiresAt"] as String?;
+    final otpLength = json["otpLength"] as int?;
+    final resendAvailableInSeconds = json["resendAvailableInSeconds"] as int?;
     final errors = json['errors'] != null ? Map<String, dynamic>.from(json['errors']) : null;
 
     // Remove known keys to get extra/dynamic fields
-    final knownKeys = {'status', 'token', 'user', 'message', 'errors'};
+    final knownKeys = {'status', 'token', 'user', 'message', 'errors', 'expiresAt','otpLength','resendAvailableInSeconds'};
     final extra = Map<String, dynamic>.from(json)
       ..removeWhere((key, _) => knownKeys.contains(key));
 
@@ -39,6 +48,9 @@ class SignUpRequestResponse {
       cafeId: cafeId,
       errors: errors,
       extra: extra,
+      expiresAt: expiresAt,
+      otpLength: otpLength,
+      resendAvailableInSeconds: resendAvailableInSeconds,
     );
   }
 }
@@ -76,7 +88,7 @@ class User {
       userLogin: json['user_login'],
       name: json['name'],
       email: json['email'],
-      phone: json['phone'],
+      phone: json['phone'] != null ? json['phone'] : "",
       loginType: json['login_type'],
       country: json['country'],
       state: json['state'],

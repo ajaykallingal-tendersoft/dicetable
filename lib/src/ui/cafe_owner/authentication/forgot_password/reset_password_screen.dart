@@ -78,14 +78,14 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       isPassword: true,
                       hintText: 'New Password',
                       controller: _controller,
-                      textFieldAnnotationText: 'New Password',
+
                     ),
                     Gap(10),
                     CustomTextField(
+
                       isPassword: true,
                       hintText: 'Confirm Password',
                       controller: _confirmController,
-                      textFieldAnnotationText: 'Confirm Password',
                     ),
                     Gap(60),
                     BlocConsumer<PasswordResetBloc, PasswordResetState>(
@@ -121,33 +121,29 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                       builder: (context, state) {
                         final bool isLoading = state is PasswordResetLoading;
                         return Stack(
-                          alignment: Alignment.center, // Center the CircularProgressIndicator
+                          alignment: Alignment.center,
                           children: [
                             InkWell(
-                              onTap: isLoading ? null : () { // Disable tap when loading
-                                // --- PASSWORD MATCH CHECK ---
+                              onTap: isLoading ? null : () {
+
                                 if (_controller.text.isEmpty || _confirmController.text.isEmpty) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content: Text("Please fill in both password fields."),
-                                      backgroundColor: Colors.orange, // Or AppColors.appRedColor
+                                      content: Text("To proceed, please provide your new password and confirm it."),
+                                      backgroundColor: AppColors.appRedColor,
                                     ),
                                   );
                                   return; // Stop execution
                                 }
-
                                 if (_controller.text != _confirmController.text) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
                                       content: Text("Passwords do not match."),
-                                      backgroundColor: AppColors.appRedColor, // Or Colors.orange
+                                      backgroundColor: AppColors.appRedColor,
                                     ),
                                   );
                                   return; // Stop execution
                                 }
-                                // --- END PASSWORD MATCH CHECK ---
-
-                                // If passwords match, dispatch the event
                                 context.read<PasswordResetBloc>().add(
                                   GetPasswordResetEvent(
                                     passwordResetRequest: PasswordResetRequest(

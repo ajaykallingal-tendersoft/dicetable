@@ -8,8 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
-
+import 'package:gap/gap.dart';
 import 'bloc/customer_home_bloc.dart';
 
 class CustomerHomePage extends StatefulWidget {
@@ -25,8 +26,14 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
   void initState() {
     super.initState();
     _performSearch();
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   context.read<CustomerHomeBloc>().add(FetchLocationEvent(context: context));
+    // });
+
   }
+
 void _performSearch() {
+
   final searchRequest = CafeSearchRequest(
     search: "",
     openTime: '',
@@ -77,12 +84,11 @@ void _performSearch() {
         child: CustomScrollView(
           physics: const NeverScrollableScrollPhysics(),
           slivers: [
-
             SliverPadding(
-              padding: EdgeInsets.symmetric(horizontal: 20.h, vertical: 20.h),
+              padding: EdgeInsets.symmetric(horizontal: 20.h, vertical: 0.h),
               sliver: SliverAppBar(
                 backgroundColor: Colors.transparent,
-                expandedHeight: 80.h,
+                // expandedHeight: 10.h,
                 leading: const SizedBox(),
                 flexibleSpace: FlexibleSpaceBar(
                   centerTitle: false,
@@ -94,11 +100,12 @@ void _performSearch() {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Gap(10),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Dice Table",
+                              "DICE TABLE",
                               style: TextTheme
                                   .of(context)
                                   .labelMedium!
@@ -108,11 +115,9 @@ void _performSearch() {
                                 fontSize: 30.sp,
                               ),
                             ),
-
                             InkWell(
                               onTap: () {
-                                GoRouter.of(context).push('/notification');
-                                // context.push('/notification');
+                               context.push('/notification');
                               },
                               child: Stack(
                                 children: [
@@ -160,26 +165,101 @@ void _performSearch() {
                 ),
               ),
             ),
+      SliverPadding(
+        padding: EdgeInsets.zero,
+        sliver: SliverToBoxAdapter(
+          child: CafeSearchBar(
+            onSearch: (query) {
+              // Call your API or filter list
+              print('Search for: $query');
+            },
+            onFilterTap: () => showFilterBottomSheet(context),
+          ),
+        ),
+      ),
 
-            SliverToBoxAdapter(
-              child: CafeSearchBar(
-                onSearch: (query) {
-                  // Call your API or filter list
-                  print('Search for: $query');
-                },
-                onFilterTap: () => showFilterBottomSheet(context),
-              ),
-            ),
-            BlocBuilder<CustomerHomeBloc, CustomerHomeState>(
-              builder: (context, state) {
+            BlocConsumer<CustomerHomeBloc, CustomerHomeState>(
+              listener: (context, state) {
                 if (state is CafeSearchLoading) {
                   EasyLoading.show();
+                } else {
+                  EasyLoading.dismiss();
                 }
+                if (state is LocationError) {
+                  if (state.errorType == LocationErrorType.permissionDeniedForever) {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Location Permission Required'),
+                        content: const Text(
+                          'Location access is permanently denied. Please enable it in your device settings.',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () async {
+                              Navigator.pop(context);
+                              await Geolocator.openAppSettings();
+                            },
+                            child: const Text('Open Settings'),
+                          ),
+                        ],
+                      ),
+                    );
+                  } else if (state.errorType == LocationErrorType.serviceDisabled) {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Location Services Disabled'),
+                        content: const Text(
+                          'Location services are disabled. Please enable them in your device settings.',
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () async {
+                              Navigator.pop(context);
+                              await Geolocator.openLocationSettings();
+                            },
+                            child: const Text('Open Settings'),
+                          ),
+                        ],
+                      ),
+                    );
+                  } else if (state.errorType == LocationErrorType.unknown) {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Location Error'),
+                        content: Text(state.errorMessage),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(context),
+                            child: const Text('Cancel'),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              context.pop();
+                              context.read<CustomerHomeBloc>().add(FetchLocationEvent(context: context));
+                            },
+                            child: const Text('Retry'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+                }
+              },
+              builder: (context, state) {
                 return SliverToBoxAdapter(
                   child: Container(
-                    height: MediaQuery
-                        .sizeOf(context)
-                        .height,
+                    height: MediaQuery.sizeOf(context).height,
                     width: double.infinity,
                     decoration: BoxDecoration(
                       color: AppColors.primaryWhiteColor,

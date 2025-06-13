@@ -52,6 +52,9 @@ class Cafe {
   final bool? favourites;
   final bool? bookingStatus;
   final List<WorkingHour>? workingHours;
+  final String? latitude;
+  final String? longitude;
+
 
   Cafe({
     this.id,
@@ -62,6 +65,8 @@ class Cafe {
     this.favourites,
     this.bookingStatus,
     this.workingHours,
+    this.latitude,
+    this.longitude,
   });
 
   Cafe copyWith({
@@ -73,6 +78,9 @@ class Cafe {
     bool? favourites,
     bool? bookingStatus,
     List<WorkingHour>? workingHours,
+    String? latitude,
+    String? longitude,
+
   }) =>
       Cafe(
         id: id ?? this.id,
@@ -83,6 +91,8 @@ class Cafe {
         favourites: favourites ?? this.favourites,
         bookingStatus: bookingStatus ?? this.bookingStatus,
         workingHours: workingHours ?? this.workingHours,
+        latitude: latitude ?? this.latitude,
+        longitude: longitude ?? this.longitude,
       );
 
   factory Cafe.fromJson(Map<String, dynamic> json) => Cafe(
@@ -94,6 +104,8 @@ class Cafe {
     favourites: json["favourites"],
     bookingStatus: json["booking_status"],
     workingHours: json["working_hours"] == null ? [] : List<WorkingHour>.from(json["working_hours"]!.map((x) => WorkingHour.fromJson(x))),
+    latitude: json["latitude"],
+    longitude: json["longitude"],
   );
 
   Map<String, dynamic> toJson() => {
@@ -105,6 +117,7 @@ class Cafe {
     "favourites": favourites,
     "booking_status": bookingStatus,
     "working_hours": workingHours == null ? [] : List<dynamic>.from(workingHours!.map((x) => x.toJson())),
+
   };
 }
 

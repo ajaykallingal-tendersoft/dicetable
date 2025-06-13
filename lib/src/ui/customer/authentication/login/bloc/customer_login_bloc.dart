@@ -15,7 +15,6 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
   final AuthDataProvider authDataProvider;
 
   CustomerLoginBloc({required this.authDataProvider}) : super(LoginFormState()) {
-    // Register event handlers in one place - ONE handler per event type
     on<EmailChanged>(_onEmailChanged);
     on<PasswordChanged>(_onPasswordChanged);
     on<FormSubmitted>(_onFormSubmitted);
@@ -61,7 +60,7 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
       if (password.isEmpty) {
         passwordError = 'Password is required';
       } else if (password.length < 6) {
-        passwordError = 'Password must be at least 6 characters';
+        passwordError = 'Invalid password';
       }
 
       if (emailError != null || passwordError != null) {

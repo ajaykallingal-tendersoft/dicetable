@@ -1,18 +1,20 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:dicetable/src/common/custom_text_field.dart';
 import 'package:dicetable/src/common/elevated_button_widget.dart';
 import 'package:dicetable/src/constants/app_colors.dart';
-import 'package:dicetable/src/utils/client/api_client.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/login/cubit/google_sign_in_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'bloc/profile_bloc.dart';
+
 
 class ManageProfileScreen extends StatefulWidget {
   const ManageProfileScreen({super.key});
@@ -24,55 +26,38 @@ class ManageProfileScreen extends StatefulWidget {
 class _ManageProfileScreenState extends State<ManageProfileScreen> {
   late TextEditingController _venueNameController = TextEditingController();
   late TextEditingController _venueDescriptionController =
-      TextEditingController();
+  TextEditingController();
   late TextEditingController _emailController = TextEditingController();
-  late TextEditingController _passwordController = TextEditingController();
+
+  // late TextEditingController _passwordController = TextEditingController();
   late TextEditingController _phoneController = TextEditingController();
   late TextEditingController _addressController = TextEditingController();
   late TextEditingController _postalCodeController = TextEditingController();
   File? _imageFile;
 
+  // Add visibility state variables
+  bool _isEmailVisible = false;
+  bool _isPhoneVisible = false;
+
   @override
   void initState() {
     super.initState();
+    context.read<ProfileBloc>().add(GetProfileViewEvent());
     _initializeControllers();
   }
 
   void _initializeControllers() {
-    final state = context.read<ProfileBloc>().state;
-
-    context.read<ProfileBloc>().add(
-      FetchCafeProfile(ObjectFactory().prefs.getCafeId().toString()),
-    );
-
-    if (state is ProfileLoaded) {
-      final profile = state.profileData;
-
-      _venueNameController = TextEditingController(text: profile['name'] ?? '');
-      _venueDescriptionController = TextEditingController(
-        text: profile['venue_description'] ?? '',
-      );
-      _emailController = TextEditingController(text: profile['email'] ?? '');
-      _passwordController = TextEditingController(
-        text: '', // password not provided in API
-      );
-      _phoneController = TextEditingController(text: profile['phone'] ?? '');
-      _addressController = TextEditingController(
-        text: profile['address'] ?? '',
-      );
-      _postalCodeController = TextEditingController(
-        text: profile['postcode'] ?? '',
-      );
-    } else {
-      // Optionally initialize with empty controllers
-      _venueNameController = TextEditingController();
-      _venueDescriptionController = TextEditingController();
-      _emailController = TextEditingController();
-      _passwordController = TextEditingController();
-      _phoneController = TextEditingController();
-      _addressController = TextEditingController();
-      _postalCodeController = TextEditingController();
-    }
+    final state = context
+        .read<ProfileBloc>()
+        .state;
+    _venueNameController = TextEditingController(text: state.venueName);
+    _venueDescriptionController =
+        TextEditingController(text: state.venueDescription);
+    _emailController = TextEditingController(text: state.email);
+    // _passwordController = TextEditingController(text: state.password);
+    _phoneController = TextEditingController(text: state.phone);
+    _addressController = TextEditingController(text: state.address);
+    _postalCodeController = TextEditingController(text: state.postalCode);
   }
 
   @override
@@ -80,57 +65,77 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
     _venueNameController.dispose();
     _venueDescriptionController.dispose();
     _emailController.dispose();
-    _passwordController.dispose();
+    // _passwordController.dispose();
     _phoneController.dispose();
     _addressController.dispose();
     _postalCodeController.dispose();
     super.dispose();
   }
 
+  String _getMaskedEmail(String email) {
+    if (email.isEmpty) return email;
+    final atIndex = email.indexOf('@');
+    if (atIndex <= 1) return email;
+
+    final username = email.substring(0, atIndex);
+    final domain = email.substring(atIndex);
+
+    if (username.length <= 2) return email;
+
+    final maskedUsername = username[0] +
+        '*' * (username.length - 2) +
+        username[username.length - 1];
+
+    return maskedUsername + domain;
+  }
+
+  String _getMaskedPhone(String phone) {
+    if (phone.isEmpty || phone.length < 4) return phone;
+
+    final visibleDigits = 2;
+    final maskedPart = '*' * (phone.length - visibleDigits * 2);
+
+    return phone.substring(0, visibleDigits) +
+        maskedPart +
+        phone.substring(phone.length - visibleDigits);
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<ProfileBloc, ProfileState>(
-      listener: (context, state) {
-        if (state is ProfileLoadError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.errorMessage),
-              backgroundColor: Colors.red,
-            ),
-          );
+      listener: (context, state) async {
+        if (state is ProfileViewLoaded) {
+          _initializeControllers(); // Reinitialize controllers
         }
-        if (state is ProfileLoaded) {
-          final profile = state.profileData;
-          _venueNameController = TextEditingController(
-            text: profile['name'] ?? '',
-          );
-          _venueDescriptionController = TextEditingController(
-            text: profile['venue_description'] ?? '',
-          );
-          _emailController = TextEditingController(
-            text: profile['email'] ?? '',
-          );
-          _passwordController = TextEditingController(text: '');
-          _phoneController = TextEditingController(
-            text: profile['phone'] ?? '',
-          );
-          _addressController = TextEditingController(
-            text: profile['address'] ?? '',
-          );
-          _postalCodeController = TextEditingController(
-            text: profile['postcode'] ?? '',
-          );
+        _venueNameController.text = state.venueName;
+        _venueDescriptionController.text = state.venueDescription;
+        _emailController.text = state.email;
+        // _passwordController.text = state.password;
+        _phoneController.text = state.phone;
+        _addressController.text = state.address;
+        _postalCodeController.text = state.postalCode;
+        if (state.image != null) {
+          _imageFile = File(state.image!.path);
+        }
+
+        if (state is ProfileViewLoading) {
+          await EasyLoading.show();
         } else {
-          _venueNameController.text = state.venueName ?? '';
-          _venueDescriptionController.text = state.venueDescription ?? '';
-          _emailController.text = state.email ?? '';
-          _passwordController.text = state.password ?? '';
-          _phoneController.text = state.phone ?? '';
-          _addressController.text = state.address ?? '';
-          _postalCodeController.text = state.postalCode ?? '';
+          await EasyLoading.dismiss();
+          if (state is ProfileImageErrorState) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Something went wrong!.")),
+            );
+          }
         }
       },
       builder: (context, state) {
+        if (state is ProfileViewError) {
+          return Center(child: Text(state.errorMessage));
+        }
+        if (state is ProfileViewLoading) {
+          EasyLoading.show();
+        }
         return Container(
           decoration: const BoxDecoration(color: AppColors.primary),
           child: SafeArea(
@@ -149,80 +154,85 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                           controller: _venueNameController,
                           hintText: 'Venue Name',
                           textFieldAnnotationText: 'Venue Name',
-                          // initialValue: state.venueName,
-                          onChanged: (value) {
-                            context.read<ProfileBloc>().add(
-                              UpdateTextField(
-                                (state) => state.copyWith(venueName: value),
-                              ),
-                            );
-                          },
+                          onChanged: (value) {},
                         ),
                         CustomTextField(
                           height: 112,
                           isProfile: true,
                           readOnly: true,
                           hintText: 'Your Venue description here',
-                          textFieldAnnotationText:
-                              'Your Venue description here',
+                          textFieldAnnotationText: 'Your Venue description here',
                           maxLines: 5,
                           controller: _venueDescriptionController,
-                          // initialValue: state.venueDescription,
-                          onChanged: (value) {
-                            context.read<ProfileBloc>().add(
-                              UpdateTextField(
-                                (state) =>
-                                    state.copyWith(venueDescription: value),
+                          onChanged: (value) {},
+                        ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: SizedBox(
+                            height: 35,
+                            width: 55,
+                            child: FittedBox(
+                              fit: BoxFit.fill,
+                              child: Switch(
+                                activeColor: AppColors.primaryWhiteColor,
+                                activeTrackColor: AppColors.tertiary,
+                                inactiveThumbColor: AppColors.disabledColor,
+                                inactiveTrackColor: AppColors.primaryWhiteColor,
+                                value: _isEmailVisible,
+                                onChanged: (val) {
+                                  setState(() {
+                                    _isEmailVisible = val;
+                                  });
+                                },
                               ),
-                            );
-                          },
+                            ),
+                          ),
                         ),
                         CustomTextField(
                           isProfile: true,
                           readOnly: true,
-                          controller: _emailController,
+                          controller: TextEditingController(
+                            text: _isEmailVisible
+                                ? state.email
+                                : _getMaskedEmail(state.email),
+                          ),
                           hintText: 'Email',
                           textFieldAnnotationText: 'Email',
-                          // initialValue: state.email,
-                          onChanged: (value) {
-                            context.read<ProfileBloc>().add(
-                              UpdateTextField(
-                                (state) => state.copyWith(email: value),
+                          onChanged: (value) {},
+                        ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: SizedBox(
+                            height: 35,
+                            width: 55,
+                            child: FittedBox(
+                              fit: BoxFit.fill,
+                              child: Switch(
+                                activeColor: AppColors.primaryWhiteColor,
+                                activeTrackColor: AppColors.tertiary,
+                                inactiveThumbColor: AppColors.disabledColor,
+                                inactiveTrackColor: AppColors.primaryWhiteColor,
+                                value: _isPhoneVisible,
+                                onChanged: (val) {
+                                  setState(() {
+                                    _isPhoneVisible = val;
+                                  });
+                                },
                               ),
-                            );
-                          },
+                            ),
+                          ),
                         ),
                         CustomTextField(
                           isProfile: true,
                           readOnly: true,
-                          controller: _passwordController,
-                          hintText: 'Password',
-                          textFieldAnnotationText: 'Password',
-                          isPassword: true,
-                          // initialValue: state.password,
-                          onChanged: (value) {
-                            context.read<ProfileBloc>().add(
-                              UpdateTextField(
-                                (state) => state.copyWith(password: value),
-                              ),
-                            );
-                          },
-                        ),
-
-                        CustomTextField(
-                          isProfile: true,
-                          readOnly: true,
-                          controller: _phoneController,
+                          controller: TextEditingController(
+                            text: _isPhoneVisible
+                                ? state.phone
+                                : _getMaskedPhone(state.phone),
+                          ),
                           hintText: 'Phone',
                           textFieldAnnotationText: 'Phone',
-                          // initialValue: state.phone,
-                          onChanged: (value) {
-                            context.read<ProfileBloc>().add(
-                              UpdateTextField(
-                                (state) => state.copyWith(phone: value),
-                              ),
-                            );
-                          },
+                          onChanged: (value) {},
                         ),
                         CustomTextField(
                           isProfile: true,
@@ -230,14 +240,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                           controller: _addressController,
                           hintText: 'Street Address And City',
                           textFieldAnnotationText: 'Street Address And City',
-                          // initialValue: state.address,
-                          onChanged: (value) {
-                            context.read<ProfileBloc>().add(
-                              UpdateTextField(
-                                (state) => state.copyWith(address: value),
-                              ),
-                            );
-                          },
+                          onChanged: (value) {},
                         ),
                         CustomTextField(
                           isProfile: true,
@@ -245,28 +248,20 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                           controller: _postalCodeController,
                           hintText: 'Postal Code',
                           textFieldAnnotationText: 'Postal Code',
-                          onChanged: (value) {
-                            context.read<ProfileBloc>().add(
-                              UpdateTextField(
-                                (state) => state.copyWith(postalCode: value),
-                              ),
-                            );
-                          },
+                          onChanged: (value) {},
                         ),
-
                         const Gap(10),
                         CustomTextField(
                           isProfile: true,
                           readOnly: true,
                           controller: TextEditingController(
-                            text: _formatVenueTypesFromList(
-                              state.cafeProfile?.venueTypes,
-                            ),
+                            text: state.venueType ?? 'No venue type selected',
                           ),
                           hintText: 'Venue Type',
                           textFieldAnnotationText: 'Venue Type',
                           onChanged: (value) {},
                         ),
+
                         const Gap(17),
                         CustomTextField(
                           height: 213,
@@ -280,7 +275,6 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                           textFieldAnnotationText: 'Opening Hours',
                           onChanged: (value) {},
                         ),
-
                         const Gap(30),
                         InkWell(
                           onTap: () {
@@ -288,15 +282,10 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                             ObjectFactory().prefs.setIsLoggedIn(false);
                             ObjectFactory().prefs.setAuthToken(token: "");
                             ObjectFactory().prefs.setCafeUserName(
-                              cafeUserName: "",
-                            );
+                                cafeUserName: "");
                             ObjectFactory().prefs.setCafeId(cafeId: '');
                             ObjectFactory().prefs.getNavigationSource();
-                           if(ObjectFactory().prefs.getRememberDecision() == true) {
-                             context.go('/login');
-                           }else {
-                             context.go('/category');
-                           }
+                            context.go('/category');
                           },
                           child: ElevatedButtonWidget(
                             height: 70.h,
@@ -322,39 +311,20 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
 
   // For venue types, convert selected types to a readable string
   String _formatVenueTypes(Map<String, bool> venueTypes) {
-    final selectedTypes =
-        venueTypes.entries
-            .where((entry) => entry.value) // Only get true values
-            .map((entry) => entry.key) // Get the venue type name
-            .toList();
-
-    if (selectedTypes.isEmpty) {
-      return 'No venue types selected';
-    }
-
-    return selectedTypes.join(', ');
-  }
-
-  // New helper for List<VenueType>?
-  String _formatVenueTypesFromList(List<VenueType>? venueTypes) {
-    if (venueTypes == null || venueTypes.isEmpty) {
-      return 'No venue types selected';
-    }
-    // Replace 'name' with the correct property or method of VenueType
-    final names = venueTypes.map((type) => type.toString()).toList();
-    return names.join(', ');
+    final selectedTypes = venueTypes.entries
+        .where((entry) => entry.value)
+        .map((entry) => entry.key)
+        .toList();
+    return selectedTypes.isEmpty ? 'No venue types selected' : selectedTypes
+        .join(', ');
   }
 
   // For opening hours, create a formatted string with each day and its hours
   String _formatOpeningHours(Map<String, ProfileOpeningHour> openingHours) {
-    if (openingHours.isEmpty) {
-      return 'No opening hours set';
-    }
-
+    if (openingHours.isEmpty) return 'No opening hours set';
     final buffer = StringBuffer();
     openingHours.forEach((day, hours) {
       if (hours.isEnabled) {
-        // Format time in 12-hour format
         final fromTime = _formatTimeOfDay(hours.from);
         final toTime = _formatTimeOfDay(hours.to);
         buffer.writeln('$day: $fromTime - $toTime');
@@ -362,11 +332,9 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
         buffer.writeln('$day: Closed');
       }
     });
-
     return buffer.toString();
   }
 
-  // Helper method to format TimeOfDay nicely
   String _formatTimeOfDay(TimeOfDay time) {
     final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
     final minute = time.minute.toString().padLeft(2, '0');
@@ -375,6 +343,9 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
   }
 
   Widget _buildSliverAppBar() {
+    final state = context
+        .read<ProfileBloc>()
+        .state;
     return SliverAppBar(
       expandedHeight: 380.h,
       pinned: false,
@@ -421,16 +392,22 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                   children: [
                     Gap(60),
                     Text(
-                      "Sun Cafe",
-                      style: TextTheme.of(context).bodyLarge!.copyWith(
+                      state.venueName,
+                      style: TextTheme
+                          .of(context)
+                          .bodyLarge!
+                          .copyWith(
                         color: AppColors.primaryWhiteColor,
                         fontSize: 22,
                       ),
                     ),
                     SizedBox(height: 4),
                     Text(
-                      "Member Since June, 2024",
-                      style: TextTheme.of(context).bodySmall!.copyWith(
+                      state.venueDescription,
+                      style: TextTheme
+                          .of(context)
+                          .bodySmall!
+                          .copyWith(
                         color: AppColors.primaryWhiteColor,
                         fontSize: 12,
                       ),
@@ -444,46 +421,59 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
               left: 0,
               right: 0,
               child: Center(
-                child: Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 95.r,
-                      backgroundColor: AppColors.primary,
-                      child: CircleAvatar(
-                        radius: 85.r,
-                        backgroundImage:
-                            _imageFile != null
-                                ? FileImage(_imageFile!)
-                                : const AssetImage(
-                                  'assets/png/profile-img.png',
-                                ),
+                child: CircleAvatar(
+                  radius: 95.r,
+                  backgroundColor: AppColors.primary,
+                  child: CircleAvatar(
+                    backgroundColor: Colors.transparent,
+                    radius: 85.r,
+                    child: ClipOval(
+                      child: BlocBuilder<ProfileBloc, ProfileState>(
+                        builder: (context, state) {
+                          final base64Image = state.profileViewResponse?.data
+                              ?.photo;
+                          if (base64Image != null && base64Image.isNotEmpty) {
+                            try {
+                              final cleanBase64 = base64Image.startsWith(
+                                  'data:image')
+                                  ? base64Image
+                                  .split(',')
+                                  .last
+                                  : base64Image;
+                              final decodedBytes = base64Decode(cleanBase64);
+                              return Image.memory(
+                                decodedBytes,
+                                fit: BoxFit.cover,
+                                width: 170.r,
+                                height: 170.r,
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Image.asset(
+                                      'assets/png/profile-img.png',
+                                      fit: BoxFit.cover,
+                                      width: 170.r,
+                                      height: 170.r,
+                                    ),
+                              );
+                            } catch (e) {
+                              debugPrint('Invalid base64 image: $e');
+                              return Image.asset(
+                                'assets/png/profile-img.png',
+                                fit: BoxFit.cover,
+                                width: 170.r,
+                                height: 170.r,
+                              );
+                            }
+                          }
+                          return Image.asset(
+                            'assets/png/profile-img.png',
+                            fit: BoxFit.cover,
+                            width: 170.r,
+                            height: 170.r,
+                          );
+                        },
                       ),
                     ),
-                    Positioned(
-                      bottom: 30.h,
-                      right: 0.w,
-                      child: Container(
-                        height: 44.h,
-                        width: 44.w,
-                        padding: const EdgeInsets.all(10),
-                        decoration: const BoxDecoration(
-                          color: AppColors.primaryWhiteColor,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black26,
-                              blurRadius: 2,
-                              spreadRadius: 1,
-                            ),
-                          ],
-                        ),
-                        child: SvgPicture.asset(
-                          'assets/svg/camera-icon.svg',
-                          fit: BoxFit.scaleDown,
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ),
@@ -493,8 +483,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
       actions: [
         InkWell(
           onTap: () {
-            GoRouter.of(context).push('/notification');
-            // context.push('/notification');
+            context.push('/notification');
           },
           child: SvgPicture.asset('assets/svg/notify.svg'),
         ),
@@ -512,28 +501,30 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
           children: [
             Text(
               "Venue Information",
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              style: Theme
+                  .of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(
                 fontSize: 14,
                 color: AppColors.primaryWhiteColor,
                 fontWeight: FontWeight.bold,
               ),
             ),
             ElevatedButton.icon(
-              onPressed: () {},
-              // async {
-              //   final profileState = context.read<ProfileBloc>().state;
-              //   final dynamic result = await context.push(
-              //     // Capture the result
-              //     '/edit_profile',
-              //     extra: profileState,
-              //   );
-              //   setState(() {
-              //     if (result is String) {
-              //       _imageFile = File(result);
-              //     }
-              //   });
-              //   _initializeControllers();
-              // },
+              onPressed: () async {
+                final profileState = context
+                    .read<ProfileBloc>()
+                    .state;
+                final dynamic result = await context.push(
+                    '/edit_profile', extra: profileState);
+                if (result is String && result.isNotEmpty) {
+                  setState(() {
+                    _imageFile = File(result);
+                  });
+                }
+                _initializeControllers();
+              },
               icon: SvgPicture.asset('assets/svg/edit-btn.svg'),
               label: Text(
                 "EDIT",
@@ -545,9 +536,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
               ),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
+                    horizontal: 10, vertical: 6),
                 foregroundColor: AppColors.primaryWhiteColor,
                 side: const BorderSide(color: AppColors.primaryWhiteColor),
                 fixedSize: Size(75.w, 26.h),
@@ -559,31 +548,3 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
     );
   }
 }
-
-// Future<void> _onFetchCafeProfile(
-//   FetchCafeProfile event,
-//   Emitter<ProfileState> emit,
-// ) async {
-//   emit(ProfileLoading());
-//   final apiClient = ApiClient();
-
-//   try {
-//     final response = await apiClient.getCafeProfileById(
-//       "3",
-//     ); // <- Use event.id here!
-//     print(response);
-//     if (response.statusCode == 200) {
-//       emit(ProfileLoaded(profileData: response.data));
-//     } else {
-//       emit(
-//         ProfileLoadError(
-//           errorMessage: "Failed with status: ${response.statusCode}",
-//         ),
-//       );
-//     }
-//   } catch (e) {
-//     emit(ProfileLoadError(errorMessage: "Error: $e"));
-//   }
-// }
-
-/// ✅ Move this inside the class so it's correctly recognized.

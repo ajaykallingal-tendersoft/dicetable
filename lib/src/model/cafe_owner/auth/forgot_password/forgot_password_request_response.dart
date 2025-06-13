@@ -11,12 +11,18 @@ String forgotPasswordRequestResponseToJson(ForgotPasswordRequestResponse data) =
 class ForgotPasswordRequestResponse {
   final bool? status;
   final String? message;
+  final String? expiresAt;
+  final int? otpLength;
+  final int? resendAvailableInSeconds;
   final Map<String, dynamic>? rawData;
 
   ForgotPasswordRequestResponse({
     this.status,
     this.message,
     this.rawData,
+    this.expiresAt,
+    this.otpLength,
+    this.resendAvailableInSeconds,
   });
 
   factory ForgotPasswordRequestResponse.fromJson(Map<String, dynamic> json) {
@@ -24,6 +30,9 @@ class ForgotPasswordRequestResponse {
       status: json["status"],
       message: json["message"] ?? json["error"] ?? json["detail"],
       rawData: json,
+      expiresAt: json["expiresAt"],
+      otpLength: json["otpLength"],
+      resendAvailableInSeconds: json["resendAvailableInSeconds"],
     );
   }
 
@@ -31,6 +40,9 @@ class ForgotPasswordRequestResponse {
     "status" : status,
     "message": message,
     "rawData": rawData,
+    "expiresAt": expiresAt,
+    "otpLength": otpLength,
+    "resendAvailableInSeconds": resendAvailableInSeconds,
   };
 }
 

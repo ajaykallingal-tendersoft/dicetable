@@ -22,14 +22,6 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
   Uint8List? markerImageBytes;
   final String markerImage = 'assets/png/map-pin@2x.png';
   final List<Marker> _markers = <Marker>[];
-  final List<LatLng> _latLen = <LatLng>[
-    LatLng(40.7590, -73.9845),
-    LatLng(40.7128, -74.0060),
-    LatLng(40.6892, -74.0445),
-    LatLng(40.7646, -73.9799),
-    LatLng(40.7306, -73.9352),
-    LatLng(40.7431, -73.9424),
-  ];
 
   Future<Uint8List> getImages(String path, int width) async {
     ByteData data = await rootBundle.load(path);
@@ -72,7 +64,7 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
             snippet: cafe.description ?? 'Cafe Location',
           ),
           onTap: () {
-            // Handle marker tap if needed
+
             _onMarkerTapped(cafe);
           },
         ),
@@ -97,7 +89,6 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
     final GoogleMapController controller = await _controller.future;
 
     if (cafeLocations.length == 1) {
-      // If only one cafe, center on it
       controller.animateCamera(
         CameraUpdate.newLatLngZoom(
           LatLng(cafeLocations.first.latitude, cafeLocations.first.longitude),
@@ -105,7 +96,6 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
         ),
       );
     } else {
-      // If multiple cafes, fit them all in view
       double minLat = cafeLocations.first.latitude;
       double maxLat = cafeLocations.first.latitude;
       double minLng = cafeLocations.first.longitude;

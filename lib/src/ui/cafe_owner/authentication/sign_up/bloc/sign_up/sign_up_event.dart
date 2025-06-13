@@ -17,7 +17,6 @@ class ToggleVenueType extends SignUpEvent {
   final int id;
   final bool isSelected;
 
-
   const ToggleVenueType({required this.id, required this.isSelected});
 }
 
@@ -29,6 +28,7 @@ class UpdateOpeningHour extends SignUpEvent {
 }
 
 class PickImageFromGalleryEvent extends SignUpEvent {}
+
 class ClearImageEvent extends SignUpEvent {
   @override
   List<Object?> get props => [];
@@ -36,31 +36,27 @@ class ClearImageEvent extends SignUpEvent {
 
 class CaptureImageWithCameraEvent extends SignUpEvent {}
 
-class SignUpRequestEvent extends SignUpEvent{
+class RestoreImageEvent extends SignUpEvent {}
+
+class SignUpRequestEvent extends SignUpEvent {
   final SignUpRequest signupRequest;
   const SignUpRequestEvent({required this.signupRequest});
   @override
-
   List<Object?> get props => [signupRequest];
-
 }
 
 class SubmitSignUp extends SignUpEvent {
   final SignUpRequest signupRequest;
   const SubmitSignUp({required this.signupRequest});
   @override
-
   List<Object?> get props => [signupRequest];
-
 }
 
 class SubmitGoogleSignUp extends SignUpEvent {
   final GoogleSignUpRequest signupRequest;
   const SubmitGoogleSignUp({required this.signupRequest});
   @override
-
   List<Object?> get props => [signupRequest];
-
 }
-class LoadVenueTypes extends SignUpEvent {}
 
+class LoadVenueTypes extends SignUpEvent {}

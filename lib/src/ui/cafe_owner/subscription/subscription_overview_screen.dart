@@ -5,20 +5,22 @@ import 'package:dicetable/src/ui/cafe_owner/subscription/widget/subscription_ove
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 
 import 'bloc/subscription_bloc.dart';
 
-
 class SubscriptionOverviewScreen extends StatefulWidget {
   const SubscriptionOverviewScreen({super.key});
 
   @override
-  State<SubscriptionOverviewScreen> createState() => _SubscriptionOverviewScreenState();
+  State<SubscriptionOverviewScreen> createState() =>
+      _SubscriptionOverviewScreenState();
 }
 
-class _SubscriptionOverviewScreenState extends State<SubscriptionOverviewScreen> {
+class _SubscriptionOverviewScreenState
+    extends State<SubscriptionOverviewScreen> {
   @override
   void initState() {
     super.initState();
@@ -46,24 +48,52 @@ class _SubscriptionOverviewScreenState extends State<SubscriptionOverviewScreen>
       },
       builder: (context, state) {
         Widget child;
-
+        if (state is SubscriptionOverviewLoaded) {
+          if (state.subscriptionOverviewResponse.data!.subsriptionOverview ==
+              null) {
+            Center(
+              child: Text(
+                "No Subscription found for this account!.",
+                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                  color: AppColors.primaryWhiteColor,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 18.sp,
+                ),
+              ),
+            );
+          }
+        }
         if (state is SubscriptionOverviewLoaded) {
           child = SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
             child: Padding(
-              padding: const EdgeInsets.all(26.0),
+              padding: const EdgeInsets.only(
+                left: 26.0,
+                right: 26.0,
+                bottom: 70,
+                top: 40,
+              ),
               child: Column(
                 children: [
                   Visibility(
-                    visible: state.subscriptionOverviewResponse.data!.subsriptionOverview != null,
+                    visible:
+                        state
+                            .subscriptionOverviewResponse
+                            .data!
+                            .subsriptionOverview !=
+                        null,
                     child: SubscriptionOverviewCard(
-                      subsriptionOverview: state.subscriptionOverviewResponse.data?.subsriptionOverview,
+                      subsriptionOverview:
+                          state
+                              .subscriptionOverviewResponse
+                              .data
+                              ?.subsriptionOverview,
                     ),
                   ),
                   const Gap(20),
-                  const BillingHistoryCard(),
+                  // const BillingHistoryCard(),
                   const Gap(20),
-                  const PaymentMethodsCard(),
+                  // const PaymentMethodsCard(),
                   const Gap(20),
                 ],
               ),
@@ -81,7 +111,9 @@ class _SubscriptionOverviewScreenState extends State<SubscriptionOverviewScreen>
                 const SizedBox(height: 12),
                 ElevatedButton(
                   onPressed: () {
-                    context.read<SubscriptionBloc>().add(FetchSubscriptionOverview());
+                    context.read<SubscriptionBloc>().add(
+                      FetchSubscriptionOverview(),
+                    );
                   },
                   child: const Text("Retry"),
                 ),
@@ -89,9 +121,7 @@ class _SubscriptionOverviewScreenState extends State<SubscriptionOverviewScreen>
             ),
           );
         } else {
-          child = const Center(
-            child: SizedBox.shrink(),
-          );
+          child = const Center(child: SizedBox.shrink());
         }
 
         return Container(

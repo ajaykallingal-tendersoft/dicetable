@@ -46,7 +46,7 @@ class HistoryScreen extends StatelessWidget {
             ),
             SliverAppBar(
               backgroundColor: Colors.transparent,
-              expandedHeight: 100.h,
+              expandedHeight: 80.h,
               centerTitle: false,
               titleSpacing: 20,
               leadingWidth: 0,
@@ -112,11 +112,10 @@ class HistoryScreen extends StatelessWidget {
               ),
             ),
             SliverPadding(
-              padding: EdgeInsets.only(bottom: 100),
+              padding: EdgeInsets.only(bottom: 60),
               sliver: SliverToBoxAdapter(
                 child: BlocBuilder<HistoryBloc, HistoryState>(
                   builder: (context, state) {
-                    // Manage EasyLoading based on state
                     if (state is HistoryLoaded) {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         EasyLoading.dismiss();

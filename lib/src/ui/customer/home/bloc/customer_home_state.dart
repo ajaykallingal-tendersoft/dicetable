@@ -40,6 +40,49 @@ class CafeSearchError extends CustomerHomeState {
   List<Object?> get props => [message];
 }
 
+class FilterOptionsLoading extends CustomerHomeState {
+  @override
+  List<Object> get props => [];
+}
+
+class FilterOptionsLoaded extends CustomerHomeState {
+  final GetFilterOptionsResponse getFilterOptionsResponse;
+  const FilterOptionsLoaded({required this.getFilterOptionsResponse});
+  @override
+  List<Object> get props => [getFilterOptionsResponse];
+}
+class FilterOptionsError extends CustomerHomeState {
+  final String message;
+
+  const FilterOptionsError(this.message);
+
+  @override
+  List<Object?> get props => [message];
+}
+class FiltersUpdated extends CustomerHomeState {
+  final Set<String> selectedTableTypes;
+  final Set<String> selectedVenueTypes;
+  final TimeOfDay openTime;
+  final TimeOfDay closeTime;
+
+  const FiltersUpdated({
+    required this.selectedTableTypes,
+    required this.selectedVenueTypes,
+    required this.openTime,
+    required this.closeTime,
+  });
+
+  @override
+  List<Object> get props => [selectedTableTypes, selectedVenueTypes, openTime, closeTime];
+}
+
+class FiltersCleared extends CustomerHomeState {
+  const FiltersCleared();
+
+  @override
+  List<Object> get props => [];
+}
+
 // Helper class for cafe locations
 class CafeLocation extends Equatable {
   final int id;
@@ -60,4 +103,42 @@ class CafeLocation extends Equatable {
 
   @override
   List<Object?> get props => [id, name, latitude, longitude, photo, description];
+}
+
+class LocationLoading extends CustomerHomeState {
+  @override
+  List<Object> get props => [];
+}
+
+class LocationLoaded extends CustomerHomeState {
+  final double latitude;
+  final double longitude;
+
+  const LocationLoaded({
+    required this.latitude,
+    required this.longitude,
+  });
+
+  @override
+  List<Object?> get props => [latitude, longitude];
+}
+
+class LocationError extends CustomerHomeState {
+  final String errorMessage;
+  final LocationErrorType errorType;
+
+  const LocationError({
+    required this.errorMessage,
+    required this.errorType,
+  });
+
+  @override
+  List<Object?> get props => [errorMessage, errorType];
+}
+
+enum LocationErrorType {
+  serviceDisabled,
+  permissionDenied,
+  permissionDeniedForever,
+  unknown,
 }

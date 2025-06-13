@@ -9,7 +9,11 @@ import 'package:gap/gap.dart';
 
 class SubscriptionOverviewCard extends StatefulWidget {
   final SubsriptionOverview? subsriptionOverview;
-  const SubscriptionOverviewCard({super.key,required this.subsriptionOverview});
+
+  const SubscriptionOverviewCard({
+    super.key,
+    required this.subsriptionOverview,
+  });
 
   @override
   State<SubscriptionOverviewCard> createState() =>
@@ -19,6 +23,7 @@ class SubscriptionOverviewCard extends StatefulWidget {
 class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
   bool _isExpanded = false;
   bool isAutoRenewOn = true;
+  final TextEditingController _discountController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -27,11 +32,10 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
       curve: Curves.easeInOut,
 
       decoration: BoxDecoration(
-        color:  AppColors.primaryWhiteColor,
+        color: AppColors.primaryWhiteColor,
         borderRadius: BorderRadius.circular(15),
       ),
       width: double.infinity,
-      // Remove maxHeight here if not needed
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min, // Avoid overflow
@@ -41,12 +45,19 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
             child: Container(
               height: 80.h,
               width: double.infinity,
-              padding: EdgeInsets.symmetric(horizontal: 16,vertical: 10),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
-                color: _isExpanded ? AppColors.subscriptionExpandHeaderColor : AppColors.primaryWhiteColor,
-                borderRadius:  _isExpanded 
-                    ? BorderRadius.only(topLeft: Radius.circular(15),topRight: Radius.circular(15)) :
-                BorderRadius.circular(15),
+                color:
+                    _isExpanded
+                        ? AppColors.subscriptionExpandHeaderColor
+                        : AppColors.primaryWhiteColor,
+                borderRadius:
+                    _isExpanded
+                        ? BorderRadius.only(
+                          topLeft: Radius.circular(15),
+                          topRight: Radius.circular(15),
+                        )
+                        : BorderRadius.circular(15),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -59,8 +70,8 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                     ),
                   ),
                   _isExpanded
-                      ?  SvgPicture.asset('assets/svg/tab-arw-1.svg')
-                      : SvgPicture.asset('assets/svg/tab-arw-2.svg')
+                      ? SvgPicture.asset('assets/svg/tab-arw-1.svg')
+                      : SvgPicture.asset('assets/svg/tab-arw-2.svg'),
                 ],
               ),
             ),
@@ -69,7 +80,10 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
           if (_isExpanded)
             SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16,vertical: 0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 0,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
@@ -93,7 +107,7 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Image.asset(
                             'assets/png/premium-plan.png',
@@ -119,8 +133,7 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                             text: '\$${widget.subsriptionOverview?.amount}',
                             style: TextTheme.of(context).bodyLarge!.copyWith(
                               color: AppColors.primary,
-                              fontSize:
-                                  24.sp, // Making the price more prominent responsively
+                              fontSize: 24.sp,
                             ),
                           ),
                           TextSpan(
@@ -128,8 +141,7 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                             style: TextTheme.of(context).bodyMedium!.copyWith(
                               color: AppColors.subscriptionPriceSubColor,
                               fontWeight: FontWeight.w600,
-                              fontSize:
-                                  14.sp, // Using .sp for responsive font size
+                              fontSize: 14.sp,
                             ),
                           ),
                         ],
@@ -145,31 +157,56 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                       ),
                     ),
                     Gap(10),
-                    DottedBorder(
-                      borderType: BorderType.RRect,
-                      radius: const Radius.circular(8),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      dashPattern: [6, 4],
-                      child: RichText(
-                        text: TextSpan(
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 56),
+                      child: DottedBorder(
+                        borderType: BorderType.RRect,
+                        radius: const Radius.circular(8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        dashPattern: const [6, 4],
+                        child: Row(
                           children: [
-                            TextSpan(
-                              text: 'Discount Code: ',
-                              style: TextTheme.of(context).bodyMedium!.copyWith(
+                            // Discount Code Label
+                            Text(
+                              'Discount Code: ',
+                              style: Theme.of(
+                                context,
+                              ).textTheme.bodyMedium?.copyWith(
                                 color: AppColors.discountTextColor,
                                 fontWeight: FontWeight.w700,
                                 fontSize: 14.sp,
                               ),
                             ),
-                            TextSpan(
-                              text: widget.subsriptionOverview?.discountCode,
-                              style: TextTheme.of(context).bodyMedium!.copyWith(
-                                color: AppColors.disabledColor,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 14.sp,
+                            // Existing code (if any)
+                            // if (widget.discountCode != null && widget.discountCode!.isNotEmpty)
+
+                            // Space between code and field
+                            // if (widget.discountCode != null && widget.discountCode!.isNotEmpty)
+                            SizedBox(width: 2.w),
+                            Expanded(
+                              child: TextFormField(
+                                controller: _discountController,
+                                decoration: const InputDecoration(
+                                  isDense: true,
+                                  contentPadding: EdgeInsets.zero,
+                                  border: InputBorder.none,
+                                  hintText: 'Enter code',
+                                  hintStyle: TextStyle(color: Colors.grey),
+                                ),
+                                style: Theme.of(
+                                  context,
+                                ).textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.normal,
+                                  fontSize: 14.sp,
+                                ),
+                                keyboardType: TextInputType.text,
+                                textInputAction: TextInputAction.done,
+                                onFieldSubmitted: (value) {
+                                  // Handle submission if needed
+                                },
                               ),
                             ),
                           ],
@@ -226,7 +263,6 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                         // Gap(10),
                         OutlinedButton(
                           style: OutlinedButton.styleFrom(
-
                             fixedSize: Size(125.w, 37.h),
                           ),
                           onPressed: () {},

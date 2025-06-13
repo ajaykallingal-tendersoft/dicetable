@@ -13,3 +13,12 @@ class GetForgotPasswordEvent extends ForgotPasswordEvent {
   List<Object?> get props => [forgotPasswordRequest];
 
 }
+
+class ResendOtpEvent extends ForgotPasswordEvent {
+  final ResendOtpRequest resendOtpRequest;
+  const ResendOtpEvent({required this.resendOtpRequest});
+  @override
+
+  List<Object?> get props => [resendOtpRequest];
+
+}

@@ -27,3 +27,22 @@ final class CafeBookingError extends CafeDetailsState {
   @override
   List<Object> get props => [errorMessage];
 }
+
+final class WithdrawBookingLoading extends CafeDetailsState {
+  @override
+  List<Object> get props => [];
+}
+
+final class WithdrawBookingLoaded extends CafeDetailsState {
+  final WithdrawBookingResponse withdrawBookingResponse;
+  const WithdrawBookingLoaded({required this.withdrawBookingResponse});
+  @override
+  List<Object> get props => [withdrawBookingResponse];
+}
+
+final class WithdrawBookingError extends CafeDetailsState {
+  final String errorMessage;
+  const WithdrawBookingError({required this.errorMessage});
+  @override
+  List<Object> get props => [errorMessage];
+}
