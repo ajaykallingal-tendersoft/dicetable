@@ -40,6 +40,8 @@
 	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>FirebaseAppDelegateProxyEnabled</key>
+	<true/>
 	<key>NSCameraUsageDescription</key>
 	<string>Dicetable needs access to your camera to allow photo uploads and profile pictures.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
@@ -48,6 +50,11 @@
 	<string>Dicetable requires access to your photo library to select images for uploading and profile photos.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+		<string>remote-notification</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>

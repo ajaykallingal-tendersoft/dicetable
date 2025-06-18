@@ -124,7 +124,6 @@ Future<void> _initializeAppDependencies() async {
   if (!isInitialized) {
     await prefs.clear();
 
-    // Re-fetch to avoid stale or corrupted prefs instance
     prefs = await SharedPreferences.getInstance();
     await prefs.setBool(installKey, true);
 

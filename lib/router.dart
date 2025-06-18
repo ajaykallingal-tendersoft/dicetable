@@ -1,4 +1,3 @@
-
 import 'package:dicetable/src/ui/cafe_owner/authentication/forgot_password/forgot_password_otp_screen.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/forgot_password/forgot_password_screen.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/forgot_password/reset_arguments.dart';
@@ -90,14 +89,16 @@ class AppRouter {
             pageBuilder: (BuildContext context, GoRouterState state) {
               return CustomTransitionPage<void>(
                 key: state.pageKey,
-                child:  SignUpScreen(signUpScreenArgument: state.extra as SignUpScreenArgument,),
+                child: SignUpScreen(
+                  signUpScreenArgument: state.extra as SignUpScreenArgument,
+                ),
                 transitionDuration: const Duration(milliseconds: 300),
                 transitionsBuilder: (
-                    BuildContext context,
-                    Animation<double> animation,
-                    Animation<double> secondaryAnimation,
-                    Widget child,
-                    ) {
+                  BuildContext context,
+                  Animation<double> animation,
+                  Animation<double> secondaryAnimation,
+                  Widget child,
+                ) {
                   return FadeTransition(
                     opacity: CurveTween(
                       curve: Curves.easeIn,
@@ -113,14 +114,16 @@ class AppRouter {
             pageBuilder: (BuildContext context, GoRouterState state) {
               return CustomTransitionPage<void>(
                 key: state.pageKey,
-                child:  EmailVerificationScreen(verifyScreenArguments: state.extra as VerifyScreenArguments,),
+                child: EmailVerificationScreen(
+                  verifyScreenArguments: state.extra as VerifyScreenArguments,
+                ),
                 transitionDuration: const Duration(milliseconds: 300),
                 transitionsBuilder: (
-                    BuildContext context,
-                    Animation<double> animation,
-                    Animation<double> secondaryAnimation,
-                    Widget child,
-                    ) {
+                  BuildContext context,
+                  Animation<double> animation,
+                  Animation<double> secondaryAnimation,
+                  Widget child,
+                ) {
                   return FadeTransition(
                     opacity: CurveTween(
                       curve: Curves.easeIn,
@@ -159,14 +162,16 @@ class AppRouter {
             pageBuilder: (BuildContext context, GoRouterState state) {
               return CustomTransitionPage<void>(
                 key: state.pageKey,
-                child:  ForgotPasswordOtpScreen(resetArguments: state.extra as ResetArguments),
+                child: ForgotPasswordOtpScreen(
+                  resetArguments: state.extra as ResetArguments,
+                ),
                 transitionDuration: const Duration(milliseconds: 300),
                 transitionsBuilder: (
-                    BuildContext context,
-                    Animation<double> animation,
-                    Animation<double> secondaryAnimation,
-                    Widget child,
-                    ) {
+                  BuildContext context,
+                  Animation<double> animation,
+                  Animation<double> secondaryAnimation,
+                  Widget child,
+                ) {
                   return FadeTransition(
                     opacity: CurveTween(
                       curve: Curves.easeIn,
@@ -182,14 +187,16 @@ class AppRouter {
             pageBuilder: (BuildContext context, GoRouterState state) {
               return CustomTransitionPage<void>(
                 key: state.pageKey,
-                child:  ResetPasswordScreen(resetArguments: state.extra as ResetArguments),
+                child: ResetPasswordScreen(
+                  resetArguments: state.extra as ResetArguments,
+                ),
                 transitionDuration: const Duration(milliseconds: 300),
                 transitionsBuilder: (
-                    BuildContext context,
-                    Animation<double> animation,
-                    Animation<double> secondaryAnimation,
-                    Widget child,
-                    ) {
+                  BuildContext context,
+                  Animation<double> animation,
+                  Animation<double> secondaryAnimation,
+                  Widget child,
+                ) {
                   return FadeTransition(
                     opacity: CurveTween(
                       curve: Curves.easeIn,
@@ -231,11 +238,11 @@ class AppRouter {
                 child: const SubscriptionPromptScreen(),
                 transitionDuration: const Duration(milliseconds: 300),
                 transitionsBuilder: (
-                    BuildContext context,
-                    Animation<double> animation,
-                    Animation<double> secondaryAnimation,
-                    Widget child,
-                    ) {
+                  BuildContext context,
+                  Animation<double> animation,
+                  Animation<double> secondaryAnimation,
+                  Widget child,
+                ) {
                   return FadeTransition(
                     opacity: CurveTween(
                       curve: Curves.easeIn,
@@ -254,11 +261,11 @@ class AppRouter {
                 child: const SubscriptionOverviewScreen(),
                 transitionDuration: const Duration(milliseconds: 300),
                 transitionsBuilder: (
-                    BuildContext context,
-                    Animation<double> animation,
-                    Animation<double> secondaryAnimation,
-                    Widget child,
-                    ) {
+                  BuildContext context,
+                  Animation<double> animation,
+                  Animation<double> secondaryAnimation,
+                  Widget child,
+                ) {
                   return FadeTransition(
                     opacity: CurveTween(
                       curve: Curves.easeIn,
@@ -277,11 +284,11 @@ class AppRouter {
                 child: const ManageProfileScreen(),
                 transitionDuration: const Duration(milliseconds: 300),
                 transitionsBuilder: (
-                    BuildContext context,
-                    Animation<double> animation,
-                    Animation<double> secondaryAnimation,
-                    Widget child,
-                    ) {
+                  BuildContext context,
+                  Animation<double> animation,
+                  Animation<double> secondaryAnimation,
+                  Widget child,
+                ) {
                   return FadeTransition(
                     opacity: CurveTween(
                       curve: Curves.easeIn,
@@ -297,14 +304,16 @@ class AppRouter {
             pageBuilder: (BuildContext context, GoRouterState state) {
               return CustomTransitionPage<void>(
                 key: state.pageKey,
-                child:  EditProfileScreen(profileState: state.extra as ProfileState,),
+                child: EditProfileScreen(
+                  profileState: state.extra as ProfileState,
+                ),
                 transitionDuration: const Duration(milliseconds: 300),
                 transitionsBuilder: (
-                    BuildContext context,
-                    Animation<double> animation,
-                    Animation<double> secondaryAnimation,
-                    Widget child,
-                    ) {
+                  BuildContext context,
+                  Animation<double> animation,
+                  Animation<double> secondaryAnimation,
+                  Widget child,
+                ) {
                   return FadeTransition(
                     opacity: CurveTween(
                       curve: Curves.easeIn,
@@ -320,14 +329,14 @@ class AppRouter {
             pageBuilder: (BuildContext context, GoRouterState state) {
               return CustomTransitionPage<void>(
                 key: state.pageKey,
-                child:  NotificationScreen(),
+                child: NotificationScreen(),
                 transitionDuration: const Duration(milliseconds: 300),
                 transitionsBuilder: (
-                    BuildContext context,
-                    Animation<double> animation,
-                    Animation<double> secondaryAnimation,
-                    Widget child,
-                    ) {
+                  BuildContext context,
+                  Animation<double> animation,
+                  Animation<double> secondaryAnimation,
+                  Widget child,
+                ) {
                   return FadeTransition(
                     opacity: CurveTween(
                       curve: Curves.easeIn,
@@ -338,6 +347,7 @@ class AppRouter {
               );
             },
           ),
+
           ///
           /// Customer App Routes
           GoRoute(
@@ -345,14 +355,14 @@ class AppRouter {
             pageBuilder: (BuildContext context, GoRouterState state) {
               return CustomTransitionPage<void>(
                 key: state.pageKey,
-                child:  CustomerLoginScreen(),
+                child: CustomerLoginScreen(),
                 transitionDuration: const Duration(milliseconds: 300),
                 transitionsBuilder: (
-                    BuildContext context,
-                    Animation<double> animation,
-                    Animation<double> secondaryAnimation,
-                    Widget child,
-                    ) {
+                  BuildContext context,
+                  Animation<double> animation,
+                  Animation<double> secondaryAnimation,
+                  Widget child,
+                ) {
                   return FadeTransition(
                     opacity: CurveTween(
                       curve: Curves.easeIn,
@@ -368,15 +378,16 @@ class AppRouter {
             pageBuilder: (BuildContext context, GoRouterState state) {
               return CustomTransitionPage<void>(
                 key: state.pageKey,
-                child:  CustomerSignUpScreen(signUpScreenArgument: state.extra as SignUpScreenArgument,),
+                child: CustomerSignUpScreen(
+                  signUpScreenArgument: state.extra as SignUpScreenArgument,
+                ),
                 transitionDuration: const Duration(milliseconds: 300),
                 transitionsBuilder: (
-                    BuildContext context,
-                    Animation<double> animation,
-                    Animation<double> secondaryAnimation,
-                    Widget child,
-                    ) {
-
+                  BuildContext context,
+                  Animation<double> animation,
+                  Animation<double> secondaryAnimation,
+                  Widget child,
+                ) {
                   return FadeTransition(
                     opacity: CurveTween(
                       curve: Curves.easeIn,
@@ -392,14 +403,14 @@ class AppRouter {
             pageBuilder: (BuildContext context, GoRouterState state) {
               return CustomTransitionPage<void>(
                 key: state.pageKey,
-                child:  CustomerHomeScreen(),
+                child: CustomerHomeScreen(),
                 transitionDuration: const Duration(milliseconds: 300),
                 transitionsBuilder: (
-                    BuildContext context,
-                    Animation<double> animation,
-                    Animation<double> secondaryAnimation,
-                    Widget child,
-                    ) {
+                  BuildContext context,
+                  Animation<double> animation,
+                  Animation<double> secondaryAnimation,
+                  Widget child,
+                ) {
                   return FadeTransition(
                     opacity: CurveTween(
                       curve: Curves.easeIn,
@@ -415,14 +426,14 @@ class AppRouter {
             pageBuilder: (BuildContext context, GoRouterState state) {
               return CustomTransitionPage<void>(
                 key: state.pageKey,
-                child:  CafeListScreen(),
+                child: CafeListScreen(),
                 transitionDuration: const Duration(milliseconds: 300),
                 transitionsBuilder: (
-                    BuildContext context,
-                    Animation<double> animation,
-                    Animation<double> secondaryAnimation,
-                    Widget child,
-                    ) {
+                  BuildContext context,
+                  Animation<double> animation,
+                  Animation<double> secondaryAnimation,
+                  Widget child,
+                ) {
                   return FadeTransition(
                     opacity: CurveTween(
                       curve: Curves.easeIn,
@@ -438,14 +449,14 @@ class AppRouter {
             pageBuilder: (BuildContext context, GoRouterState state) {
               return CustomTransitionPage<void>(
                 key: state.pageKey,
-                child:  FavouritesScreen(),
+                child: FavouritesScreen(),
                 transitionDuration: const Duration(milliseconds: 300),
                 transitionsBuilder: (
-                    BuildContext context,
-                    Animation<double> animation,
-                    Animation<double> secondaryAnimation,
-                    Widget child,
-                    ) {
+                  BuildContext context,
+                  Animation<double> animation,
+                  Animation<double> secondaryAnimation,
+                  Widget child,
+                ) {
                   return FadeTransition(
                     opacity: CurveTween(
                       curve: Curves.easeIn,
@@ -461,14 +472,14 @@ class AppRouter {
             pageBuilder: (BuildContext context, GoRouterState state) {
               return CustomTransitionPage<void>(
                 key: state.pageKey,
-                child:  HistoryScreen(),
+                child: HistoryScreen(),
                 transitionDuration: const Duration(milliseconds: 300),
                 transitionsBuilder: (
-                    BuildContext context,
-                    Animation<double> animation,
-                    Animation<double> secondaryAnimation,
-                    Widget child,
-                    ) {
+                  BuildContext context,
+                  Animation<double> animation,
+                  Animation<double> secondaryAnimation,
+                  Widget child,
+                ) {
                   return FadeTransition(
                     opacity: CurveTween(
                       curve: Curves.easeIn,
@@ -484,14 +495,14 @@ class AppRouter {
             pageBuilder: (BuildContext context, GoRouterState state) {
               return CustomTransitionPage<void>(
                 key: state.pageKey,
-                child:  CustomerProfileScreen(),
+                child: CustomerProfileScreen(),
                 transitionDuration: const Duration(milliseconds: 300),
                 transitionsBuilder: (
-                    BuildContext context,
-                    Animation<double> animation,
-                    Animation<double> secondaryAnimation,
-                    Widget child,
-                    ) {
+                  BuildContext context,
+                  Animation<double> animation,
+                  Animation<double> secondaryAnimation,
+                  Widget child,
+                ) {
                   return FadeTransition(
                     opacity: CurveTween(
                       curve: Curves.easeIn,
@@ -513,7 +524,9 @@ class AppRouter {
               } else if (state.extra is FavDetailsArguments) {
                 favDetailsArgs = state.extra as FavDetailsArguments;
               } else {
-                throw Exception('Invalid argument type passed to cafe_details route. Expected CafeDetailsArguments or FavDetailsArguments.');
+                throw Exception(
+                  'Invalid argument type passed to cafe_details route. Expected CafeDetailsArguments or FavDetailsArguments.',
+                );
               }
 
               return CustomTransitionPage<void>(
@@ -524,11 +537,11 @@ class AppRouter {
                 ),
                 transitionDuration: const Duration(milliseconds: 300),
                 transitionsBuilder: (
-                    BuildContext context,
-                    Animation<double> animation,
-                    Animation<double> secondaryAnimation,
-                    Widget child,
-                    ) {
+                  BuildContext context,
+                  Animation<double> animation,
+                  Animation<double> secondaryAnimation,
+                  Widget child,
+                ) {
                   return FadeTransition(
                     opacity: CurveTween(
                       curve: Curves.easeIn,
@@ -539,38 +552,35 @@ class AppRouter {
               );
             },
           ),
-          GoRoute(
-            path: 'payment',
-            pageBuilder: (BuildContext context, GoRouterState state) {
-              return CustomTransitionPage<void>(
-                key: state.pageKey,
-                child:  PaymentHome(),
-                transitionDuration: const Duration(milliseconds: 300),
-                transitionsBuilder: (
-                    BuildContext context,
-                    Animation<double> animation,
-                    Animation<double> secondaryAnimation,
-                    Widget child,
-                    ) {
-                  return FadeTransition(
-                    opacity: CurveTween(
-                      curve: Curves.easeIn,
-                    ).animate(animation),
-                    child: child,
-                  );
-                },
-              );
-            },
-          ),
+          // GoRoute(
+          //   path: 'payment',
+          //   pageBuilder: (BuildContext context, GoRouterState state) {
+          //     return CustomTransitionPage<void>(
+          //       key: state.pageKey,
+          //       child:  PaymentHome(),
+          //       transitionDuration: const Duration(milliseconds: 300),
+          //       transitionsBuilder: (
+          //           BuildContext context,
+          //           Animation<double> animation,
+          //           Animation<double> secondaryAnimation,
+          //           Widget child,
+          //           ) {
+          //         return FadeTransition(
+          //           opacity: CurveTween(
+          //             curve: Curves.easeIn,
+          //           ).animate(animation),
+          //           child: child,
+          //         );
+          //       },
+          //     );
+          //   },
+          // ),
         ],
         path: '/',
-        builder:
-            (BuildContext context, GoRouterState state) =>  SplashScreen(),
+        builder: (BuildContext context, GoRouterState state) => SplashScreen(),
       ),
     ],
   );
-
-
 
   static GoRouter get router => _router;
 }

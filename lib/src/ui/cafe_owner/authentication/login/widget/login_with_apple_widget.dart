@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/constants/assets.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/login/cubit/apple_signin_cubit.dart';
@@ -8,7 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
+import 'package:gap/gap.dart';
 
 class LoginWithAppleWidget extends StatelessWidget {
   // final VoidCallback onSuccess;
@@ -44,7 +43,6 @@ class LoginWithAppleWidget extends StatelessWidget {
             //     ),
             //   ),
             // );
-
           } else {
             _showErrorSnackBar(context, "The request cannot be completed.");
           }
@@ -54,11 +52,12 @@ class LoginWithAppleWidget extends StatelessWidget {
       },
       builder: (context, state) {
         return InkWell(
-          onTap: state is AppleSignInLoading
-              ? null
-              : () => _signInWithApple(context),
+          onTap:
+              state is AppleSignInLoading
+                  ? null
+                  : () => _signInWithApple(context),
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 50.w, vertical: 10.h),
+            padding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 10.h),
             margin: EdgeInsets.all(16),
             height: 70.h,
             decoration: BoxDecoration(
@@ -66,31 +65,33 @@ class LoginWithAppleWidget extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Image.asset(
                   Assets.APPLE_LOGO,
                   fit: BoxFit.cover,
+                  width: 70,
+                  height: 70,
                 ),
-                SizedBox(width: 20.w),
+                // Gap(10),
                 state is AppleSignInLoading
                     ? SizedBox(
-                  height: 24,
-                  width: 24,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    backgroundColor: AppColors.primaryWhiteColor,
-                    color: AppColors.primary,
-                  ),
-                )
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        backgroundColor: AppColors.primaryWhiteColor,
+                        color: AppColors.primary,
+                      ),
+                    )
                     : Text(
-                  'Sign in with Apple',
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: AppColors.textFieldTextColor,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                  ),
-                ),
+                      'Sign in with Apple',
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: AppColors.textFieldTextColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                      ),
+                    ),
               ],
             ),
           ),
@@ -112,10 +113,7 @@ class LoginWithAppleWidget extends StatelessWidget {
 
   void _showErrorSnackBar(BuildContext context, String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: AppColors.appRedColor,
-        content: Text(message),
-      ),
+      SnackBar(backgroundColor: AppColors.appRedColor, content: Text(message)),
     );
   }
 }
