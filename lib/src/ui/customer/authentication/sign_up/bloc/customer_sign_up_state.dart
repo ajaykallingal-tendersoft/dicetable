@@ -25,6 +25,8 @@ class CustomerSignUpErrorState extends CustomerSignUpState {
   List<Object?> get props => [errorMessage];
 }
 
+enum PasswordStrength { none, weak, medium, strong, veryStrong }
+
 class SignUpFormState extends CustomerSignUpState {
   final String name;
   final String email;
@@ -40,6 +42,8 @@ class SignUpFormState extends CustomerSignUpState {
   final String? phoneError;
   final String? countryError;
   final String? regionError;
+  final PasswordStrength passwordStrength;
+  final bool isFormValid;
 
   const SignUpFormState({
     this.name = '',
@@ -56,6 +60,8 @@ class SignUpFormState extends CustomerSignUpState {
     this.phoneError,
     this.countryError,
     this.regionError,
+    this.passwordStrength = PasswordStrength.none,
+    this.isFormValid = false,
   });
 
   SignUpFormState copyWith({
@@ -73,6 +79,8 @@ class SignUpFormState extends CustomerSignUpState {
     String? phoneError,
     String? countryError,
     String? regionError,
+    PasswordStrength? passwordStrength,
+    bool? isFormValid,
   }) {
     return SignUpFormState(
       name: name ?? this.name,
@@ -89,6 +97,8 @@ class SignUpFormState extends CustomerSignUpState {
       phoneError: phoneError,
       countryError: countryError,
       regionError: regionError,
+      passwordStrength: passwordStrength ?? this.passwordStrength,
+      isFormValid: isFormValid ?? this.isFormValid,
     );
   }
 
@@ -108,6 +118,8 @@ class SignUpFormState extends CustomerSignUpState {
     phoneError,
     countryError,
     regionError,
+    passwordStrength,
+    isFormValid,
   ];
 }
 

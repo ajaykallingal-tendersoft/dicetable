@@ -168,24 +168,40 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                         ),
                         Align(
                           alignment: Alignment.centerRight,
-                          child: SizedBox(
-                            height: 35,
-                            width: 55,
-                            child: FittedBox(
-                              fit: BoxFit.fill,
-                              child: Switch(
-                                activeColor: AppColors.primaryWhiteColor,
-                                activeTrackColor: AppColors.tertiary,
-                                inactiveThumbColor: AppColors.disabledColor,
-                                inactiveTrackColor: AppColors.primaryWhiteColor,
-                                value: _isEmailVisible,
-                                onChanged: (val) {
-                                  setState(() {
-                                    _isEmailVisible = val;
-                                  });
-                                },
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              SizedBox(
+                                height: 35,
+                                width: 55,
+                                child: FittedBox(
+                                  fit: BoxFit.fill,
+                                  child: Switch(
+                                    activeColor: AppColors.primaryWhiteColor,
+                                    activeTrackColor: AppColors.tertiary,
+                                    inactiveThumbColor: AppColors.disabledColor,
+                                    inactiveTrackColor: AppColors.primaryWhiteColor,
+                                    value: _isEmailVisible,
+                                    onChanged: (val) {
+                                      setState(() {
+                                        _isEmailVisible = val;
+                                      });
+                                    },
+                                  ),
+                                ),
                               ),
-                            ),
+                              Gap(1),
+                              Text(
+                                "Show to user",
+                                style: TextTheme
+                                    .of(context)
+                                    .bodySmall!
+                                    .copyWith(
+                                  color: AppColors.primaryWhiteColor,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         CustomTextField(
@@ -202,24 +218,40 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                         ),
                         Align(
                           alignment: Alignment.centerRight,
-                          child: SizedBox(
-                            height: 35,
-                            width: 55,
-                            child: FittedBox(
-                              fit: BoxFit.fill,
-                              child: Switch(
-                                activeColor: AppColors.primaryWhiteColor,
-                                activeTrackColor: AppColors.tertiary,
-                                inactiveThumbColor: AppColors.disabledColor,
-                                inactiveTrackColor: AppColors.primaryWhiteColor,
-                                value: _isPhoneVisible,
-                                onChanged: (val) {
-                                  setState(() {
-                                    _isPhoneVisible = val;
-                                  });
-                                },
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              SizedBox(
+                                height: 35,
+                                width: 55,
+                                child: FittedBox(
+                                  fit: BoxFit.fill,
+                                  child: Switch(
+                                    activeColor: AppColors.primaryWhiteColor,
+                                    activeTrackColor: AppColors.tertiary,
+                                    inactiveThumbColor: AppColors.disabledColor,
+                                    inactiveTrackColor: AppColors.primaryWhiteColor,
+                                    value: _isPhoneVisible,
+                                    onChanged: (val) {
+                                      setState(() {
+                                        _isPhoneVisible = val;
+                                      });
+                                    },
+                                  ),
+                                ),
                               ),
-                            ),
+                              Gap(1),
+                              Text(
+                                "Show to user",
+                                style: TextTheme
+                                    .of(context)
+                                    .bodySmall!
+                                    .copyWith(
+                                  color: AppColors.primaryWhiteColor,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                         CustomTextField(

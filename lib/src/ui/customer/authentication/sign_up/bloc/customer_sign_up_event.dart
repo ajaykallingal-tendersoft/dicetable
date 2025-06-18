@@ -72,6 +72,10 @@ class RegionChanged extends CustomerSignUpEvent {
   List<Object?> get props => [region];
 }
 
+class ValidateForm extends CustomerSignUpEvent {
+  const ValidateForm();
+}
+
 class SubmitSignUp extends CustomerSignUpEvent {
   final SignUpRequest signupRequest;
   const SubmitSignUp({required this.signupRequest});

@@ -132,6 +132,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   'Open Settings',
                   style: Theme.of(context).textTheme.bodySmall!.copyWith(
                     color: AppColors.primaryWhiteColor,
+
                     fontWeight: FontWeight.w500,
                     fontSize: 14.sp,
                   ),

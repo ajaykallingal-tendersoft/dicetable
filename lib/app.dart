@@ -9,8 +9,10 @@ import 'package:dicetable/src/resources/api_providers/venue_owner/home_data_prov
 import 'package:dicetable/src/resources/api_providers/venue_owner/profile_data_provider.dart';
 import 'package:dicetable/src/resources/api_providers/venue_owner/subscription_data_provider.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/forgot_password/bloc/forgotPassword/forgot_password_bloc.dart';
+import 'package:dicetable/src/ui/cafe_owner/authentication/login/cubit/apple_signin_cubit.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/login/cubit/google_sign_in_cubit.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/sign_up/bloc/sign_up/sign_up_bloc.dart';
+import 'package:dicetable/src/ui/customer/authentication/sign_up/bloc/customer_sign_up_bloc.dart';
 import 'package:dicetable/src/ui/customer/home/bloc/customer_home_bloc.dart';
 import 'package:dicetable/src/ui/customer/profile/bloc/customer_profile_bloc.dart';
 import 'package:dicetable/src/ui/cafe_owner/home/bloc/home_bloc.dart';
@@ -44,7 +46,7 @@ class App extends StatelessWidget {
           create: (context) => ProfileBloc(profileDataProvider: ProfileDataProvider()),
         ),
         BlocProvider(create: (context) => GoogleSignInCubit()),
-
+        BlocProvider(create: (context) => AppleSignInCubit()),
         BlocProvider(
           create: (context) => CafeListBloc(cafeDataProvider: CafeDataProvider()),
         ),
@@ -75,7 +77,8 @@ class App extends StatelessWidget {
         BlocProvider(
           create: (context) =>
               VerificationBloc(authDataProvider: AuthDataProvider()),
-        )
+        ),
+        BlocProvider(create: (context) => CustomerSignUpBloc(authDataProvider: AuthDataProvider()),)
       ],
       child: ScreenUtilInit(
         designSize: const Size(430, 932),

@@ -45,10 +45,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       _showSnackBar("Please enter your email address", AppColors.appRedColor);
       return false;
     }
-    if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
+    if (!RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$').hasMatch(email)) {
       _showSnackBar("Please enter a valid email address", AppColors.appRedColor);
       return false;
     }
+
     return true;
   }
 
@@ -173,8 +174,18 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 ),
               );
             }
-          }else if(response.status == false) {
-            _showSnackBar( response.message!, AppColors.appRedColor);
+          }else if (response.status == false) {
+            if (response.errors != null && response.errors!.isNotEmpty) {
+              final errorMessages = response.errors!.values
+                  .map((e) => e is List ? e.join(', ') : e.toString())
+                  .join('\n');
+
+              _showSnackBar(errorMessages, AppColors.appRedColor);
+            } else if (response.message != null) {
+              _showSnackBar(response.message!, AppColors.appRedColor);
+            } else {
+              _showSnackBar('Something went wrong', AppColors.appRedColor);
+            }
           }
         }
       },

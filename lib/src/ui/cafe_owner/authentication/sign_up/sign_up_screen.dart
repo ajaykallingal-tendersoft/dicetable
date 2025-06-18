@@ -53,10 +53,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
     isGoogleSignUp = widget.signUpScreenArgument.isGoggleSignUp;
 
     _venueNameController = TextEditingController(
-      text: isGoogleSignUp ? ObjectFactory().prefs.getCafeUserName() : '',
+      text: isGoogleSignUp ? widget.signUpScreenArgument.displayName : '',
     );
     _emailController = TextEditingController(
-      text: isGoogleSignUp ? ObjectFactory().prefs.getCafeUserMail() : '',
+      text: isGoogleSignUp ? widget.signUpScreenArgument.email : '',
     );
     _venueDescriptionController = TextEditingController();
     _passwordController = TextEditingController();
@@ -87,8 +87,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   bool _validateForm(SignUpFormState state) {
-    return state.venueName.isNotEmpty &&
-        state.venueDescription.isNotEmpty &&
+    return state.venueName.isNotEmpty || _venueNameController.text.isNotEmpty &&
+        state.venueDescription.isNotEmpty || _emailController.text.isNotEmpty &&
         state.email.isNotEmpty &&
         RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(state.email) &&
         ((state.password.isNotEmpty)) &&

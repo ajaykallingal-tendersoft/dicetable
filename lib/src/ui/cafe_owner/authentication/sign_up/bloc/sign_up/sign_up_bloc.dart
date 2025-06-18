@@ -52,11 +52,6 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
         super(SignUpInitial()) {
     emit(_formState);
 
-
-
-
-
-
     on<UpdateTextField>((event, emit) {
       _formState = event.update(_formState);
       emit(_formState);

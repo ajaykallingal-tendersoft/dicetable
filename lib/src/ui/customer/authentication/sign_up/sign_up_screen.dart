@@ -1,4 +1,3 @@
-// sign_up_screen.dart
 import 'package:dicetable/src/common/elevated_button_widget.dart';
 import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/sign_up_request.dart';
@@ -57,8 +56,8 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final bloc = context.read<CustomerSignUpBloc>();
         bloc.add(UpdateTextField((state) => state.copyWith(
-          name: widget.signUpScreenArgument.displayName,
-          email: widget.signUpScreenArgument.email,
+          name: widget.signUpScreenArgument.displayName ?? '',
+          email: widget.signUpScreenArgument.email ?? '',
         )));
       });
     }
@@ -173,7 +172,7 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
           }
         },
         builder: (context, state) {
-          final formState = state is SignUpFormState ? state : SignUpFormState();
+          final formState = state is SignUpFormState ? state : const SignUpFormState(); // Safe default state
           return Scaffold(
             extendBody: true,
             appBar: AppBar(

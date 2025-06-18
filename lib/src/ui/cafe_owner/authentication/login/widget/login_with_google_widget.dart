@@ -107,11 +107,23 @@ class LoginWithGoogleWidget extends StatelessWidget {
                         backgroundColor: AppColors.primaryWhiteColor,
                         color: AppColors.primary,
                       )
-                      : Text(
-                        'GOOGLE',
-                        style: Theme.of(context).textTheme.labelMedium!
-                            .copyWith(color: AppColors.primary),
+                      : Expanded(
+                    child: Text(
+                      'Sign in with Google',
+                      style: Theme.of(context)
+                          .textTheme
+                          .labelMedium!
+                          .copyWith(
+                        color:
+                        AppColors
+                            .textFieldTextColor,
+                        fontWeight:
+                        FontWeight.w600,
+                        fontSize: 16,
                       ),
+
+                    ),
+                  ),
                 ],
               ),
             ),

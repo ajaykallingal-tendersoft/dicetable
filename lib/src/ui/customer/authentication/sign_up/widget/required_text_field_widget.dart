@@ -14,6 +14,8 @@ class RequiredTextField extends StatefulWidget {
   final Function(String)? onChanged;
   final bool isEmail;
   final String? errorText;
+  final String? Function(String?)? validator;
+  final FocusNode? focusNode;
 
   const RequiredTextField({
     super.key,
@@ -26,6 +28,8 @@ class RequiredTextField extends StatefulWidget {
     this.onChanged,
     this.isEmail = false,
     this.errorText,
+    this.validator,
+    this.focusNode,
   });
 
   @override
@@ -80,6 +84,7 @@ class _RequiredTextFieldState extends State<RequiredTextField> {
         borderRadius: BorderRadius.circular(15),
       ),
       child: TextFormField(
+        focusNode: widget.focusNode,
         textAlignVertical: TextAlignVertical.center,
         readOnly: widget.readOnly,
         controller: widget.controller,
@@ -91,6 +96,13 @@ class _RequiredTextFieldState extends State<RequiredTextField> {
           fontWeight: FontWeight.w600,
           fontSize: 14.sp,
         ),
+        validator: widget.validator ??
+                (value) {
+              if (widget.isRequired && (value == null || value.trim().isEmpty)) {
+                return '${widget.hint} is required';
+              }
+              return null;
+            },
         decoration: InputDecoration(
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           isDense: true,
