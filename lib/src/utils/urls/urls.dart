@@ -44,12 +44,8 @@ class UrlsDiceApp {
   static const String getFilters = '/api/filter-options';
   static const String withdrawBooking = '/api/withdraw-booking';
 
-
-
-
-
-
-
-
+  ///Notification
+  static const String getCafeNotification = '/api/cafe/notifications';
+  static const String getCustomerNotification = '/api/customer/notifications';
 
 }

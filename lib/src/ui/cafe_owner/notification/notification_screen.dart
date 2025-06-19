@@ -1,11 +1,12 @@
 import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/ui/cafe_owner/notification/tab_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:go_router/go_router.dart';
-
-import 'notification_item.dart';
+import 'bloc/notification_bloc.dart';
 
 class NotificationScreen extends StatefulWidget {
   NotificationScreen({super.key});
@@ -17,34 +18,15 @@ class NotificationScreen extends StatefulWidget {
 class _NotificationScreenState extends State<NotificationScreen> {
   String selectedTab = 'ALL';
 
-  final List<NotificationItem> notifications = [
-    NotificationItem(
-      message: 'John has shown an interest in a Social Solo table.',
-      date: '18 March, 2025 | 12:00 PM',
-      isUnread: true,
-    ),
-    NotificationItem(
-      message: 'Your subscription expires in 7 days',
-      date: '18 March, 2025 | 12:00 PM',
-      isUnread: true,
-    ),
-    NotificationItem(
-      message: 'Danny has shown an interest in a Prime Time dice table.',
-      date: '18 March, 2025 | 12:00 PM',
-      isUnread: false,
-    ),
-    NotificationItem(
-      message: 'Will Baker has shown an interest in a Social Solo dice table.',
-      date: '16 March, 2025 | 12:00 PM',
-      isUnread: false,
-    ),
-  ];
-  List<NotificationItem> get filteredNotifications {
-    if (selectedTab == 'ALL') return notifications;
-    return notifications.where((n) => n.isUnread).toList();
+  @override
+  void initState() {
+    super.initState();
+    context.read<NotificationBloc>().add(FetchNotifications());
   }
+
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       backgroundColor: AppColors.primary,
       extendBody: true,
@@ -58,7 +40,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
           ),
           onPressed: () => context.pop(),
         ),
-
         title:  Text(
           'Notifications',
           style: TextTheme.of(context).labelLarge!.copyWith(
@@ -70,7 +51,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         bottom: PreferredSize(
           preferredSize: Size(MediaQuery.of(context).size.width, 46),
           child: NotificationTabBar(
-            unreadCount: notifications.where((n) => n.isUnread).length,
+            unreadCount: 0,
             selectedTab: selectedTab,
             onTabSelected: (tab) {
               setState(() {
@@ -83,90 +64,157 @@ class _NotificationScreenState extends State<NotificationScreen> {
         actionsPadding: EdgeInsets.only(right: 15),
       ),
       body: SafeArea(
-        child: Container(
-          width: double.infinity,
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-              AppColors.primary,
-                AppColors.primary,
-                AppColors.secondary,
-               AppColors.tertiary,
-              ],
-              stops: [0.0, 0.5, 0.75, 1.0],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(10.0),
-            child: Column(
-              children: [
-                const SizedBox(height: 10),
-                GestureDetector(
-                  onTap: () {},
-                  child:  Text(
-                    'Turn Off Notifications',
-                    textAlign: TextAlign.left,
-                    style: TextTheme.of(context).bodySmall!.copyWith(
-                        color: AppColors.primaryWhiteColor,
-                        decoration: TextDecoration.underline,
-                        decorationColor: AppColors.primaryWhiteColor,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 12.sp,
+        child: BlocConsumer<NotificationBloc, NotificationState>(
+          listener: (context, state) async {
+            if (state is NotificationLoading) {
+              await EasyLoading.show();
+            } else {
+              await EasyLoading.dismiss();
+              if (state is NotificationError) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(state.errorMessage)),
+                );
+              }
+            }
+            },
+          builder: (context, state) {
+            if (state is NotificationLoaded) {
+            EasyLoading.dismiss();
+            return Container(
+              width: double.infinity,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                  AppColors.primary,
+                    AppColors.primary,
+                    AppColors.secondary,
+                   AppColors.tertiary,
+                  ],
+                  stops: [0.0, 0.5, 0.75, 1.0],
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 10),
+                    GestureDetector(
+                      onTap: () {},
+                      child:  Text(
+                        'Turn Off Notifications',
+                        textAlign: TextAlign.left,
+                        style: TextTheme.of(context).bodySmall!.copyWith(
+                            color: AppColors.primaryWhiteColor,
+                            decoration: TextDecoration.underline,
+                            decorationColor: AppColors.primaryWhiteColor,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12.sp,
+                        ),
+
+                      ),
                     ),
-        
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.all(12),
-                    itemCount: filteredNotifications.length,
-                    itemBuilder: (context, index) {
-                      final item = filteredNotifications[index];
-                      return Container(
-                        margin: const EdgeInsets.symmetric(vertical: 6),
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: item.isUnread
-                              ? AppColors.primaryWhiteColor
-                              : AppColors.readedNotifyContainerColor,
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              item.message,
-                              style: TextTheme.of(context).bodySmall!.copyWith(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 12.sp
-                              ),
+                    const SizedBox(height: 10),
+                    selectedTab == 'ALL'
+                        ? Expanded(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(12),
+                        itemCount: state.notificationItems.data.all.length,
+                        itemBuilder: (context, index) {
+                          final item = state.notificationItems.data.all[index];
+                          return Container(
+                            margin: const EdgeInsets.symmetric(vertical: 6),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: item.readAt ?? false
+                                  ? AppColors.readedNotifyContainerColor
+                                  : AppColors.primaryWhiteColor,
+                              borderRadius: BorderRadius.circular(15),
                             ),
-                            const SizedBox(height: 6),
-                            Align(
-                              alignment: Alignment.bottomRight,
-                              child: Text(
-                                item.date,
-                                style: TextTheme.of(context).bodySmall!.copyWith(
-                                    color: AppColors.primaryBlackColor,
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 10.sp
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item.title,
+                                  style: TextTheme.of(context).bodySmall!.copyWith(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12.sp
+                                  ),
                                 ),
-                              ),
+                                const SizedBox(height: 6),
+                                Align(
+                                  alignment: Alignment.bottomRight,
+                                  child: Text(
+                                    item.createdAt,
+                                    style: TextTheme.of(context).bodySmall!.copyWith(
+                                        color: AppColors.primaryBlackColor,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 10.sp
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
+                          );
+                        },
+                      ),
+                    )
+                        : Expanded(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(12),
+                        itemCount: state.notificationItems.data.unread.length,
+                        itemBuilder: (context, index) {
+                          final item = state.notificationItems.data.unread[index];
+                          return Container(
+                            margin: const EdgeInsets.symmetric(vertical: 6),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: item.readAt ?? false
+                                  ? AppColors.readedNotifyContainerColor
+                                  : AppColors.primaryWhiteColor,
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item.title,
+                                  style: TextTheme.of(context).bodySmall!.copyWith(
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12.sp
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Align(
+                                  alignment: Alignment.bottomRight,
+                                  child: Text(
+                                    "item.createdAt",
+                                    style: TextTheme.of(context).bodySmall!.copyWith(
+                                        color: AppColors.primaryBlackColor,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 10.sp
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                    )
+                  ],
                 ),
-              ],
-            ),
-          ),
-        ),
+              ),
+            );
+            }
+            return Container();
+            },
+      ),
+
+
       ),
     );
   }

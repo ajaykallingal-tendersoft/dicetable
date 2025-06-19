@@ -291,6 +291,38 @@ class ApiClient {
     );
   }
 
+  Future<Response> getCafeNotificationDataById() {
+    final token = ObjectFactory().prefs.getAuthToken();
+    final cafeID = ObjectFactory().prefs.getCafeId(); // Ensure this exists
+    final url = '${UrlsDiceApp.getCafeNotification}/$cafeID';
+
+    print("Bearer $token");
+    print("URL: $url");
+
+    return dioDiceApp.get(
+      url,
+      options: Options(headers: {
+        "Authorization": token,
+      }),
+    );
+  }
+
+  Future<Response> getCustomerNotificationDataById() {
+    final token = ObjectFactory().prefs.getAuthToken();
+    final userID = ObjectFactory().prefs.getUserId(); // Ensure this exists
+    final url = '${UrlsDiceApp.getCustomerNotification}/$userID';
+
+    print("Bearer $token");
+    print("URL: $url");
+
+    return dioDiceApp.get(
+      url,
+      options: Options(headers: {
+        "Authorization": token,
+      }),
+    );
+  }
+
   Future<Response> getCafeEditProfileById() {
     final token = ObjectFactory().prefs.getAuthToken();
     final cafeID = ObjectFactory().prefs.getCafeId(); // Ensure this exists
