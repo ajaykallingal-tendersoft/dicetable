@@ -27,6 +27,7 @@ class LoginWithAppleWidget extends StatelessWidget {
             debugPrint("Username: ${state.displayName}");
             debugPrint("ID: ${state.user.uid}");
             debugPrint("IdentityToken: ${state.identityToken}");
+            debugPrint("IdentityToken: ${state.identityToken}");
 
             // onSuccess();
 

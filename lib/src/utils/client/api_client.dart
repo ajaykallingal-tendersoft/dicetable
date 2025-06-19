@@ -16,12 +16,15 @@ import 'package:dicetable/src/model/customer/cafe/add_favourite_request.dart';
 import 'package:dicetable/src/model/customer/cafe/cafe_list_request.dart';
 import 'package:dicetable/src/model/customer/cafe/cafe_search_request.dart';
 import 'package:dicetable/src/model/customer/cafe/remove_favourite_request.dart';
+import 'package:dicetable/src/model/customer/guest/guest_user_request.dart';
 import 'package:dicetable/src/model/customer/profile/customer_profile_update_request.dart';
 import 'package:dicetable/src/model/verification/otp_verify_request.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:dicetable/src/utils/urls/urls.dart';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
+
+import '../../model/cafe_owner/auth/login/apple_sign_in_request.dart';
 
 
 class ApiClient {
@@ -200,6 +203,15 @@ class ApiClient {
     );
   }
 
+  //Apple Sign-In
+  Future<Response> appleLogin(AppleSignInRequest appleSignInRequest) {
+    return dioDiceApp.post(
+      UrlsDiceApp.appleSignIn,
+      data: appleSignInRequest,
+
+    );
+  }
+
   //Otp Verify
   Future<Response> verifyOTP(OtpVerifyRequest otpVerifyRequest) {
     return dioDiceApp.post(
@@ -324,6 +336,23 @@ class ApiClient {
       }),
     );
   }
+  //Delete Account
+  Future<Response> cafeProfileDelete() {
+    final token = ObjectFactory().prefs.getAuthToken();
+    final cafeID = ObjectFactory().prefs.getCafeId(); // Ensure this exists
+    final url = '${UrlsDiceApp.cafeProfileDelete}/$cafeID';
+
+    print("Bearer $token");
+    print("URL: $url");
+
+    return dioDiceApp.post(
+      url,
+      options: Options(headers: {
+        "Authorization": token,
+      }),
+    );
+  }
+
 
 
 
@@ -358,26 +387,32 @@ class ApiClient {
   ///CafeList
   Future<Response> getCafeList(CafeListRequest request) {
     print("Bearer ${ObjectFactory().prefs.getCustomerAuthToken()}");
+    final isGuest = ObjectFactory().prefs.isGuestUser();
+    final headers = isGuest == true
+        ? null
+        : Options(headers: {
+      "Authorization": ObjectFactory().prefs.getCustomerAuthToken(),
+    });
     return dioDiceApp.post(
       UrlsDiceApp.cafeList,
       data: request,
-      options: Options(
-        headers: {
-          "Authorization": ObjectFactory().prefs.getCustomerAuthToken(),
-        },
-      ),
+      options: headers,
     );
   }
 
   ///AddFavourite
   Future<Response> addFavourite(AddFavouriteRequest addFavouriteRequest) {
     print(ObjectFactory().prefs.getCustomerAuthToken());
+    final isGuest = ObjectFactory().prefs.isGuestUser();
+    final headers = isGuest == true
+        ? null
+        : Options(headers: {
+      "Authorization": ObjectFactory().prefs.getCustomerAuthToken(),
+    });
     return dioDiceApp.post(
       UrlsDiceApp.addFavourite,
       data: addFavouriteRequest,
-      options: Options(headers: {
-        "Authorization": ObjectFactory().prefs.getCustomerAuthToken(),
-      }),
+      options: headers,
 
     );
   }
@@ -437,8 +472,6 @@ class ApiClient {
 
     print("Bearer $token");
     print("URL: $url");
-
-
     return dioDiceApp.post(
       url,
       data: request,
@@ -451,28 +484,50 @@ class ApiClient {
   ///CafeSearch
   Future<Response> cafeSearch(CafeSearchRequest cafeSearchRequest) {
     print(ObjectFactory().prefs.getCustomerAuthToken());
+    print(ObjectFactory().prefs.isGuestUser());
+
+    final isGuest = ObjectFactory().prefs.isGuestUser();
+    final headers = isGuest == true
+        ? null
+        : Options(headers: {
+      "Authorization": ObjectFactory().prefs.getCustomerAuthToken(),
+    });
+
     return dioDiceApp.post(
       UrlsDiceApp.cafeSearch,
       data: cafeSearchRequest,
-      options: Options(headers: {
-        "Authorization": ObjectFactory().prefs.getCustomerAuthToken(),
-      }),
-
+      options: headers,
     );
+
   }
+
 
   ///Get Filter Options
   Future<Response> getFilterOptions() {
     print("Bearer ${ObjectFactory().prefs.getCustomerAuthToken()}");
+
+    final isGuest = ObjectFactory().prefs.isGuestUser();
+    final deviceToken = ObjectFactory().prefs.getDeviceID() ?? '';
+
+    final data = isGuest == true
+        ? {
+      "device_token": deviceToken,
+    }
+        : null;
+
+    final headers = isGuest == true
+        ? null
+        : Options(headers: {
+      "Authorization": ObjectFactory().prefs.getCustomerAuthToken(),
+    });
+
     return dioDiceApp.get(
       UrlsDiceApp.getFilters,
-      options: Options(
-        headers: {
-          "Authorization": ObjectFactory().prefs.getCustomerAuthToken(),
-        },
-      ),
+      data: data,
+      options: headers,
     );
   }
+
 
   ///Withdraw
   Future<Response> withdrawBooking( WithdrawBookingRequest request) {
@@ -483,6 +538,35 @@ class ApiClient {
       options: Options(headers: {
         "Authorization": ObjectFactory().prefs.getCustomerAuthToken(),
       }),
+
+    );
+  }
+
+  //Delete Account
+  Future<Response> customerProfileDelete() {
+    final token = ObjectFactory().prefs.getCustomerAuthToken();
+    final userID = ObjectFactory().prefs.getUserId();
+    final url = '${UrlsDiceApp.deleteCustomerAccount}/$userID';
+
+    print("Bearer $token");
+    print("URL: $url");
+
+    return dioDiceApp.post(
+      url,
+      options: Options(headers: {
+        "Authorization": token,
+      }),
+    );
+  }
+
+  ///Guest
+  Future<Response> guestUserSignIn( GuestUserRequest request) {
+    return dioDiceApp.post(
+      UrlsDiceApp.guestUserSignIn,
+      data: request,
+      // options: Options(headers: {
+      //   "Authorization": ObjectFactory().prefs.getCustomerAuthToken(),
+      // }),
 
     );
   }

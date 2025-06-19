@@ -29,3 +29,8 @@ class SaveProfileEvent extends CustomerProfileEvent {
   @override
   List<Object?> get props => [];
 }
+
+class CustomerProfileDeleteEvent extends CustomerProfileEvent {
+  @override
+  List<Object?> get props => [];
+}

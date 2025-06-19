@@ -103,3 +103,22 @@ class GoogleLoginErrorState extends CustomerLoginState {
   @override
   String toString() => 'GoogleLoginErrorState: $msg';
 }
+
+class GuestUserLoadingState extends CustomerLoginState {
+  @override
+  List<Object> get props => [];
+}
+
+class GuestUserLoadedState extends CustomerLoginState {
+  final GuestSignInResponse guestSignInResponse;
+ const GuestUserLoadedState({required this.guestSignInResponse});
+  @override
+  List<Object> get props => [guestSignInResponse];
+}
+
+class GuestUserErrorState extends CustomerLoginState {
+  final String errorMessage;
+  const GuestUserErrorState({required this.errorMessage});
+  @override
+  List<Object> get props => [errorMessage];
+}

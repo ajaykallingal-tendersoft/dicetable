@@ -15,6 +15,7 @@ class CafeListRequest {
   final String openTime;
   final String closeTime;
   final String search;
+  final String? deviceToken;
 
   CafeListRequest({
     required this.latitude,
@@ -24,6 +25,7 @@ class CafeListRequest {
     required this.openTime,
     required this.closeTime,
     required this.search,
+    this.deviceToken,
   });
 
   CafeListRequest copyWith({
@@ -34,6 +36,7 @@ class CafeListRequest {
     String? openTime,
     String? closeTime,
     String? search,
+    String? deviceToken,
   }) =>
       CafeListRequest(
         latitude: latitude ?? this.latitude,
@@ -43,6 +46,7 @@ class CafeListRequest {
         openTime: openTime ?? this.openTime,
         closeTime: closeTime ?? this.closeTime,
         search: search ?? this.search,
+        deviceToken: deviceToken ?? this.deviceToken,
       );
 
   factory CafeListRequest.fromJson(Map<String, dynamic> json) => CafeListRequest(
@@ -53,6 +57,7 @@ class CafeListRequest {
     openTime: json["open_time"],
     closeTime: json["close_time"],
     search: json["search"],
+    deviceToken: json['device_token']
   );
 
   Map<String, dynamic> toJson() => {
@@ -63,5 +68,6 @@ class CafeListRequest {
     "open_time": openTime,
     "close_time": closeTime,
     "search": search,
+    "device_token": deviceToken,
   };
 }

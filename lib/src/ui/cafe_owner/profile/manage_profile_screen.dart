@@ -10,6 +10,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -38,10 +39,12 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
   // Add visibility state variables
   bool _isEmailVisible = false;
   bool _isPhoneVisible = false;
+  bool _isMounted = false;
 
   @override
   void initState() {
     super.initState();
+    _isMounted = true;
     context.read<ProfileBloc>().add(GetProfileViewEvent());
     _initializeControllers();
   }
@@ -99,6 +102,17 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
         maskedPart +
         phone.substring(phone.length - visibleDigits);
   }
+  void _showToast(String message, Color textColor) {
+    if (!_isMounted) return;
+
+    Fluttertoast.showToast(
+      backgroundColor: AppColors.primaryWhiteColor,
+      textColor: textColor,
+      gravity: ToastGravity.BOTTOM,
+      msg: message,
+    );
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -118,6 +132,26 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
           _imageFile = File(state.image!.path);
         }
 
+        if(state is ProfileUpdateLoading) {
+          EasyLoading.show();
+        }
+        if (state is ProfileUpdateSuccess) {
+          await EasyLoading.dismiss();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Profile updated successfully'),
+              backgroundColor: AppColors.appGreenColor,
+            ),
+          );
+        } else if (state is ProfileUpdateError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.errorMessage),
+              backgroundColor: AppColors.appRedColor,
+            ),
+          );
+        }
+
         if (state is ProfileViewLoading) {
           await EasyLoading.show();
         } else {
@@ -128,6 +162,35 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
             );
           }
         }
+
+        if(state is ProfileDeleteLoading) {
+          EasyLoading.show();
+        }
+        if(state is ProfileDeleteSuccess) {
+         if(state.cafeDeleteProfileResponse.status == true) {
+           EasyLoading.dismiss();
+           _showToast(
+             state.cafeDeleteProfileResponse.message ??
+                 "Account Deleted successful",
+             AppColors.appGreenColor,
+           );
+           context.go('/category');
+         }else if(state.cafeDeleteProfileResponse.status == false){
+           EasyLoading.dismiss();
+           _showToast(
+             state.cafeDeleteProfileResponse.message ??
+                 "Failed to delete account",
+             AppColors.appRedColor,
+           );
+         }
+        } else if(state is ProfileDeleteError) {
+          EasyLoading.dismiss();
+          _showToast(
+            state.errorMessage,
+            AppColors.appRedColor,
+          );
+        }
+
       },
       builder: (context, state) {
         if (state is ProfileViewError) {
@@ -328,6 +391,20 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                             textColor: AppColors.primary,
                           ),
                         ),
+                        const Gap(10),
+                        InkWell(
+                          onTap: () {
+                            _showDeleteAccountDialog(context);
+                            },
+                          child: ElevatedButtonWidget(
+                            height: 70.h,
+                            width: double.infinity,
+                            iconEnabled: false,
+                            iconLabel: 'DELETE ACCOUNT',
+                            color: AppColors.primaryWhiteColor,
+                            textColor: AppColors.primary,
+                          ),
+                        ),
                         const Gap(30),
                       ],
                     ),
@@ -340,6 +417,79 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
       },
     );
   }
+
+  void _showDeleteAccountDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              title: Text(
+                'Are you sure?',
+                style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16.sp,
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    "Are you sure you want to delete your account? This action is permanent and cannot be undone. All your data will be erased.",
+                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                      color: AppColors.textPrimaryGrey,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 15.sp,
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => dialogContext.pop(),
+                  child: Text(
+                    'Cancel',
+                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                      color: AppColors.shadowColor,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14.sp,
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    context.read<ProfileBloc>().add(ProfileDeleteEvent());
+                    // dialogContext.pop();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    'Continue',
+                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                      color: AppColors.primaryWhiteColor,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14.sp,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
 
   // For venue types, convert selected types to a readable string
   String _formatVenueTypes(Map<String, bool> venueTypes) {

@@ -250,8 +250,9 @@ class CustomerSignUpBloc extends Bloc<CustomerSignUpEvent, CustomerSignUpState> 
     // if (!RegExp(r'^[a-zA-Z\s\.\']+$').hasMatch(trimmedName)) {
     // return 'Name contains invalid characters';
     // }
-  return "";
+  return null;
 }
+
 
 String? _validateEmail(String email) {
   final trimmedEmail = email.trim();
@@ -280,31 +281,11 @@ String? _validatePassword(String password) {
   if (password.isEmpty) {
     return 'Password is required';
   }
-  if (password.length < 8) {
-    return 'Password must be at least 8 characters';
+  if (password.length < 6) {
+    return 'Password must be at least 6 characters';
   }
   if (password.length > 128) {
     return 'Password must be less than 128 characters';
-  }
-
-  // Check for at least one uppercase letter
-  if (!RegExp(r'[A-Z]').hasMatch(password)) {
-    return 'Password must contain at least one uppercase letter';
-  }
-
-  // Check for at least one lowercase letter
-  if (!RegExp(r'[a-z]').hasMatch(password)) {
-    return 'Password must contain at least one lowercase letter';
-  }
-
-  // Check for at least one digit
-  if (!RegExp(r'\d').hasMatch(password)) {
-    return 'Password must contain at least one number';
-  }
-
-  // Check for at least one special character
-  if (!RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(password)) {
-    return 'Password must contain at least one special character';
   }
 
   return null;
@@ -326,7 +307,6 @@ String? _validatePhone(String phone) {
     return null; // Optional field
   }
 
-  // Remove all non-digit characters for validation
   final digitsOnly = phone.replaceAll(RegExp(r'\D'), '');
 
   if (digitsOnly.length < 10) {

@@ -10,6 +10,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -28,10 +29,12 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController countryController = TextEditingController();
   final TextEditingController stateController = TextEditingController();
+  bool _isMounted = false;
 
   @override
   void initState() {
     super.initState();
+    _isMounted = true;
     context.read<CustomerProfileBloc>().add(FetchLocationEvent());
     context.read<CustomerProfileBloc>().add(GetCustomerProfileEvent());
   }
@@ -139,7 +142,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
               ),
             ),
             Expanded(
-              child: BlocBuilder<CustomerProfileBloc, CustomerProfileState>(
+              child: BlocConsumer<CustomerProfileBloc, CustomerProfileState>(
                 builder: (context, state) {
                   print('Profile State: isLoading=${state.isLoading}, error=${state.errorMessage}, data=${state.profile.data}, lat=${state.latitude}, lng=${state.longitude}');
 
@@ -300,13 +303,44 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                                 textColor: AppColors.primary,
                               ),
                             ),
+                            // Gap(20.h),
+                            InkWell(
+                              onTap: () {
+                               _showDeleteAccountDialog(context);
+
+                              },
+                              child: ElevatedButtonWidget(
+                                height: 70.h,
+                                width: double.infinity,
+                                iconEnabled: false,
+                                iconLabel: 'DELETE ACCOUNT',
+                                color: AppColors.primaryWhiteColor,
+                                textColor: AppColors.primary,
+                              ),
+                            ),
                             Gap(50.h),
                           ],
                         ),
                       ),
                     ),
                   );
-                },
+                }, listener: (BuildContext context, CustomerProfileState state) {
+                  if(state is CustomerProfileDeleteLoading) {
+                    EasyLoading.show();
+                  }
+                  if(state is CustomerProfileDeleteSuccess) {
+                    if(state.deleteProfileResponse.status == true) {
+                      EasyLoading.dismiss();
+                      context.go('/category');
+                      _showToast(state.deleteProfileResponse.message.toString(), AppColors.appGreenColor);
+                    }else if(state.deleteProfileResponse.status == false) {
+                      _showToast(state.deleteProfileResponse.message.toString(), AppColors.appRedColor);
+                    }
+                  }else if(state is CustomerProfileDeleteError){
+                    EasyLoading.dismiss();
+                    _showToast(state.errorMessage, AppColors.appRedColor);
+                  }
+              },
               ),
             ),
           ],
@@ -314,4 +348,86 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
       ),
     );
   }
+  void _showToast(String message, Color textColor) {
+    if (!_isMounted) return;
+
+    Fluttertoast.showToast(
+      backgroundColor: AppColors.primaryWhiteColor,
+      textColor: textColor,
+      gravity: ToastGravity.BOTTOM,
+      msg: message,
+    );
+  }
+  void _showDeleteAccountDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              title: Text(
+                'Are you sure?',
+                style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16.sp,
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    "Are you sure you want to delete your account? This action is permanent and cannot be undone. All your data will be erased.",
+                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                      color: AppColors.textPrimaryGrey,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 15.sp,
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => dialogContext.pop(),
+                  child: Text(
+                    'Cancel',
+                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                      color: AppColors.shadowColor,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14.sp,
+                    ),
+                  ),
+                ),
+                ElevatedButton(
+                  onPressed: () {
+                    context.read<CustomerProfileBloc>().add(CustomerProfileDeleteEvent());
+                    // dialogContext.pop();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                  child: Text(
+                    'Continue',
+                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                      color: AppColors.primaryWhiteColor,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 14.sp,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
 }

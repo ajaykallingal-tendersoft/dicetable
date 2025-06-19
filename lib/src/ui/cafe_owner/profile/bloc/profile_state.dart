@@ -447,3 +447,16 @@ class ProfileUpdateError extends ProfileState {
   final String errorMessage;
   const ProfileUpdateError({required this.errorMessage}) : super(errorMessage: errorMessage);
 }
+
+class ProfileDeleteLoading extends ProfileState {}
+
+
+class ProfileDeleteSuccess extends ProfileState {
+  final DeleteProfileResponse cafeDeleteProfileResponse;
+  const ProfileDeleteSuccess({required this.cafeDeleteProfileResponse});
+}
+
+class ProfileDeleteError extends ProfileState {
+  final String errorMessage;
+  const ProfileDeleteError({required this.errorMessage}) : super(errorMessage: errorMessage);
+}

@@ -3,6 +3,7 @@ import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/model/customer/profile/customer_get_profile_response.dart';
 import 'package:dicetable/src/model/customer/profile/customer_profile_update_request.dart';
 import 'package:dicetable/src/model/customer/profile/customer_update_profile_response.dart';
+import 'package:dicetable/src/model/delete_profile_response.dart';
 import 'package:dicetable/src/model/state_model.dart';
 import 'package:dicetable/src/resources/api_providers/customer/profile_data_provider.dart';
 import 'package:equatable/equatable.dart';
@@ -23,6 +24,7 @@ class CustomerProfileBloc extends Bloc<CustomerProfileEvent, CustomerProfileStat
     on<UpdateProfileFieldEvent>(_onUpdateProfileField);
     on<FetchLocationEvent>(_onFetchLocation);
     on<SaveProfileEvent>(_onSaveProfile);
+    on<CustomerProfileDeleteEvent>(_onProfileDelete);
   }
 
   Future<void> _onGetCustomerProfile(
@@ -190,4 +192,23 @@ class CustomerProfileBloc extends Bloc<CustomerProfileEvent, CustomerProfileStat
       ));
     }
   }
+
+  Future<void> _onProfileDelete(
+      CustomerProfileDeleteEvent event,
+      Emitter<CustomerProfileState> emit,
+      ) async {
+    emit(CustomerProfileDeleteLoading());
+
+    final StateModel? stateModel = await customerProfileDataProvider.customerProfileDelete();
+
+    if (stateModel is SuccessState) {
+      final response = stateModel.value as DeleteProfileResponse;
+
+      emit(CustomerProfileDeleteSuccess( deleteProfileResponse: response));
+
+    } else if (stateModel is ErrorState) {
+      emit(CustomerProfileDeleteError(errorMessage: stateModel.msg));
+    }
+  }
+
 }

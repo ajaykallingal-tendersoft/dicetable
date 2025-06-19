@@ -15,6 +15,7 @@ class CafeSearchRequest {
   final String closeTime;
   final List<String> diceTableFilter;
   final List<String> accommodationsFilter;
+  final String? deviceToken;
 
   CafeSearchRequest({
     required this.search,
@@ -22,6 +23,7 @@ class CafeSearchRequest {
     required this.closeTime,
     required this.diceTableFilter,
     required this.accommodationsFilter,
+    this.deviceToken,
   });
 
   factory CafeSearchRequest.fromJson(Map<String, dynamic> json) => CafeSearchRequest(
@@ -30,6 +32,7 @@ class CafeSearchRequest {
     closeTime: json["close_time"],
     diceTableFilter: List<String>.from(json["diceTableFilter"].map((x) => x)),
     accommodationsFilter: List<String>.from(json["accommodationsFilter"].map((x) => x)),
+    deviceToken: json["device_token"],
   );
 
   Map<String, dynamic> toJson() => {
@@ -38,5 +41,6 @@ class CafeSearchRequest {
     "close_time": closeTime,
     "diceTableFilter": List<dynamic>.from(diceTableFilter.map((x) => x)),
     "accommodationsFilter": List<dynamic>.from(accommodationsFilter.map((x) => x)),
+    "device_token": deviceToken,
   };
 }

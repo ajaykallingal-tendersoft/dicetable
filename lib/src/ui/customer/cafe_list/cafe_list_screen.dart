@@ -38,9 +38,53 @@ class _CafeListScreenState extends State<CafeListScreen> {
       _fetchCafeListWithLocation();
     });
   }
+  // void _fetchCafeListWithLocation() {
+  //   final double? lat = latitude != null ? double.tryParse(latitude) : 0.0;
+  //   final double? lon = longitude != null ? double.tryParse(longitude) : 0.0;
+  //
+  //   if (lat != null && lon != null) {
+  //     context.read<CafeListBloc>().add(
+  //       GetCafeListEvent(
+  //         cafeListRequest: CafeListRequest(
+  //           latitude: lat,
+  //           longitude: lon,
+  //           diceTableFilter: [],
+  //           accommodationsFilter: [],
+  //           openTime: "",
+  //           closeTime: "",
+  //           search: "",
+  //           deviceToken:
+  //         ),
+  //       ),
+  //     );
+  //   } else {
+  //     context.read<CafeListBloc>().add(
+  //       GetCafeListEvent(
+  //         cafeListRequest: CafeListRequest(
+  //           latitude: 0.0, // Fallback value
+  //           longitude: 0.0,
+  //           diceTableFilter: [],
+  //           accommodationsFilter: [],
+  //           openTime: "",
+  //           closeTime: "",
+  //           search: "",
+  //         ),
+  //       ),
+  //     );
+  //     Fluttertoast.showToast(
+  //       msg: "Location data unavailable. Using default location.",
+  //       toastLength: Toast.LENGTH_LONG,
+  //       gravity: ToastGravity.BOTTOM,
+  //       backgroundColor: AppColors.appRedColor,
+  //       textColor: AppColors.primaryWhiteColor,
+  //     );
+  //   }
+  // }
   void _fetchCafeListWithLocation() {
     final double? lat = latitude != null ? double.tryParse(latitude) : 0.0;
     final double? lon = longitude != null ? double.tryParse(longitude) : 0.0;
+    final isGuest = ObjectFactory().prefs.isGuestUser() == true;
+    final deviceToken = isGuest ? ObjectFactory().prefs.getDeviceID() ?? '' : '';
 
     if (lat != null && lon != null) {
       context.read<CafeListBloc>().add(
@@ -53,6 +97,7 @@ class _CafeListScreenState extends State<CafeListScreen> {
             openTime: "",
             closeTime: "",
             search: "",
+            deviceToken: deviceToken,
           ),
         ),
       );
@@ -67,9 +112,11 @@ class _CafeListScreenState extends State<CafeListScreen> {
             openTime: "",
             closeTime: "",
             search: "",
+            deviceToken: deviceToken,
           ),
         ),
       );
+
       Fluttertoast.showToast(
         msg: "Location data unavailable. Using default location.",
         toastLength: Toast.LENGTH_LONG,
@@ -79,6 +126,7 @@ class _CafeListScreenState extends State<CafeListScreen> {
       );
     }
   }
+
   void showFilterBottomSheet(BuildContext context) async { // Make it async
     await showModalBottomSheet(
       constraints: BoxConstraints(
@@ -237,6 +285,19 @@ class _CafeListScreenState extends State<CafeListScreen> {
                 sliver: SliverToBoxAdapter(
                   child: BlocConsumer<CafeListBloc, CafeListState>(
                     listener: (context, state) {
+                      if(state is CafeListLoaded) {
+                        if(state.cafeListResponse.status == false || state.cafeListResponse.message!.contains("signup")||state.cafeListResponse.message == "Please signup to proceed.") {
+                          Fluttertoast.showToast(
+                            msg: "Please signup to proceed.",
+                            backgroundColor: AppColors.appRedColor,
+                            textColor: AppColors.primaryWhiteColor,
+                            gravity: ToastGravity.BOTTOM,
+                          );
+                          Future.delayed(Duration.zero, () {
+                            context.push('/login');
+                          });
+                        }
+                      }
                       if (state is CafeListError) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
@@ -247,6 +308,7 @@ class _CafeListScreenState extends State<CafeListScreen> {
                       }
                     },
                     builder: (context, state) {
+
                       final double? lat = latitude != null ? double.tryParse(latitude) : null;
                       final double? lon = longitude != null ? double.tryParse(longitude) : null;
                       if (state is CafeListLoading) {
@@ -264,8 +326,8 @@ class _CafeListScreenState extends State<CafeListScreen> {
                                 cafes: cafe,
                                 isLoading: false,
                                 onFavoriteToggle: () => context.read<CafeListBloc>().add(
-                                    ToggleFavoriteEvent(index)
-                                ),
+                                  ToggleFavoriteEvent(index, context),
+                                )
                               );
                             },
                           );
@@ -283,9 +345,9 @@ class _CafeListScreenState extends State<CafeListScreen> {
                           padding: EdgeInsets.zero,
                           physics: NeverScrollableScrollPhysics(),
                           shrinkWrap: true,
-                          itemCount: state.cafeListResponse!.cafes!.length,
+                          itemCount: state.cafeListResponse.cafes!.length,
                           itemBuilder: (context, index) {
-                            final cafe = state.cafeListResponse!.cafes![index];
+                            final cafe = state.cafeListResponse.cafes![index];
                             final isThisCafeLoading = state.toggledCafeIndex == index;
 
                             return CafeListCard(
@@ -294,7 +356,7 @@ class _CafeListScreenState extends State<CafeListScreen> {
                               onFavoriteToggle: isThisCafeLoading
                                   ? null
                                   : () => context.read<CafeListBloc>().add(
-                                  ToggleFavoriteEvent(index)
+                                  ToggleFavoriteEvent(index,context)
                               ),
                             );
                           },

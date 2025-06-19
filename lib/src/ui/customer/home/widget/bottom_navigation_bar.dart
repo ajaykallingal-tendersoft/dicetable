@@ -20,7 +20,8 @@ class BottomNavigationAppBar extends StatefulWidget {
     required this.selectedColor,
     required this.onTabSelected,
   }) {
-    assert(items.length == 2 || items.length == 5);
+    assert(items.length == 2 || items.length == 3 || items.length == 5);
+
   }
 
   final List<FABBottomAppBarItem> items;

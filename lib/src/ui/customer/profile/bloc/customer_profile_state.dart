@@ -62,3 +62,16 @@ extension CustomerProfileDataExtension on CustomerProfileData {
     }
   }
 }
+
+class CustomerProfileDeleteLoading extends CustomerProfileState {}
+
+
+class CustomerProfileDeleteSuccess extends CustomerProfileState {
+  final DeleteProfileResponse deleteProfileResponse;
+   CustomerProfileDeleteSuccess({required this.deleteProfileResponse});
+}
+
+class CustomerProfileDeleteError extends CustomerProfileState {
+  final String errorMessage;
+  CustomerProfileDeleteError({required this.errorMessage}) : super(errorMessage: errorMessage);
+}

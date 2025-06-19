@@ -3,6 +3,7 @@ import 'package:dicetable/src/model/customer/cafe/cafe_search_request.dart';
 import 'package:dicetable/src/ui/customer/home/widget/cafe_marker_map_widget.dart';
 import 'package:dicetable/src/ui/customer/home/widget/cafe_search_bar.dart';
 import 'package:dicetable/src/ui/customer/home/widget/filter_bottom_sheet.dart';
+import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -33,6 +34,8 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
   }
 
 void _performSearch() {
+  final isGuest = ObjectFactory().prefs.isGuestUser() == true;
+  final deviceToken = isGuest ? ObjectFactory().prefs.getDeviceID() ?? '' : '';
 
   final searchRequest = CafeSearchRequest(
     search: "",
@@ -40,10 +43,12 @@ void _performSearch() {
     closeTime: '',
     diceTableFilter: [],
     accommodationsFilter: [],
+    deviceToken: deviceToken,
   );
 
   context.read<CustomerHomeBloc>().add(SearchCafesEvent(searchRequest));
 }
+
   void showFilterBottomSheet(BuildContext context) {
     showModalBottomSheet(
       constraints: BoxConstraints(

@@ -9,8 +9,12 @@ import 'package:dicetable/src/model/customer/cafe/remove_favourite_request.dart'
 import 'package:dicetable/src/model/state_model.dart';
 import 'package:dicetable/src/resources/api_providers/customer/cafe_data_provider.dart';
 import 'package:dicetable/src/ui/customer/home/bloc/customer_home_bloc.dart';
+import 'package:dicetable/src/utils/data/object_factory.dart';
+import 'package:dicetable/src/utils/extension/state_model_extension.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:go_router/go_router.dart';
 
 
 part 'cafe_list_event.dart';
@@ -88,11 +92,29 @@ class CafeListBloc extends Bloc<CafeListEvent, CafeListState> {
       ) async {
     final currentState = state;
 
-    // Handle CafeListLoaded state
     if (currentState is CafeListLoaded) {
+      final isGuest = ObjectFactory().prefs.isGuestUser() == true;
+
+      if (isGuest) {
+        Fluttertoast.showToast(
+          msg: "Please signup to proceed.",
+          backgroundColor: AppColors.appRedColor,
+          textColor: AppColors.primaryWhiteColor,
+          gravity: ToastGravity.BOTTOM,
+        );
+
+        Future.delayed(Duration.zero, () {
+          event.context.go('/customer_login');
+          ObjectFactory().prefs.setIsGuestUser(false);
+        });
+
+        return; // Exit early without calling API
+      }
       final cafe = currentState.cafeListResponse.cafes![event.cafeIndex];
       final cafeId = cafe.id!;
       final isFavorite = cafe.favourites!;
+      // final isGuest = ObjectFactory().prefs.isGuestUser() == true;
+      final deviceToken = isGuest ? ObjectFactory().prefs.getDeviceID() ?? '' : '';
 
       emit(FavoriteToggleLoading(
         cafeListResponse: currentState.cafeListResponse,
@@ -107,7 +129,7 @@ class CafeListBloc extends Bloc<CafeListEvent, CafeListState> {
               .removeFavourite(RemoveFavouriteRequest(cafeId: cafeId));
         } else {
           result = await cafeDataProvider
-              .addFavourite(AddFavouriteRequest(cafeId: cafeId));
+              .addFavourite(AddFavouriteRequest(cafeId: cafeId,deviceToken: deviceToken));
         }
 
         if (result is SuccessState) {
@@ -122,15 +144,21 @@ class CafeListBloc extends Bloc<CafeListEvent, CafeListState> {
 
           emit(CafeListLoaded(cafeListResponse: updatedResponse));
         } else if (result is ErrorState) {
-          emit(CafeListLoaded(cafeListResponse: currentState.cafeListResponse));
+          final errorMessage = result.error ?? "";
+          if (errorMessage.toLowerCase().contains("signup")) {
+            emit(CafeListError(errorMessage: "Please signup to proceed."));
+          } else {
+            emit(CafeListLoaded(cafeListResponse: currentState.cafeListResponse));
+          }
         }
+
       } catch (e, stackTrace) {
         print('Toggle Favorite Error: $e');
         print('StackTrace: $stackTrace');
         emit(CafeListLoaded(cafeListResponse: currentState.cafeListResponse));
       }
     }
-    // Handle FavListLoaded state
+
     else if (currentState is FavListLoaded) {
       final cafe = currentState.favListResponse.cafes![event.cafeIndex];
       final cafeId = cafe.id!;

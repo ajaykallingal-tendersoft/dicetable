@@ -58,6 +58,10 @@ class Prefs {
   static const String _CLEAR_USER_IMAGE = "clear_image";
   static const String _IS_FIRST_LAUNCH = "is_first_launch";
   static const String _PENDING_NOTIFICATION_NAVIGATION = 'pending_notification_navigation';
+  static const String _DEVICE_ID = 'device_id';
+  static const String _IS_GUEST = "is_GUEST";
+
+
 
 
 
@@ -69,6 +73,26 @@ class Prefs {
     _sharedPreferences = value;
   }
 
+
+
+  void setIsGuestUser(bool status) {
+    _sharedPreferences!.setBool(_IS_GUEST, status);
+  }
+
+  ///Save User remember Decision
+  bool? isGuestUser() => _sharedPreferences!.getBool(_IS_GUEST) != null &&
+      _sharedPreferences!.getBool(_IS_GUEST) == true
+      ? true
+      : false;
+
+
+  ///saving DeviceID
+  void setDeviceID({String? deviceID}) {
+    _sharedPreferences!.setString(_DEVICE_ID, deviceID!);
+  }
+
+  ///get method  for DeviceID
+  String? getDeviceID() => _sharedPreferences?.getString(_DEVICE_ID);
 
   ///saving cafe user image
   void setImageData({String? cafeUserImage}) {
