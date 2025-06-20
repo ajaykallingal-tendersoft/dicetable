@@ -77,7 +77,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 );
               }
             }
-            },
+            if (state is NotificationRead) {
+              context.read<NotificationBloc>().add(FetchNotifications());
+            }
+          },
           builder: (context, state) {
             if (state is NotificationLoaded) {
             EasyLoading.dismiss();
@@ -126,14 +129,14 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           final item = state.notificationItems.data.all[index];
                           return InkWell(
                             onTap:  () {
-                              final notificationUpdateRequest = NotificationReadRequest(
-                                notificationId: item.id,
-                              );
-                              context.read<NotificationBloc>().add(
-                                ReadNotification(notificationReadRequest: notificationUpdateRequest),
-                              );
-                              context.read<NotificationBloc>().add(FetchNotifications());
-                            },
+                              if(item.readAt == null) {
+                                final notificationUpdateRequest = NotificationReadRequest(notificationId: item.id);
+
+                                context.read<NotificationBloc>().add(
+                                  ReadNotification(notificationReadRequest: notificationUpdateRequest),
+                                );
+                              }
+                              },
                             child: Container(
                               margin: const EdgeInsets.symmetric(vertical: 6),
                               padding: const EdgeInsets.all(16),
@@ -189,15 +192,15 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         itemBuilder: (context, index) {
                           final item = state.notificationItems.data.unread[index];
                           return InkWell(
-                            onTap:  () {
-                              final notificationUpdateRequest = NotificationReadRequest(
-                                notificationId: item.id,
-                              );
-                              context.read<NotificationBloc>().add(
-                                ReadNotification(notificationReadRequest: notificationUpdateRequest),
-                              );
-                              context.read<NotificationBloc>().add(FetchNotifications());
-                            },
+                            onTap: () {
+                             if(item.readAt == null) {
+                               final notificationUpdateRequest = NotificationReadRequest(notificationId: item.id);
+
+                               context.read<NotificationBloc>().add(
+                                 ReadNotification(notificationReadRequest: notificationUpdateRequest),
+                               );
+                             }
+                             },
                             child: Container(
                               margin: const EdgeInsets.symmetric(vertical: 6),
                               padding: const EdgeInsets.all(16),
