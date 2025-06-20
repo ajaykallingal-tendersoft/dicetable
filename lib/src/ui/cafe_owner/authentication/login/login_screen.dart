@@ -123,6 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         token: state.loginRequestResponse.token);
                     ObjectFactory().prefs.setCafeId(
                         cafeId: state.loginRequestResponse.cafeId);
+                    ObjectFactory().prefs.setCafeUserId(cafeUserId: state.loginRequestResponse.user!.id.toString());
                     if (state.loginRequestResponse.user != null &&
                         state.loginRequestResponse.user!.name != null) {
                       ObjectFactory().prefs.setCafeUserName(
@@ -171,6 +172,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       token: state.googleLoginResponse.token);
                   ObjectFactory().prefs.setCafeId(
                       cafeId: state.googleLoginResponse.cafeId);
+                  ObjectFactory().prefs.setCafeUserId(cafeUserId: state.googleLoginResponse.user!.id.toString());
+
                   ObjectFactory().prefs.setCafeUserName(
                       cafeUserName: state.googleLoginResponse.user!.name);
                   context.go('/home');
@@ -582,7 +585,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 curve: Curves.elasticOut,
                                                 delay: 900.ms,
                                               ),
-                                              LoginWithAppleWidget(),
+                                              // LoginWithAppleWidget(),
                                               Gap(30),
                                               LoginOrSignupPrompt(
                                                 spanText:

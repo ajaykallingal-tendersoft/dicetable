@@ -4,6 +4,7 @@ import 'package:dicetable/src/model/customer/cafe/cafe_search_request.dart';
 import 'package:dicetable/src/model/customer/cafe/get_filter_options_response.dart';
 import 'package:dicetable/src/ui/customer/home/bloc/customer_home_bloc.dart';
 import 'package:dicetable/src/ui/customer/home/widget/styled_checkbox.dart';
+import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -25,10 +26,14 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   late Set<String> selectedVenueTypes;
   late TimeOfDay openTime;
   late TimeOfDay closeTime;
+  late final String latitude;
+  late final String longitude;
 
   @override
   void initState() {
     super.initState();
+    latitude = ObjectFactory().prefs.getLatitude().toString();
+    longitude = ObjectFactory().prefs.getLongitude().toString();
     final bloc = context.read<CustomerHomeBloc>();
     selectedTableTypes = Set.from(bloc.selectedTableTypes);
     selectedVenueTypes = Set.from(bloc.selectedVenueTypes);
@@ -150,12 +155,17 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     final List<String> diceTableTitles = selectedTableTypes.toList();
     final List<String> venueTypeTitles = selectedVenueTypes.toList();
 
-    final String openTimeString =
-        '${openTime.hour.toString().padLeft(2, '0')}:${openTime.minute
-        .toString().padLeft(2, '0')}';
-    final String closeTimeString =
-        '${closeTime.hour.toString().padLeft(2, '0')}:${closeTime.minute
-        .toString().padLeft(2, '0')}';
+    final String openTimeString = openTime == const TimeOfDay(hour: 00, minute: 0)
+        ? ''
+        : '${openTime.hour.toString().padLeft(2, '0')}:${openTime.minute.toString().padLeft(2, '0')}';
+    final String closeTimeString = closeTime == const TimeOfDay(hour: 00, minute: 0)
+        ? ''
+        : '${closeTime.hour.toString().padLeft(2, '0')}:${closeTime.minute.toString().padLeft(2, '0')}';
+
+    final isGuest = ObjectFactory().prefs.isGuestUser() == true;
+    final deviceToken = isGuest ? ObjectFactory().prefs.getDeviceID() ?? '' : '';
+    final double? lat = latitude != null ? double.tryParse(latitude) : 0.0;
+    final double? lon = longitude != null ? double.tryParse(longitude) : 0.0;
 
     final searchRequest = CafeSearchRequest(
       search: "",
@@ -163,12 +173,12 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
       closeTime: closeTimeString,
       diceTableFilter: diceTableTitles,
       accommodationsFilter: venueTypeTitles,
+      deviceToken: deviceToken, latitude: lat!, longitude: lon!,
     );
 
     context.read<CustomerHomeBloc>().add(SearchCafesEvent(searchRequest));
     context.pop();
   }
-
   Future<void> pickTime(bool isOpen) async {
     final picked = await showTimePicker(
       context: context,
@@ -246,8 +256,8 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                   setState(() {
                     selectedTableTypes.clear();
                     selectedVenueTypes.clear();
-                    openTime = const TimeOfDay(hour: 10, minute: 0);
-                    closeTime = const TimeOfDay(hour: 14, minute: 0);
+                    openTime = const TimeOfDay(hour: 00, minute: 0);
+                    closeTime = const TimeOfDay(hour: 00, minute: 0);
                   });
                 }
               },
@@ -327,6 +337,14 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                           onPressed: () =>
                               context.read<CustomerHomeBloc>().add(
                                   GetFilterOptionsEvent()),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 20.w, vertical: 10.h),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12.r),
+                            ),
+                          ),
                           child: Text(
                             'Retry',
                             style: TextTheme
@@ -336,14 +354,6 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                               color: AppColors.primaryWhiteColor,
                               fontWeight: FontWeight.w600,
                               fontSize: 16.sp,
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 20.w, vertical: 10.h),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12.r),
                             ),
                           ),
                         ),

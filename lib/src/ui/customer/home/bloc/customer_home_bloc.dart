@@ -21,8 +21,8 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
   final CafeDataProvider cafeDataProvider;
   Set<String> _selectedTableTypes = {};
   Set<String> _selectedVenueTypes = {};
-  TimeOfDay _openTime = const TimeOfDay(hour: 10, minute: 0);
-  TimeOfDay _closeTime = const TimeOfDay(hour: 14, minute: 0);
+  TimeOfDay _openTime = const TimeOfDay(hour: 00, minute: 0);
+  TimeOfDay _closeTime = const TimeOfDay(hour: 00, minute: 0);
   GetFilterOptionsResponse? _cachedFilterOptions; // Cache for filter options
 
   Set<String> get selectedTableTypes => Set.from(_selectedTableTypes);
@@ -290,7 +290,7 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
       String message) {
     showDialog(
       context: context,
-      barrierDismissible: false, // User must tap a button
+      barrierDismissible: false,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
           title: Text(title),

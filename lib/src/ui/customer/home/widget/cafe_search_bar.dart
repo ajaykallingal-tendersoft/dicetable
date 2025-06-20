@@ -6,6 +6,7 @@ import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/model/customer/cafe/cafe_search_request.dart';
 import 'package:dicetable/src/ui/customer/home/bloc/customer_home_bloc.dart';
 import 'package:dicetable/src/ui/customer/home/widget/filter_bottom_sheet.dart';
+import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -25,6 +26,17 @@ class CafeSearchBar extends StatefulWidget {
 class _CafeSearchBarState extends State<CafeSearchBar> {
   final TextEditingController _controller = TextEditingController();
   Timer? _debounce;
+  late final String latitude;
+  late final String longitude;
+
+  @override
+  void initState() {
+    super.initState();
+    latitude = ObjectFactory().prefs.getLatitude().toString();
+    longitude = ObjectFactory().prefs.getLongitude().toString();
+  }
+
+
   @override
   void dispose() {
     _debounce?.cancel();
@@ -41,13 +53,21 @@ class _CafeSearchBarState extends State<CafeSearchBar> {
 
 
   void _performSearch(String searchQuery) {
+    final isGuest = ObjectFactory().prefs.isGuestUser() == true;
+    final deviceToken = isGuest ? ObjectFactory().prefs.getDeviceID() ?? '' : '';
+    final double? lat = latitude != null ? double.tryParse(latitude) : 0.0;
+    final double? lon = longitude != null ? double.tryParse(longitude) : 0.0;
     final searchRequest = CafeSearchRequest(
       search: searchQuery,
       openTime: '',
       closeTime: '',
       diceTableFilter: [],
       accommodationsFilter: [],
+      deviceToken: deviceToken,
+      latitude: lat!,
+      longitude: lon!,
     );
+
 
     context.read<CustomerHomeBloc>().add(SearchCafesEvent(searchRequest));
   }

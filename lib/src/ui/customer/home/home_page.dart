@@ -22,10 +22,13 @@ class CustomerHomePage extends StatefulWidget {
 }
 
 class _CustomerHomePageState extends State<CustomerHomePage> {
-
+  late final String latitude;
+  late final String longitude;
 @override
   void initState() {
     super.initState();
+    latitude = ObjectFactory().prefs.getLatitude().toString();
+    longitude = ObjectFactory().prefs.getLongitude().toString();
     _performSearch();
     // WidgetsBinding.instance.addPostFrameCallback((_) {
     //   context.read<CustomerHomeBloc>().add(FetchLocationEvent(context: context));
@@ -36,6 +39,8 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
 void _performSearch() {
   final isGuest = ObjectFactory().prefs.isGuestUser() == true;
   final deviceToken = isGuest ? ObjectFactory().prefs.getDeviceID() ?? '' : '';
+  final double? lat = latitude != null ? double.tryParse(latitude) : 0.0;
+  final double? lon = longitude != null ? double.tryParse(longitude) : 0.0;
 
   final searchRequest = CafeSearchRequest(
     search: "",
@@ -44,6 +49,8 @@ void _performSearch() {
     diceTableFilter: [],
     accommodationsFilter: [],
     deviceToken: deviceToken,
+    latitude: lat!,
+    longitude: lon!,
   );
 
   context.read<CustomerHomeBloc>().add(SearchCafesEvent(searchRequest));

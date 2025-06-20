@@ -16,6 +16,7 @@ class LoginRequestResponse {
   final String? expiresAt;
   final int? otpLength;
   final int? resendAvailableInSeconds;
+  final bool? subscriptionStatus;
 
   LoginRequestResponse({
     this.status,
@@ -29,6 +30,7 @@ class LoginRequestResponse {
     this.expiresAt,
     this.otpLength,
     this.resendAvailableInSeconds,
+    this.subscriptionStatus,
   });
 
   factory LoginRequestResponse.fromJson(Map<String, dynamic> json) => LoginRequestResponse(
@@ -43,6 +45,7 @@ class LoginRequestResponse {
     expiresAt: json["expiresAt"],
     otpLength: json["otpLength"],
     resendAvailableInSeconds: json["resendAvailableInSeconds"],
+    subscriptionStatus: json["subscription_status"],
 
   );
 
@@ -59,6 +62,7 @@ class LoginRequestResponse {
     if (expiresAt != null) data["expiresAt"] = expiresAt;
     if (otpLength != null) data["otpLength"] = otpLength;
     if (resendAvailableInSeconds != null) data["resendAvailableInSeconds"] = resendAvailableInSeconds;
+    if (subscriptionStatus != null) data["subscription_status"] = subscriptionStatus;
 
     return data;
   }

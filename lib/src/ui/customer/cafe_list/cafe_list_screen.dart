@@ -38,48 +38,6 @@ class _CafeListScreenState extends State<CafeListScreen> {
       _fetchCafeListWithLocation();
     });
   }
-  // void _fetchCafeListWithLocation() {
-  //   final double? lat = latitude != null ? double.tryParse(latitude) : 0.0;
-  //   final double? lon = longitude != null ? double.tryParse(longitude) : 0.0;
-  //
-  //   if (lat != null && lon != null) {
-  //     context.read<CafeListBloc>().add(
-  //       GetCafeListEvent(
-  //         cafeListRequest: CafeListRequest(
-  //           latitude: lat,
-  //           longitude: lon,
-  //           diceTableFilter: [],
-  //           accommodationsFilter: [],
-  //           openTime: "",
-  //           closeTime: "",
-  //           search: "",
-  //           deviceToken:
-  //         ),
-  //       ),
-  //     );
-  //   } else {
-  //     context.read<CafeListBloc>().add(
-  //       GetCafeListEvent(
-  //         cafeListRequest: CafeListRequest(
-  //           latitude: 0.0, // Fallback value
-  //           longitude: 0.0,
-  //           diceTableFilter: [],
-  //           accommodationsFilter: [],
-  //           openTime: "",
-  //           closeTime: "",
-  //           search: "",
-  //         ),
-  //       ),
-  //     );
-  //     Fluttertoast.showToast(
-  //       msg: "Location data unavailable. Using default location.",
-  //       toastLength: Toast.LENGTH_LONG,
-  //       gravity: ToastGravity.BOTTOM,
-  //       backgroundColor: AppColors.appRedColor,
-  //       textColor: AppColors.primaryWhiteColor,
-  //     );
-  //   }
-  // }
   void _fetchCafeListWithLocation() {
     final double? lat = latitude != null ? double.tryParse(latitude) : 0.0;
     final double? lon = longitude != null ? double.tryParse(longitude) : 0.0;
@@ -144,8 +102,7 @@ class _CafeListScreenState extends State<CafeListScreen> {
           FractionallySizedBox(
               child: const CafeListFilter()),
     );
-
-    _fetchCafeListWithLocation();
+    // _fetchCafeListWithLocation();
   }
 
   @override

@@ -108,7 +108,7 @@ class LoginWithGoogleWidget extends StatelessWidget {
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   SvgPicture.asset('assets/svg/google.svg'),
                   Gap(10),
@@ -124,7 +124,7 @@ class LoginWithGoogleWidget extends StatelessWidget {
                         ).textTheme.labelMedium!.copyWith(
                           color: AppColors.textFieldTextColor,
                           fontWeight: FontWeight.w600,
-                          fontSize: 16,
+                          fontSize: 14,
                         ),
                       ),
                 ],

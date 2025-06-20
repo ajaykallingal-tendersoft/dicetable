@@ -136,11 +136,72 @@ class _CafeListFilterState extends State<CafeListFilter> {
       selectedVenueTypes.clear();
     });
 
+    // Clear filters in BLoC
     final bloc = context.read<CafeListBloc>();
     bloc.add(const FiltersClearEvent());
+
+    final String latitude = ObjectFactory().prefs.getLatitude().toString();
+    final String longitude = ObjectFactory().prefs.getLongitude().toString();
+    final double? lat = latitude != null ? double.tryParse(latitude) : 0.0;
+    final double? lon = longitude != null ? double.tryParse(longitude) : 0.0;
+    final isGuest = ObjectFactory().prefs.isGuestUser() == true;
+    final deviceToken = isGuest ? ObjectFactory().prefs.getDeviceID() ?? '' : '';
+
+    final cafeListRequest = CafeListRequest(
+      latitude: lat!,
+      longitude: lon!,
+      search: "",
+      openTime: "", // Default open time
+      closeTime: "", // Default close time
+      diceTableFilter: [], // Empty filters
+      accommodationsFilter: [], // Empty filters
+      deviceToken: deviceToken,
+    );
+
+    bloc.add(GetCafeListEvent(cafeListRequest: cafeListRequest));
   }
 
+  // void _applyFilters(GetFilterOptionsResponse filterResponse) {
+  //   context.read<CafeListBloc>().add(FiltersUpdateEvent(
+  //     selectedTableTypes: selectedTableTypes,
+  //     selectedVenueTypes: selectedVenueTypes,
+  //     openTime: openTime,
+  //     closeTime: closeTime,
+  //   ));
+  //
+  //   final List<String> diceTableTitles = selectedTableTypes.toList();
+  //   final List<String> venueTypeTitles = selectedVenueTypes.toList();
+  //
+  //   final String openTimeString =
+  //       '${openTime.hour.toString().padLeft(2, '0')}:${openTime.minute
+  //       .toString().padLeft(2, '0')}';
+  //   final String closeTimeString =
+  //       '${closeTime.hour.toString().padLeft(2, '0')}:${closeTime.minute
+  //       .toString().padLeft(2, '0')}';
+  //
+  //   final String latitude = ObjectFactory().prefs.getLatitude().toString();
+  //   final String longitude = ObjectFactory().prefs.getLongitude().toString();
+  //   final double? lat = latitude != null ? double.tryParse(latitude) : 0.0;
+  //   final double? lon = longitude != null ? double.tryParse(longitude) : 0.0;
+  //   final isGuest = ObjectFactory().prefs.isGuestUser() == true;
+  //   final deviceToken = isGuest ? ObjectFactory().prefs.getDeviceID() ?? '' : '';
+  //
+  //   final cafeListRequest = CafeListRequest(
+  //     latitude: lat!,
+  //     longitude: lon!,
+  //     search: "",
+  //     openTime: openTimeString,
+  //     closeTime: closeTimeString,
+  //     diceTableFilter: diceTableTitles,
+  //     accommodationsFilter: venueTypeTitles,
+  //     deviceToken: deviceToken,
+  //   );
+  //
+  //   context.read<CafeListBloc>().add(GetCafeListEvent(cafeListRequest: cafeListRequest));
+  //   context.pop();
+  // }
   void _applyFilters(GetFilterOptionsResponse filterResponse) {
+    // First update the BLoC state with new filters
     context.read<CafeListBloc>().add(FiltersUpdateEvent(
       selectedTableTypes: selectedTableTypes,
       selectedVenueTypes: selectedVenueTypes,
@@ -148,20 +209,21 @@ class _CafeListFilterState extends State<CafeListFilter> {
       closeTime: closeTime,
     ));
 
+    // Prepare the filter parameters
     final List<String> diceTableTitles = selectedTableTypes.toList();
     final List<String> venueTypeTitles = selectedVenueTypes.toList();
 
     final String openTimeString =
-        '${openTime.hour.toString().padLeft(2, '0')}:${openTime.minute
-        .toString().padLeft(2, '0')}';
+        '${openTime.hour.toString().padLeft(2, '0')}:${openTime.minute.toString().padLeft(2, '0')}';
     final String closeTimeString =
-        '${closeTime.hour.toString().padLeft(2, '0')}:${closeTime.minute
-        .toString().padLeft(2, '0')}';
+        '${closeTime.hour.toString().padLeft(2, '0')}:${closeTime.minute.toString().padLeft(2, '0')}';
 
     final String latitude = ObjectFactory().prefs.getLatitude().toString();
     final String longitude = ObjectFactory().prefs.getLongitude().toString();
     final double? lat = latitude != null ? double.tryParse(latitude) : 0.0;
     final double? lon = longitude != null ? double.tryParse(longitude) : 0.0;
+    final isGuest = ObjectFactory().prefs.isGuestUser() == true;
+    final deviceToken = isGuest ? ObjectFactory().prefs.getDeviceID() ?? '' : '';
 
     final cafeListRequest = CafeListRequest(
       latitude: lat!,
@@ -171,12 +233,13 @@ class _CafeListFilterState extends State<CafeListFilter> {
       closeTime: closeTimeString,
       diceTableFilter: diceTableTitles,
       accommodationsFilter: venueTypeTitles,
+      deviceToken: deviceToken,
     );
 
     context.read<CafeListBloc>().add(GetCafeListEvent(cafeListRequest: cafeListRequest));
+
     context.pop();
   }
-
   Future<void> pickTime(bool isOpen) async {
     final picked = await showTimePicker(
       context: context,

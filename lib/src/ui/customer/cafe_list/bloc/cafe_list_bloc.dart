@@ -97,7 +97,7 @@ class CafeListBloc extends Bloc<CafeListEvent, CafeListState> {
 
       if (isGuest) {
         Fluttertoast.showToast(
-          msg: "Please signup to proceed.",
+          msg: "Please login to proceed.",
           backgroundColor: AppColors.appRedColor,
           textColor: AppColors.primaryWhiteColor,
           gravity: ToastGravity.BOTTOM,
@@ -108,7 +108,7 @@ class CafeListBloc extends Bloc<CafeListEvent, CafeListState> {
           ObjectFactory().prefs.setIsGuestUser(false);
         });
 
-        return; // Exit early without calling API
+        return;
       }
       final cafe = currentState.cafeListResponse.cafes![event.cafeIndex];
       final cafeId = cafe.id!;

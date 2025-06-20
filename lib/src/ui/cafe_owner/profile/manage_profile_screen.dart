@@ -379,6 +379,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                             ObjectFactory().prefs.setCafeUserName(
                                 cafeUserName: "");
                             ObjectFactory().prefs.setCafeId(cafeId: '');
+                            ObjectFactory().prefs.setCafeUserId(cafeUserId: '');
                             ObjectFactory().prefs.getNavigationSource();
                             context.go('/category');
                           },

@@ -28,7 +28,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
 
   void _onTabSelected(int index) {
     final isGuest = ObjectFactory().prefs.isGuestUser() == true;
-    final maxIndex = isGuest ? 2 : 4;
+    final maxIndex = isGuest ? 1 : 4;
     setState(() {
       _selectedIndex = index > maxIndex ? 0 : index;
     });
@@ -106,6 +106,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                 ),
                 text: 'CAFE LIST',
               ),
+              if (!isGuest)
               FABBottomAppBarItem(
                 iconData: SvgPicture.asset(
                   'assets/svg/favourites.svg',
@@ -147,7 +148,9 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       case 1:
         return CafeListScreen(key: ValueKey('cafe_list'));
       case 2:
-        return FavouritesScreen(key: ValueKey('fav'));
+        return isGuest
+          ? CustomerHomePage()
+          : FavouritesScreen(key: ValueKey('fav'));
       case 3:
         return isGuest
             ? const CustomerHomePage()

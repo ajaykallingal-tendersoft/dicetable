@@ -16,6 +16,8 @@ class CafeSearchRequest {
   final List<String> diceTableFilter;
   final List<String> accommodationsFilter;
   final String? deviceToken;
+  final double latitude;
+  final double longitude;
 
   CafeSearchRequest({
     required this.search,
@@ -24,6 +26,8 @@ class CafeSearchRequest {
     required this.diceTableFilter,
     required this.accommodationsFilter,
     this.deviceToken,
+    required this.latitude,
+    required this.longitude,
   });
 
   factory CafeSearchRequest.fromJson(Map<String, dynamic> json) => CafeSearchRequest(
@@ -32,6 +36,8 @@ class CafeSearchRequest {
     closeTime: json["close_time"],
     diceTableFilter: List<String>.from(json["diceTableFilter"].map((x) => x)),
     accommodationsFilter: List<String>.from(json["accommodationsFilter"].map((x) => x)),
+    latitude: json["latitude"],
+    longitude: json["longitude"],
     deviceToken: json["device_token"],
   );
 
@@ -41,6 +47,8 @@ class CafeSearchRequest {
     "close_time": closeTime,
     "diceTableFilter": List<dynamic>.from(diceTableFilter.map((x) => x)),
     "accommodationsFilter": List<dynamic>.from(accommodationsFilter.map((x) => x)),
+    "latitude": latitude,
+    "longitude": longitude,
     "device_token": deviceToken,
   };
 }

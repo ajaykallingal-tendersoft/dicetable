@@ -60,6 +60,9 @@ class Prefs {
   static const String _PENDING_NOTIFICATION_NAVIGATION = 'pending_notification_navigation';
   static const String _DEVICE_ID = 'device_id';
   static const String _IS_GUEST = "is_GUEST";
+  static const String _CAFE_USER_ID = "cafe_user_id";
+
+
 
 
 
@@ -219,6 +222,14 @@ class Prefs {
 
   ///get method  for cafeID
   String? getCafeId() => _sharedPreferences!.getString(_CAFE_ID);
+
+  ///Method for cafe userID
+  void setCafeUserId({String? cafeUserId}) {
+    _sharedPreferences!.setString(_CAFE_USER_ID, cafeUserId!);
+  }
+
+  ///get method  for cafeID
+  String? getCafeUserId() => _sharedPreferences!.getString(_CAFE_USER_ID);
 
   ///Get method for latitude
   void setLatitude({String? lat}) {
