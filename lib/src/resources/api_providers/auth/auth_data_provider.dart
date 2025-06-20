@@ -5,6 +5,8 @@ import 'package:dicetable/src/model/cafe_owner/auth/forgot_password/forgot_passw
 import 'package:dicetable/src/model/cafe_owner/auth/forgot_password/password_reset_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/forgot_password/password_reset_request_response.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/forgot_password/resend_otp_request.dart';
+import 'package:dicetable/src/model/cafe_owner/auth/login/apple_login_request.dart';
+import 'package:dicetable/src/model/cafe_owner/auth/login/apple_login_request_response.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/login/google_login_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/login/google_login_request_response.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/login/login_request.dart';
@@ -442,32 +444,34 @@ class AuthDataProvider {
 
 
 
-  // Future<StateModel?> appleLogin(AppleSignInRequest appleSignInRequest) async {
-  //   try {
-  //     final response =
-  //     await ObjectFactory().apiClient.appleLogin(appleSignInRequest);
-  //     print(response.toString());
-  //     if (response.statusCode == 200) {
-  //       return StateModel<GoogleLoginRequestResponse>.success(
-  //           GoogleLoginRequestResponse.fromJson(response.data));
-  //     } else {
-  //       return StateModel.error(
-  //           "The server isn't responding! Please try again later.");
-  //     }
-  //   } on DioException catch (e) {
-  //
-  //     if (e.response != null && e.response!.statusCode == 500) {
-  //       return StateModel.error(
-  //           "The server isn't responding! Please try again later.");
-  //       // return response!;
-  //     } else if (e.response != null && e.response!.statusCode == 408) {
-  //       return StateModel.error(
-  //           "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-  //       // Something happened in setting up or sending the request that triggered an Error
-  //     }
-  //   }
-  //   return null;
-  // }
+  Future<StateModel?> appleLogin(AppleLoginRequest appleLoginRequest) async {
+    try {
+      final response =
+      await ObjectFactory().apiClient.appleLogin(
+        appleLoginRequest,
+      );
+      print(response.toString());
+      if (response.statusCode == 200) {
+        return StateModel<AppleLoginRequestResponse>.success(
+            AppleLoginRequestResponse.fromJson(response.data));
+      } else {
+        return StateModel.error(
+            "The server isn't responding! Please try again later.");
+      }
+    } on DioException catch (e) {
+  
+      if (e.response != null && e.response!.statusCode == 500) {
+        return StateModel.error(
+            "The server isn't responding! Please try again later.");
+        // return response!;
+      } else if (e.response != null && e.response!.statusCode == 408) {
+        return StateModel.error(
+            "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!");
+        // Something happened in setting up or sending the request that triggered an Error
+      }
+    }
+    return null;
+  }
 
 
 

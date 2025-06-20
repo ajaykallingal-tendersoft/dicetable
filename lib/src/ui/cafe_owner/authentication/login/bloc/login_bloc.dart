@@ -1,5 +1,6 @@
 import 'package:bloc/bloc.dart';
-import 'package:dicetable/src/model/cafe_owner/auth/login/apple_sign_in_request.dart';
+import 'package:dicetable/src/model/cafe_owner/auth/login/apple_login_request.dart';
+import 'package:dicetable/src/model/cafe_owner/auth/login/apple_login_request_response.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/login/google_login_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/login/google_login_request_response.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/login/login_request.dart';
@@ -30,11 +31,13 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     });
 
     on<FormSubmitted>(_onFormSubmitted);
-    on<GetGoogleLoginEvent> (_handleGoogleLogin);
-
+    on<GetGoogleLoginEvent>(_handleGoogleLogin);
   }
 
-  Future<void> _onFormSubmitted(FormSubmitted event, Emitter<LoginState> emit) async {
+  Future<void> _onFormSubmitted(
+    FormSubmitted event,
+    Emitter<LoginState> emit,
+  ) async {
     if (state is LoginFormState) {
       final formState = state as LoginFormState;
 
@@ -47,7 +50,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       String? passwordError;
 
       final emailRegex = RegExp(
-          r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?)*$");
+        r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?)*$",
+      );
 
       if (email.isEmpty) {
         emailError = 'Email is required';
@@ -62,10 +66,12 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       }
 
       if (emailError != null || passwordError != null) {
-        emit(formState.copyWith(
-          emailError: emailError,
-          passwordError: passwordError,
-        ));
+        emit(
+          formState.copyWith(
+            emailError: emailError,
+            passwordError: passwordError,
+          ),
+        );
         return;
       }
 
@@ -78,10 +84,13 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         print("PasswordAfter: $password");
 
         if (stateModel.isSuccess) {
-          emit(LoginSuccessState(loginRequestResponse: stateModel.data as LoginRequestResponse));
+          emit(
+            LoginSuccessState(
+              loginRequestResponse: stateModel.data as LoginRequestResponse,
+            ),
+          );
           emit(formState.copyWith());
         } else if (stateModel.isError) {
-
           emit(LoginFailureState(stateModel.error as String));
           emit(formState.copyWith());
         } else {
@@ -94,12 +103,18 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       }
     }
   }
-  Future<void> _handleGoogleLogin(GetGoogleLoginEvent event, Emitter<LoginState> emit) async {
+
+  Future<void> _handleGoogleLogin(
+    GetGoogleLoginEvent event,
+    Emitter<LoginState> emit,
+  ) async {
     try {
       emit(GoogleLoginLoading());
       await Future.delayed(Duration(seconds: 1));
 
-      final response = await authDataProvider.googleLogin(event.googleLoginRequest);
+      final response = await authDataProvider.googleLogin(
+        event.googleLoginRequest,
+      );
       if (response!.data.status == true) {
         emit(GoogleLoginLoaded(googleLoginResponse: response.data));
       } else {
@@ -110,4 +125,24 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     }
   }
 
+  Future<void> _handleAppleLogin(
+    GetAppleLoginEvent event,
+    Emitter<LoginState> emit,
+  ) async {
+    try {
+      emit(LoginWithAppleLoading());
+      await Future.delayed(Duration(seconds: 1));
+
+      final response = await authDataProvider.appleLogin(
+        event.appleLoginRequest,
+      );
+      if (response!.data.status == true) {
+        emit(LoginWithAppleLoaded(appleLoginRequestResponse: response.data));
+      } else {
+        emit(LoginWithAppleError(errorMsg: response.data.message));
+      }
+    } catch (e) {
+      emit(LoginWithAppleError(errorMsg: e.toString()));
+    }
+  }
 }

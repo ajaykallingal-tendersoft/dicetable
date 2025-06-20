@@ -24,7 +24,7 @@ import 'package:dicetable/src/utils/urls/urls.dart';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
 
-import '../../model/cafe_owner/auth/login/apple_sign_in_request.dart';
+import '../../model/cafe_owner/auth/login/apple_login_request.dart';
 
 
 class ApiClient {
@@ -204,10 +204,10 @@ class ApiClient {
   }
 
   //Apple Sign-In
-  Future<Response> appleLogin(AppleSignInRequest appleSignInRequest) {
+  Future<Response> appleLogin(AppleLoginRequest appleLoginRequest) {
     return dioDiceApp.post(
       UrlsDiceApp.appleSignIn,
-      data: appleSignInRequest,
+      data: appleLoginRequest,
 
     );
   }

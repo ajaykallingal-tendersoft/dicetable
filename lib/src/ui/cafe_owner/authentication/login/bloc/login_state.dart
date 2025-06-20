@@ -113,24 +113,24 @@ class SignInWithAppleInitial extends LoginState {
   List<Object> get props => [];
 }
 
-class SignInWithAppleLoading extends LoginState {
+class LoginWithAppleLoading extends LoginState {
   @override
   List<Object> get props => [];
 }
 
-// class SignInWithAppleLoaded extends LoginState {
-//   final AppleSignInRequestResponse appleSignInRequestResponse;
-//
-//   const SignInWithAppleLoaded({required this.appleSignInRequestResponse});
-//
-//   @override
-//   List<Object> get props => [appleSignInRequestResponse];
-// }
+class LoginWithAppleLoaded extends LoginState {
+  final AppleLoginRequestResponse appleLoginRequestResponse;
 
-class SignInWithAppleError extends LoginState {
+  const LoginWithAppleLoaded({required this.appleLoginRequestResponse});
+
+  @override
+  List<Object> get props => [appleLoginRequestResponse];
+}
+
+class LoginWithAppleError extends LoginState {
   final String errorMsg;
 
-  const SignInWithAppleError({required this.errorMsg});
+  const LoginWithAppleError({required this.errorMsg});
 
   @override
   List<Object> get props => [errorMsg];

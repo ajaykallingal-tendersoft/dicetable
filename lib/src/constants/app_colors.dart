@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 class AppColors {
@@ -15,7 +13,7 @@ class AppColors {
   static const borderColor1 = Color(0xFFCECECE);
   static const hintColor = Color(0xFF959595);
 
-  static const  shadowColor = Color(0xFF393939);
+  static const shadowColor = Color(0xFF393939);
   static const unSelectedColor = Color(0xFFE2E2E2);
   static const verticalDividerColor = Color(0xFFD3D3D3);
   static const secondaryGreyTextColor = Color(0xFF989898);
@@ -44,7 +42,6 @@ class AppColors {
   static const profileTextFiledBorderColor = Color(0xFF3374A2);
   static const profileTextFiledSubColor = Color(0xFF8EC2E6);
 
-
   static const customScrollImageBGColor = Color(0xFF8825A4);
   static const readedNotifyContainerColor = Color(0xFFCFDEEA);
   static const historyActionTextColor = Color(0xFF5D6A72);
@@ -56,20 +53,4 @@ class AppColors {
   static const tableTypeLogoColor2 = Color(0xFF2BCAF4);
   static const tableTypeLogoColor3 = Color(0xFF4442E3);
   static const tableTypeLogoColor4 = Color(0xFF3DD89C);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

@@ -26,6 +26,7 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/login/widget/login_with_apple_widget.dart';
 import 'cubit/apple_signin_cubit.dart';
+import 'dart:ui';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -79,7 +80,6 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-
   @override
   void dispose() {
     _emailFocusNode.dispose();
@@ -120,14 +120,20 @@ class _LoginScreenState extends State<LoginScreen> {
                     ObjectFactory().prefs.setIsLoggedIn(true);
                     ObjectFactory().prefs.setEmailVerified(true);
                     ObjectFactory().prefs.setAuthToken(
-                        token: state.loginRequestResponse.token);
+                      token: state.loginRequestResponse.token,
+                    );
                     ObjectFactory().prefs.setCafeId(
-                        cafeId: state.loginRequestResponse.cafeId);
-                    ObjectFactory().prefs.setCafeUserId(cafeUserId: state.loginRequestResponse.user!.id.toString());
+                      cafeId: state.loginRequestResponse.cafeId,
+                    );
+                    ObjectFactory().prefs.setCafeUserId(
+                      cafeUserId:
+                          state.loginRequestResponse.user!.id.toString(),
+                    );
                     if (state.loginRequestResponse.user != null &&
                         state.loginRequestResponse.user!.name != null) {
                       ObjectFactory().prefs.setCafeUserName(
-                          cafeUserName: state.loginRequestResponse.user!.name);
+                        cafeUserName: state.loginRequestResponse.user!.name,
+                      );
                     }
                     context.go('/home');
                   }
@@ -154,11 +160,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     backgroundColor: AppColors.primaryWhiteColor,
                     textColor: AppColors.appRedColor,
                   );
-                  context.go('/verify', extra: VerifyScreenArguments(
+                  context.go(
+                    '/verify',
+                    extra: VerifyScreenArguments(
                       email: _emailController.text,
                       otp: "",
                       type: "register",
-                      from: 'venue_owner'));
+                      from: 'venue_owner',
+                    ),
+                  );
                 }
               }
 
@@ -169,13 +179,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   ObjectFactory().prefs.setIsLoggedIn(true);
                   ObjectFactory().prefs.setIsGoogle(true);
                   ObjectFactory().prefs.setAuthToken(
-                      token: state.googleLoginResponse.token);
+                    token: state.googleLoginResponse.token,
+                  );
                   ObjectFactory().prefs.setCafeId(
-                      cafeId: state.googleLoginResponse.cafeId);
-                  ObjectFactory().prefs.setCafeUserId(cafeUserId: state.googleLoginResponse.user!.id.toString());
+                    cafeId: state.googleLoginResponse.cafeId,
+                  );
+                  ObjectFactory().prefs.setCafeUserId(
+                    cafeUserId: state.googleLoginResponse.user!.id.toString(),
+                  );
 
                   ObjectFactory().prefs.setCafeUserName(
-                      cafeUserName: state.googleLoginResponse.user!.name);
+                    cafeUserName: state.googleLoginResponse.user!.name,
+                  );
                   context.go('/home');
                 } else {
                   EasyLoading.dismiss();
@@ -192,25 +207,25 @@ class _LoginScreenState extends State<LoginScreen> {
                       '/signup',
                       extra: SignUpScreenArgument(
                         imageBase64:
-                        ObjectFactory().prefs
-                            .getCafeUserImage()
-                            .toString() ??
+                            ObjectFactory().prefs
+                                .getCafeUserImage()
+                                .toString() ??
                             "",
                         isGoggleSignUp: true,
                         email:
-                        ObjectFactory().prefs
-                            .getCafeUserMail()
-                            .toString() ??
+                            ObjectFactory().prefs
+                                .getCafeUserMail()
+                                .toString() ??
                             "",
                         displayName:
-                        ObjectFactory().prefs
-                            .getCafeUserName()
-                            .toString() ??
+                            ObjectFactory().prefs
+                                .getCafeUserName()
+                                .toString() ??
                             "",
                         phone:
-                        ObjectFactory().prefs
-                            .getCafeUserPhone()
-                            .toString() ??
+                            ObjectFactory().prefs
+                                .getCafeUserPhone()
+                                .toString() ??
                             "",
                       ),
                     );
@@ -233,17 +248,17 @@ class _LoginScreenState extends State<LoginScreen> {
                     '/signup',
                     extra: SignUpScreenArgument(
                       imageBase64:
-                      ObjectFactory().prefs.getCafeUserImage().toString() ??
+                          ObjectFactory().prefs.getCafeUserImage().toString() ??
                           "",
                       isGoggleSignUp: true,
                       email:
-                      ObjectFactory().prefs.getCafeUserMail().toString() ??
+                          ObjectFactory().prefs.getCafeUserMail().toString() ??
                           "",
                       displayName:
-                      ObjectFactory().prefs.getCafeUserName().toString() ??
+                          ObjectFactory().prefs.getCafeUserName().toString() ??
                           "",
                       phone:
-                      ObjectFactory().prefs.getCafeUserPhone().toString() ??
+                          ObjectFactory().prefs.getCafeUserPhone().toString() ??
                           "",
                     ),
                   );
@@ -255,9 +270,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   state is GoogleLoginErrorState) {
                 EasyLoading.dismiss();
                 final errorMessage =
-                state is LoginFailureState
-                    ? state.message
-                    : (state as GoogleLoginErrorState).msg;
+                    state is LoginFailureState
+                        ? state.message
+                        : (state as GoogleLoginErrorState).msg;
 
                 Fluttertoast.showToast(
                   msg: errorMessage,
@@ -268,9 +283,9 @@ class _LoginScreenState extends State<LoginScreen> {
             },
             builder: (context, state) {
               final emailError =
-              state is LoginFormState ? state.emailError : null;
+                  state is LoginFormState ? state.emailError : null;
               final passwordError =
-              state is LoginFormState ? state.passwordError : null;
+                  state is LoginFormState ? state.passwordError : null;
               final bool isLoading = state is LoginLoadingState;
 
               return WillPopScope(
@@ -293,18 +308,18 @@ class _LoginScreenState extends State<LoginScreen> {
                         left: 0,
                         right: 0,
                         child: SvgPicture.asset(
-                          'assets/svg/login-logo.svg',
-                          height: 162.h,
-                          width: 114.w,
-                          fit: BoxFit.scaleDown,
-                        )
+                              'assets/svg/login-logo.svg',
+                              height: 162.h,
+                              width: 114.w,
+                              fit: BoxFit.scaleDown,
+                            )
                             .animate()
                             .scale(
-                          begin: const Offset(0.8, 0.8),
-                          end: const Offset(1, 1),
-                          duration: 600.ms,
-                          curve: Curves.easeOutBack,
-                        )
+                              begin: const Offset(0.8, 0.8),
+                              end: const Offset(1, 1),
+                              duration: 600.ms,
+                              curve: Curves.easeOutBack,
+                            )
                             .fadeIn(duration: 500.ms),
                       ),
 
@@ -312,10 +327,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         bottom: 0,
                         left: 0,
                         right: 0,
-                        height: MediaQuery
-                            .of(context)
-                            .size
-                            .height * 0.72,
+                        height: MediaQuery.of(context).size.height * 0.72,
                         child: ClipRRect(
                           borderRadius: BorderRadius.vertical(
                             top: Radius.circular(53),
@@ -327,292 +339,273 @@ class _LoginScreenState extends State<LoginScreen> {
                                 fit: BoxFit.cover,
                               ),
                             ),
-                            child: SafeArea(
-                              child: LayoutBuilder(
-                                builder: (context, constraints) {
-                                  return NotificationListener<
-                                      OverscrollIndicatorNotification
-                                  >(
-                                    onNotification: (overscroll) {
-                                      overscroll.disallowIndicator();
-                                      return true;
-                                    },
-                                    child: Padding(
-                                      padding: EdgeInsets.only(
-                                        bottom:
-                                        MediaQuery
-                                            .of(
-                                          context,
-                                        )
-                                            .viewInsets
-                                            .bottom,
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                return NotificationListener<
+                                  OverscrollIndicatorNotification
+                                >(
+                                  onNotification: (overscroll) {
+                                    overscroll.disallowIndicator();
+                                    return true;
+                                  },
+                                  child: Padding(
+                                    padding: EdgeInsets.only(
+                                      bottom:
+                                          MediaQuery.of(
+                                            context,
+                                          ).viewInsets.bottom,
+                                    ),
+                                    child: SingleChildScrollView(
+                                      keyboardDismissBehavior:
+                                          ScrollViewKeyboardDismissBehavior
+                                              .onDrag,
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 25.w,
+                                        vertical: 25.h,
                                       ),
-                                      child: SingleChildScrollView(
-                                        keyboardDismissBehavior:
-                                        ScrollViewKeyboardDismissBehavior
-                                            .onDrag,
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 26.w,
-                                          vertical: 26.h,
-                                        ),
-                                        child: Form(
-                                          key: _formKey,
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Text(
-                                                'Welcome Back!',
-                                                style: Theme
-                                                    .of(context)
-                                                    .textTheme
-                                                    .headlineLarge!
-                                                    .copyWith(
-                                                  fontSize: 24,
-                                                  fontWeight:
-                                                  FontWeight.w600,
-                                                  color:
-                                                  AppColors
-                                                      .primaryWhiteColor,
-                                                ),
-                                              )
-                                                  .animate()
-                                                  .fadeIn(
-                                                duration: 600.ms,
-                                                delay: 300.ms,
-                                              )
-                                                  .scale(
-                                                begin: const Offset(
-                                                  0.9,
-                                                  0.9,
-                                                ),
-                                                duration: 600.ms,
-                                                curve: Curves.easeOutBack,
-                                                delay: 300.ms,
-                                              ),
-                                              Gap(10),
-                                              Container(
-                                                key: _emailFieldKey,
-                                                child: CustomLoginTextField(
-                                                  hintText: "Email Address",
-                                                  icon: SvgPicture.asset(
-                                                    'assets/svg/email.svg',
-                                                  ),
-                                                  controller:
-                                                  _emailController,
-                                                  focusNode:
-                                                  _emailFocusNode,
-                                                  errorText: emailError,
-                                                  onChanged: (value) {
-                                                    context
-                                                        .read<LoginBloc>()
-                                                        .add(
-                                                      EmailChanged(
-                                                        value,
+                                      child: Form(
+                                        key: _formKey,
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                                  'Welcome Back!',
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .headlineLarge!
+                                                      .copyWith(
+                                                        fontSize: 24,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        color:
+                                                            AppColors
+                                                                .primaryWhiteColor,
                                                       ),
-                                                    );
-                                                  },
                                                 )
-                                                    .animate()
-                                                    .fadeIn(
+                                                .animate()
+                                                .fadeIn(
                                                   duration: 600.ms,
-                                                  delay: 400.ms,
+                                                  delay: 300.ms,
                                                 )
-                                                    .slideX(
-                                                  begin: 0.2,
-                                                  end: 0,
+                                                .scale(
+                                                  begin: const Offset(0.9, 0.9),
                                                   duration: 600.ms,
-                                                  curve: Curves.easeOutQuad,
-                                                  delay: 400.ms,
+                                                  curve: Curves.easeOutBack,
+                                                  delay: 300.ms,
                                                 ),
-                                              ),
-                                              Gap(10),
-                                              Container(
-                                                key: _passwordFieldKey,
-                                                child: CustomLoginTextField(
-                                                  isPassword: true,
-                                                  hintText: "Password",
-                                                  icon: SvgPicture.asset(
-                                                    'assets/svg/pw.svg',
-                                                  ),
-                                                  controller:
-                                                  _passwordController,
-                                                  focusNode:
-                                                  _passwordFocusNode,
-                                                  errorText: passwordError,
-                                                  onChanged: (value) {
-                                                    context
-                                                        .read<LoginBloc>()
-                                                        .add(
-                                                      PasswordChanged(
-                                                        value,
-                                                      ),
-                                                    );
-                                                  },
-                                                )
-                                                    .animate()
-                                                    .fadeIn(
-                                                  duration: 600.ms,
-                                                  delay: 400.ms,
-                                                )
-                                                    .slideX(
-                                                  begin: 0.2,
-                                                  end: 0,
-                                                  duration: 600.ms,
-                                                  curve: Curves.easeOutQuad,
-                                                  delay: 400.ms,
-                                                ),
-                                              ),
-                                              Gap(8),
-                                              InkWell(
-                                                splashColor:
-                                                AppColors.secondary,
-                                                splashFactory:
-                                                InkRipple.splashFactory,
-                                                onTap: () {
-                                                  context.push(
-                                                      '/forgot_password',
-                                                      extra: "cafe-owner"
-                                                  );
-                                                },
-                                                child: Align(
-                                                  alignment:
-                                                  Alignment.centerRight,
-                                                  child: Text(
-                                                    'Forgot Password?',
-                                                    style: Theme
-                                                        .of(context)
-                                                        .textTheme
-                                                        .bodyMedium!
-                                                        .copyWith(
-                                                      color:
-                                                      AppColors
-                                                          .textFieldTextColor,
-                                                      fontWeight:
-                                                      FontWeight.w600,
-                                                      fontSize: 16,
+                                            Gap(10),
+                                            Container(
+                                              key: _emailFieldKey,
+                                              child: CustomLoginTextField(
+                                                    hintText: "Email Address",
+                                                    icon: SvgPicture.asset(
+                                                      'assets/svg/email.svg',
                                                     ),
+                                                    controller:
+                                                        _emailController,
+                                                    focusNode: _emailFocusNode,
+                                                    errorText: emailError,
+                                                    onChanged: (value) {
+                                                      context
+                                                          .read<LoginBloc>()
+                                                          .add(
+                                                            EmailChanged(value),
+                                                          );
+                                                    },
+                                                  )
+                                                  .animate()
+                                                  .fadeIn(
+                                                    duration: 600.ms,
+                                                    delay: 400.ms,
+                                                  )
+                                                  .slideX(
+                                                    begin: 0.2,
+                                                    end: 0,
+                                                    duration: 600.ms,
+                                                    curve: Curves.easeOutQuad,
+                                                    delay: 400.ms,
+                                                  ),
+                                            ),
+                                            Gap(10),
+                                            Container(
+                                              key: _passwordFieldKey,
+                                              child: CustomLoginTextField(
+                                                    isPassword: true,
+                                                    hintText: "Password",
+                                                    icon: SvgPicture.asset(
+                                                      'assets/svg/pw.svg',
+                                                    ),
+                                                    controller:
+                                                        _passwordController,
+                                                    focusNode:
+                                                        _passwordFocusNode,
+                                                    errorText: passwordError,
+                                                    onChanged: (value) {
+                                                      context
+                                                          .read<LoginBloc>()
+                                                          .add(
+                                                            PasswordChanged(
+                                                              value,
+                                                            ),
+                                                          );
+                                                    },
+                                                  )
+                                                  .animate()
+                                                  .fadeIn(
+                                                    duration: 600.ms,
+                                                    delay: 400.ms,
+                                                  )
+                                                  .slideX(
+                                                    begin: 0.2,
+                                                    end: 0,
+                                                    duration: 600.ms,
+                                                    curve: Curves.easeOutQuad,
+                                                    delay: 400.ms,
+                                                  ),
+                                            ),
+                                            Gap(8),
+                                            InkWell(
+                                              splashColor: AppColors.secondary,
+                                              splashFactory:
+                                                  InkRipple.splashFactory,
+                                              onTap: () {
+                                                context.push(
+                                                  '/forgot_password',
+                                                  extra: "cafe-owner",
+                                                );
+                                              },
+                                              child: Align(
+                                                alignment:
+                                                    Alignment.centerRight,
+                                                child: Text(
+                                                  'Forgot Password?',
+                                                  style: Theme.of(
+                                                    context,
+                                                  ).textTheme.bodyMedium!.copyWith(
+                                                    color:
+                                                        AppColors
+                                                            .textFieldTextColor,
+                                                    fontWeight: FontWeight.w600,
+                                                    fontSize: 16,
                                                   ),
                                                 ),
-                                              ).animate().fadeIn(
-                                                duration: 400.ms,
-                                                delay: 600.ms,
                                               ),
-                                              Gap(15),
-                                              InkWell(
-                                                splashColor:
-                                                AppColors.borderColor,
-                                                splashFactory:
-                                                InkRipple.splashFactory,
-                                                onTap:
-                                                isLoading
-                                                    ? null
-                                                    : () {
-                                                  if (_networkState
-                                                  is NetworkFailure) {
-                                                    Fluttertoast.showToast(
-                                                      msg:
-                                                      "No internet connection",
-                                                      backgroundColor:
-                                                      AppColors
-                                                          .primaryWhiteColor,
-                                                      textColor:
-                                                      AppColors
-                                                          .appRedColor,
-                                                    );
-                                                    return;
-                                                  }
-                                                  context
-                                                      .read<
-                                                      LoginBloc
-                                                  >()
-                                                      .add(
-                                                    FormSubmitted(),
-                                                  );
-                                                },
-                                                child: ElevatedButtonWidget(
-                                                  height: 70.h,
-                                                  width:
-                                                  double.infinity,
-                                                  iconEnabled: false,
-                                                  iconLabel: "LOGIN",
-                                                  color:
-                                                  AppColors.primary,
-                                                  textColor:
-                                                  AppColors
-                                                      .primaryWhiteColor,
+                                            ).animate().fadeIn(
+                                              duration: 400.ms,
+                                              delay: 600.ms,
+                                            ),
+                                            Gap(15),
+                                            InkWell(
+                                                  splashColor:
+                                                      AppColors.borderColor,
+                                                  splashFactory:
+                                                      InkRipple.splashFactory,
+                                                  onTap:
+                                                      isLoading
+                                                          ? null
+                                                          : () {
+                                                            if (_networkState
+                                                                is NetworkFailure) {
+                                                              Fluttertoast.showToast(
+                                                                msg:
+                                                                    "No internet connection",
+                                                                backgroundColor:
+                                                                    AppColors
+                                                                        .primaryWhiteColor,
+                                                                textColor:
+                                                                    AppColors
+                                                                        .appRedColor,
+                                                              );
+                                                              return;
+                                                            }
+                                                            context
+                                                                .read<
+                                                                  LoginBloc
+                                                                >()
+                                                                .add(
+                                                                  FormSubmitted(),
+                                                                );
+                                                          },
+                                                  child: ElevatedButtonWidget(
+                                                    height: 70.h,
+                                                    width: double.infinity,
+                                                    iconEnabled: false,
+                                                    iconLabel: "LOGIN",
+                                                    color: AppColors.primary,
+                                                    textColor:
+                                                        AppColors
+                                                            .primaryWhiteColor,
+                                                  ),
+                                                )
+                                                .animate()
+                                                .fadeIn(
+                                                  duration: 600.ms,
+                                                  delay: 700.ms,
+                                                )
+                                                .slideY(
+                                                  begin: 0.2,
+                                                  end: 0,
+                                                  duration: 600.ms,
+                                                  curve: Curves.easeOutQuad,
+                                                  delay: 700.ms,
+                                                )
+                                                .shimmer(
+                                                  duration: 1200.ms,
+                                                  delay: 1000.ms,
+                                                  color: AppColors
+                                                      .primaryWhiteColor
+                                                      .withOpacity(0.3),
                                                 ),
-                                              )
-                                                  .animate()
-                                                  .fadeIn(
-                                                duration: 600.ms,
-                                                delay: 700.ms,
-                                              )
-                                                  .slideY(
-                                                begin: 0.2,
-                                                end: 0,
-                                                duration: 600.ms,
-                                                curve: Curves.easeOutQuad,
-                                                delay: 700.ms,
-                                              )
-                                                  .shimmer(
-                                                duration: 1200.ms,
-                                                delay: 1000.ms,
-                                                color: AppColors
-                                                    .primaryWhiteColor
-                                                    .withOpacity(0.3),
-                                              ),
-                                              Gap(10),
-                                              DividerWithCenterText(
-                                                centerText: 'Or Continue with',
-                                              ).animate().fadeIn(
-                                                duration: 500.ms,
-                                                delay: 800.ms,
-                                              ),
-                                              Gap(10),
-                                              LoginWithGoogleWidget()
-                                                  .animate()
-                                                  .fadeIn(
-                                                duration: 600.ms,
-                                                delay: 900.ms,
-                                              )
-                                                  .scale(
-                                                begin: const Offset(
-                                                  0.9,
-                                                  0.9,
+                                            Gap(10),
+                                            DividerWithCenterText(
+                                              centerText: 'Or Continue with',
+                                            ).animate().fadeIn(
+                                              duration: 500.ms,
+                                              delay: 800.ms,
+                                            ),
+                                            Gap(10),
+                                            LoginWithGoogleWidget()
+                                                .animate()
+                                                .fadeIn(
+                                                  duration: 600.ms,
+                                                  delay: 900.ms,
+                                                )
+                                                .scale(
+                                                  begin: const Offset(0.9, 0.9),
+                                                  end: const Offset(1, 1),
+                                                  duration: 500.ms,
+                                                  curve: Curves.elasticOut,
+                                                  delay: 900.ms,
                                                 ),
-                                                end: const Offset(1, 1),
-                                                duration: 500.ms,
-                                                curve: Curves.elasticOut,
-                                                delay: 900.ms,
-                                              ),
-                                              LoginWithAppleWidget(),
-                                              Gap(30),
-                                              LoginOrSignupPrompt(
-                                                spanText:
-                                                'Don\'t have an account yet',
-                                                promptText: 'Sign Up Now',
-                                                onSignInTap: () {
-                                                  context.push('/signup',
-                                                    extra: SignUpScreenArgument(
-                                                      isGoggleSignUp: false,
-                                                      email: "",
-                                                      displayName: "",
-                                                      phone: "",
-                                                      imageBase64: "",
-                                                    ),);
-                                                },
-                                              ).animate().fadeIn(
-                                                duration: 500.ms,
-                                                delay: 1000.ms,
-                                              ),
-                                            ],
-                                          ),
+                                            LoginWithAppleWidget(),
+                                            Gap(30),
+                                            LoginOrSignupPrompt(
+                                              spanText:
+                                                  'Don\'t have an account yet',
+                                              promptText: 'Sign Up Now',
+                                              onSignInTap: () {
+                                                context.push(
+                                                  '/signup',
+                                                  extra: SignUpScreenArgument(
+                                                    isGoggleSignUp: false,
+                                                    email: "",
+                                                    displayName: "",
+                                                    phone: "",
+                                                    imageBase64: "",
+                                                  ),
+                                                );
+                                              },
+                                            ).animate().fadeIn(
+                                              duration: 500.ms,
+                                              delay: 1000.ms,
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ),
-                                  );
-                                },
-                              ),
+                                  ),
+                                );
+                              },
                             ),
                           ),
                         ),
@@ -638,9 +631,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     );
                     return false;
                   }
-                  if (Theme
-                      .of(context)
-                      .platform == TargetPlatform.android) {
+                  if (Theme.of(context).platform == TargetPlatform.android) {
                     SystemNavigator.pop();
                     return false;
                   }
