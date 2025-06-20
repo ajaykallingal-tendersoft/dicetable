@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:dicetable/src/model/cafe_owner/auth/login/apple_sign_in_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/login/google_login_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/login/google_login_request_response.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/login/login_request.dart';

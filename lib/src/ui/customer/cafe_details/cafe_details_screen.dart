@@ -15,6 +15,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import '../../../model/customer/booking/booking_request.dart';
@@ -285,23 +286,38 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                   ),
                   const Gap(40),
                   InkWell(
-                    onTap:
-                        () =>
-                            _bookingStatus == true
-                                ? _showWithdrawDialog(context)
-                                : _showBookingDialog(context),
+                    onTap: () {
+                      final isGuest = ObjectFactory().prefs.isGuestUser() == true;
+
+                      if (isGuest) {
+                        Fluttertoast.showToast(
+                          msg: "Please signup to proceed.",
+                          backgroundColor: AppColors.appRedColor,
+                          textColor: AppColors.primaryWhiteColor,
+                          gravity: ToastGravity.BOTTOM,
+                        );
+
+                        Future.delayed(Duration.zero, () {
+                          context.go('/customer_login');
+                        });
+
+                        return;
+                      }
+
+                      _bookingStatus == true
+                          ? _showWithdrawDialog(context)
+                          : _showBookingDialog(context);
+                    },
                     child: ElevatedButtonWidget(
                       height: 70.h,
                       width: double.infinity,
                       iconEnabled: false,
-                      iconLabel:
-                          _bookingStatus
-                              ? "WITHDRAW INTEREST"
-                              : "SHOW INTEREST",
+                      iconLabel: _bookingStatus ? "WITHDRAW INTEREST" : "SHOW INTEREST",
                       color: AppColors.primary,
                       textColor: AppColors.primaryWhiteColor,
                     ),
                   ),
+
                 ],
               ),
             ),
@@ -874,6 +890,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
       DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
       if (Platform.isAndroid) {
         AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+        print("DeviceID: ${androidInfo.id}");
         return androidInfo.id;
       } else if (Platform.isIOS) {
         IosDeviceInfo iosInfo = await deviceInfo.iosInfo;

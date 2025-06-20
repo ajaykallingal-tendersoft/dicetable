@@ -62,3 +62,8 @@ class ToggleEditModeEvent extends ProfileEvent {
   @override
   List<Object?> get props => [];
 }
+
+class ProfileDeleteEvent extends ProfileEvent {
+  @override
+  List<Object?> get props => [];
+}

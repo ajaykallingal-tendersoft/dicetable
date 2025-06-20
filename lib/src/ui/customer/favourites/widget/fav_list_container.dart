@@ -89,7 +89,7 @@ class FavListCard extends StatelessWidget {
                       ? null // Disable when loading
                       : () {
                     context.read<CafeListBloc>().add(
-                      ToggleFavoriteEvent(index),
+                      ToggleFavoriteEvent(index,context),
                     );
                     print('Favorite button pressed for cafe: ${cafes.id}');
                   },

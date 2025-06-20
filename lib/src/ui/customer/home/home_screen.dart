@@ -1,3 +1,4 @@
+import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:flutter/services.dart';
 import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/ui/customer/cafe_list/cafe_list_screen.dart';
@@ -25,12 +26,14 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   int _selectedIndex = 0;
   DateTime? currentBackPressTime;
 
-
   void _onTabSelected(int index) {
+    final isGuest = ObjectFactory().prefs.isGuestUser() == true;
+    final maxIndex = isGuest ? 1 : 4;
     setState(() {
-      _selectedIndex = index;
+      _selectedIndex = index > maxIndex ? 0 : index;
     });
   }
+
   Future<bool> onWillPop() async {
     DateTime now = DateTime.now();
     if (currentBackPressTime == null ||
@@ -49,8 +52,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       return false;
     }
     return true;
-
   }
+
   @override
   void initState() {
     super.initState();
@@ -61,6 +64,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isGuest = ObjectFactory().prefs.isGuestUser() == true;
+
     return WillPopScope(
       onWillPop: onWillPop,
       child: Scaffold(
@@ -71,7 +76,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
           transitionBuilder: (Widget child, Animation<double> animation) {
             return FadeTransition(opacity: animation, child: child);
           },
-          child: _buildPage(_selectedIndex),
+          child: _buildPage(_selectedIndex, isGuest),
         ),
 
         bottomNavigationBar: PhysicalShape(
@@ -101,6 +106,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                 ),
                 text: 'CAFE LIST',
               ),
+              if (!isGuest)
               FABBottomAppBarItem(
                 iconData: SvgPicture.asset(
                   'assets/svg/favourites.svg',
@@ -108,20 +114,22 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                 ),
                 text: 'FAVOURITES',
               ),
-              FABBottomAppBarItem(
-                iconData: SvgPicture.asset(
-                  'assets/svg/history.svg',
-                  fit: BoxFit.scaleDown,
+              if (!isGuest)
+                FABBottomAppBarItem(
+                  iconData: SvgPicture.asset(
+                    'assets/svg/history.svg',
+                    fit: BoxFit.scaleDown,
+                  ),
+                  text: 'HISTORY',
                 ),
-                text: 'HISTORY',
-              ),
-              FABBottomAppBarItem(
-                iconData: SvgPicture.asset(
-                  'assets/svg/profile.svg',
-                  fit: BoxFit.scaleDown,
+              if (!isGuest)
+                FABBottomAppBarItem(
+                  iconData: SvgPicture.asset(
+                    'assets/svg/profile.svg',
+                    fit: BoxFit.scaleDown,
+                  ),
+                  text: 'PROFILE',
                 ),
-                text: 'PROFILE',
-              ),
             ],
             backgroundColor: Colors.transparent,
             color: AppColors.textPrimaryGrey,
@@ -132,23 +140,29 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       ),
     );
   }
-}
 
-Widget _buildPage(int index) {
-  switch (index) {
-    case 0:
-      return const CustomerHomePage(key: ValueKey('customer_home'));
-    case 1:
-      return CafeListScreen(key: ValueKey('cafe_list'));
-    case 2:
-      return FavouritesScreen(key: ValueKey('fav'));
-    case 3:
-      return HistoryScreen(key: ValueKey('history'));
-    case 4:
-      return CustomerProfileScreen(key: ValueKey('customer_profile'));
-
-    default:
-      return const CustomerHomePage();
+  Widget _buildPage(int index, bool isGuest) {
+    switch (index) {
+      case 0:
+        return const CustomerHomePage(key: ValueKey('customer_home'));
+      case 1:
+        return CafeListScreen(key: ValueKey('cafe_list'));
+      case 2:
+        return isGuest
+          ? CustomerHomePage()
+          : FavouritesScreen(key: ValueKey('fav'));
+      case 3:
+        return isGuest
+            ? const CustomerHomePage()
+            : HistoryScreen(key: ValueKey('history'));
+      case 4:
+        return isGuest
+            ? const CustomerHomePage()
+            : CustomerProfileScreen(key: ValueKey('customer_profile'));
+      default:
+        return const CustomerHomePage();
+    }
   }
 }
+
 

@@ -33,3 +33,10 @@ class CustomerGoogleLoginEvent extends CustomerLoginEvent {
   List<Object?> get props => [googleLoginRequest];
 
 }
+
+class GuestUserEvent extends CustomerLoginEvent {
+  final GuestUserRequest guestUserRequest;
+  const GuestUserEvent({required this.guestUserRequest});
+  @override
+  List<Object?> get props => [guestUserRequest];
+}

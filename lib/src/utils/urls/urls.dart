@@ -16,6 +16,11 @@ class UrlsDiceApp {
   static const String otpVerify = '/api/otp/verify';
   static const String resendOtp = '/api/otp/resend';
   static const String venueType = '/api/venue-types';
+  static const String appleSignIn = '/api/apple/auth';
+  static const String cafeProfileDelete = '/api/cafe/profile/delete';
+
+
+
 
 
   ///Subscription
@@ -43,6 +48,10 @@ class UrlsDiceApp {
   static const String cafeSearch = '/api/search-cafe';
   static const String getFilters = '/api/filter-options';
   static const String withdrawBooking = '/api/withdraw-booking';
+  static const String deleteCustomerAccount = '/api/customer/profile/delete';
+  static const String guestUserSignIn = '/api/guest/signin';
+
+
 
   ///Notification
   static const String getCafeNotification = '/api/cafe/notifications';

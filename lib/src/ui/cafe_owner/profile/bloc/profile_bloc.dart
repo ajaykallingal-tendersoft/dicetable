@@ -6,6 +6,7 @@ import 'package:dicetable/src/model/cafe_owner/profile/profile_view_response.dar
 import 'package:dicetable/src/model/cafe_owner/profile/profile_edit_view_response.dart';
 import 'package:dicetable/src/model/cafe_owner/profile/profile_update_request.dart';
 import 'package:dicetable/src/model/cafe_owner/profile/profile_update_response.dart';
+import 'package:dicetable/src/model/delete_profile_response.dart';
 import 'package:dicetable/src/model/state_model.dart';
 import 'package:dicetable/src/resources/api_providers/venue_owner/profile_data_provider.dart';
 import 'package:equatable/equatable.dart';
@@ -292,6 +293,23 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         emit(ProfileUpdateError(errorMessage: stateModel.msg));
       }
     });
+
+    on<ProfileDeleteEvent>((event, emit) async {
+      emit(ProfileDeleteLoading());
+      final StateModel? stateModel = await profileDataProvider.cafeProfileDelete();
+      if (stateModel is SuccessState) {
+        final response = stateModel.value as DeleteProfileResponse;
+        if (response.status == true) {
+          emit(ProfileDeleteSuccess(cafeDeleteProfileResponse: response));
+        } else {
+          emit(ProfileDeleteError(errorMessage: response.message ?? 'Failed to delete profile'));
+        }
+      } else if (stateModel is ErrorState) {
+        emit(ProfileDeleteError(errorMessage: stateModel.msg));
+      }
+    });
+
+
   }
 
   TimeOfDay _parseTimeOfDay(String time) {

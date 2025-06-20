@@ -3,6 +3,7 @@ import 'package:dicetable/src/model/customer/cafe/cafe_search_request.dart';
 import 'package:dicetable/src/ui/customer/home/widget/cafe_marker_map_widget.dart';
 import 'package:dicetable/src/ui/customer/home/widget/cafe_search_bar.dart';
 import 'package:dicetable/src/ui/customer/home/widget/filter_bottom_sheet.dart';
+import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,6 +13,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'bloc/customer_home_bloc.dart';
+import 'package:responsive_framework/responsive_framework.dart';
+
 
 class CustomerHomePage extends StatefulWidget {
   const CustomerHomePage({super.key});
@@ -21,10 +24,13 @@ class CustomerHomePage extends StatefulWidget {
 }
 
 class _CustomerHomePageState extends State<CustomerHomePage> {
-
+  late final String latitude;
+  late final String longitude;
 @override
   void initState() {
     super.initState();
+    latitude = ObjectFactory().prefs.getLatitude().toString();
+    longitude = ObjectFactory().prefs.getLongitude().toString();
     _performSearch();
     // WidgetsBinding.instance.addPostFrameCallback((_) {
     //   context.read<CustomerHomeBloc>().add(FetchLocationEvent(context: context));
@@ -33,6 +39,10 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
   }
 
 void _performSearch() {
+  final isGuest = ObjectFactory().prefs.isGuestUser() == true;
+  final deviceToken = isGuest ? ObjectFactory().prefs.getDeviceID() ?? '' : '';
+  final double? lat = latitude != null ? double.tryParse(latitude) : 0.0;
+  final double? lon = longitude != null ? double.tryParse(longitude) : 0.0;
 
   final searchRequest = CafeSearchRequest(
     search: "",
@@ -40,10 +50,14 @@ void _performSearch() {
     closeTime: '',
     diceTableFilter: [],
     accommodationsFilter: [],
+    deviceToken: deviceToken,
+    latitude: lat!,
+    longitude: lon!,
   );
 
   context.read<CustomerHomeBloc>().add(SearchCafesEvent(searchRequest));
 }
+
   void showFilterBottomSheet(BuildContext context) {
     showModalBottomSheet(
       constraints: BoxConstraints(
@@ -65,6 +79,7 @@ void _performSearch() {
 
   @override
   Widget build(BuildContext context) {
+    final isTabletOrLarger = ResponsiveBreakpoints.of(context).largerThan(MOBILE);
     return Container(
       height: double.infinity,
       decoration: const BoxDecoration(
@@ -88,7 +103,7 @@ void _performSearch() {
               padding: EdgeInsets.symmetric(horizontal: 20.h, vertical: 0.h),
               sliver: SliverAppBar(
                 backgroundColor: Colors.transparent,
-                // expandedHeight: 10.h,
+                expandedHeight: isTabletOrLarger ? 110.h : 0,
                 leading: const SizedBox(),
                 flexibleSpace: FlexibleSpaceBar(
                   centerTitle: false,

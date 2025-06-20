@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:flutter_svg/flutter_svg.dart' as svg;
 
 class CafeMarkerMapWidget extends StatefulWidget {
   const CafeMarkerMapWidget({super.key});
@@ -18,10 +17,11 @@ class CafeMarkerMapWidget extends StatefulWidget {
 
 class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
   final Completer<GoogleMapController> _controller = Completer();
-  Uint8List? marketImages;
   Uint8List? markerImageBytes;
   final String markerImage = 'assets/png/map-pin@2x.png';
   final List<Marker> _markers = <Marker>[];
+  LatLng? _userLocation;
+  bool _mapInitialized = false;
 
   Future<Uint8List> getImages(String path, int width) async {
     ByteData data = await rootBundle.load(path);
@@ -35,16 +35,16 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
     ))!.buffer.asUint8List();
   }
 
-  static final CameraPosition _kGoogle = const CameraPosition(
-    target: LatLng(40.7128, -74.0060),
-    zoom: 15,
-  );
-
   Future<void> _loadMarkerIcon() async {
     if (markerImageBytes == null) {
       markerImageBytes = await getImages(markerImage, 100);
     }
   }
+
+  static const CameraPosition _kDefaultPosition = CameraPosition(
+    target: LatLng(-40.9006, 174.8860),
+    zoom: 6,
+  );
 
 
   Future<void> _updateMarkersFromCafes(List<CafeLocation> cafeLocations) async {
@@ -64,14 +64,12 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
             snippet: cafe.description ?? 'Cafe Location',
           ),
           onTap: () {
-
             _onMarkerTapped(cafe);
           },
         ),
       );
     }
 
-    // Update camera position to show all markers
     if (cafeLocations.isNotEmpty) {
       _updateCameraToShowAllMarkers(cafeLocations);
     }
@@ -82,60 +80,72 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
     print('Cafe tapped: ${cafe.name}');
   }
 
-  Future<void> _updateCameraToShowAllMarkers(
-      List<CafeLocation> cafeLocations) async {
-    if (cafeLocations.isEmpty) return;
-
+  Future<void> _updateCameraToShowAllMarkers(List<CafeLocation> cafeLocations) async {
     final GoogleMapController controller = await _controller.future;
 
     if (cafeLocations.length == 1) {
       controller.animateCamera(
         CameraUpdate.newLatLngZoom(
-          LatLng(cafeLocations.first.latitude, cafeLocations.first.longitude),
-          15,
+          LatLng(
+            double.parse(cafeLocations.first.latitude.toString()),
+            double.parse(cafeLocations.first.longitude.toString()),
+          ),
+          16,
+        ),
+      );
+      return;
+    }
+
+    double minLat = double.infinity;
+    double maxLat = -double.infinity;
+    double minLng = double.infinity;
+    double maxLng = -double.infinity;
+
+    for (final cafe in cafeLocations) {
+      final lat = double.parse(cafe.latitude.toString());
+      final lng = double.parse(cafe.longitude.toString());
+
+      minLat = lat < minLat ? lat : minLat;
+      maxLat = lat > maxLat ? lat : maxLat;
+      minLng = lng < minLng ? lng : minLng;
+      maxLng = lng > maxLng ? lng : maxLng;
+    }
+
+    final latDiff = maxLat - minLat;
+    final lngDiff = maxLng - minLng;
+
+    if (latDiff < 0.005 && lngDiff < 0.005) {
+      final centerLat = (minLat + maxLat) / 2;
+      final centerLng = (minLng + maxLng) / 2;
+      controller.animateCamera(
+        CameraUpdate.newLatLngZoom(
+          LatLng(centerLat, centerLng),
+          16,
         ),
       );
     } else {
-      double minLat = cafeLocations.first.latitude;
-      double maxLat = cafeLocations.first.latitude;
-      double minLng = cafeLocations.first.longitude;
-      double maxLng = cafeLocations.first.longitude;
-
-      for (final cafe in cafeLocations) {
-        minLat = minLat < cafe.latitude ? minLat : cafe.latitude;
-        maxLat = maxLat > cafe.latitude ? maxLat : cafe.latitude;
-        minLng = minLng < cafe.longitude ? minLng : cafe.longitude;
-        maxLng = maxLng > cafe.longitude ? maxLng : cafe.longitude;
-      }
+      final bounds = LatLngBounds(
+        southwest: LatLng(minLat, minLng),
+        northeast: LatLng(maxLat, maxLng),
+      );
 
       controller.animateCamera(
-        CameraUpdate.newLatLngBounds(
-          LatLngBounds(
-            southwest: LatLng(minLat, minLng),
-            northeast: LatLng(maxLat, maxLng),
-          ),
-          100.0, // padding
-        ),
+        CameraUpdate.newLatLngBounds(bounds, 80.0), // 80px padding
       );
     }
   }
 
-  // Future<void> loadMarkers() async {
-  //   final Uint8List iconBytes = await getImages('assets/png/map-pin.png', 100);
-  //
-  //   for (int i = 0; i < _latLen.length; i++) {
-  //     _markers.add(
-  //       Marker(
-  //         markerId: MarkerId(i.toString()),
-  //         icon: BitmapDescriptor.fromBytes(iconBytes),
-  //         position: _latLen[i],
-  //         infoWindow: InfoWindow(title: 'Location $i'),
-  //       ),
-  //     );
-  //   }
-  //
-  //   setState(() {});
-  // }
+
+  Future<void> _moveCameraToUserLocation(LatLng userLocation) async {
+    if (!_mapInitialized) return;
+    final GoogleMapController controller = await _controller.future;
+    await controller.animateCamera(
+      CameraUpdate.newLatLngZoom(
+        userLocation,
+        5, // Street-level zoom
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -145,7 +155,7 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<CustomerHomeBloc, CustomerHomeState>(
+    return BlocConsumer<CustomerHomeBloc, CustomerHomeState>(
       listener: (context, state) {
         if (state is CafeSearchSuccess) {
           EasyLoading.dismiss();
@@ -154,33 +164,52 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
           setState(() {
             _markers.clear();
           });
+        } else if (state is LocationLoaded) {
+          setState(() {
+            _userLocation = LatLng(state.latitude, state.longitude);
+          });
+          if (_mapInitialized && _userLocation != null) {
+            _moveCameraToUserLocation(_userLocation!);
+          }
+        } else if (state is LocationError) {
+          setState(() {
+            _userLocation = null;
+          });
         }
       },
-      child: GoogleMap(
+      builder: (context, state) {
+        if (_userLocation == null &&
+            (state is LocationLoading || state is CustomerHomeInitial)) {
+          EasyLoading.show();
+        }
 
-        mapToolbarEnabled: true,
-        zoomControlsEnabled: true,
-        // liteModeEnabled: true,
-        // given camera position
-        initialCameraPosition: _kGoogle,
-        // set markers on google map
-        markers: Set<Marker>.of(_markers),
-        // on below line we have given map type
-        mapType: MapType.normal,
-        // on below line we have enabled location
-        myLocationEnabled: true,
-        myLocationButtonEnabled: true,
-        // on below line we have enabled compass
-        compassEnabled: true,
-        zoomGesturesEnabled: true,
-        // tiltGesturesEnabled: true,
-        // rotateGesturesEnabled: true,
-        scrollGesturesEnabled: true,
-        // below line displays google map in our app
-        onMapCreated: (GoogleMapController controller) {
-          _controller.complete(controller);
-        },
-      ),
+        return GoogleMap(
+          mapToolbarEnabled: true,
+          zoomControlsEnabled: true,
+          initialCameraPosition: _userLocation != null
+              ? CameraPosition(
+            target: _userLocation!,
+            zoom: 15, // Street-level zoom
+          )
+              : _kDefaultPosition,
+          markers: Set<Marker>.of(_markers),
+          mapType: MapType.normal,
+          myLocationEnabled: true,
+          myLocationButtonEnabled: true,
+          compassEnabled: true,
+          zoomGesturesEnabled: true,
+          scrollGesturesEnabled: true,
+          onMapCreated: (GoogleMapController controller) {
+            _controller.complete(controller);
+            setState(() {
+              _mapInitialized = true;
+            });
+            if (_userLocation != null) {
+              _moveCameraToUserLocation(_userLocation!);
+            }
+          },
+        );
+      },
     );
   }
 }

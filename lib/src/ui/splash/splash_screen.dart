@@ -17,10 +17,10 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
     _navigateAfterDelay();
+    ObjectFactory().prefs.setIsGuestUser(false);
   }
 
   Future<void> _navigateAfterDelay() async {
-
     await Future.delayed(const Duration(seconds: splashDelay));
     _navigateToNextScreen();
   }

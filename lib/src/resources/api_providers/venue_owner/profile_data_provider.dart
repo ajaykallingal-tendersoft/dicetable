@@ -2,6 +2,7 @@ import 'package:dicetable/src/model/cafe_owner/profile/profile_edit_view_respons
 import 'package:dicetable/src/model/cafe_owner/profile/profile_update_request.dart';
 import 'package:dicetable/src/model/cafe_owner/profile/profile_update_response.dart';
 import 'package:dicetable/src/model/cafe_owner/profile/profile_view_response.dart';
+import 'package:dicetable/src/model/delete_profile_response.dart';
 import 'package:dicetable/src/model/state_model.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:dio/dio.dart';
@@ -156,6 +157,39 @@ class ProfileDataProvider {
       return StateModel.error("An unexpected error occurred: ${e.toString()}");
     }
   }
+
+
+  Future<StateModel?> cafeProfileDelete() async {
+    try {
+      final response =
+      await ObjectFactory().apiClient.cafeProfileDelete();
+      print(response.toString());
+      if (response.statusCode == 200) {
+        return StateModel<DeleteProfileResponse>.success(
+            DeleteProfileResponse.fromJson(response.data));
+      }
+      return null;
+    } on DioException catch (e) {
+
+      if (e.response!.statusCode == 500) {
+        return StateModel.error(
+            "The server isn't responding! Please try again later.");
+        // return response!;
+      } else if (e.response!.statusCode == 408) {
+        return StateModel.error(
+            "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!");
+        // Something happened in setting up or sending the request that triggered an Error
+      } else if (e.type.name == "connectionError") {
+        return StateModel.error(
+            "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!");
+        // Something happened in setting up or sending the request that triggered an Error
+      }
+
+    }
+    return null;
+  }
+
+
 
 
 }

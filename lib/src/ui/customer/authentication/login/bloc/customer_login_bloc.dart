@@ -1,6 +1,8 @@
 import 'package:bloc/bloc.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/login/login_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/login/login_request_response.dart';
+import 'package:dicetable/src/model/customer/guest/guest_signin_response.dart';
+import 'package:dicetable/src/model/customer/guest/guest_user_request.dart';
 import 'package:dicetable/src/resources/api_providers/auth/auth_data_provider.dart';
 import 'package:dicetable/src/utils/extension/state_model_extension.dart';
 import 'package:equatable/equatable.dart';
@@ -19,6 +21,7 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
     on<PasswordChanged>(_onPasswordChanged);
     on<FormSubmitted>(_onFormSubmitted);
     on<CustomerGoogleLoginEvent> (_handleGoogleLogin);
+    on<GuestUserEvent>(_handleGuestUser);
 
   }
 
@@ -121,6 +124,21 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
       }
     } catch (e) {
       emit(GoogleLoginErrorState(msg: e.toString()));
+    }
+  }
+
+  Future<void> _handleGuestUser(GuestUserEvent event, Emitter<CustomerLoginState> emit) async {
+    try {
+      emit(GuestUserLoadingState());
+
+      final response = await authDataProvider.guestUserSignIn(event.guestUserRequest);
+      if (response!.data.status == true) {
+        emit(GuestUserLoadedState(guestSignInResponse: response.data));
+      } else {
+        emit(GuestUserErrorState(errorMessage: response.data.message));
+      }
+    } catch (e) {
+      emit(GuestUserErrorState(errorMessage: e.toString()));
     }
   }
 

@@ -308,35 +308,64 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                                 final country = _countryController.text.trim();
                                 final region = _regionController.text.trim();
 
-                                if (isGoogleSignUp) {
-                                  final googleSignUpRequest = GoogleSignUpRequest(
-                                    name: name,
-                                    email: email,
-                                    password: password,
-                                    passwordConfirmation: confirmPassword,
-                                    country: country,
-                                    loginType: 5,
-                                    phone: phone,
-                                    region: region,
-                                  );
-                                  context.read<CustomerSignUpBloc>().add(
-                                    SubmitGoogleSignUp(signupRequest: googleSignUpRequest),
-                                  );
-                                } else {
-                                  final signUpRequest = SignUpRequest(
-                                    name: name,
-                                    email: email,
-                                    password: password,
-                                    passwordConfirmation: confirmPassword,
-                                    country: country,
-                                    loginType: 5,
-                                    phone: phone,
-                                    region: region,
-                                  );
-                                  context.read<CustomerSignUpBloc>().add(
-                                    SubmitSignUp(signupRequest: signUpRequest),
-                                  );
-                                }
+                                // First, update the form state with current controller values
+                                context.read<CustomerSignUpBloc>().add(UpdateTextField((state) => state.copyWith(
+                                  name: name,
+                                  email: email,
+                                  password: password,
+                                  confirmPassword: confirmPassword,
+                                  phone: phone,
+                                  country: country,
+                                  region: region,
+                                )));
+
+                                context.read<CustomerSignUpBloc>().add(ValidateForm());
+
+                                Future.delayed(const Duration(milliseconds: 100), () {
+                                  final currentState = context.read<CustomerSignUpBloc>().state;
+
+                                  // Check if current state is valid before submitting
+                                  if (currentState is SignUpFormState && currentState.isFormValid) {
+                                    if (isGoogleSignUp) {
+                                      final googleSignUpRequest = GoogleSignUpRequest(
+                                        name: name,
+                                        email: email,
+                                        password: password,
+                                        passwordConfirmation: confirmPassword,
+                                        country: country,
+                                        loginType: 5,
+                                        phone: phone,
+                                        region: region,
+                                      );
+                                      context.read<CustomerSignUpBloc>().add(
+                                        SubmitGoogleSignUp(signupRequest: googleSignUpRequest),
+                                      );
+                                    } else {
+                                      final signUpRequest = SignUpRequest(
+                                        name: name,
+                                        email: email,
+                                        password: password,
+                                        passwordConfirmation: confirmPassword,
+                                        country: country,
+                                        loginType: 5,
+                                        phone: phone,
+                                        region: region,
+                                      );
+                                      context.read<CustomerSignUpBloc>().add(
+                                        SubmitSignUp(signupRequest: signUpRequest),
+                                      );
+                                    }
+                                  } else {
+                                    // Show a general error message if form is not valid
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Please fix all errors before submitting'),
+                                        backgroundColor: AppColors.appRedColor,
+                                        duration: Duration(seconds: 2),
+                                      ),
+                                    );
+                                  }
+                                });
                               },
                               child: ElevatedButtonWidget(
                                 height: 70.h,

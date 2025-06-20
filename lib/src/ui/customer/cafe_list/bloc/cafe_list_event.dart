@@ -18,8 +18,9 @@ class GetFavListEvent extends CafeListEvent {
 
 class ToggleFavoriteEvent extends CafeListEvent {
   final int cafeIndex;
+  final BuildContext context;
 
-  const ToggleFavoriteEvent(this.cafeIndex);
+  const ToggleFavoriteEvent(this.cafeIndex,this.context);
 
   @override
   List<Object?> get props => [cafeIndex];

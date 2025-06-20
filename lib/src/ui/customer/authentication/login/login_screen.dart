@@ -1,9 +1,11 @@
 import 'dart:io';
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dicetable/src/common/custom_login_text_field.dart';
 import 'package:dicetable/src/common/divider_with_center_text.dart';
 import 'package:dicetable/src/common/elevated_button_widget.dart';
 import 'package:dicetable/src/common/login_or_signup_prompt.dart';
 import 'package:dicetable/src/constants/app_colors.dart';
+import 'package:dicetable/src/model/customer/guest/guest_user_request.dart';
 import 'package:dicetable/src/resources/api_providers/auth/auth_data_provider.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/login/widget/login_with_google_widget.dart';
 import 'package:dicetable/src/ui/customer/authentication/login/bloc/customer_login_bloc.dart';
@@ -22,7 +24,6 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../cafe_owner/authentication/sign_up/sign_up_screen_argument.dart';
-
 
 class CustomerLoginScreen extends StatefulWidget {
   const CustomerLoginScreen({super.key});
@@ -43,11 +44,12 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
   final GlobalKey _emailFieldKey = GlobalKey();
   final GlobalKey _passwordFieldKey = GlobalKey();
   bool _isConnected = true;
-
+  bool _isMounted = false;
 
   @override
   void initState() {
     super.initState();
+    _isMounted = true;
     NetworkConnectivityBloc().add(NetworkObserve());
     print("UserCate: ${ObjectFactory().prefs.getUserDecisionName()}");
     _navigationSource = ObjectFactory().prefs.getNavigationSource();
@@ -87,12 +89,14 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) =>
-          CustomerLoginBloc(authDataProvider: AuthDataProvider()),
+      create:
+          (context) => CustomerLoginBloc(authDataProvider: AuthDataProvider()),
       child: Builder(
         builder: (context) {
-          return BlocListener<NetworkConnectivityBloc,
-              NetworkConnectivityState>(
+          return BlocListener<
+            NetworkConnectivityBloc,
+            NetworkConnectivityState
+          >(
             listener: (context, state) {
               if (state is NetworkFailure) {
                 setState(() {
@@ -146,18 +150,21 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                         state.loginRequestResponse.user!.isEmailVerified == 1) {
                       ObjectFactory().prefs.setIsCustomerLoggedIn(true);
                       ObjectFactory().prefs.setCustomerAuthToken(
-                          token: state.loginRequestResponse.token);
+                        token: state.loginRequestResponse.token,
+                      );
                       ObjectFactory().prefs.setCustomerUserMail(
-                          customerUserMail: state.loginRequestResponse.user!
-                              .email);
+                        customerUserMail:
+                            state.loginRequestResponse.user!.email,
+                      );
                       ObjectFactory().prefs.setUserId(
-                          userId: state.loginRequestResponse.user!.id
-                              .toString());
+                        userId: state.loginRequestResponse.user!.id.toString(),
+                      );
                       if (state.loginRequestResponse.user != null &&
                           state.loginRequestResponse.user!.name != null) {
                         ObjectFactory().prefs.setCustomerUserName(
-                            customerUserName: state.loginRequestResponse.user!
-                                .name);
+                          customerUserName:
+                              state.loginRequestResponse.user!.name,
+                        );
                       }
                       context.go('/customer_home');
                     }
@@ -178,13 +185,17 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                       backgroundColor: AppColors.primaryWhiteColor,
                       textColor: AppColors.appRedColor,
                     );
-                    context.go('/verify', extra: VerifyScreenArguments(
-                      email: _emailController.text,
-                      otp: "",
-                      type: "register",
-                      from: 'customer',
-                      expiresAt: state.loginRequestResponse.expiresAt,
-                      resendAvailableInSeconds: state.loginRequestResponse.resendAvailableInSeconds,),
+                    context.go(
+                      '/verify',
+                      extra: VerifyScreenArguments(
+                        email: _emailController.text,
+                        otp: "",
+                        type: "register",
+                        from: 'customer',
+                        expiresAt: state.loginRequestResponse.expiresAt,
+                        resendAvailableInSeconds:
+                            state.loginRequestResponse.resendAvailableInSeconds,
+                      ),
                     );
                   }
                 }
@@ -204,11 +215,14 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                     ObjectFactory().prefs.setIsCustomerLoggedIn(true);
                     ObjectFactory().prefs.setIsGoogle(true);
                     ObjectFactory().prefs.setCustomerAuthToken(
-                        token: state.googleLoginResponse.token);
+                      token: state.googleLoginResponse.token,
+                    );
                     ObjectFactory().prefs.setUserId(
-                        userId: state.googleLoginResponse.user!.id.toString());
+                      userId: state.googleLoginResponse.user!.id.toString(),
+                    );
                     ObjectFactory().prefs.setCustomerUserName(
-                        customerUserName: state.googleLoginResponse.user!.name);
+                      customerUserName: state.googleLoginResponse.user!.name,
+                    );
                     context.go('/customer_home');
                     Fluttertoast.showToast(
                       msg: response.message!,
@@ -237,8 +251,8 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                         imageBase64: "",
                         isGoggleSignUp: true,
                         email: ObjectFactory().prefs.getCustomerUserMail()!,
-                        displayName: ObjectFactory().prefs
-                            .getCustomerUserName()!,
+                        displayName:
+                            ObjectFactory().prefs.getCustomerUserName()!,
                         phone: "",
                       ),
                     );
@@ -246,12 +260,10 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                 }
               },
               builder: (context, state) {
-                final emailError = state is LoginFormState
-                    ? state.emailError
-                    : null;
-                final passwordError = state is LoginFormState
-                    ? state.passwordError
-                    : null;
+                final emailError =
+                    state is LoginFormState ? state.emailError : null;
+                final passwordError =
+                    state is LoginFormState ? state.passwordError : null;
                 final bool isLoading = state is CustomerLoginLoadingState;
 
                 return WillPopScope(
@@ -267,15 +279,19 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                       _lastBackPressed = now;
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Press again to quit'),
+                          backgroundColor: AppColors.primary,
+                          content: Text(
+                            'Press again to quit',
+                            style: TextStyle(
+                              color: AppColors.primaryWhiteColor,
+                            ),
+                          ),
                           duration: Duration(seconds: 2),
                         ),
                       );
                       return false;
                     }
-                    if (Theme
-                        .of(context)
-                        .platform == TargetPlatform.android) {
+                    if (Theme.of(context).platform == TargetPlatform.android) {
                       SystemNavigator.pop();
                       return false;
                     }
@@ -289,8 +305,10 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                           child: Image.asset(
                             'assets/png/login-bg.png',
                             fit: BoxFit.cover,
-                          ).animate()
-                              .fadeIn(duration: 800.ms, curve: Curves.easeOut),
+                          ).animate().fadeIn(
+                            duration: 800.ms,
+                            curve: Curves.easeOut,
+                          ),
                         ),
 
                         Positioned(
@@ -299,293 +317,509 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                           left: 0,
                           right: 0,
                           child: SvgPicture.asset(
-                            'assets/svg/login-logo.svg',
-                            height: 162.h,
-                            width: 114.w,
-                            fit: BoxFit.scaleDown,
-                          ).animate()
+                                'assets/svg/login-logo.svg',
+                                height: 162.h,
+                                width: 114.w,
+                                fit: BoxFit.scaleDown,
+                              )
+                              .animate()
                               .scale(
-                              begin: const Offset(0.8, 0.8),
-                              end: const Offset(1, 1),
-                              duration: 600.ms,
-                              curve: Curves.easeOutBack
-                          )
+                                begin: const Offset(0.8, 0.8),
+                                end: const Offset(1, 1),
+                                duration: 600.ms,
+                                curve: Curves.easeOutBack,
+                              )
                               .fadeIn(duration: 500.ms),
                         ),
 
                         Positioned(
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          height: MediaQuery
-                              .of(context)
-                              .size
-                              .height * 0.72,
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(53),
-                            ),
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                image: DecorationImage(
-                                  image: AssetImage('assets/png/login-box.png'),
-                                  fit: BoxFit.cover,
+                              bottom: 0,
+                              left: 0,
+                              right: 0,
+                              height: MediaQuery.of(context).size.height * 0.72,
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.vertical(
+                                  top: Radius.circular(53),
                                 ),
-                              ),
-                              child: SafeArea(
-                                child: LayoutBuilder(
-                                  builder: (context, constraints) {
-                                    return NotificationListener<
-                                        OverscrollIndicatorNotification>(
-                                      onNotification: (overscroll) {
-                                        overscroll.disallowIndicator();
-                                        return true;
-                                      },
-                                      child: Padding(
-                                        padding: EdgeInsets.only(
-                                          bottom: MediaQuery
-                                              .of(context)
-                                              .viewInsets
-                                              .bottom,
-                                        ),
-                                        child: SingleChildScrollView(
-                                          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior
-                                              .onDrag,
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 26.w,
-                                            vertical: 26.h,
-                                          ),
-                                          child: Form(
-                                            key: _formKey,
-                                            child: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Text(
-                                                  'Welcome Back!',
-                                                  style: Theme
-                                                      .of(context)
-                                                      .textTheme
-                                                      .headlineLarge!
-                                                      .copyWith(
-                                                    fontSize: 24,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: AppColors
-                                                        .primaryWhiteColor,
-                                                  ),
-                                                ).animate()
-                                                    .fadeIn(duration: 600.ms,
-                                                    delay: 300.ms)
-                                                    .scale(
-                                                    begin: const Offset(
-                                                        0.9, 0.9),
-                                                    duration: 600.ms,
-                                                    curve: Curves.easeOutBack,
-                                                    delay: 300.ms
-                                                ),
+                                child: DecoratedBox(
+                                  decoration: BoxDecoration(
+                                    image: DecorationImage(
+                                      image: AssetImage(
+                                        'assets/png/login-box.png',
+                                      ),
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                  child: SafeArea(
+                                    child: LayoutBuilder(
+                                      builder: (context, constraints) {
+                                        return NotificationListener<
+                                          OverscrollIndicatorNotification
+                                        >(
+                                          onNotification: (overscroll) {
+                                            overscroll.disallowIndicator();
+                                            return true;
+                                          },
+                                          child: Padding(
+                                            padding: EdgeInsets.only(
+                                              bottom:
+                                                  MediaQuery.of(
+                                                    context,
+                                                  ).viewInsets.bottom,
+                                            ),
+                                            child: SingleChildScrollView(
+                                              keyboardDismissBehavior:
+                                                  ScrollViewKeyboardDismissBehavior
+                                                      .onDrag,
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: 26.w,
+                                                vertical: 26.h,
+                                              ),
+                                              child: Form(
+                                                key: _formKey,
+                                                child: Column(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Text(
+                                                          'Welcome Back!',
+                                                          style: Theme.of(
+                                                                context,
+                                                              )
+                                                              .textTheme
+                                                              .headlineLarge!
+                                                              .copyWith(
+                                                                fontSize: 24,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                                color:
+                                                                    AppColors
+                                                                        .primaryWhiteColor,
+                                                              ),
+                                                        )
+                                                        .animate()
+                                                        .fadeIn(
+                                                          duration: 600.ms,
+                                                          delay: 300.ms,
+                                                        )
+                                                        .scale(
+                                                          begin: const Offset(
+                                                            0.9,
+                                                            0.9,
+                                                          ),
+                                                          duration: 600.ms,
+                                                          curve:
+                                                              Curves
+                                                                  .easeOutBack,
+                                                          delay: 300.ms,
+                                                        ),
 
-                                                Gap(10),
+                                                    Gap(10),
 
-                                                Container(
-                                                  key: _emailFieldKey,
-                                                  child: CustomLoginTextField(
-                                                    hintText: "Email Address",
-                                                    icon: SvgPicture.asset(
-                                                        'assets/svg/email.svg'),
-                                                    controller: _emailController,
-                                                    focusNode: _emailFocusNode,
-                                                    errorText: emailError,
-                                                    onChanged: (value) {
-                                                      context.read<
-                                                          CustomerLoginBloc>()
-                                                          .add(
-                                                        EmailChanged(value),
-                                                      );
-                                                    },
-                                                  ),
-                                                ).animate()
-                                                    .fadeIn(duration: 600.ms,
-                                                    delay: 400.ms)
-                                                    .slideX(
-                                                    begin: 0.2,
-                                                    end: 0,
-                                                    duration: 600.ms,
-                                                    curve: Curves.easeOutQuad,
-                                                    delay: 400.ms
-                                                ),
+                                                    Container(
+                                                          key: _emailFieldKey,
+                                                          child: CustomLoginTextField(
+                                                            hintText:
+                                                                "Email Address",
+                                                            icon: SvgPicture.asset(
+                                                              'assets/svg/email.svg',
+                                                            ),
+                                                            controller:
+                                                                _emailController,
+                                                            focusNode:
+                                                                _emailFocusNode,
+                                                            errorText:
+                                                                emailError,
+                                                            onChanged: (value) {
+                                                              context
+                                                                  .read<
+                                                                    CustomerLoginBloc
+                                                                  >()
+                                                                  .add(
+                                                                    EmailChanged(
+                                                                      value,
+                                                                    ),
+                                                                  );
+                                                            },
+                                                          ),
+                                                        )
+                                                        .animate()
+                                                        .fadeIn(
+                                                          duration: 600.ms,
+                                                          delay: 400.ms,
+                                                        )
+                                                        .slideX(
+                                                          begin: 0.2,
+                                                          end: 0,
+                                                          duration: 600.ms,
+                                                          curve:
+                                                              Curves
+                                                                  .easeOutQuad,
+                                                          delay: 400.ms,
+                                                        ),
 
-                                                Gap(10),
+                                                    Gap(10),
 
-                                                Container(
-                                                  key: _passwordFieldKey,
-                                                  child: CustomLoginTextField(
-                                                    isPassword: true,
-                                                    hintText: "Password",
-                                                    icon: SvgPicture.asset(
-                                                        'assets/svg/pw.svg'),
-                                                    controller: _passwordController,
-                                                    focusNode: _passwordFocusNode,
-                                                    errorText: passwordError,
-                                                    onChanged: (value) {
-                                                      context.read<
-                                                          CustomerLoginBloc>()
-                                                          .add(
-                                                        PasswordChanged(value),
-                                                      );
-                                                    },
-                                                  ),
-                                                ).animate()
-                                                    .fadeIn(duration: 600.ms,
-                                                    delay: 500.ms)
-                                                    .slideX(
-                                                    begin: 0.2,
-                                                    end: 0,
-                                                    duration: 600.ms,
-                                                    curve: Curves.easeOutQuad,
-                                                    delay: 500.ms
-                                                ),
+                                                    Container(
+                                                          key:
+                                                              _passwordFieldKey,
+                                                          child: CustomLoginTextField(
+                                                            isPassword: true,
+                                                            hintText:
+                                                                "Password",
+                                                            icon: SvgPicture.asset(
+                                                              'assets/svg/pw.svg',
+                                                            ),
+                                                            controller:
+                                                                _passwordController,
+                                                            focusNode:
+                                                                _passwordFocusNode,
+                                                            errorText:
+                                                                passwordError,
+                                                            onChanged: (value) {
+                                                              context
+                                                                  .read<
+                                                                    CustomerLoginBloc
+                                                                  >()
+                                                                  .add(
+                                                                    PasswordChanged(
+                                                                      value,
+                                                                    ),
+                                                                  );
+                                                            },
+                                                          ),
+                                                        )
+                                                        .animate()
+                                                        .fadeIn(
+                                                          duration: 600.ms,
+                                                          delay: 500.ms,
+                                                        )
+                                                        .slideX(
+                                                          begin: 0.2,
+                                                          end: 0,
+                                                          duration: 600.ms,
+                                                          curve:
+                                                              Curves
+                                                                  .easeOutQuad,
+                                                          delay: 500.ms,
+                                                        ),
 
-                                                Gap(8),
+                                                    Gap(8),
 
-                                                InkWell(
-                                                  splashColor: AppColors
-                                                      .secondary,
-                                                  splashFactory: InkRipple
-                                                      .splashFactory,
-                                                  onTap: () {
-                                                    context.push(
-                                                        '/forgot_password',
-                                                        extra: "customer");
-                                                  },
-                                                  child: Align(
-                                                    alignment: Alignment
-                                                        .centerRight,
-                                                    child: Text(
-                                                      'Forgot Password?',
-                                                      style: Theme
-                                                          .of(context)
-                                                          .textTheme
-                                                          .bodyMedium!
-                                                          .copyWith(
-                                                        color: AppColors
-                                                            .textFieldTextColor,
-                                                        fontWeight: FontWeight
-                                                            .w600,
-                                                        fontSize: 16,
+                                                    InkWell(
+                                                      splashColor:
+                                                          AppColors.secondary,
+                                                      splashFactory:
+                                                          InkRipple
+                                                              .splashFactory,
+                                                      onTap: () {
+                                                        context.push(
+                                                          '/forgot_password',
+                                                          extra: "customer",
+                                                        );
+                                                      },
+                                                      child: Align(
+                                                        alignment:
+                                                            Alignment
+                                                                .centerRight,
+                                                        child: Text(
+                                                          'Forgot Password?',
+                                                          style: Theme.of(
+                                                                context,
+                                                              )
+                                                              .textTheme
+                                                              .bodyMedium!
+                                                              .copyWith(
+                                                                color:
+                                                                    AppColors
+                                                                        .textFieldTextColor,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                                fontSize: 16,
+                                                              ),
+                                                        ),
                                                       ),
+                                                    ).animate().fadeIn(
+                                                      duration: 400.ms,
+                                                      delay: 600.ms,
                                                     ),
-                                                  ),
-                                                ).animate()
-                                                    .fadeIn(duration: 400.ms,
-                                                    delay: 600.ms),
-                                                Gap(15),
-                                                InkWell(
-                                                  splashColor: AppColors
-                                                      .borderColor,
-                                                  splashFactory: InkRipple
-                                                      .splashFactory,
-                                                  onTap: isLoading
-                                                      ? null
-                                                      : () {
-                                                    context.read<
-                                                        CustomerLoginBloc>()
-                                                        .add(
-                                                      FormSubmitted(),
-                                                    );
-                                                  },
-                                                  child: Stack(
-                                                    alignment: Alignment.center,
-                                                    children: [
-                                                      ElevatedButtonWidget(
-                                                        height: 70.h,
-                                                        width: double.infinity,
-                                                        iconEnabled: false,
-                                                        iconLabel: "LOGIN",
-                                                        color: AppColors
-                                                            .primary,
-                                                        textColor: AppColors
-                                                            .primaryWhiteColor,
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ).animate()
-                                                    .fadeIn(duration: 600.ms,
-                                                    delay: 700.ms)
-                                                    .slideY(
-                                                    begin: 0.2,
-                                                    end: 0,
-                                                    duration: 600.ms,
-                                                    curve: Curves.easeOutQuad,
-                                                    delay: 700.ms
-                                                )
-                                                    .shimmer(
-                                                    duration: 1200.ms,
-                                                    delay: 1000.ms,
-                                                    color: AppColors
-                                                        .primaryWhiteColor
-                                                        .withOpacity(0.3)
+                                                    Gap(15),
+                                                    InkWell(
+                                                          splashColor:
+                                                              AppColors
+                                                                  .borderColor,
+                                                          splashFactory:
+                                                              InkRipple
+                                                                  .splashFactory,
+                                                          onTap:
+                                                              isLoading
+                                                                  ? null
+                                                                  : () {
+                                                                    context
+                                                                        .read<
+                                                                          CustomerLoginBloc
+                                                                        >()
+                                                                        .add(
+                                                                          FormSubmitted(),
+                                                                        );
+                                                                  },
+                                                          child: Stack(
+                                                            alignment:
+                                                                Alignment
+                                                                    .center,
+                                                            children: [
+                                                              ElevatedButtonWidget(
+                                                                height: 70.h,
+                                                                width:
+                                                                    double
+                                                                        .infinity,
+                                                                iconEnabled:
+                                                                    false,
+                                                                iconLabel:
+                                                                    "LOGIN",
+                                                                color:
+                                                                    AppColors
+                                                                        .primary,
+                                                                textColor:
+                                                                    AppColors
+                                                                        .primaryWhiteColor,
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        )
+                                                        .animate()
+                                                        .fadeIn(
+                                                          duration: 600.ms,
+                                                          delay: 700.ms,
+                                                        )
+                                                        .slideY(
+                                                          begin: 0.2,
+                                                          end: 0,
+                                                          duration: 600.ms,
+                                                          curve:
+                                                              Curves
+                                                                  .easeOutQuad,
+                                                          delay: 700.ms,
+                                                        )
+                                                        .shimmer(
+                                                          duration: 1200.ms,
+                                                          delay: 1000.ms,
+                                                          color: AppColors
+                                                              .primaryWhiteColor
+                                                              .withOpacity(0.3),
+                                                        ),
+
+                                                    Gap(10),
+
+                                                    DividerWithCenterText(
+                                                      centerText:
+                                                          'Or Continue with',
+                                                    ).animate().fadeIn(
+                                                      duration: 500.ms,
+                                                      delay: 800.ms,
+                                                    ),
+
+                                                    Gap(10),
+
+                                                    LoginWithGoogleWidget()
+                                                        .animate()
+                                                        .fadeIn(
+                                                          duration: 600.ms,
+                                                          delay: 900.ms,
+                                                        )
+                                                        .scale(
+                                                          begin: const Offset(
+                                                            0.9,
+                                                            0.9,
+                                                          ),
+                                                          end: const Offset(
+                                                            1,
+                                                            1,
+                                                          ),
+                                                          duration: 500.ms,
+                                                          curve:
+                                                              Curves.elasticOut,
+                                                          delay: 900.ms,
+                                                        ),
+
+                                                    Gap(30),
+
+                                                    LoginOrSignupPrompt(
+                                                      spanText:
+                                                          'Don\'t have an account yet',
+                                                      promptText: 'Sign Up Now',
+                                                      onSignInTap: () {
+                                                        context.push(
+                                                          '/customer_signUp',
+                                                          extra:
+                                                              SignUpScreenArgument(
+                                                                isGoggleSignUp:
+                                                                    false,
+                                                                email: "",
+                                                                displayName: "",
+                                                                phone: "",
+                                                                imageBase64: "",
+                                                              ),
+                                                        );
+                                                      },
+                                                    ).animate().fadeIn(
+                                                      duration: 500.ms,
+                                                      delay: 1000.ms,
+                                                    ),
+                                                    Gap(10),
+                                                    BlocListener<
+                                                          CustomerLoginBloc,
+                                                          CustomerLoginState
+                                                        >(
+                                                          listener: (
+                                                            context,
+                                                            state,
+                                                          ) {
+                                                            if (state
+                                                                is GuestUserLoadingState) {
+                                                              EasyLoading.show();
+                                                            }
+                                                            if (state
+                                                                is GuestUserLoadedState) {
+                                                              if (state
+                                                                      .guestSignInResponse
+                                                                      .status ==
+                                                                  true) {
+                                                                EasyLoading.dismiss();
+                                                                ObjectFactory()
+                                                                    .prefs
+                                                                    .setDeviceID(
+                                                                      deviceID:
+                                                                          state
+                                                                              .guestSignInResponse
+                                                                              .deviceToken,
+                                                                    );
+                                                                ObjectFactory()
+                                                                    .prefs
+                                                                    .setIsGuestUser(
+                                                                      true,
+                                                                    );
+                                                                _showToast(
+                                                                  state
+                                                                          .guestSignInResponse
+                                                                          .message! ??
+                                                                      "",
+                                                                  AppColors
+                                                                      .appGreenColor,
+                                                                );
+                                                                context.go(
+                                                                  '/customer_home',
+                                                                );
+                                                              } else if (state
+                                                                      .guestSignInResponse
+                                                                      .status ==
+                                                                  false) {
+                                                                EasyLoading.dismiss();
+                                                                ObjectFactory()
+                                                                    .prefs
+                                                                    .setIsGuestUser(
+                                                                      false,
+                                                                    );
+                                                                _showToast(
+                                                                  state
+                                                                          .guestSignInResponse
+                                                                          .message! ??
+                                                                      "",
+                                                                  AppColors
+                                                                      .appRedColor,
+                                                                );
+                                                              }
+                                                            }
+                                                            if (state
+                                                                is GuestUserErrorState) {
+                                                              EasyLoading.dismiss();
+                                                              ObjectFactory()
+                                                                  .prefs
+                                                                  .setIsGuestUser(
+                                                                    false,
+                                                                  );
+                                                              _showToast(
+                                                                state.errorMessage ??
+                                                                    "",
+                                                                AppColors
+                                                                    .appRedColor,
+                                                              );
+                                                            }
+                                                          },
+                                                          child: TextButton(
+                                                            onPressed: () async {
+                                                              context
+                                                                  .read<
+                                                                    CustomerLoginBloc
+                                                                  >()
+                                                                  .add(
+                                                                    GuestUserEvent(
+                                                                      guestUserRequest: GuestUserRequest(
+                                                                        deviceToken:
+                                                                            await _getDeviceId(),
+                                                                      ),
+                                                                    ),
+                                                                  );
+                                                            },
+                                                            child: Text(
+                                                              'SKIP SIGN IN',
+                                                              style: Theme.of(
+                                                                    context,
+                                                                  )
+                                                                  .textTheme
+                                                                  .labelMedium!
+                                                                  .copyWith(
+                                                                    color:
+                                                                        AppColors
+                                                                            .primaryWhiteColor,
+                                                                    fontSize:
+                                                                        16.sp,
+                                                                  ),
+                                                            ),
+                                                          ),
+                                                        )
+                                                        .animate()
+                                                        .fadeIn(
+                                                          duration: 500.ms,
+                                                          delay: 1100.ms,
+                                                        )
+                                                        .then()
+                                                        .animate(
+                                                          onPlay:
+                                                              (
+                                                                controller,
+                                                              ) => controller
+                                                                  .repeat(
+                                                                    reverse:
+                                                                        true,
+                                                                  ),
+                                                        )
+                                                        .fadeIn(
+                                                          begin: 0.6,
+                                                          duration: 1500.ms,
+                                                        ),
+                                                  ],
                                                 ),
-
-                                                Gap(10),
-
-                                                DividerWithCenterText(
-                                                  centerText: 'Or Continue with',
-                                                ).animate()
-                                                    .fadeIn(duration: 500.ms,
-                                                    delay: 800.ms),
-
-                                                Gap(10),
-
-                                                LoginWithGoogleWidget()
-                                                    .animate()
-                                                    .fadeIn(duration: 600.ms,
-                                                    delay: 900.ms)
-                                                    .scale(
-                                                    begin: const Offset(
-                                                        0.9, 0.9),
-                                                    end: const Offset(1, 1),
-                                                    duration: 500.ms,
-                                                    curve: Curves.elasticOut,
-                                                    delay: 900.ms
-                                                ),
-
-                                                Gap(30),
-
-                                                LoginOrSignupPrompt(
-                                                  spanText: 'Don\'t have an account yet',
-                                                  promptText: 'Sign Up Now',
-                                                  onSignInTap: () {
-                                                    context.push(
-                                                      '/customer_signUp',
-                                                      extra: SignUpScreenArgument(
-                                                        isGoggleSignUp: false,
-                                                        email: "",
-                                                        displayName: "",
-                                                        phone: "",
-                                                        imageBase64: "",
-                                                      ),);
-                                                  },
-                                                ).animate()
-                                                    .fadeIn(duration: 500.ms,
-                                                    delay: 1000.ms),
-                                              ],
+                                              ),
                                             ),
                                           ),
-                                        ),
-                                      ),
-                                    );
-                                  },
+                                        );
+                                      },
+                                    ),
+                                  ),
                                 ),
                               ),
-                            ),
-                          ),
-                        ).animate()
+                            )
+                            .animate()
                             .fadeIn(duration: 800.ms)
                             .slideY(
-                            begin: 0.1,
-                            end: 0,
-                            duration: 800.ms,
-                            curve: Curves.easeOutQuint
-                        ),
+                              begin: 0.1,
+                              end: 0,
+                              duration: 800.ms,
+                              curve: Curves.easeOutQuint,
+                            ),
                       ],
                     ),
                   ),
@@ -596,5 +830,38 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
         },
       ),
     );
+  }
+
+  void _showToast(String message, Color textColor) {
+    if (!_isMounted) return;
+
+    Fluttertoast.showToast(
+      backgroundColor: AppColors.primaryWhiteColor,
+      textColor: textColor,
+      gravity: ToastGravity.BOTTOM,
+      msg: message,
+    );
+  }
+
+  Future<String> _getDeviceId() async {
+    try {
+      DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
+      if (Platform.isAndroid) {
+        AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
+        print("DeviceID: ${androidInfo.id}");
+        ObjectFactory().prefs.setDeviceID(deviceID: androidInfo.id);
+        return androidInfo.id;
+      } else if (Platform.isIOS) {
+        IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
+        ObjectFactory().prefs.setDeviceID(
+          deviceID: iosInfo.identifierForVendor,
+        );
+        return iosInfo.identifierForVendor ?? '';
+      }
+      return '';
+    } catch (e) {
+      debugPrint('Error getting device ID: $e');
+      return '';
+    }
   }
 }

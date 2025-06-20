@@ -108,16 +108,16 @@ class GoogleLoginErrorState extends LoginState {
 }
 
 ///Apple
-// class SignInWithAppleInitial extends LoginState {
-//   @override
-//   List<Object> get props => [];
-// }
-//
-// class SignInWithAppleLoading extends LoginState {
-//   @override
-//   List<Object> get props => [];
-// }
-//
+class SignInWithAppleInitial extends LoginState {
+  @override
+  List<Object> get props => [];
+}
+
+class SignInWithAppleLoading extends LoginState {
+  @override
+  List<Object> get props => [];
+}
+
 // class SignInWithAppleLoaded extends LoginState {
 //   final AppleSignInRequestResponse appleSignInRequestResponse;
 //
@@ -126,12 +126,12 @@ class GoogleLoginErrorState extends LoginState {
 //   @override
 //   List<Object> get props => [appleSignInRequestResponse];
 // }
-//
-// class SignInWithAppleError extends LoginState {
-//   final String errorMsg;
-//
-//   const SignInWithAppleError({required this.errorMsg});
-//
-//   @override
-//   List<Object> get props => [errorMsg];
-// }
+
+class SignInWithAppleError extends LoginState {
+  final String errorMsg;
+
+  const SignInWithAppleError({required this.errorMsg});
+
+  @override
+  List<Object> get props => [errorMsg];
+}

@@ -13,6 +13,8 @@ import 'package:dicetable/src/model/cafe_owner/auth/signUp/google_sign-up_reques
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/google_sign-up_response.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/sign_up_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/sign_up_request_response.dart';
+import 'package:dicetable/src/model/customer/guest/guest_signin_response.dart';
+import 'package:dicetable/src/model/customer/guest/guest_user_request.dart';
 import 'package:dicetable/src/model/state_model.dart';
 import 'package:dicetable/src/model/venue_type_response.dart';
 import 'package:dicetable/src/model/verification/otp_verification_response.dart';
@@ -388,5 +390,88 @@ class AuthDataProvider {
     }
     return null;
   }
+
+  ///Guest User
+  Future<StateModel?> guestUserSignIn(GuestUserRequest request) async {
+    try {
+      final response = await ObjectFactory().apiClient.guestUserSignIn(request);
+      print(response.toString());
+
+      if (response.statusCode == 200) {
+        final data = GuestSignInResponse.fromJson(response.data);
+        if (data.status) {
+          return StateModel<GuestSignInResponse>.success(data);
+        } else {
+          // Extract first error message from 'errors' map
+          final errorMessage = data.errors?.entries.first.value.first ??
+              "Something went wrong. Please try again.";
+          return StateModel.error(errorMessage);
+        }
+      }
+
+      return StateModel.error("Unexpected response from server.");
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+
+      if (statusCode == 500) {
+        return StateModel.error("The server isn't responding! Please try again later.");
+      } else if (statusCode == 408) {
+        return StateModel.error(
+            "Hello there! It seems like your request took longer than expected to process. Please try again.");
+      } else if (e.type == DioExceptionType.connectionError) {
+        return StateModel.error(
+            "Connection error. Please check your internet connection.");
+      } else if (e.response?.data != null) {
+        try {
+          final data = GuestSignInResponse.fromJson(e.response!.data);
+          final errorMessage = data.errors?.entries.first.value.first ??
+              data.message ??
+              "Something went wrong.";
+          return StateModel.error(errorMessage);
+        } catch (_) {
+          return StateModel.error("Unexpected error occurred.");
+        }
+      }
+
+      return StateModel.error("An unexpected error occurred.");
+    } catch (e) {
+      return StateModel.error("An unknown error occurred.");
+    }
+  }
+
+
+
+
+  // Future<StateModel?> appleLogin(AppleSignInRequest appleSignInRequest) async {
+  //   try {
+  //     final response =
+  //     await ObjectFactory().apiClient.appleLogin(appleSignInRequest);
+  //     print(response.toString());
+  //     if (response.statusCode == 200) {
+  //       return StateModel<GoogleLoginRequestResponse>.success(
+  //           GoogleLoginRequestResponse.fromJson(response.data));
+  //     } else {
+  //       return StateModel.error(
+  //           "The server isn't responding! Please try again later.");
+  //     }
+  //   } on DioException catch (e) {
+  //
+  //     if (e.response != null && e.response!.statusCode == 500) {
+  //       return StateModel.error(
+  //           "The server isn't responding! Please try again later.");
+  //       // return response!;
+  //     } else if (e.response != null && e.response!.statusCode == 408) {
+  //       return StateModel.error(
+  //           "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!");
+  //       // Something happened in setting up or sending the request that triggered an Error
+  //     }
+  //   }
+  //   return null;
+  // }
+
+
+
+
+
 
 }

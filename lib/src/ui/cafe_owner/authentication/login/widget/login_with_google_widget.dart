@@ -36,25 +36,35 @@ class LoginWithGoogleWidget extends StatelessWidget {
               BlocProvider.of<CustomerLoginBloc>(context).add(
                 CustomerGoogleLoginEvent(
                   googleLoginRequest: GoogleLoginRequest(
-                    email: state.user.email!, loginType: 5,
+                    email: state.user.email!,
+                    loginType: 5,
                   ),
                 ),
               );
               ObjectFactory().prefs.setCustomerUserName(
                 customerUserName: state.user.displayName,
               );
-              ObjectFactory().prefs.setCustomerUserMail(customerUserMail: state.user.email);
+              ObjectFactory().prefs.setCustomerUserMail(
+                customerUserMail: state.user.email,
+              );
             } else {
               BlocProvider.of<LoginBloc>(context).add(
                 GetGoogleLoginEvent(
                   googleLoginRequest: GoogleLoginRequest(
-                    email: state.user.email!, loginType: 3,
+                    email: state.user.email!,
+                    loginType: 3,
                   ),
                 ),
               );
-              ObjectFactory().prefs.setCafeUserName(cafeUserName: state.user.displayName,);
-              ObjectFactory().prefs.setCafeUserMail(cafeUserMail: state.user.email);
-              ObjectFactory().prefs.setCafeUserImage(cafeUserImage: state.base64Image);
+              ObjectFactory().prefs.setCafeUserName(
+                cafeUserName: state.user.displayName,
+              );
+              ObjectFactory().prefs.setCafeUserMail(
+                cafeUserMail: state.user.email,
+              );
+              ObjectFactory().prefs.setCafeUserImage(
+                cafeUserImage: state.base64Image,
+              );
             }
             // Fluttertoast.showToast(
             //   backgroundColor: AppColors.primaryWhiteColor,
@@ -90,7 +100,7 @@ class LoginWithGoogleWidget extends StatelessWidget {
                     },
 
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 50.w, vertical: 10.h),
+              padding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 10.h),
               margin: EdgeInsets.all(16),
               height: 70.h,
               decoration: BoxDecoration(
@@ -101,29 +111,22 @@ class LoginWithGoogleWidget extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   SvgPicture.asset('assets/svg/google.svg'),
-                  Gap(20),
+                  Gap(10),
                   state is GoogleSignInCubitLoading
                       ? CircularProgressIndicator(
                         backgroundColor: AppColors.primaryWhiteColor,
                         color: AppColors.primary,
                       )
-                      : Expanded(
-                    child: Text(
-                      'Sign in with Google',
-                      style: Theme.of(context)
-                          .textTheme
-                          .labelMedium!
-                          .copyWith(
-                        color:
-                        AppColors
-                            .textFieldTextColor,
-                        fontWeight:
-                        FontWeight.w600,
-                        fontSize: 16,
+                      : Text(
+                        'Sign in with Google',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.labelMedium!.copyWith(
+                          color: AppColors.textFieldTextColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                        ),
                       ),
-
-                    ),
-                  ),
                 ],
               ),
             ),
