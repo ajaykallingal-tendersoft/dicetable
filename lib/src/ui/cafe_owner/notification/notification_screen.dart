@@ -6,8 +6,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'bloc/notification_bloc.dart';
+import 'count_controller.dart';
 
 class NotificationScreen extends StatefulWidget {
   NotificationScreen({super.key});
@@ -18,6 +20,7 @@ class NotificationScreen extends StatefulWidget {
 
 class _NotificationScreenState extends State<NotificationScreen> {
   String selectedTab = 'ALL';
+  final CounterController controller = Get.find<CounterController>();
 
   @override
   void initState() {
@@ -28,7 +31,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
   @override
   Widget build(BuildContext context) {
 
-    return Scaffold(
+    return Obx(() => Scaffold(
       backgroundColor: AppColors.primary,
       extendBody: true,
       appBar: AppBar(
@@ -52,7 +55,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
         bottom: PreferredSize(
           preferredSize: Size(MediaQuery.of(context).size.width, 46),
           child: NotificationTabBar(
-            unreadCount: 0,
+            unreadCount: controller.notificationBadgeAmount.value,
             selectedTab: selectedTab,
             onTabSelected: (tab) {
               setState(() {
@@ -83,6 +86,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
           },
           builder: (context, state) {
             if (state is NotificationLoaded) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                controller.notificationBadgeAmount.value = state.notificationItems.data.unread.length;
+              });
             EasyLoading.dismiss();
             return Container(
               width: double.infinity,
@@ -260,6 +266,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
 
       ),
+    )
     );
   }
 }
