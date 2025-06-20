@@ -138,7 +138,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                               margin: const EdgeInsets.symmetric(vertical: 6),
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: item.readAt ?? false
+                                color: item.readAt != null
                                     ? AppColors.readedNotifyContainerColor
                                     : AppColors.primaryWhiteColor,
                                 borderRadius: BorderRadius.circular(15),
@@ -152,6 +152,15 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                       color: AppColors.primary,
                                       fontWeight: FontWeight.w600,
                                       fontSize: 12.sp
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    item.body,
+                                    style: TextTheme.of(context).bodySmall!.copyWith(
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 12.sp
                                     ),
                                   ),
                                   const SizedBox(height: 6),
@@ -193,7 +202,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                               margin: const EdgeInsets.symmetric(vertical: 6),
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: item.readAt ?? false
+                                color: item.readAt != null
                                     ? AppColors.readedNotifyContainerColor
                                     : AppColors.primaryWhiteColor,
                                 borderRadius: BorderRadius.circular(15),
@@ -210,10 +219,19 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                     ),
                                   ),
                                   const SizedBox(height: 6),
+                                  Text(
+                                    item.body,
+                                    style: TextTheme.of(context).bodySmall!.copyWith(
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 12.sp
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
                                   Align(
                                     alignment: Alignment.bottomRight,
                                     child: Text(
-                                      "item.createdAt",
+                                      item.createdAt,
                                       style: TextTheme.of(context).bodySmall!.copyWith(
                                           color: AppColors.primaryBlackColor,
                                           fontWeight: FontWeight.w400,
