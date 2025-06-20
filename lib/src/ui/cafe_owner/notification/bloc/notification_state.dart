@@ -28,6 +28,11 @@ final class NotificationLoaded extends NotificationState {
   List<Object?> get props => [notificationItems];
 }
 
+class NotificationRead extends NotificationState {
+  final NotificationReadResponse notificationReadResponse;
+  const NotificationRead({required this.notificationReadResponse});
+}
+
 
 final class NotificationError extends NotificationState {
   final String errorMessage;

@@ -1,4 +1,5 @@
 import 'package:dicetable/src/constants/app_colors.dart';
+import 'package:dicetable/src/ui/cafe_owner/notification/notification_item.dart';
 import 'package:dicetable/src/ui/cafe_owner/notification/tab_button.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -123,39 +124,50 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         itemCount: state.notificationItems.data.all.length,
                         itemBuilder: (context, index) {
                           final item = state.notificationItems.data.all[index];
-                          return Container(
-                            margin: const EdgeInsets.symmetric(vertical: 6),
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: item.readAt ?? false
-                                  ? AppColors.readedNotifyContainerColor
-                                  : AppColors.primaryWhiteColor,
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  item.title,
-                                  style: TextTheme.of(context).bodySmall!.copyWith(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12.sp
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Align(
-                                  alignment: Alignment.bottomRight,
-                                  child: Text(
-                                    item.createdAt,
+                          return InkWell(
+                            onTap:  () {
+                              final notificationUpdateRequest = NotificationReadRequest(
+                                notificationId: item.id,
+                              );
+                              context.read<NotificationBloc>().add(
+                                ReadNotification(notificationReadRequest: notificationUpdateRequest),
+                              );
+                              context.read<NotificationBloc>().add(FetchNotifications());
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(vertical: 6),
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: item.readAt ?? false
+                                    ? AppColors.readedNotifyContainerColor
+                                    : AppColors.primaryWhiteColor,
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    item.title,
                                     style: TextTheme.of(context).bodySmall!.copyWith(
-                                        color: AppColors.primaryBlackColor,
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: 10.sp
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 12.sp
                                     ),
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(height: 6),
+                                  Align(
+                                    alignment: Alignment.bottomRight,
+                                    child: Text(
+                                      item.createdAt,
+                                      style: TextTheme.of(context).bodySmall!.copyWith(
+                                          color: AppColors.primaryBlackColor,
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: 10.sp
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           );
                         },
@@ -167,39 +179,50 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         itemCount: state.notificationItems.data.unread.length,
                         itemBuilder: (context, index) {
                           final item = state.notificationItems.data.unread[index];
-                          return Container(
-                            margin: const EdgeInsets.symmetric(vertical: 6),
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: item.readAt ?? false
-                                  ? AppColors.readedNotifyContainerColor
-                                  : AppColors.primaryWhiteColor,
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  item.title,
-                                  style: TextTheme.of(context).bodySmall!.copyWith(
-                                      color: AppColors.primary,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 12.sp
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Align(
-                                  alignment: Alignment.bottomRight,
-                                  child: Text(
-                                    "item.createdAt",
+                          return InkWell(
+                            onTap:  () {
+                              final notificationUpdateRequest = NotificationReadRequest(
+                                notificationId: item.id,
+                              );
+                              context.read<NotificationBloc>().add(
+                                ReadNotification(notificationReadRequest: notificationUpdateRequest),
+                              );
+                              context.read<NotificationBloc>().add(FetchNotifications());
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.symmetric(vertical: 6),
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                color: item.readAt ?? false
+                                    ? AppColors.readedNotifyContainerColor
+                                    : AppColors.primaryWhiteColor,
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    item.title,
                                     style: TextTheme.of(context).bodySmall!.copyWith(
-                                        color: AppColors.primaryBlackColor,
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: 10.sp
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 12.sp
                                     ),
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(height: 6),
+                                  Align(
+                                    alignment: Alignment.bottomRight,
+                                    child: Text(
+                                      "item.createdAt",
+                                      style: TextTheme.of(context).bodySmall!.copyWith(
+                                          color: AppColors.primaryBlackColor,
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: 10.sp
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           );
                         },

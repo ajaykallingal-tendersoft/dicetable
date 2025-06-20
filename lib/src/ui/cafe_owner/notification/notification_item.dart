@@ -96,3 +96,41 @@ class All {
   }
 }
 
+class NotificationReadRequest {
+  final String notificationId;
+
+  NotificationReadRequest({required this.notificationId});
+
+  Map<String, dynamic> toJson() {
+    return {
+      'notification_id': notificationId,
+    };
+  }
+}
+
+class NotificationReadResponse {
+  final bool status;
+  final String? message;
+
+  NotificationReadResponse({
+    required this.status,
+    this.message,
+  });
+
+  factory NotificationReadResponse.fromJson(Map<String, dynamic> json) {
+    return NotificationReadResponse(
+      status: json['status'] ?? false,
+      message: json['message'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'status': status,
+      if (message != null) 'message': message,
+    };
+  }
+}
+
+
+

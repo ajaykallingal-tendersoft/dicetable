@@ -18,6 +18,7 @@ import 'package:dicetable/src/model/customer/cafe/cafe_search_request.dart';
 import 'package:dicetable/src/model/customer/cafe/remove_favourite_request.dart';
 import 'package:dicetable/src/model/customer/profile/customer_profile_update_request.dart';
 import 'package:dicetable/src/model/verification/otp_verify_request.dart';
+import 'package:dicetable/src/ui/cafe_owner/notification/notification_item.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:dicetable/src/utils/urls/urls.dart';
 import 'package:dio/dio.dart';
@@ -317,6 +318,22 @@ class ApiClient {
 
     return dioDiceApp.get(
       url,
+      options: Options(headers: {
+        "Authorization": token,
+      }),
+    );
+  }
+
+  Future<Response> markNotificationAsRead(NotificationReadRequest request) {
+    final token = ObjectFactory().prefs.getAuthToken();
+    final url = UrlsDiceApp.markNotificationAsRead;
+
+    print("Bearer $token");
+    print("URL: $url");
+
+    return dioDiceApp.post(
+      url,
+      data: request,
       options: Options(headers: {
         "Authorization": token,
       }),

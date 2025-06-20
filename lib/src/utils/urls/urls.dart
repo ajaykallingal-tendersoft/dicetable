@@ -47,5 +47,6 @@ class UrlsDiceApp {
   ///Notification
   static const String getCafeNotification = '/api/cafe/notifications';
   static const String getCustomerNotification = '/api/customer/notifications';
+  static const String markNotificationAsRead = '/api/notification/read';
 
 }

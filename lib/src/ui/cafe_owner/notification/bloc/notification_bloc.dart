@@ -35,6 +35,21 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       }
     });
 
+    on<ReadNotification>((event, emit) async {
+      emit(const NotificationLoading());
+      final StateModel? stateModel = await notificationDataProvider.markNotificationAsRead(event.notificationReadRequest);
+      if (stateModel is SuccessState) {
+        final response = stateModel.value as NotificationReadResponse;
+        if (response.status) {
+          emit(NotificationRead(notificationReadResponse: response));
+        } else {
+          emit(NotificationError(errorMessage: response.message ?? 'Failed to update notification'));
+        }
+      } else if (stateModel is ErrorState) {
+        emit(NotificationError(errorMessage: stateModel.msg));
+      }
+    });
+
   }
 
 }
