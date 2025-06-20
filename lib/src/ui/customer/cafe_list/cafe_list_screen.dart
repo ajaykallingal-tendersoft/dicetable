@@ -13,6 +13,8 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:responsive_framework/responsive_framework.dart';
+
 
 
 
@@ -107,6 +109,7 @@ class _CafeListScreenState extends State<CafeListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isTabletOrLarger = ResponsiveBreakpoints.of(context).largerThan(MOBILE);
     return Container(
         height: double.infinity,
         decoration: const BoxDecoration(
@@ -134,7 +137,7 @@ class _CafeListScreenState extends State<CafeListScreen> {
               SliverAppBar(
                 pinned: false,
                 backgroundColor: Colors.transparent,
-                expandedHeight: 10.h,
+                expandedHeight: isTabletOrLarger ? 110.h : 10.h,
                 leading: SizedBox.shrink(),
                 elevation: 0,
                 flexibleSpace: FlexibleSpaceBar(

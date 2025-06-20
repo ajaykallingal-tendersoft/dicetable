@@ -16,6 +16,8 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:responsive_framework/responsive_framework.dart';
+
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key, required this.profileState});
@@ -578,6 +580,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Widget _buildSliverAppBar() {
+    final isTabletOrLarger = ResponsiveBreakpoints.of(context).largerThan(MOBILE);
     final state = context.read<ProfileBloc>().state;
     return SliverAppBar(
       expandedHeight: 380.h,
@@ -594,7 +597,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               top: 0,
               left: 0,
               right: 0,
-              height: 380.h / 1.8.h,
+              height: isTabletOrLarger ? 560.h / 1.8.h : 380.h / 1.8.h,
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.only(
@@ -623,7 +626,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
                 child: Column(
                   children: [
-                    Gap(70.h),
+                    Gap(60.h),
                     Text(
                       state.venueName,
                       style: Theme.of(context).textTheme.bodyLarge!.copyWith(
@@ -647,7 +650,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               builder: (context, state) {
                 final image = state.image;
                 return Positioned(
-                  top: (350.h / 1.9.h) - 60.h,
+                  top: isTabletOrLarger ? (350.h / 1.5.h) -20.h : (350.h / 1.9.h) - 60.h,
                   left: 0,
                   right: 0,
                   child: Center(

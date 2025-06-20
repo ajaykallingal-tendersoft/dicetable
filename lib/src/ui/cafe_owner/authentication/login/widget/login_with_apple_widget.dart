@@ -66,7 +66,7 @@ class LoginWithAppleWidget extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Image.asset(
                   Assets.APPLE_LOGO,

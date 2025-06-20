@@ -585,7 +585,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 curve: Curves.elasticOut,
                                                 delay: 900.ms,
                                               ),
-                                              // LoginWithAppleWidget(),
+                                              LoginWithAppleWidget(),
                                               Gap(30),
                                               LoginOrSignupPrompt(
                                                 spanText:

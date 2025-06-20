@@ -13,6 +13,8 @@ import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'bloc/customer_home_bloc.dart';
+import 'package:responsive_framework/responsive_framework.dart';
+
 
 class CustomerHomePage extends StatefulWidget {
   const CustomerHomePage({super.key});
@@ -77,6 +79,7 @@ void _performSearch() {
 
   @override
   Widget build(BuildContext context) {
+    final isTabletOrLarger = ResponsiveBreakpoints.of(context).largerThan(MOBILE);
     return Container(
       height: double.infinity,
       decoration: const BoxDecoration(
@@ -100,7 +103,7 @@ void _performSearch() {
               padding: EdgeInsets.symmetric(horizontal: 20.h, vertical: 0.h),
               sliver: SliverAppBar(
                 backgroundColor: Colors.transparent,
-                // expandedHeight: 10.h,
+                expandedHeight: isTabletOrLarger ? 110.h : 0,
                 leading: const SizedBox(),
                 flexibleSpace: FlexibleSpaceBar(
                   centerTitle: false,

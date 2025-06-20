@@ -15,6 +15,8 @@ import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'bloc/profile_bloc.dart';
+import 'package:responsive_framework/responsive_framework.dart';
+
 
 
 class ManageProfileScreen extends StatefulWidget {
@@ -526,6 +528,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
   }
 
   Widget _buildSliverAppBar() {
+    final isTabletOrLarger = ResponsiveBreakpoints.of(context).largerThan(MOBILE);
     final state = context
         .read<ProfileBloc>()
         .state;
@@ -544,7 +547,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
               top: 0,
               left: 0,
               right: 0,
-              height: 380.h / 1.8.h,
+              height: isTabletOrLarger ? 460.h / 1.8.h : 380.h / 1.8.h,
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: const BorderRadius.only(
@@ -600,7 +603,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
               ),
             ),
             Positioned(
-              top: (350.h / 1.9.h) - 60.h,
+              top: isTabletOrLarger ? (350.h / 1.9.h) -20.h : (350.h / 1.9.h) - 60.h,
               left: 0,
               right: 0,
               child: Center(

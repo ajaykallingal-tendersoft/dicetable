@@ -40,7 +40,15 @@ Future<void> main() async {
     };
 
     await _initializeApp();
-    runApp(App());
+
+    ///setting device orientation as portrait, then calling the runApp method
+    SystemChrome.setPreferredOrientations(
+        <DeviceOrientation>[
+          DeviceOrientation.portraitUp,
+          DeviceOrientation.portraitDown
+        ]).then((_) {
+      runApp(App());
+    });
   }, _handleUncaughtError);
 }
 
@@ -63,12 +71,12 @@ Future<void> _initializeApp() async {
 
     // Register background handler
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
   } catch (e, st) {
     _handleInitializationError(e, st);
     rethrow;
   }
 }
+
 Future<void> handleAutoBackupOnFreshInstall() async {
   final prefs = await SharedPreferences.getInstance();
   const String installKey = 'hasBeenInitialized';
@@ -81,6 +89,7 @@ Future<void> handleAutoBackupOnFreshInstall() async {
     await prefs.setBool(installKey, true); // set flag
   }
 }
+
 Future<void> _initializeNotifications() async {
   try {
     final notificationService = NotificationServices();
@@ -96,6 +105,7 @@ Future<void> _initializeNotifications() async {
     // Don't rethrow - notifications are not critical for app startup
   }
 }
+
 Future<void> _setupErrorHandlers() async {
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);

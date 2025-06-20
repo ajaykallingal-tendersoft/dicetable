@@ -124,7 +124,7 @@ class LoginWithGoogleWidget extends StatelessWidget {
                         ).textTheme.labelMedium!.copyWith(
                           color: AppColors.textFieldTextColor,
                           fontWeight: FontWeight.w600,
-                          fontSize: 14,
+                          fontSize: 15,
                         ),
                       ),
                 ],

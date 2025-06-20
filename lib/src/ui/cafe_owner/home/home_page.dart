@@ -12,6 +12,8 @@ import 'package:go_router/go_router.dart';
 import '../notification/notification_cubit.dart';
 import 'widget/expandable_card.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:responsive_framework/responsive_framework.dart';
+
 
 
 class HomePage extends StatefulWidget {
@@ -29,6 +31,7 @@ class _HomePageState extends State<HomePage> {
   }
   @override
   Widget build(BuildContext context) {
+    final isTabletOrLarger = ResponsiveBreakpoints.of(context).largerThan(MOBILE);
     return   Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -56,7 +59,7 @@ class _HomePageState extends State<HomePage> {
               padding: EdgeInsets.symmetric(horizontal: 20.h, vertical: 10.h),
               sliver: SliverAppBar(
                 backgroundColor: Colors.transparent,
-                expandedHeight: 110.h,
+                expandedHeight: isTabletOrLarger ? 150.h :  110.h,
                 leading: const SizedBox(),
                 flexibleSpace: FlexibleSpaceBar(
                   centerTitle: false,
