@@ -72,6 +72,7 @@ class CustomerProfileDataProvider {
         return StateModel<DeleteProfileResponse>.success(
             DeleteProfileResponse.fromJson(response.data));
       }
+
       return null;
     } on DioException catch (e) {
 
