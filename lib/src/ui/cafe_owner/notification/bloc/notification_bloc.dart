@@ -16,7 +16,6 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
   NotificationBloc({required this.notificationDataProvider}) : super(const NotificationInitial()) {
 
     on<FetchNotifications>((event, emit) async {
-
       emit(const NotificationLoading());
 
       final StateModel? stateModel = ObjectFactory().prefs.getUserDecisionName() == "PUBLIC_USER"
@@ -24,20 +23,19 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
           : await NotificationDataProvider().getCafeNotificationDataById();
 
       if (stateModel is SuccessState) {
-
         final response = stateModel.value as NotificationItems;
         emit(NotificationLoaded(notificationItems: response));
-
       } else if (stateModel is ErrorState) {
-
         emit(NotificationError(errorMessage: stateModel.msg));
-
       }
+
     });
 
     on<ReadNotification>((event, emit) async {
       emit(const NotificationLoading());
+
       final StateModel? stateModel = await notificationDataProvider.markNotificationAsRead(event.notificationReadRequest);
+
       if (stateModel is SuccessState) {
         final response = stateModel.value as NotificationReadResponse;
         if (response.status) {
@@ -48,8 +46,26 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       } else if (stateModel is ErrorState) {
         emit(NotificationError(errorMessage: stateModel.msg));
       }
+
+    });
+
+    on<UpdateNotificationStatus>((event, emit) async {
+      emit(const NotificationLoading());
+
+      final StateModel? stateModel = await notificationDataProvider.updateNotificationStatus(event.notificationStatusRequest);
+
+      if (stateModel is SuccessState) {
+        final response = stateModel.value as NotificationStatusResponse;
+        if (response.status) {
+          emit(NotificationStatusUpdated(notificationStatusResponse: response));
+        } else {
+          emit(NotificationError(errorMessage: response.message ?? 'Failed to update status'));
+        }
+      } else if (stateModel is ErrorState) {
+        emit(NotificationError(errorMessage: stateModel.msg));
+      }
+
     });
 
   }
-
 }

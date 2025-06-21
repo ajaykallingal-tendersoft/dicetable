@@ -20,3 +20,12 @@ class ReadNotification extends NotificationEvent {
   @override
   List<Object?> get props => [notificationReadRequest];
 }
+
+class UpdateNotificationStatus extends NotificationEvent {
+  final NotificationStatusRequest notificationStatusRequest;
+
+  const UpdateNotificationStatus({required this.notificationStatusRequest});
+
+  @override
+  List<Object?> get props => [notificationStatusRequest];
+}

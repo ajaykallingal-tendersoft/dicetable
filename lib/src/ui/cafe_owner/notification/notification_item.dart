@@ -132,5 +132,47 @@ class NotificationReadResponse {
   }
 }
 
+class NotificationStatusRequest {
+  final String fcmToken;
+  final bool notificationStatus;
 
+  NotificationStatusRequest({
+    required this.fcmToken,
+    required this.notificationStatus,
+  });
 
+  Map<String, dynamic> toJson() {
+    return {
+      'fcm_token': fcmToken,
+      'notification_status': notificationStatus,
+    };
+  }
+}
+
+class NotificationStatusResponse {
+  final bool status;
+  final String? message;
+  final bool? notificationStatus;
+
+  NotificationStatusResponse({
+    required this.status,
+    this.message,
+    this.notificationStatus,
+  });
+
+  factory NotificationStatusResponse.fromJson(Map<String, dynamic> json) {
+    return NotificationStatusResponse(
+      status: json['status'] ?? false,
+      message: json['message'],
+      notificationStatus: json['notification_status'],
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'status': status,
+      if (message != null) 'message': message,
+      if (notificationStatus != null) 'notification_status': notificationStatus,
+    };
+  }
+}

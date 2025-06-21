@@ -42,3 +42,12 @@ final class NotificationError extends NotificationState {
   @override
   List<Object?> get props => [errorMessage];
 }
+
+class NotificationStatusUpdated extends NotificationState {
+  final NotificationStatusResponse notificationStatusResponse;
+
+  const NotificationStatusUpdated({required this.notificationStatusResponse});
+
+  @override
+  List<Object?> get props => [notificationStatusResponse];
+}

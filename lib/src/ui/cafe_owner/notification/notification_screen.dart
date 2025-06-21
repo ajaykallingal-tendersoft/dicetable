@@ -1,6 +1,7 @@
 import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/ui/cafe_owner/notification/notification_item.dart';
 import 'package:dicetable/src/ui/cafe_owner/notification/tab_button.dart';
+import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -111,7 +112,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   children: [
                     const SizedBox(height: 10),
                     GestureDetector(
-                      onTap: () {},
+                      onTap: () {
+                        context.read<NotificationBloc>().add(
+                          UpdateNotificationStatus(
+                            notificationStatusRequest: NotificationStatusRequest(
+                                fcmToken: ObjectFactory().prefs.getFcmToken() ?? "",
+                                notificationStatus: false
+                            ),
+                          ),
+                        );
+                        context.read<NotificationBloc>().add(FetchNotifications());
+                      },
                       child:  Text(
                         'Turn Off Notifications',
                         textAlign: TextAlign.left,

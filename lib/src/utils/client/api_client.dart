@@ -352,6 +352,22 @@ class ApiClient {
     );
   }
 
+  Future<Response> notificationStatus(NotificationStatusRequest request) {
+    final token = ObjectFactory().prefs.getAuthToken();
+    final url = UrlsDiceApp.updateNotificationStatus;
+
+    print("Bearer $token");
+    print("URL: $url");
+
+    return dioDiceApp.post(
+      url,
+      data: request,
+      options: Options(headers: {
+        "Authorization": token,
+      }),
+    );
+  }
+
   Future<Response> getCafeEditProfileById() {
     final token = ObjectFactory().prefs.getAuthToken();
     final cafeID = ObjectFactory().prefs.getCafeId(); // Ensure this exists

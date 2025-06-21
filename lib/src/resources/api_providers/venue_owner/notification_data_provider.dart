@@ -130,5 +130,66 @@ class NotificationDataProvider {
     }
   }
 
+  /// Update notification status
+  Future<StateModel<dynamic>> updateNotificationStatus(NotificationStatusRequest request) async {
+    print("updateNotificationStatus called with: $request");
+
+    try {
+      final response = await ObjectFactory().apiClient.notificationStatus(request);
+
+      final String jsonRequest = jsonEncode(request.toJson());
+      print("Request Payload:");
+      print(jsonRequest);
+      print("Response status code: ${response.statusCode}");
+      print("Response data: ${response.data}");
+
+      if (response.data != null) {
+        if (response.statusCode == 200) {
+          final statusResponse = NotificationStatusResponse.fromJson(response.data);
+          return StateModel.success(statusResponse);
+        } else {
+          final errorResponse = NotificationStatusResponse.fromJson(response.data);
+
+          if (errorResponse.message?.isNotEmpty ?? false) {
+            return StateModel.error(errorResponse.message);
+          } else {
+            return StateModel.error("Error: ${response.statusCode}");
+          }
+        }
+      } else {
+        return StateModel.error("Invalid response from server");
+      }
+    } on DioException catch (e) {
+      if (e.response != null) {
+        try {
+          final errorResponse = NotificationStatusResponse.fromJson(e.response!.data);
+
+          if (errorResponse.message?.isNotEmpty ?? false) {
+            return StateModel.error(errorResponse.message);
+          }
+        } catch (_) {
+          // Silent parse error
+        }
+
+        if (e.response!.statusCode == 500) {
+          return StateModel.error("The server isn't responding! Please try again later.");
+        } else if (e.response!.statusCode == 408) {
+          return StateModel.error("Request timed out. Please try again later.");
+        } else if (e.response!.statusCode == 401) {
+          return StateModel.error("Unauthorized access.");
+        } else if (e.response!.statusCode == 422) {
+          return StateModel.error("Validation failed. Please check your input.");
+        } else {
+          return StateModel.error("Error: ${e.response!.statusCode}");
+        }
+      } else if (e.type.name == "connectionError") {
+        return StateModel.error("Connection error. Please check your internet connection.");
+      }
+
+      return StateModel.error("An unexpected error occurred: ${e.message ?? e.toString()}");
+    } catch (e) {
+      return StateModel.error("An unexpected error occurred: ${e.toString()}");
+    }
+  }
 
 }
