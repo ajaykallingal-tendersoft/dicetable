@@ -9,7 +9,6 @@ import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
-import '../notification/notification_cubit.dart';
 import 'widget/expandable_card.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:responsive_framework/responsive_framework.dart';
@@ -82,37 +81,28 @@ class _HomePageState extends State<HomePage> {
                                 fontSize: 30.sp,
                               ),
                             ),
-                            BlocBuilder<NotificationCubit, int>(
-                              builder: (context, count) {
-                                return InkWell(
-                                  onTap: () {
-                                    GoRouter.of(context).push('/notification');
-                                    // context.push('/notification');
-                                  },
-                                  child: Stack(
-                                    children: [
+                            InkWell(
+                              onTap: () {
+                                GoRouter.of(context).push('/notification');
+                              },
+                              child: Stack(
+                                children: [
                                       const Icon(
                                         Icons.notifications_outlined,
                                         color: AppColors.primaryWhiteColor,
                                         size: 35,
                                       ),
-                                      if (count > 0)
-                                        Positioned(
-                                          right: 0,
-                                          top: 0,
+                                      Positioned(
+                                          right: 0, top: 0,
                                           child: Container(
                                             padding: const EdgeInsets.all(4),
                                             decoration: const BoxDecoration(
                                               color: AppColors.appRedColor,
                                               shape: BoxShape.circle,
                                             ),
-                                            constraints: const BoxConstraints(
-                                              minWidth: 16,
-                                              minHeight: 16,
-                                            ),
+                                            constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
                                             child: Center(
-                                              child: Text(
-                                                '$count',
+                                              child: Text('0',
                                                 style: const TextStyle(
                                                   color: AppColors.primaryWhiteColor,
                                                   fontSize: 12,
@@ -124,9 +114,7 @@ class _HomePageState extends State<HomePage> {
                                         ),
                                     ],
                                   ),
-                                );
-                              },
-                            )
+                                )
                           ],
                         ),
                         const Gap(30),

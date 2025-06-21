@@ -6,17 +6,18 @@ import 'package:dicetable/src/resources/api_providers/customer/cafe_data_provide
 import 'package:dicetable/src/resources/api_providers/customer/favourite_data_provider.dart';
 import 'package:dicetable/src/resources/api_providers/customer/profile_data_provider.dart';
 import 'package:dicetable/src/resources/api_providers/venue_owner/home_data_provider.dart';
+import 'package:dicetable/src/resources/api_providers/venue_owner/notification_data_provider.dart';
 import 'package:dicetable/src/resources/api_providers/venue_owner/profile_data_provider.dart';
 import 'package:dicetable/src/resources/api_providers/venue_owner/subscription_data_provider.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/forgot_password/bloc/forgotPassword/forgot_password_bloc.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/login/cubit/apple_signin_cubit.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/login/cubit/google_sign_in_cubit.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/sign_up/bloc/sign_up/sign_up_bloc.dart';
+import 'package:dicetable/src/ui/cafe_owner/notification/bloc/notification_bloc.dart';
 import 'package:dicetable/src/ui/customer/authentication/sign_up/bloc/customer_sign_up_bloc.dart';
 import 'package:dicetable/src/ui/customer/home/bloc/customer_home_bloc.dart';
 import 'package:dicetable/src/ui/customer/profile/bloc/customer_profile_bloc.dart';
 import 'package:dicetable/src/ui/cafe_owner/home/bloc/home_bloc.dart';
-import 'package:dicetable/src/ui/cafe_owner/notification/notification_cubit.dart';
 import 'package:dicetable/src/ui/cafe_owner/profile/bloc/profile_bloc.dart';
 import 'package:dicetable/src/ui/cafe_owner/subscription/bloc/subscription_bloc.dart';
 import 'package:dicetable/src/ui/customer/cafe_details/bloc/cafe_details_bloc.dart';
@@ -39,8 +40,8 @@ class App extends StatelessWidget {
         BlocProvider<NetworkConnectivityBloc>(
           create: (BuildContext context) => NetworkConnectivityBloc()..add(NetworkObserve()),
         ),
-        BlocProvider<NotificationCubit>(
-          create: (context) => NotificationCubit(),
+        BlocProvider<NotificationBloc>(
+          create: (context) => NotificationBloc(notificationDataProvider: NotificationDataProvider()),
         ),
         BlocProvider<ProfileBloc>(
           create: (context) => ProfileBloc(profileDataProvider: ProfileDataProvider()),

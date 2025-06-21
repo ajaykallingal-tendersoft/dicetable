@@ -19,6 +19,7 @@ import 'package:dicetable/src/model/customer/cafe/remove_favourite_request.dart'
 import 'package:dicetable/src/model/customer/guest/guest_user_request.dart';
 import 'package:dicetable/src/model/customer/profile/customer_profile_update_request.dart';
 import 'package:dicetable/src/model/verification/otp_verify_request.dart';
+import 'package:dicetable/src/ui/cafe_owner/notification/notification_item.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:dicetable/src/utils/urls/urls.dart';
 import 'package:dio/dio.dart';
@@ -297,6 +298,70 @@ class ApiClient {
 
     return dioDiceApp.get(
       url,
+      options: Options(headers: {
+        "Authorization": token,
+      }),
+    );
+  }
+
+  Future<Response> getCafeNotificationDataById() {
+    final token = ObjectFactory().prefs.getAuthToken();
+    final cafeID = ObjectFactory().prefs.getCafeId(); // Ensure this exists
+    final url = '${UrlsDiceApp.getCafeNotification}/$cafeID';
+
+    print("Bearer $token");
+    print("URL: $url");
+
+    return dioDiceApp.get(
+      url,
+      options: Options(headers: {
+        "Authorization": token,
+      }),
+    );
+  }
+
+  Future<Response> getCustomerNotificationDataById() {
+    final token = ObjectFactory().prefs.getAuthToken();
+    final userID = ObjectFactory().prefs.getUserId(); // Ensure this exists
+    final url = '${UrlsDiceApp.getCustomerNotification}/$userID';
+
+    print("Bearer $token");
+    print("URL: $url");
+
+    return dioDiceApp.get(
+      url,
+      options: Options(headers: {
+        "Authorization": token,
+      }),
+    );
+  }
+
+  Future<Response> markNotificationAsRead(NotificationReadRequest request) {
+    final token = ObjectFactory().prefs.getAuthToken();
+    final url = UrlsDiceApp.markNotificationAsRead;
+
+    print("Bearer $token");
+    print("URL: $url");
+
+    return dioDiceApp.post(
+      url,
+      data: request,
+      options: Options(headers: {
+        "Authorization": token,
+      }),
+    );
+  }
+
+  Future<Response> notificationStatus(NotificationStatusRequest request) {
+    final token = ObjectFactory().prefs.getAuthToken();
+    final url = UrlsDiceApp.updateNotificationStatus;
+
+    print("Bearer $token");
+    print("URL: $url");
+
+    return dioDiceApp.post(
+      url,
+      data: request,
       options: Options(headers: {
         "Authorization": token,
       }),
