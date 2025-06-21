@@ -1,3 +1,6 @@
+import 'package:badges/badges.dart' as badges;
+import 'package:dicetable/src/ui/cafe_owner/notification/bloc/notification_bloc.dart';
+import 'package:dicetable/src/ui/cafe_owner/notification/count_controller.dart';
 import 'package:flutter/services.dart';
 import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/ui/cafe_owner/home/home_page.dart';
@@ -6,8 +9,11 @@ import 'package:dicetable/src/ui/cafe_owner/profile/manage_profile_screen.dart';
 import 'package:dicetable/src/ui/cafe_owner/subscription/subscription_overview_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -19,6 +25,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   DateTime? currentBackPressTime;
+  final CounterController controller = Get.find<CounterController>();
 
   void _onTabSelected(int index) {
     setState(() {
@@ -47,12 +54,20 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<NotificationBloc>().add(FetchNotifications());
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: onWillPop,
       child: Scaffold(
         extendBody: true,
-        appBar: _buildAppBar(_selectedIndex, context),
+        appBar: _buildAppBar(_selectedIndex, context, controller),
         body: AnimatedSwitcher(
           duration: const Duration(milliseconds: 300),
           transitionBuilder: (Widget child, Animation<double> animation) {
@@ -121,7 +136,7 @@ Widget _buildPage(int index) {
   }
 }
 
-PreferredSizeWidget? _buildAppBar(int index, BuildContext context) {
+PreferredSizeWidget? _buildAppBar(int index, BuildContext context, CounterController controller) {
   switch (index) {
     case 1:
       return AppBar(
@@ -138,40 +153,48 @@ PreferredSizeWidget? _buildAppBar(int index, BuildContext context) {
           ),
         ),
         actions: [
-          Stack(
-            children: [
-              const Icon(
-                Icons.notifications_outlined,
-                color: AppColors.primaryWhiteColor,
-                size: 35,
-              ),
-              // if (count > 0)
-              Positioned(
-                right: 0,
-                top: 0,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(
-                    color: AppColors.appRedColor,
-                    shape: BoxShape.circle,
-                  ),
-                  constraints: const BoxConstraints(
-                    minWidth: 16,
-                    minHeight: 16,
-                  ),
-                  child: Center(
-                    child: Text(
-                      '8',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
+          BlocConsumer<NotificationBloc, NotificationState>(
+            listener: (context, state) async {
+              if (state is NotificationLoaded) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  controller.notificationBadgeAmount.value = state.notificationItems.data.unread.length;
+                });
+              }
+            },
+            builder: (context, state) {
+              return InkWell(
+                onTap: () {
+                  GoRouter.of(context).push('/notification');
+                },
+                child: Obx(() {
+                  return controller.notificationBadgeAmount.value > 0
+                      ? badges.Badge(
+                    position: badges.BadgePosition.topEnd(top: 0, end: 0),
+                    badgeAnimation: badges.BadgeAnimation.slide(),
+                    showBadge: true,
+                    badgeStyle: badges.BadgeStyle(
+                      shape: badges.BadgeShape.square,
+                      borderRadius: BorderRadius.circular(10),
+                      badgeColor: Colors.red,
+                      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     ),
-                  ),
-                ),
-              ),
-            ],
+                    badgeContent: Text(
+                      controller.notificationBadgeAmount.value.toString(),
+                      style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                    ),
+                    child: const Icon(
+                      Icons.notifications_outlined,
+                      color: AppColors.primaryWhiteColor,
+                      size: 35,
+                    ),
+                  ) : const Icon(
+                    Icons.notifications_outlined,
+                    color: AppColors.primaryWhiteColor,
+                    size: 35,
+                  );
+                }),
+              );
+            },
           ),
         ],
         actionsPadding: EdgeInsets.only(right: 15),

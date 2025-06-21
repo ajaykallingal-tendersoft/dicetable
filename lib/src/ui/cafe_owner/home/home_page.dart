@@ -1,5 +1,8 @@
+import 'package:badges/badges.dart' as badges;
 import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/ui/cafe_owner/home/bloc/home_bloc.dart';
+import 'package:dicetable/src/ui/cafe_owner/notification/bloc/notification_bloc.dart';
+import 'package:dicetable/src/ui/cafe_owner/notification/count_controller.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -12,8 +15,7 @@ import 'package:go_router/go_router.dart';
 import 'widget/expandable_card.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:responsive_framework/responsive_framework.dart';
-
-
+import 'package:get/get.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -23,15 +25,23 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+
+  final CounterController controller = Get.find<CounterController>();
+
   @override
   void initState() {
     super.initState();
     context.read<HomeBloc>().add(GetHomeDataEvent());
+    // Fetch notifications
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<NotificationBloc>().add(FetchNotifications());
+    });
   }
+
   @override
   Widget build(BuildContext context) {
     final isTabletOrLarger = ResponsiveBreakpoints.of(context).largerThan(MOBILE);
-    return   Container(
+    return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -70,52 +80,61 @@ class _HomePageState extends State<HomePage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "DICE TABLE",
-                              style: TextTheme.of(context).labelMedium!.copyWith(
-                                color: AppColors.primaryWhiteColor,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 30.sp,
-                              ),
-                            ),
-                            InkWell(
-                              onTap: () {
-                                GoRouter.of(context).push('/notification');
-                              },
-                              child: Stack(
-                                children: [
-                                      const Icon(
+                        BlocConsumer<NotificationBloc, NotificationState>(
+                          listener: (context, state) async {
+                            if (state is NotificationLoaded) {
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                controller.notificationBadgeAmount.value = state.notificationItems.data.unread.length;
+                              });
+                            }
+                          },
+                          builder: (context, state) {
+                            return Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "DICE TABLE",
+                                  style: TextTheme.of(context).labelMedium!.copyWith(
+                                    color: AppColors.primaryWhiteColor,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 30.sp,
+                                  ),
+                                ),
+                                InkWell(
+                                  onTap: () {
+                                    GoRouter.of(context).push('/notification');
+                                  },
+                                  child: Obx(() {
+                                    return controller.notificationBadgeAmount.value > 0
+                                        ? badges.Badge(
+                                      position: badges.BadgePosition.topEnd(top: 0, end: 0),
+                                      badgeAnimation: badges.BadgeAnimation.slide(),
+                                      showBadge: true,
+                                      badgeStyle: badges.BadgeStyle(
+                                        shape: badges.BadgeShape.square,
+                                        borderRadius: BorderRadius.circular(10),
+                                        badgeColor: Colors.red,
+                                        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      ),
+                                      badgeContent: Text(
+                                        controller.notificationBadgeAmount.value.toString(),
+                                        style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                      ),
+                                      child: const Icon(
                                         Icons.notifications_outlined,
                                         color: AppColors.primaryWhiteColor,
                                         size: 35,
                                       ),
-                                      Positioned(
-                                          right: 0, top: 0,
-                                          child: Container(
-                                            padding: const EdgeInsets.all(4),
-                                            decoration: const BoxDecoration(
-                                              color: AppColors.appRedColor,
-                                              shape: BoxShape.circle,
-                                            ),
-                                            constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                                            child: Center(
-                                              child: Text('0',
-                                                style: const TextStyle(
-                                                  color: AppColors.primaryWhiteColor,
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
+                                    ) : const Icon(
+                                      Icons.notifications_outlined,
+                                      color: AppColors.primaryWhiteColor,
+                                      size: 35,
+                                    );
+                                  }),
                                 )
-                          ],
+                              ],
+                            );
+                          },
                         ),
                         const Gap(30),
                         Text(
