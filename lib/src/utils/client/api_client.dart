@@ -5,6 +5,7 @@ import 'package:dicetable/src/model/cafe_owner/auth/forgot_password/password_res
 import 'package:dicetable/src/model/cafe_owner/auth/forgot_password/resend_otp_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/login/google_login_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/login/login_request.dart';
+import 'package:dicetable/src/model/cafe_owner/auth/signUp/apple_sign-up_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/google_sign-up_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/sign_up_request.dart';
 import 'package:dicetable/src/model/cafe_owner/home/dice_table_update_request.dart';
@@ -211,6 +212,11 @@ class ApiClient {
       data: appleLoginRequest,
 
     );
+  }
+
+    //Google Register
+  Future<Response> appleRegisterUser(AppleSignUpRequest appleSignUpRequest) {
+    return dioDiceApp.post(UrlsDiceApp.appleSignUp, data: appleSignUpRequest);
   }
 
   //Otp Verify

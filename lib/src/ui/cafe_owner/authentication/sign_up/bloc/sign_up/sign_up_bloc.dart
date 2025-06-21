@@ -4,6 +4,8 @@ import 'dart:typed_data';
 import 'package:bloc/bloc.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/login/google_login_request_response.dart';
+import 'package:dicetable/src/model/cafe_owner/auth/signUp/apple_sign-up_request.dart';
+import 'package:dicetable/src/model/cafe_owner/auth/signUp/apple_sign-up_response.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/google_sign-up_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/google_sign-up_response.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/sign_up_request.dart';
@@ -31,25 +33,17 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
   SignUpFormState _formState;
 
   SignUpBloc({required this.authDataProvider})
-      : _formState = SignUpFormState(
-    openingHours: {
-      for (final day in [
-        'mon',
-        'tue',
-        'wed',
-        'thu',
-        'fri',
-        'sat',
-        'sun',
-      ])
-        day: OpeningHour(
-          isEnabled: false,
-          from: const TimeOfDay(hour: 9, minute: 0),
-          to: const TimeOfDay(hour: 17, minute: 0),
-        ),
-    },
-  ),
-        super(SignUpInitial()) {
+    : _formState = SignUpFormState(
+        openingHours: {
+          for (final day in ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'])
+            day: OpeningHour(
+              isEnabled: false,
+              from: const TimeOfDay(hour: 9, minute: 0),
+              to: const TimeOfDay(hour: 17, minute: 0),
+            ),
+        },
+      ),
+      super(SignUpInitial()) {
     emit(_formState);
 
     on<UpdateTextField>((event, emit) {
@@ -58,20 +52,22 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
     });
 
     on<ToggleVenueType>((event, emit) {
-      final updatedVenueTypes = _formState.venueTypes.map((model) {
-        if (model.id == event.id) {
-          return model.copyWith(isSelected: event.isSelected);
-        }
-        return model;
-      }).toList();
+      final updatedVenueTypes =
+          _formState.venueTypes.map((model) {
+            if (model.id == event.id) {
+              return model.copyWith(isSelected: event.isSelected);
+            }
+            return model;
+          }).toList();
 
       _formState = _formState.copyWith(venueTypes: updatedVenueTypes);
       emit(_formState);
     });
 
     on<UpdateOpeningHour>((event, emit) {
-      final updatedHours = Map<String, OpeningHour>.from(_formState.openingHours)
-        ..[event.day] = event.hour;
+      final updatedHours = Map<String, OpeningHour>.from(
+        _formState.openingHours,
+      )..[event.day] = event.hour;
       _formState = _formState.copyWith(openingHours: updatedHours);
       emit(_formState);
     });
@@ -79,33 +75,34 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
     on<PickImageFromGalleryEvent>((event, emit) async {
       emit(SignUpImageLoadingState());
       try {
-        Permission permission;
         if (Platform.isAndroid) {
+          Permission permission;
           if (await isAndroid13OrHigher()) {
             permission = Permission.photos;
           } else {
             permission = Permission.storage;
           }
-        } else {
-          permission = Permission.photos;
+
+          final permissionStatus = await permission.request();
+          if (!permissionStatus.isGranted) {
+            emit(
+              SignUpImageErrorState(
+                errorMessage: "Photo access permission denied.",
+              ),
+            );
+            emit(_formState);
+            return;
+          }
         }
 
-        final permissionStatus = await permission.request();
-
-        if (!permissionStatus.isGranted) {
-          emit(SignUpImageErrorState(errorMessage: "Photo access permission denied."));
-          emit(_formState);
-          return;
-        }
-
+        // This will trigger iOS permission dialog if needed
         final pickedImage = await _picker.pickImage(
           source: ImageSource.gallery,
           imageQuality: 80,
         );
 
         if (pickedImage == null) {
-          // emit(SignUpImageErrorState(errorMessage: "No image selected."));
-          emit(_formState);
+          emit(_formState); // User cancelled or permission denied
           return;
         }
 
@@ -113,14 +110,24 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
         final fileSize = file.lengthSync();
         final ext = pickedImage.name.toLowerCase();
 
-        if (!(ext.endsWith('.png') || ext.endsWith('.jpeg') || ext.endsWith('.jpg'))) {
-          emit(SignUpImageErrorState(errorMessage: "Only JPEG or PNG images are allowed."));
+        if (!(ext.endsWith('.png') ||
+            ext.endsWith('.jpeg') ||
+            ext.endsWith('.jpg'))) {
+          emit(
+            SignUpImageErrorState(
+              errorMessage: "Only JPEG or PNG images are allowed.",
+            ),
+          );
           emit(_formState);
           return;
         }
 
         if (fileSize > 5 * 1024 * 1024) {
-          emit(SignUpImageErrorState(errorMessage: "Image size must be under 5MB."));
+          emit(
+            SignUpImageErrorState(
+              errorMessage: "Image size must be under 5MB.",
+            ),
+          );
           emit(_formState);
           return;
         }
@@ -145,13 +152,19 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
     on<CaptureImageWithCameraEvent>((event, emit) async {
       emit(SignUpImageLoadingState());
       try {
-        Permission permission = Permission.camera;
-        final permissionStatus = await permission.request();
+        if (Platform.isAndroid) {
+          Permission permission = Permission.camera;
+          final permissionStatus = await permission.request();
 
-        if (!permissionStatus.isGranted) {
-          emit(SignUpImageErrorState(errorMessage: "Camera access permission denied."));
-          emit(_formState);
-          return;
+          if (!permissionStatus.isGranted) {
+            emit(
+              SignUpImageErrorState(
+                errorMessage: "Camera access permission denied.",
+              ),
+            );
+            emit(_formState);
+            return;
+          }
         }
 
         final pickedImage = await _picker.pickImage(
@@ -169,14 +182,24 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
         final fileSize = file.lengthSync();
         final ext = pickedImage.name.toLowerCase();
 
-        if (!(ext.endsWith('.png') || ext.endsWith('.jpeg') || ext.endsWith('.jpg'))) {
-          emit(SignUpImageErrorState(errorMessage: "Only JPEG or PNG images are allowed."));
+        if (!(ext.endsWith('.png') ||
+            ext.endsWith('.jpeg') ||
+            ext.endsWith('.jpg'))) {
+          emit(
+            SignUpImageErrorState(
+              errorMessage: "Only JPEG or PNG images are allowed.",
+            ),
+          );
           emit(_formState);
           return;
         }
 
         if (fileSize > 5 * 1024 * 1024) {
-          emit(SignUpImageErrorState(errorMessage: "Image size must be under 5MB."));
+          emit(
+            SignUpImageErrorState(
+              errorMessage: "Image size must be under 5MB.",
+            ),
+          );
           emit(_formState);
           return;
         }
@@ -193,10 +216,161 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
         ObjectFactory().prefs.setImageData(cafeUserImage: base64Encoded);
         emit(_formState);
       } catch (e) {
-        emit(SignUpImageErrorState(errorMessage: "Failed to capture image: $e"));
+        emit(
+          SignUpImageErrorState(errorMessage: "Failed to capture image: $e"),
+        );
         emit(_formState);
       }
     });
+
+    // on<PickImageFromGalleryEvent>((event, emit) async {
+    //   emit(SignUpImageLoadingState());
+    //   try {
+    //     Permission permission;
+    //     if (Platform.isAndroid) {
+    //       if (await isAndroid13OrHigher()) {
+    //         permission = Permission.photos;
+    //       } else {
+    //         permission = Permission.storage;
+    //       }
+
+    //       final permissionStatus = await permission.request();
+    //       if (!permissionStatus.isGranted) {
+    //         emit(
+    //           SignUpImageErrorState(
+    //             errorMessage: "Photo access permission denied.",
+    //           ),
+    //         );
+    //         emit(_formState);
+    //         return;
+    //       }
+    //     }
+
+    //     final pickedImage = await _picker.pickImage(
+    //       source: ImageSource.gallery,
+    //       imageQuality: 80,
+    //     );
+
+    //     if (pickedImage == null) {
+    //       // emit(SignUpImageErrorState(errorMessage: "No image selected."));
+    //       emit(_formState);
+    //       return;
+    //     }
+
+    //     final file = File(pickedImage.path);
+    //     final fileSize = file.lengthSync();
+    //     final ext = pickedImage.name.toLowerCase();
+
+    //     if (!(ext.endsWith('.png') ||
+    //         ext.endsWith('.jpeg') ||
+    //         ext.endsWith('.jpg'))) {
+    //       emit(
+    //         SignUpImageErrorState(
+    //           errorMessage: "Only JPEG or PNG images are allowed.",
+    //         ),
+    //       );
+    //       emit(_formState);
+    //       return;
+    //     }
+
+    //     if (fileSize > 5 * 1024 * 1024) {
+    //       emit(
+    //         SignUpImageErrorState(
+    //           errorMessage: "Image size must be under 5MB.",
+    //         ),
+    //       );
+    //       emit(_formState);
+    //       return;
+    //     }
+
+    //     Uint8List bytes = await pickedImage.readAsBytes();
+    //     base64String = base64.encode(bytes);
+    //     _image = pickedImage;
+    //     base64Encoded = "data:image/png;base64,$base64String";
+
+    //     _formState = _formState.copyWith(
+    //       image: _image,
+    //       base64Image: base64Encoded,
+    //     );
+    //     ObjectFactory().prefs.setImageData(cafeUserImage: base64Encoded);
+    //     emit(_formState);
+    //   } catch (e) {
+    //     emit(SignUpImageErrorState(errorMessage: "Failed to pick image: $e"));
+    //     emit(_formState);
+    //   }
+    // });
+
+    // on<CaptureImageWithCameraEvent>((event, emit) async {
+    //   emit(SignUpImageLoadingState());
+    //   try {
+    //     Permission permission = Permission.camera;
+    //     final permissionStatus = await permission.request();
+
+    //     if (!permissionStatus.isGranted) {
+    //       emit(
+    //         SignUpImageErrorState(
+    //           errorMessage: "Camera access permission denied.",
+    //         ),
+    //       );
+    //       emit(_formState);
+    //       return;
+    //     }
+
+    //     final pickedImage = await _picker.pickImage(
+    //       source: ImageSource.camera,
+    //       imageQuality: 80,
+    //     );
+
+    //     if (pickedImage == null) {
+    //       // emit(SignUpImageErrorState(errorMessage: "No image captured."));
+    //       emit(_formState);
+    //       return;
+    //     }
+
+    //     final file = File(pickedImage.path);
+    //     final fileSize = file.lengthSync();
+    //     final ext = pickedImage.name.toLowerCase();
+
+    //     if (!(ext.endsWith('.png') ||
+    //         ext.endsWith('.jpeg') ||
+    //         ext.endsWith('.jpg'))) {
+    //       emit(
+    //         SignUpImageErrorState(
+    //           errorMessage: "Only JPEG or PNG images are allowed.",
+    //         ),
+    //       );
+    //       emit(_formState);
+    //       return;
+    //     }
+
+    //     if (fileSize > 5 * 1024 * 1024) {
+    //       emit(
+    //         SignUpImageErrorState(
+    //           errorMessage: "Image size must be under 5MB.",
+    //         ),
+    //       );
+    //       emit(_formState);
+    //       return;
+    //     }
+
+    //     Uint8List bytes = await pickedImage.readAsBytes();
+    //     base64String = base64.encode(bytes);
+    //     _image = pickedImage;
+    //     base64Encoded = "data:image/png;base64,$base64String";
+
+    //     _formState = _formState.copyWith(
+    //       image: _image,
+    //       base64Image: base64Encoded,
+    //     );
+    //     ObjectFactory().prefs.setImageData(cafeUserImage: base64Encoded);
+    //     emit(_formState);
+    //   } catch (e) {
+    //     emit(
+    //       SignUpImageErrorState(errorMessage: "Failed to capture image: $e"),
+    //     );
+    //     emit(_formState);
+    //   }
+    // });
 
     on<ClearImageEvent>((event, emit) async {
       emit(SignUpImageLoadingState());
@@ -204,10 +378,7 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
         _image = null;
         base64String = '';
         base64Encoded = '';
-        _formState = _formState.copyWith(
-          clearImage: true,
-          base64Image: '',
-        );
+        _formState = _formState.copyWith(clearImage: true, base64Image: '');
         ObjectFactory().prefs.clearImageData();
         emit(_formState);
       } catch (e) {
@@ -238,7 +409,8 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
       if (result!.isError) {
         final error = result.error;
         if (error is SignUpRequestResponse) {
-          final firstError = error.errors?.values.first.first ?? "Signup failed.";
+          final firstError =
+              error.errors?.values.first.first ?? "Signup failed.";
           emit(SignUpErrorState(errorMessage: firstError));
         } else if (error is String) {
           emit(SignUpErrorState(errorMessage: error));
@@ -261,7 +433,12 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
           ObjectFactory().prefs.clearImageData();
           emit(SignUpSuccessState(signUpRequestResponse: response));
         } else {
-          emit(SignUpErrorState(errorMessage: response.errors?.values.first.first ?? "Signup failed"));
+          emit(
+            SignUpErrorState(
+              errorMessage:
+                  response.errors?.values.first.first ?? "Signup failed",
+            ),
+          );
           emit(_formState);
         }
       }
@@ -269,12 +446,15 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
 
     on<SubmitGoogleSignUp>((event, emit) async {
       emit(GoogleSignUpLoadingState());
-      final result = await authDataProvider.googleRegisterUser(event.signupRequest);
+      final result = await authDataProvider.googleRegisterUser(
+        event.signupRequest,
+      );
 
       if (result!.isError) {
         final error = result.error;
         if (error is GoogleSignUpRequestResponse) {
-          final firstError = error.errors?.values.first.first ?? "Signup failed.";
+          final firstError =
+              error.errors?.values.first.first ?? "Signup failed.";
           emit(GoogleSignUpErrorState(errorMessage: firstError));
         } else if (error is String) {
           emit(GoogleSignUpErrorState(errorMessage: error));
@@ -297,7 +477,55 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
           ObjectFactory().prefs.clearImageData();
           emit(GoogleSignUpSuccessState(googleSignUpRequestResponse: response));
         } else {
-          emit(GoogleSignUpErrorState(errorMessage: response.errors?.values.first.first ?? "Signup failed"));
+          emit(
+            GoogleSignUpErrorState(
+              errorMessage:
+                  response.errors?.values.first.first ?? "Signup failed",
+            ),
+          );
+          emit(_formState);
+        }
+      }
+    });
+    on<SubmitAppleSignUp>((event, emit) async {
+      emit(AppleSignUpLoadingState());
+      final result = await authDataProvider.appleRegisterUser(
+        event.signupRequest,
+      );
+
+      if (result!.isError) {
+        final error = result.error;
+        if (error is AppleSignUpRequestResponse) {
+          final firstError =
+              error.errors?.values.first.first ?? "Signup failed.";
+          emit(AppleSignUpErrorState(errorMessage: firstError));
+        } else if (error is String) {
+          emit(AppleSignUpErrorState(errorMessage: error));
+        } else {
+          emit(AppleSignUpErrorState(errorMessage: "Something went wrong."));
+        }
+        emit(_formState);
+      } else if (result.isSuccess) {
+        final response = result.data as AppleSignUpRequestResponse;
+        if (response.status == true) {
+          // Clear image on successful signup
+          _image = null;
+          base64String = '';
+          base64Encoded = '';
+          _formState = _formState.copyWith(
+            image: null,
+            base64Image: '',
+            clearImage: true,
+          );
+          ObjectFactory().prefs.clearImageData();
+          emit(AppleSignUpSuccessState(appleSignUpRequestResponse: response));
+        } else {
+          emit(
+            AppleSignUpErrorState(
+              errorMessage:
+                  response.errors?.values.first.first ?? "Signup failed",
+            ),
+          );
           emit(_formState);
         }
       }
@@ -306,14 +534,21 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
     on<LoadVenueTypes>(_onFetchVenueType);
   }
 
-  Future<void> _onFetchVenueType(LoadVenueTypes event, Emitter<SignUpState> emit) async {
+  Future<void> _onFetchVenueType(
+    LoadVenueTypes event,
+    Emitter<SignUpState> emit,
+  ) async {
     try {
       emit(_formState.copyWith(isLoadingVenueTypes: true));
       final response = await authDataProvider.getVenueTypes();
 
       if (response is SuccessState) {
         final data = response.value as VenueTypeResponse;
-        final types = data.venueTypes?.map((venueType) => VenueTypeModel.fromVenueType(venueType)).toList() ?? [];
+        final types =
+            data.venueTypes
+                ?.map((venueType) => VenueTypeModel.fromVenueType(venueType))
+                .toList() ??
+            [];
 
         _formState = _formState.copyWith(
           venueTypes: types,

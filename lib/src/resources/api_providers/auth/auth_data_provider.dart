@@ -11,6 +11,8 @@ import 'package:dicetable/src/model/cafe_owner/auth/login/google_login_request.d
 import 'package:dicetable/src/model/cafe_owner/auth/login/google_login_request_response.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/login/login_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/login/login_request_response.dart';
+import 'package:dicetable/src/model/cafe_owner/auth/signUp/apple_sign-up_request.dart';
+import 'package:dicetable/src/model/cafe_owner/auth/signUp/apple_sign-up_response.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/google_sign-up_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/google_sign-up_response.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/sign_up_request.dart';
@@ -28,39 +30,42 @@ class AuthDataProvider {
   ///Register
   Future<StateModel?> registerUser(SignUpRequest signUpRequest) async {
     try {
-      final response =
-      await ObjectFactory().apiClient.registerUser(signUpRequest);
+      final response = await ObjectFactory().apiClient.registerUser(
+        signUpRequest,
+      );
       print(response.toString());
       String jsonRequest = jsonEncode(signUpRequest);
       print("Request Payload:");
       print(jsonRequest);
       if (response.statusCode == 200) {
         return StateModel<SignUpRequestResponse>.success(
-            SignUpRequestResponse.fromJson(response.data));
+          SignUpRequestResponse.fromJson(response.data),
+        );
       }
       return null;
     } on DioException catch (e) {
-
       if (e.response!.statusCode == 500) {
         return StateModel.error(
-            "The server isn't responding! Please try again later.");
+          "The server isn't responding! Please try again later.",
+        );
         // return response!;
       } else if (e.response!.statusCode == 408) {
         return StateModel.error(
-            "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!");
+          "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!",
+        );
         // Something happened in setting up or sending the request that triggered an Error
       } else if (e.type.name == "connectionError") {
         return StateModel.error(
-            "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!");
+          "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!",
+        );
         // Something happened in setting up or sending the request that triggered an Error
       }
-
     }
     return null;
   }
 
   ///Login
-///
+  ///
   Future<StateModel<dynamic>> loginUser(LoginRequest loginRequest) async {
     print("loginUser called with: $loginRequest");
     try {
@@ -68,15 +73,11 @@ class AuthDataProvider {
       print("Response status code: ${response.statusCode}");
       print("Response data: ${response.data}");
       if (response.data != null) {
-
         if (response.statusCode == 200) {
           print(response);
           final loginResponse = LoginRequestResponse.fromJson(response.data);
           return StateModel.success(loginResponse);
-        }
-
-        else {
-
+        } else {
           final errorResponse = LoginRequestResponse.fromJson(response.data);
 
           if (response.statusCode == 422 && errorResponse.errors != null) {
@@ -89,9 +90,7 @@ class AuthDataProvider {
               }
             });
             return StateModel.error(errorMessage);
-          }
-
-          else if (errorResponse.error != null) {
+          } else if (errorResponse.error != null) {
             return StateModel.error(errorResponse.error!);
           } else if (errorResponse.message != null) {
             return StateModel.error(errorResponse.message!);
@@ -113,13 +112,13 @@ class AuthDataProvider {
           } else if (errorResponse.message != null) {
             return StateModel.error(errorResponse.message!);
           }
-        } catch (_) {
-
-        }
+        } catch (_) {}
 
         // Status code based error handling
         if (e.response!.statusCode == 500) {
-          return StateModel.error("The server isn't responding! Please try again later.");
+          return StateModel.error(
+            "The server isn't responding! Please try again later.",
+          );
         } else if (e.response!.statusCode == 408) {
           return StateModel.error("Request timed out. Please try again later.");
         } else if (e.response!.statusCode == 401) {
@@ -127,37 +126,54 @@ class AuthDataProvider {
         } else if (e.response!.statusCode == 403) {
           return StateModel.error("Email not verified");
         } else if (e.response!.statusCode == 422) {
-          return StateModel.error("Validation failed. Please check your inputs.");
+          return StateModel.error(
+            "Validation failed. Please check your inputs.",
+          );
         } else {
           return StateModel.error("Error: ${e.response!.statusCode}");
         }
       } else if (e.type.name == "connectionError") {
-        return StateModel.error("Connection refused. Please check your internet connection.");
+        return StateModel.error(
+          "Connection refused. Please check your internet connection.",
+        );
       }
 
       // Generic error fallback
-      return StateModel.error("An unexpected error occurred: ${e.message ?? e.toString()}");
+      return StateModel.error(
+        "An unexpected error occurred: ${e.message ?? e.toString()}",
+      );
     } catch (e) {
       return StateModel.error("An unexpected error occurred: ${e.toString()}");
     }
   }
 
   ///ForgotPassword
-  Future<StateModel?> forgotPassword(ForgotPasswordRequest forgotPasswordRequest) async {
+  Future<StateModel?> forgotPassword(
+    ForgotPasswordRequest forgotPasswordRequest,
+  ) async {
     try {
-      final response = await ObjectFactory().apiClient.forgotPassword(forgotPasswordRequest);
+      final response = await ObjectFactory().apiClient.forgotPassword(
+        forgotPasswordRequest,
+      );
       print(response.toString());
 
-      final responseData = response.data is Map<String, dynamic>
-          ? response.data
-          : json.decode(response.data.toString());
+      final responseData =
+          response.data is Map<String, dynamic>
+              ? response.data
+              : json.decode(response.data.toString());
 
-      final parsedResponse = ForgotPasswordRequestResponse.fromJson(responseData);
+      final parsedResponse = ForgotPasswordRequestResponse.fromJson(
+        responseData,
+      );
 
       if (response.statusCode == 200) {
-        return StateModel<ForgotPasswordRequestResponse>.success(parsedResponse);
+        return StateModel<ForgotPasswordRequestResponse>.success(
+          parsedResponse,
+        );
       } else {
-        String errorMessage = parsedResponse.message ?? "Unexpected error occurred (${response.statusCode})";
+        String errorMessage =
+            parsedResponse.message ??
+            "Unexpected error occurred (${response.statusCode})";
         return StateModel.error(errorMessage);
       }
     } on DioException catch (e) {
@@ -167,7 +183,9 @@ class AuthDataProvider {
       String fallbackMessage = "Something went wrong";
 
       if (responseData != null && responseData is Map<String, dynamic>) {
-        final parsedError = ForgotPasswordRequestResponse.fromJson(responseData);
+        final parsedError = ForgotPasswordRequestResponse.fromJson(
+          responseData,
+        );
         fallbackMessage = parsedError.message ?? fallbackMessage;
       }
 
@@ -176,7 +194,9 @@ class AuthDataProvider {
       } else if (statusCode == 408) {
         return StateModel.error("Request timed out. Please try again later.");
       } else if (e.type == DioExceptionType.connectionError) {
-        return StateModel.error("Connection error. Please check your internet.");
+        return StateModel.error(
+          "Connection error. Please check your internet.",
+        );
       }
 
       return StateModel.error(fallbackMessage);
@@ -188,19 +208,28 @@ class AuthDataProvider {
   ///Resend OTP
   Future<StateModel?> resendOtp(ResendOtpRequest resendOtpRequest) async {
     try {
-      final response = await ObjectFactory().apiClient.resendOtp(resendOtpRequest);
+      final response = await ObjectFactory().apiClient.resendOtp(
+        resendOtpRequest,
+      );
       print(response.toString());
 
-      final responseData = response.data is Map<String, dynamic>
-          ? response.data
-          : json.decode(response.data.toString());
+      final responseData =
+          response.data is Map<String, dynamic>
+              ? response.data
+              : json.decode(response.data.toString());
 
-      final parsedResponse = ForgotPasswordRequestResponse.fromJson(responseData);
+      final parsedResponse = ForgotPasswordRequestResponse.fromJson(
+        responseData,
+      );
 
       if (response.statusCode == 200) {
-        return StateModel<ForgotPasswordRequestResponse>.success(parsedResponse);
+        return StateModel<ForgotPasswordRequestResponse>.success(
+          parsedResponse,
+        );
       } else {
-        String errorMessage = parsedResponse.message ?? "Unexpected error occurred (${response.statusCode})";
+        String errorMessage =
+            parsedResponse.message ??
+            "Unexpected error occurred (${response.statusCode})";
         return StateModel.error(errorMessage);
       }
     } on DioException catch (e) {
@@ -210,7 +239,9 @@ class AuthDataProvider {
       String fallbackMessage = "Something went wrong";
 
       if (responseData != null && responseData is Map<String, dynamic>) {
-        final parsedError = ForgotPasswordRequestResponse.fromJson(responseData);
+        final parsedError = ForgotPasswordRequestResponse.fromJson(
+          responseData,
+        );
         fallbackMessage = parsedError.message ?? fallbackMessage;
       }
 
@@ -219,7 +250,9 @@ class AuthDataProvider {
       } else if (statusCode == 408) {
         return StateModel.error("Request timed out. Please try again later.");
       } else if (e.type == DioExceptionType.connectionError) {
-        return StateModel.error("Connection error. Please check your internet.");
+        return StateModel.error(
+          "Connection error. Please check your internet.",
+        );
       }
 
       return StateModel.error(fallbackMessage);
@@ -231,19 +264,26 @@ class AuthDataProvider {
   ///PasswordReset
   Future<StateModel?> passwordReset(PasswordResetRequest passwordReset) async {
     try {
-      final response = await ObjectFactory().apiClient.passwordReset(passwordReset);
+      final response = await ObjectFactory().apiClient.passwordReset(
+        passwordReset,
+      );
       print(response.toString());
 
-      final responseData = response.data is Map<String, dynamic>
-          ? response.data
-          : json.decode(response.data.toString());
+      final responseData =
+          response.data is Map<String, dynamic>
+              ? response.data
+              : json.decode(response.data.toString());
 
-      final parsedResponse = PasswordResetRequestResponse.fromJson(responseData);
+      final parsedResponse = PasswordResetRequestResponse.fromJson(
+        responseData,
+      );
 
       if (response.statusCode == 200) {
         return StateModel<PasswordResetRequestResponse>.success(parsedResponse);
       } else {
-        String errorMessage = parsedResponse.message ?? "Unexpected error occurred (${response.statusCode})";
+        String errorMessage =
+            parsedResponse.message ??
+            "Unexpected error occurred (${response.statusCode})";
         return StateModel.error(errorMessage);
       }
     } on DioException catch (e) {
@@ -262,7 +302,9 @@ class AuthDataProvider {
       } else if (statusCode == 408) {
         return StateModel.error("Request timed out. Please try again later.");
       } else if (e.type == DioExceptionType.connectionError) {
-        return StateModel.error("Connection error. Please check your internet.");
+        return StateModel.error(
+          "Connection error. Please check your internet.",
+        );
       }
 
       return StateModel.error(fallbackMessage);
@@ -271,65 +313,74 @@ class AuthDataProvider {
     }
   }
 
-
   ///Google Login
   ///
   Future<StateModel?> googleLogin(GoogleLoginRequest googleLoginRequest) async {
     try {
-      final response =
-      await ObjectFactory().apiClient.googleLogin(googleLoginRequest);
+      final response = await ObjectFactory().apiClient.googleLogin(
+        googleLoginRequest,
+      );
       print(response.toString());
       if (response.statusCode == 200) {
         return StateModel<GoogleLoginRequestResponse>.success(
-            GoogleLoginRequestResponse.fromJson(response.data));
+          GoogleLoginRequestResponse.fromJson(response.data),
+        );
       } else {
         return StateModel.error(
-            "The server isn't responding! Please try again later.");
+          "The server isn't responding! Please try again later.",
+        );
       }
     } on DioException catch (e) {
-
       if (e.response != null && e.response!.statusCode == 500) {
         return StateModel.error(
-            "The server isn't responding! Please try again later.");
+          "The server isn't responding! Please try again later.",
+        );
         // return response!;
       } else if (e.response != null && e.response!.statusCode == 408) {
         return StateModel.error(
-            "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!");
+          "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!",
+        );
         // Something happened in setting up or sending the request that triggered an Error
       }
     }
     return null;
   }
+
   ///Google SignUp
-  Future<StateModel?> googleRegisterUser(GoogleSignUpRequest googleSignUpRequest) async {
+  Future<StateModel?> googleRegisterUser(
+    GoogleSignUpRequest googleSignUpRequest,
+  ) async {
     try {
-      final response =
-      await ObjectFactory().apiClient.googleRegisterUser(googleSignUpRequest);
+      final response = await ObjectFactory().apiClient.googleRegisterUser(
+        googleSignUpRequest,
+      );
       print(response.toString());
       String jsonRequest = jsonEncode(googleSignUpRequest);
       print("Request Payload:");
       print(jsonRequest);
       if (response.statusCode == 200) {
         return StateModel<GoogleSignUpRequestResponse>.success(
-            GoogleSignUpRequestResponse.fromJson(response.data));
+          GoogleSignUpRequestResponse.fromJson(response.data),
+        );
       }
       return null;
     } on DioException catch (e) {
-
       if (e.response!.statusCode == 500) {
         return StateModel.error(
-            "The server isn't responding! Please try again later.");
+          "The server isn't responding! Please try again later.",
+        );
         // return response!;
       } else if (e.response!.statusCode == 408) {
         return StateModel.error(
-            "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!");
+          "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!",
+        );
         // Something happened in setting up or sending the request that triggered an Error
       } else if (e.type.name == "connectionError") {
         return StateModel.error(
-            "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!");
+          "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!",
+        );
         // Something happened in setting up or sending the request that triggered an Error
       }
-
     }
     return null;
   }
@@ -337,58 +388,63 @@ class AuthDataProvider {
   ///OTP verify
   Future<StateModel?> verifyOTP(OtpVerifyRequest otpVerifyRequest) async {
     try {
-      final response =
-      await ObjectFactory().apiClient.verifyOTP(otpVerifyRequest);
+      final response = await ObjectFactory().apiClient.verifyOTP(
+        otpVerifyRequest,
+      );
       print(response.toString());
       if (response.statusCode == 200) {
         return StateModel<OtpVerificationResponse>.success(
-            OtpVerificationResponse.fromJson(response.data));
+          OtpVerificationResponse.fromJson(response.data),
+        );
       }
 
       return null;
     } on DioException catch (e) {
-
       if (e.response!.statusCode == 500) {
         return StateModel.error(
-            "The server isn't responding! Please try again later.");
+          "The server isn't responding! Please try again later.",
+        );
         // return response!;
       } else if (e.response!.statusCode == 408) {
         return StateModel.error(
-            "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!");
+          "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!",
+        );
         // Something happened in setting up or sending the request that triggered an Error
       } else if (e.type.name == "connectionError") {
         return StateModel.error(
-            "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!");
+          "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!",
+        );
         // Something happened in setting up or sending the request that triggered an Error
       }
-
     }
     return null;
   }
 
   ///Venue type
-  Future<StateModel?> getVenueTypes( ) async {
+  Future<StateModel?> getVenueTypes() async {
     try {
-      final response =
-      await ObjectFactory().apiClient.getVenueTypes();
+      final response = await ObjectFactory().apiClient.getVenueTypes();
       print(response.toString());
       if (response.statusCode == 200) {
         return StateModel<VenueTypeResponse>.success(
-            VenueTypeResponse.fromJson(response.data));
+          VenueTypeResponse.fromJson(response.data),
+        );
       }
       return null;
     } on DioException catch (e) {
       if (e.response!.statusCode == 500) {
         return StateModel.error(
-            "The server isn't responding! Please try again later.");
+          "The server isn't responding! Please try again later.",
+        );
       } else if (e.response!.statusCode == 408) {
         return StateModel.error(
-            "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!");
+          "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!",
+        );
       } else if (e.type.name == "connectionError") {
         return StateModel.error(
-            "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!");
+          "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!",
+        );
       }
-
     }
     return null;
   }
@@ -405,7 +461,8 @@ class AuthDataProvider {
           return StateModel<GuestSignInResponse>.success(data);
         } else {
           // Extract first error message from 'errors' map
-          final errorMessage = data.errors?.entries.first.value.first ??
+          final errorMessage =
+              data.errors?.entries.first.value.first ??
               "Something went wrong. Please try again.";
           return StateModel.error(errorMessage);
         }
@@ -416,17 +473,22 @@ class AuthDataProvider {
       final statusCode = e.response?.statusCode;
 
       if (statusCode == 500) {
-        return StateModel.error("The server isn't responding! Please try again later.");
+        return StateModel.error(
+          "The server isn't responding! Please try again later.",
+        );
       } else if (statusCode == 408) {
         return StateModel.error(
-            "Hello there! It seems like your request took longer than expected to process. Please try again.");
+          "Hello there! It seems like your request took longer than expected to process. Please try again.",
+        );
       } else if (e.type == DioExceptionType.connectionError) {
         return StateModel.error(
-            "Connection error. Please check your internet connection.");
+          "Connection error. Please check your internet connection.",
+        );
       } else if (e.response?.data != null) {
         try {
           final data = GuestSignInResponse.fromJson(e.response!.data);
-          final errorMessage = data.errors?.entries.first.value.first ??
+          final errorMessage =
+              data.errors?.entries.first.value.first ??
               data.message ??
               "Something went wrong.";
           return StateModel.error(errorMessage);
@@ -441,41 +503,74 @@ class AuthDataProvider {
     }
   }
 
-
-
-
+  ///Apple Login
   Future<StateModel?> appleLogin(AppleLoginRequest appleLoginRequest) async {
     try {
-      final response =
-      await ObjectFactory().apiClient.appleLogin(
+      final response = await ObjectFactory().apiClient.appleLogin(
         appleLoginRequest,
       );
       print(response.toString());
       if (response.statusCode == 200) {
         return StateModel<AppleLoginRequestResponse>.success(
-            AppleLoginRequestResponse.fromJson(response.data));
+          AppleLoginRequestResponse.fromJson(response.data),
+        );
       } else {
         return StateModel.error(
-            "The server isn't responding! Please try again later.");
+          "The server isn't responding! Please try again later.",
+        );
       }
     } on DioException catch (e) {
-  
       if (e.response != null && e.response!.statusCode == 500) {
         return StateModel.error(
-            "The server isn't responding! Please try again later.");
+          "The server isn't responding! Please try again later.",
+        );
         // return response!;
       } else if (e.response != null && e.response!.statusCode == 408) {
         return StateModel.error(
-            "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!");
+          "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!",
+        );
         // Something happened in setting up or sending the request that triggered an Error
       }
     }
     return null;
   }
 
-
-
-
-
-
+  ///Apple SignUp
+  Future<StateModel?> appleRegisterUser(
+    AppleSignUpRequest appleSignUpRequest,
+  ) async {
+    try {
+      final response = await ObjectFactory().apiClient.appleRegisterUser(
+        appleSignUpRequest,
+      );
+      print(response.toString());
+      // String jsonRequest = jsonEncode(appleRegisterUser);
+      // print("Request Payload:");
+      // print(jsonRequest);
+      if (response.statusCode == 200) {
+        return StateModel<AppleSignUpRequestResponse>.success(
+          AppleSignUpRequestResponse.fromJson(response.data),
+        );
+      }
+      return null;
+    } on DioException catch (e) {
+      if (e.response!.statusCode == 500) {
+        return StateModel.error(
+          "The server isn't responding! Please try again later.",
+        );
+        // return response!;
+      } else if (e.response!.statusCode == 408) {
+        return StateModel.error(
+          "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!",
+        );
+        // Something happened in setting up or sending the request that triggered an Error
+      } else if (e.type.name == "connectionError") {
+        return StateModel.error(
+          "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!",
+        );
+        // Something happened in setting up or sending the request that triggered an Error
+      }
+    }
+    return null;
+  }
 }

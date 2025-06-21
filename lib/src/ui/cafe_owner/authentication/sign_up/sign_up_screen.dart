@@ -3,6 +3,7 @@ import 'package:dicetable/src/common/elevated_button_widget.dart';
 import 'package:dicetable/src/common/login_or_signup_prompt.dart';
 import 'package:dicetable/src/common/modal_barrier_with_progress_indicator_widget.dart';
 import 'package:dicetable/src/constants/app_colors.dart';
+import 'package:dicetable/src/model/cafe_owner/auth/signUp/apple_sign-up_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/google_sign-up_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/sign_up_request.dart';
 import 'package:dicetable/src/model/verification/otp_verify_request.dart';
@@ -44,19 +45,37 @@ class _SignUpScreenState extends State<SignUpScreen> {
   late final TextEditingController _countryController;
   late final TextEditingController _regionController;
   late final bool isGoogleSignUp;
+  late final bool isAppleSignUp;
   bool showValidationErrors = false;
+  String? appleMail;
 
   @override
   void initState() {
     super.initState();
 
-    isGoogleSignUp = widget.signUpScreenArgument.isGoggleSignUp;
+    isGoogleSignUp = widget.signUpScreenArgument.isGoggleSignUp ?? false;
+    isAppleSignUp = widget.signUpScreenArgument.isAppleSignUp ?? false;
+    if (isAppleSignUp) {
+      if (!widget.signUpScreenArgument.email.contains('privaterelay')) {
+        appleMail = widget.signUpScreenArgument.email ?? "";
+      }
+    }
 
     _venueNameController = TextEditingController(
-      text: isGoogleSignUp ? widget.signUpScreenArgument.displayName : '',
+      text:
+          isGoogleSignUp
+              ? widget.signUpScreenArgument.displayName
+              : isAppleSignUp
+              ? widget.signUpScreenArgument.displayName
+              : '',
     );
     _emailController = TextEditingController(
-      text: isGoogleSignUp ? widget.signUpScreenArgument.email : '',
+      text:
+          isGoogleSignUp
+              ? widget.signUpScreenArgument.email
+              : isAppleSignUp
+              ? appleMail
+              : '',
     );
     _venueDescriptionController = TextEditingController();
     _passwordController = TextEditingController();
@@ -87,19 +106,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   bool _validateForm(SignUpFormState state) {
-    return state.venueName.isNotEmpty || _venueNameController.text.isNotEmpty &&
-        state.venueDescription.isNotEmpty || _emailController.text.isNotEmpty &&
-        state.email.isNotEmpty &&
-        RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(state.email) &&
-        ((state.password.isNotEmpty)) &&
-        (state.password == state.confirmPassword) &&
-        state.phone.isNotEmpty &&
-        state.address.isNotEmpty &&
-        state.postalCode.isNotEmpty &&
-        state.venueTypes.any((venue) => venue.isSelected) &&
-        state.openingHours.values.any((hour) => hour.isEnabled) &&
-        state.base64Image != null &&
-        state.base64Image!.isNotEmpty;
+    return state.venueName.isNotEmpty ||
+        _venueNameController.text.isNotEmpty &&
+            state.venueDescription.isNotEmpty ||
+        _emailController.text.isNotEmpty &&
+            state.email.isNotEmpty &&
+            RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(state.email) &&
+            ((state.password.isNotEmpty)) &&
+            (state.password == state.confirmPassword) &&
+            state.phone.isNotEmpty &&
+            state.address.isNotEmpty &&
+            state.postalCode.isNotEmpty &&
+            state.venueTypes.any((venue) => venue.isSelected) &&
+            state.openingHours.values.any((hour) => hour.isEnabled) &&
+            state.base64Image != null &&
+            state.base64Image!.isNotEmpty;
   }
 
   @override
@@ -137,18 +158,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
           ),
           child: SingleChildScrollView(
             physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: 20,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
             child: BlocConsumer<SignUpBloc, SignUpState>(
               listener: (context, state) {
                 if (state is SignUpSuccessState) {
                   final response = state.signUpRequestResponse;
                   if (response.status == false) {
-                    if (response.errors != null && response.errors!.isNotEmpty) {
+                    if (response.errors != null &&
+                        response.errors!.isNotEmpty) {
                       final firstErrorField = response.errors!.keys.first;
-                      final firstErrorMessage = response.errors![firstErrorField]?.first;
+                      final firstErrorMessage =
+                          response.errors![firstErrorField]?.first;
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
@@ -172,8 +192,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ObjectFactory().prefs.setCafeUserName(
                       cafeUserName: _venueNameController.text,
                     );
-                    ObjectFactory().prefs.setCafeId(cafeId: state.signUpRequestResponse.cafeId);
-                    ObjectFactory().prefs.setCafeUserId(cafeUserId: state.signUpRequestResponse.user!.id.toString());
+                    ObjectFactory().prefs.setCafeId(
+                      cafeId: state.signUpRequestResponse.cafeId,
+                    );
+                    ObjectFactory().prefs.setCafeUserId(
+                      cafeUserId:
+                          state.signUpRequestResponse.user!.id.toString(),
+                    );
                     ObjectFactory().prefs.setIsGoogle(false);
                     ObjectFactory().prefs.setEmailVerified(false);
 
@@ -181,7 +206,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       '/verify',
                       extra: VerifyScreenArguments(
                         email: state.signUpRequestResponse.user!.email,
-                        otp: state.signUpRequestResponse.user!.emailOtp.toString(),
+                        otp:
+                            state.signUpRequestResponse.user!.emailOtp
+                                .toString(),
                         type: "register",
                         from: 'venue_owner',
                       ),
@@ -190,15 +217,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 } else if (state is GoogleSignUpSuccessState) {
                   final response = state.googleSignUpRequestResponse;
                   if (response.status == false) {
-                    if (response.errors != null && response.errors!.isNotEmpty) {
+                    if (response.errors != null &&
+                        response.errors!.isNotEmpty) {
                       final firstErrorField = response.errors!.keys.first;
-                      final firstErrorMessage = response.errors![firstErrorField]?.first;
+                      final firstErrorMessage =
+                          response.errors![firstErrorField]?.first;
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(
                             firstErrorMessage ?? 'Something went wrong',
                           ),
-                          backgroundColor: AppColors.appGreenColor,
+                          backgroundColor: AppColors.appRedColor,
                           duration: const Duration(seconds: 3),
                         ),
                       );
@@ -216,20 +245,74 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ObjectFactory().prefs.setCafeUserName(
                       cafeUserName: _venueNameController.text,
                     );
-                    ObjectFactory().prefs.setCafeId(cafeId: state.googleSignUpRequestResponse.cafeId ?? '');
-                    ObjectFactory().prefs.setCafeUserId(cafeUserId: state.googleSignUpRequestResponse.user!.id.toString());
+                    ObjectFactory().prefs.setCafeId(
+                      cafeId: state.googleSignUpRequestResponse.cafeId ?? '',
+                    );
+                    ObjectFactory().prefs.setCafeUserId(
+                      cafeUserId:
+                          state.googleSignUpRequestResponse.user!.id.toString(),
+                    );
                     ObjectFactory().prefs.setIsGoogle(true);
                     ObjectFactory().prefs.setEmailVerified(true);
                     ObjectFactory().prefs.setIsLoggedIn(true);
                     context.go('/subscription_prompt');
                   }
-                } else if (state is SignUpErrorState || state is GoogleSignUpErrorState) {
+                } else if (state is AppleSignUpSuccessState) {
+                  final response = state.appleSignUpRequestResponse;
+                  if (response.status == false) {
+                    if (response.errors != null &&
+                        response.errors!.isNotEmpty) {
+                      final firstErrorField = response.errors!.keys.first;
+                      final firstErrorMessage =
+                          response.errors![firstErrorField]?.first;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            firstErrorMessage ?? 'Something went wrong',
+                          ),
+                          backgroundColor: AppColors.appRedColor,
+                          duration: const Duration(seconds: 3),
+                        ),
+                      );
+                    }
+                  } else {
+                    Fluttertoast.showToast(
+                      backgroundColor: AppColors.primaryWhiteColor,
+                      textColor: AppColors.appGreenColor,
+                      gravity: ToastGravity.BOTTOM,
+                      msg: state.appleSignUpRequestResponse.message!,
+                    );
+                    ObjectFactory().prefs.setAuthToken(
+                      token: state.appleSignUpRequestResponse.token,
+                    );
+                    ObjectFactory().prefs.setCafeUserName(
+                      cafeUserName: _venueNameController.text,
+                    );
+                    ObjectFactory().prefs.setCafeId(
+                      cafeId: state.appleSignUpRequestResponse.cafeId ?? '',
+                    );
+                    ObjectFactory().prefs.setCafeUserId(
+                      cafeUserId:
+                          state.appleSignUpRequestResponse.user!.id.toString(),
+                    );
+                    ObjectFactory().prefs.setIsApple(true);
+                    ObjectFactory().prefs.setEmailVerified(true);
+                    ObjectFactory().prefs.setIsLoggedIn(true);
+                    context.go('/subscription_prompt');
+                  }
+                } else if (state is SignUpErrorState ||
+                    state is GoogleSignUpErrorState ||
+                    state is AppleSignUpErrorState) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text(
                         state is SignUpErrorState
                             ? state.errorMessage
-                            : (state as GoogleSignUpErrorState).errorMessage,
+                            : state is GoogleSignUpErrorState
+                            ? state.errorMessage
+                            : state is AppleSignUpErrorState
+                            ? state.errorMessage
+                            : "Something went wrong.",
                       ),
                       backgroundColor: AppColors.appRedColor,
                       duration: const Duration(seconds: 3),
@@ -238,7 +321,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 }
               },
               builder: (context, state) {
-                final isLoading = state is SignUpLoadingState || state is GoogleSignUpLoadingState;
+                final isLoading =
+                    state is SignUpLoadingState ||
+                    state is GoogleSignUpLoadingState ||
+                    state is AppleSignUpLoadingState;
                 final formState = state is SignUpFormState ? state : null;
 
                 return Column(
@@ -247,13 +333,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       controller: _venueNameController,
                       readOnly: isGoogleSignUp,
                       hintText: 'Venue Name',
-                      errorText: showValidationErrors && formState != null && _venueNameController.text.isEmpty
-                          ? 'Venue name is required'
-                          : null,
+                      errorText:
+                          showValidationErrors &&
+                                  formState != null &&
+                                  _venueNameController.text.isEmpty
+                              ? 'Venue name is required'
+                              : null,
                       onChanged: (value) {
                         context.read<SignUpBloc>().add(
                           UpdateTextField(
-                                (state) => state.copyWith(venueName: value),
+                            (state) => state.copyWith(venueName: value),
                           ),
                         );
                       },
@@ -263,128 +352,119 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       maxLines: 5,
                       height: 116.h,
                       controller: _venueDescriptionController,
-                      errorText: showValidationErrors && formState != null && _venueDescriptionController.text.isEmpty
-                          ? 'Venue description is required'
-                          : null,
+                      errorText:
+                          showValidationErrors &&
+                                  formState != null &&
+                                  _venueDescriptionController.text.isEmpty
+                              ? 'Venue description is required'
+                              : null,
                       onChanged: (value) {
                         context.read<SignUpBloc>().add(
                           UpdateTextField(
-                                (state) => state.copyWith(venueDescription: value),
+                            (state) => state.copyWith(venueDescription: value),
                           ),
                         );
                       },
                     ),
                     CustomTextField(
                       controller: _emailController,
-                      hintText: 'Email',
+                      hintText:
+                          isAppleSignUp
+                              ? 'Personal email is required for contact'
+                              : 'Email',
                       readOnly: isGoogleSignUp,
-                      errorText: showValidationErrors && formState != null
-                          ? (_emailController.text.isEmpty
-                          ? 'Email is required'
-                          : !RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(_emailController.text)
-                          ? 'Invalid email format'
-                          : null)
-                          : null,
+                      errorText:
+                          showValidationErrors && formState != null
+                              ? (_emailController.text.isEmpty
+                                  ? 'Email is required'
+                                  : !RegExp(
+                                    r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                                  ).hasMatch(_emailController.text)
+                                  ? 'Invalid email format'
+                                  : null)
+                              : null,
                       onChanged: (value) {
                         context.read<SignUpBloc>().add(
                           UpdateTextField(
-                                (state) => state.copyWith(email: value),
+                            (state) => state.copyWith(email: value),
                           ),
                         );
                       },
                     ),
 
-                      CustomTextField(
-                        controller: _passwordController,
-                        hintText: 'Password',
-                        isPassword: true,
-                        errorText: showValidationErrors && formState != null
-                            ? (_passwordController.text.isEmpty
-                            ? 'Password is required'
-                            : _passwordController.text.length < 6
-                            ? 'Password must be at least 6 characters'
-                            : null)
-                            : null,
-                        onChanged: (value) {
-                          context.read<SignUpBloc>().add(
-                            UpdateTextField(
-                                  (state) => state.copyWith(password: value),
-                            ),
-                          );
-                        },
-                      ),
-                      CustomTextField(
-                        controller: _confirmPasswordController,
-                        hintText: 'Confirm Password',
-                        isPassword: true,
-                        errorText: showValidationErrors && formState != null
-                            ? (_confirmPasswordController.text.isEmpty
-                            ? 'Confirm password is required'
-                            : _confirmPasswordController.text != _passwordController.text
-                            ? 'Passwords do not match'
-                            : null)
-                            : null,
-                        onChanged: (value) {
-                          context.read<SignUpBloc>().add(
-                            UpdateTextField(
-                                  (state) => state.copyWith(confirmPassword: value),
-                            ),
-                          );
-                        },
-                      ),
+                    CustomTextField(
+                      controller: _passwordController,
+                      hintText: 'Password',
+                      isPassword: true,
+                      errorText:
+                          showValidationErrors && formState != null
+                              ? (_passwordController.text.isEmpty
+                                  ? 'Password is required'
+                                  : _passwordController.text.length < 6
+                                  ? 'Password must be at least 6 characters'
+                                  : null)
+                              : null,
+                      onChanged: (value) {
+                        context.read<SignUpBloc>().add(
+                          UpdateTextField(
+                            (state) => state.copyWith(password: value),
+                          ),
+                        );
+                      },
+                    ),
+                    CustomTextField(
+                      controller: _confirmPasswordController,
+                      hintText: 'Confirm Password',
+                      isPassword: true,
+                      errorText:
+                          showValidationErrors && formState != null
+                              ? (_confirmPasswordController.text.isEmpty
+                                  ? 'Confirm password is required'
+                                  : _confirmPasswordController.text !=
+                                      _passwordController.text
+                                  ? 'Passwords do not match'
+                                  : null)
+                              : null,
+                      onChanged: (value) {
+                        context.read<SignUpBloc>().add(
+                          UpdateTextField(
+                            (state) => state.copyWith(confirmPassword: value),
+                          ),
+                        );
+                      },
+                    ),
 
                     CustomTextField(
                       controller: _phoneController,
                       hintText: 'Phone',
-                      errorText: showValidationErrors && formState != null && _phoneController.text.isEmpty
-                          ? 'Phone number is required'
-                          : null,
+                      errorText:
+                          showValidationErrors &&
+                                  formState != null &&
+                                  _phoneController.text.isEmpty
+                              ? 'Phone number is required'
+                              : null,
                       onChanged: (value) {
                         context.read<SignUpBloc>().add(
                           UpdateTextField(
-                                (state) => state.copyWith(phone: value),
+                            (state) => state.copyWith(phone: value),
                           ),
                         );
                       },
                     ),
-                    // CustomTextField(
-                    //   controller: _countryController,
-                    //   hintText: 'Country',
-                    //   errorText: showValidationErrors && formState != null && _countryController.text.isEmpty
-                    //       ? 'Country is required'
-                    //       : null,
-                    //   onChanged: (value) {
-                    //     context.read<SignUpBloc>().add(
-                    //       UpdateTextField(
-                    //             (state) => state.copyWith(country: value),
-                    //       ),
-                    //     );
-                    //   },
-                    // ),
-                    // CustomTextField(
-                    //   controller: _regionController,
-                    //   hintText: 'Region',
-                    //   errorText: showValidationErrors && formState != null && _regionController.text.isEmpty
-                    //       ? 'Region is required'
-                    //       : null,
-                    //   onChanged: (value) {
-                    //     context.read<SignUpBloc>().add(
-                    //       UpdateTextField(
-                    //             (state) => state.copyWith(region: value),
-                    //       ),
-                    //     );
-                    //   },
-                    // ),
+
                     CustomTextField(
                       controller: _addressController,
                       hintText: 'Street Address And City',
-                      errorText: showValidationErrors && formState != null && _addressController.text.isEmpty
-                          ? 'Address is required'
-                          : null,
+                      errorText:
+                          showValidationErrors &&
+                                  formState != null &&
+                                  _addressController.text.isEmpty
+                              ? 'Address is required'
+                              : null,
                       onChanged: (value) {
                         context.read<SignUpBloc>().add(
                           UpdateTextField(
-                                (state) => state.copyWith(address: value),
+                            (state) => state.copyWith(address: value),
                           ),
                         );
                       },
@@ -392,13 +472,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     CustomTextField(
                       controller: _postalCodeController,
                       hintText: 'Postal Code',
-                      errorText: showValidationErrors && formState != null && _postalCodeController.text.isEmpty
-                          ? 'Postal code is required'
-                          : null,
+                      errorText:
+                          showValidationErrors &&
+                                  formState != null &&
+                                  _postalCodeController.text.isEmpty
+                              ? 'Postal code is required'
+                              : null,
                       onChanged: (value) {
                         context.read<SignUpBloc>().add(
                           UpdateTextField(
-                                (state) => state.copyWith(postalCode: value),
+                            (state) => state.copyWith(postalCode: value),
                           ),
                         );
                       },
@@ -406,13 +489,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     const Gap(10),
                     BlocBuilder<SignUpBloc, SignUpState>(
                       builder: (context, state) {
-                        final venueTypes = state is SignUpFormState ? state.venueTypes : [];
-                        final hasSelectedVenue = venueTypes.any((venue) => venue.isSelected);
+                        final venueTypes =
+                            state is SignUpFormState ? state.venueTypes : [];
+                        final hasSelectedVenue = venueTypes.any(
+                          (venue) => venue.isSelected,
+                        );
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            VenueTypeCheckboxes(state: SignUpFormState(),hasSelectedVenue: !hasSelectedVenue,showValidationErrors: showValidationErrors,),
-
+                            VenueTypeCheckboxes(
+                              state: SignUpFormState(),
+                              hasSelectedVenue: !hasSelectedVenue,
+                              showValidationErrors: showValidationErrors,
+                            ),
                           ],
                         );
                       },
@@ -438,7 +527,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             padding: const EdgeInsets.only(left: 5.0),
                             child: Text(
                               'Opening Hours',
-                              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                              style: Theme.of(
+                                context,
+                              ).textTheme.labelMedium?.copyWith(
                                 fontSize: 14,
                                 color: AppColors.primary,
                               ),
@@ -447,17 +538,34 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           const Gap(10),
                           BlocBuilder<SignUpBloc, SignUpState>(
                             builder: (context, state) {
-                              final openingHours = state is SignUpFormState ? state.openingHours : {};
-                              final hasEnabledDay = openingHours.values.any((hour) => hour.isEnabled);
+                              final openingHours =
+                                  state is SignUpFormState
+                                      ? state.openingHours
+                                      : {};
+                              final hasEnabledDay = openingHours.values.any(
+                                (hour) => hour.isEnabled,
+                              );
                               return Column(
                                 children: [
-                                  for (final day in ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'])
+                                  for (final day in [
+                                    'Mon',
+                                    'Tue',
+                                    'Wed',
+                                    'Thu',
+                                    'Fri',
+                                    'Sat',
+                                    'Sun',
+                                  ])
                                     OpeningHoursWidget(
                                       day: day,
-                                      data: openingHours[day] ??
+                                      data:
+                                          openingHours[day] ??
                                           const OpeningHour(
                                             isEnabled: false,
-                                            from: TimeOfDay(hour: 10, minute: 0),
+                                            from: TimeOfDay(
+                                              hour: 10,
+                                              minute: 0,
+                                            ),
                                             to: TimeOfDay(hour: 12, minute: 0),
                                           ),
                                       onChanged: (updatedHour) {
@@ -469,9 +577,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         );
                                       },
                                     ),
-                                  if (showValidationErrors && !hasEnabledDay && state is SignUpFormState)
+                                  if (showValidationErrors &&
+                                      !hasEnabledDay &&
+                                      state is SignUpFormState)
                                     Padding(
-                                      padding: const EdgeInsets.only(left: 16.0, top: 4.0),
+                                      padding: const EdgeInsets.only(
+                                        left: 16.0,
+                                        top: 4.0,
+                                      ),
                                       child: Align(
                                         alignment: Alignment.centerLeft,
                                         child: Text(
@@ -491,7 +604,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       ),
                     ),
                     const Gap(17),
-                    ImageUploadWidget(showValidationErrors: showValidationErrors,state: SignUpFormState(),),
+                    ImageUploadWidget(
+                      showValidationErrors: showValidationErrors,
+                      state: SignUpFormState(),
+                    ),
                     const Gap(30),
                     BlocBuilder<SignUpBloc, SignUpState>(
                       builder: (context, state) {
@@ -503,25 +619,38 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         } else if (state is SignUpFormState) {
                           final isFormValid = _validateForm(state);
                           return InkWell(
-                            splashColor: isFormValid ? AppColors.secondary : Colors.transparent,
-                            splashFactory: isFormValid ? InkRipple.splashFactory : NoSplash.splashFactory,
+                            splashColor:
+                                isFormValid
+                                    ? AppColors.secondary
+                                    : Colors.transparent,
+                            splashFactory:
+                                isFormValid
+                                    ? InkRipple.splashFactory
+                                    : NoSplash.splashFactory,
                             onTap: () {
                               setState(() {
                                 showValidationErrors = true;
                               });
                               if (isFormValid) {
                                 String formatTime(TimeOfDay time) {
-                                  final hours = time.hour.toString().padLeft(2, '0');
-                                  final minutes = time.minute.toString().padLeft(2, '0');
+                                  final hours = time.hour.toString().padLeft(
+                                    2,
+                                    '0',
+                                  );
+                                  final minutes = time.minute
+                                      .toString()
+                                      .padLeft(2, '0');
                                   return '$hours:$minutes';
                                 }
 
-                                final selectedVenueTypeIds = state.venueTypes
-                                    .where((model) => model.isSelected)
-                                    .map((model) => model.id.toString())
-                                    .toList();
+                                final selectedVenueTypeIds =
+                                    state.venueTypes
+                                        .where((model) => model.isSelected)
+                                        .map((model) => model.id.toString())
+                                        .toList();
 
-                                final workingDaysMap = <String, Map<String, dynamic>>{};
+                                final workingDaysMap =
+                                    <String, Map<String, dynamic>>{};
                                 state.openingHours.forEach((day, value) {
                                   final dayLower = day.toLowerCase();
                                   workingDaysMap[dayLower] = {
@@ -530,9 +659,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     "close": formatTime(value.to),
                                   };
                                 });
-
-                                if (isGoogleSignUp) {
-                                  final googleSignUpRequest = GoogleSignUpRequest(
+                                if (isAppleSignUp) {
+                                  final appleAuthID =
+                                      ObjectFactory().prefs.getAppleAuthID();
+                                  final appleSignUpRequest = AppleSignUpRequest(
                                     name: _venueNameController.text,
                                     venueDescription: state.venueDescription,
                                     email: _emailController.text,
@@ -546,10 +676,40 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     // region: state.region,
                                     accommodations: selectedVenueTypeIds,
                                     workingDays: workingDaysMap,
-                                    blob: widget.signUpScreenArgument.imageBase64 ?? state.base64Image,
-                                    fcmToken: ObjectFactory().prefs.getFcmToken(),
-
+                                    blob: state.base64Image,
+                                    fcmToken:
+                                        ObjectFactory().prefs.getFcmToken(),
+                                    apple_id: appleAuthID,
                                   );
+
+                                  context.read<SignUpBloc>().add(
+                                    SubmitAppleSignUp(
+                                      signupRequest: appleSignUpRequest,
+                                    ),
+                                  );
+                                }
+                                if (isGoogleSignUp) {
+                                  final googleSignUpRequest =
+                                      GoogleSignUpRequest(
+                                        name: _venueNameController.text,
+                                        venueDescription:
+                                            state.venueDescription,
+                                        email: _emailController.text,
+                                        password: state.password,
+                                        passwordConfirmation:
+                                            state.confirmPassword,
+                                        address: state.address,
+                                        // country: state.country,
+                                        loginType: 3,
+                                        phone: state.phone,
+                                        postcode: state.postalCode,
+                                        // region: state.region,
+                                        accommodations: selectedVenueTypeIds,
+                                        workingDays: workingDaysMap,
+                                        blob: state.base64Image,
+                                        fcmToken:
+                                            ObjectFactory().prefs.getFcmToken(),
+                                      );
 
                                   context.read<SignUpBloc>().add(
                                     SubmitGoogleSignUp(
@@ -572,12 +732,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     accommodations: selectedVenueTypeIds,
                                     workingDays: workingDaysMap,
                                     blob: state.base64Image,
-                                    fcmToken: ObjectFactory().prefs.getFcmToken(),
+                                    fcmToken:
+                                        ObjectFactory().prefs.getFcmToken(),
                                   );
                                   context.read<SignUpBloc>().add(
-                                    SubmitSignUp(
-                                      signupRequest: signUpRequest,
-                                    ),
+                                    SubmitSignUp(signupRequest: signUpRequest),
                                   );
                                 }
                               }

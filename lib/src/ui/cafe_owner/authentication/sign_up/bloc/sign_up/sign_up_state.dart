@@ -74,6 +74,23 @@ class GoogleSignUpErrorState extends SignUpState {
   List<Object?> get props => [errorMessage];
 }
 
+class AppleSignUpLoadingState extends SignUpState {}
+
+class AppleSignUpSuccessState extends SignUpState {
+  final AppleSignUpRequestResponse appleSignUpRequestResponse;
+  const AppleSignUpSuccessState({required this.appleSignUpRequestResponse});
+}
+
+class AppleSignUpErrorState extends SignUpState {
+  final String errorMessage;
+
+  const AppleSignUpErrorState({required this.errorMessage});
+
+  @override
+  List<Object?> get props => [errorMessage];
+}
+
+
 class SignUpImageLoadedState extends SignUpState {
   final XFile image;
 

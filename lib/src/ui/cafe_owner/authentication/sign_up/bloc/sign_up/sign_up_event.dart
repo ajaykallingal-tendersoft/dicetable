@@ -59,4 +59,11 @@ class SubmitGoogleSignUp extends SignUpEvent {
   List<Object?> get props => [signupRequest];
 }
 
+class SubmitAppleSignUp extends SignUpEvent {
+  final AppleSignUpRequest signupRequest;
+  const SubmitAppleSignUp({required this.signupRequest});
+  @override
+  List<Object?> get props => [signupRequest];
+}
+
 class LoadVenueTypes extends SignUpEvent {}

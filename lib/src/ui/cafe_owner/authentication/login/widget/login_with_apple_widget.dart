@@ -4,6 +4,7 @@ import 'package:dicetable/src/constants/assets.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/login/apple_login_request.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/login/bloc/login_bloc.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/login/cubit/apple_signin_cubit.dart';
+import 'package:dicetable/src/ui/customer/authentication/login/bloc/customer_login_bloc.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -19,27 +20,42 @@ class LoginWithAppleWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (!Platform.isIOS) return const SizedBox();
-final userCategory = ObjectFactory().prefs.getUserDecisionName();
+    final userCategory = ObjectFactory().prefs.getUserDecisionName();
     return BlocConsumer<AppleSignInCubit, AppleSignInState>(
       listener: (context, state) {
         if (state is AppleSignInLoaded) {
+          print("IdentityToken: ${state.identityToken}");
           if (userCategory == 'PUBLIC_USER') {
-             BlocProvider.of<LoginBloc>(context).add(
-              GetAppleLoginEvent(
+            BlocProvider.of<CustomerLoginBloc>(context).add(
+              CustomerAppleLoginEvent(
                 appleLoginRequest: AppleLoginRequest(
                   identityToken: state.identityToken,
                   loginType: 5,
                 ),
               ),
             );
-               ObjectFactory().prefs.setCustomerUserName(
+            ObjectFactory().prefs.setCustomerUserName(
               customerUserName: state.user.displayName,
             );
             ObjectFactory().prefs.setCustomerUserMail(
               customerUserMail: state.user.email,
             );
+          } else {
+            BlocProvider.of<LoginBloc>(context).add(
+              GetAppleLoginEvent(
+                appleLoginRequest: AppleLoginRequest(
+                  identityToken: state.identityToken,
+                  loginType: 3,
+                ),
+              ),
+            );
+            ObjectFactory().prefs.setCafeUserName(
+              cafeUserName: state.displayName,
+            );
+            ObjectFactory().prefs.setCafeUserMail(
+              cafeUserMail: state.user.email,
+            );
           }
-           
         } else if (state is AppleSignInDenied) {
           _showErrorSnackBar(context, "The request cannot be completed.");
         }

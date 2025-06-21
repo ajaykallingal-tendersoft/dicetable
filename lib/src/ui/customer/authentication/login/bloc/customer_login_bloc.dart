@@ -1,4 +1,6 @@
 import 'package:bloc/bloc.dart';
+import 'package:dicetable/src/model/cafe_owner/auth/login/apple_login_request.dart';
+import 'package:dicetable/src/model/cafe_owner/auth/login/apple_login_request_response.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/login/login_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/login/login_request_response.dart';
 import 'package:dicetable/src/model/customer/guest/guest_signin_response.dart';
@@ -16,13 +18,14 @@ part 'customer_login_state.dart';
 class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
   final AuthDataProvider authDataProvider;
 
-  CustomerLoginBloc({required this.authDataProvider}) : super(LoginFormState()) {
+  CustomerLoginBloc({required this.authDataProvider})
+    : super(LoginFormState()) {
     on<EmailChanged>(_onEmailChanged);
     on<PasswordChanged>(_onPasswordChanged);
     on<FormSubmitted>(_onFormSubmitted);
-    on<CustomerGoogleLoginEvent> (_handleGoogleLogin);
+    on<CustomerGoogleLoginEvent>(_handleGoogleLogin);
     on<GuestUserEvent>(_handleGuestUser);
-
+    on<CustomerAppleLoginEvent>(_handleAppleLogin);
   }
 
   void _onEmailChanged(EmailChanged event, Emitter<CustomerLoginState> emit) {
@@ -32,14 +35,20 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
     }
   }
 
-  void _onPasswordChanged(PasswordChanged event, Emitter<CustomerLoginState> emit) {
+  void _onPasswordChanged(
+    PasswordChanged event,
+    Emitter<CustomerLoginState> emit,
+  ) {
     if (state is LoginFormState) {
       final formState = state as LoginFormState;
       emit(formState.copyWith(password: event.password, passwordError: null));
     }
   }
 
-  Future<void> _onFormSubmitted(FormSubmitted event, Emitter<CustomerLoginState> emit) async {
+  Future<void> _onFormSubmitted(
+    FormSubmitted event,
+    Emitter<CustomerLoginState> emit,
+  ) async {
     if (state is LoginFormState) {
       final formState = state as LoginFormState;
 
@@ -52,7 +61,8 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
       String? passwordError;
 
       final emailRegex = RegExp(
-          r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?)*$");
+        r"^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,253}[a-zA-Z0-9])?)*$",
+      );
 
       if (email.isEmpty) {
         emailError = 'Email is required';
@@ -67,10 +77,12 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
       }
 
       if (emailError != null || passwordError != null) {
-        emit(formState.copyWith(
-          emailError: emailError,
-          passwordError: passwordError,
-        ));
+        emit(
+          formState.copyWith(
+            emailError: emailError,
+            passwordError: passwordError,
+          ),
+        );
         return;
       }
 
@@ -83,40 +95,37 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
         print("PasswordAfter: $password");
 
         if (stateModel.isSuccess) {
-          emit(CustomerLoginSuccessState(loginRequestResponse: stateModel.data as LoginRequestResponse));
-          emit(LoginFormState(
-            email: email,
-            password: password,
-          ));
+          emit(
+            CustomerLoginSuccessState(
+              loginRequestResponse: stateModel.data as LoginRequestResponse,
+            ),
+          );
+          emit(LoginFormState(email: email, password: password));
         } else if (stateModel.isError) {
-
           emit(CustomerLoginFailureState(stateModel.error as String));
-          emit(LoginFormState(
-            email: email,
-            password: password,
-          ));
+          emit(LoginFormState(email: email, password: password));
         } else {
           emit(const CustomerLoginFailureState("Unknown error occurred"));
-          emit(LoginFormState(
-            email: email,
-            password: password,
-          ));
+          emit(LoginFormState(email: email, password: password));
         }
       } catch (e) {
         emit(CustomerLoginFailureState("Exception: ${e.toString()}"));
-        emit(LoginFormState(
-          email: email,
-          password: password,
-        ));
+        emit(LoginFormState(email: email, password: password));
       }
     }
   }
-  Future<void> _handleGoogleLogin(CustomerGoogleLoginEvent event, Emitter<CustomerLoginState> emit) async {
+
+  Future<void> _handleGoogleLogin(
+    CustomerGoogleLoginEvent event,
+    Emitter<CustomerLoginState> emit,
+  ) async {
     try {
       emit(GoogleLoginLoading());
       await Future.delayed(Duration(seconds: 1));
 
-      final response = await authDataProvider.googleLogin(event.googleLoginRequest);
+      final response = await authDataProvider.googleLogin(
+        event.googleLoginRequest,
+      );
       if (response!.data.status == true) {
         emit(GoogleLoginLoaded(googleLoginResponse: response.data));
       } else {
@@ -127,11 +136,16 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
     }
   }
 
-  Future<void> _handleGuestUser(GuestUserEvent event, Emitter<CustomerLoginState> emit) async {
+  Future<void> _handleGuestUser(
+    GuestUserEvent event,
+    Emitter<CustomerLoginState> emit,
+  ) async {
     try {
       emit(GuestUserLoadingState());
 
-      final response = await authDataProvider.guestUserSignIn(event.guestUserRequest);
+      final response = await authDataProvider.guestUserSignIn(
+        event.guestUserRequest,
+      );
       if (response!.data.status == true) {
         emit(GuestUserLoadedState(guestSignInResponse: response.data));
       } else {
@@ -142,5 +156,33 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
     }
   }
 
-}
+  Future<void> _handleAppleLogin(
+    CustomerAppleLoginEvent event,
+    Emitter<CustomerLoginState> emit,
+  ) async {
+    try {
+      emit(LoginWithAppleLoading());
+      await Future.delayed(Duration(seconds: 1));
 
+      final response = await authDataProvider.appleLogin(
+        event.appleLoginRequest,
+      );
+
+      if (response!.data.status == true) {
+        emit(LoginWithAppleLoaded(appleLoginRequestResponse: response.data));
+      } else {
+        // Pass appleId from response
+        emit(
+          LoginWithAppleError(
+            response.data.message,
+            response.data,
+            response.data.appleId,
+          ),
+        );
+      }
+    } catch (e) {
+      // Optional: Pass appleId from event if available
+      emit(LoginWithAppleError(e.toString(), null, null));
+    }
+  }
+}

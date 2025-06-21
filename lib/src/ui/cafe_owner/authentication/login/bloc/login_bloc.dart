@@ -32,6 +32,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
     on<FormSubmitted>(_onFormSubmitted);
     on<GetGoogleLoginEvent>(_handleGoogleLogin);
+    on<GetAppleLoginEvent>(_handleAppleLogin);
   }
 
   Future<void> _onFormSubmitted(
@@ -125,7 +126,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     }
   }
 
-  Future<void> _handleAppleLogin(
+ Future<void> _handleAppleLogin(
     GetAppleLoginEvent event,
     Emitter<LoginState> emit,
   ) async {
@@ -136,13 +137,29 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       final response = await authDataProvider.appleLogin(
         event.appleLoginRequest,
       );
+
       if (response!.data.status == true) {
         emit(LoginWithAppleLoaded(appleLoginRequestResponse: response.data));
       } else {
-        emit(LoginWithAppleError(errorMsg: response.data.message));
+        // Pass appleId from response
+        emit(
+          LoginWithAppleError(
+            response.data.message,
+            response.data,
+            response.data.appleId,
+          ),
+        );
       }
     } catch (e) {
-      emit(LoginWithAppleError(errorMsg: e.toString()));
+      // Optional: Pass appleId from event if available
+      emit(
+        LoginWithAppleError(
+          e.toString(),
+          null,
+          null,
+        ),
+      );
     }
   }
+
 }

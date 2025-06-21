@@ -141,3 +141,20 @@ class GoogleSignUpErrorState extends CustomerSignUpState {
   @override
   List<Object?> get props => [errorMessage];
 }
+
+
+class AppleSignUpLoadingState extends CustomerSignUpState {}
+
+class AppleSignUpSuccessState extends CustomerSignUpState {
+  final AppleSignUpRequestResponse appleSignUpRequestResponse;
+  const AppleSignUpSuccessState({required this.appleSignUpRequestResponse});
+}
+
+class AppleSignUpErrorState extends CustomerSignUpState {
+  final String errorMessage;
+
+  const AppleSignUpErrorState({required this.errorMessage});
+
+  @override
+  List<Object?> get props => [errorMessage];
+}

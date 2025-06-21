@@ -49,9 +49,9 @@
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Dicetable requires access to your photo library to select images for uploading and profile photos.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-    <string>We need your location to find nearby cafes.</string>
+    <string>Dicetable need your location to find nearby cafes.</string>
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-    <string>We need your location to find nearby cafes.</string>
+    <string>Dicetable need your location to find nearby cafes.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>

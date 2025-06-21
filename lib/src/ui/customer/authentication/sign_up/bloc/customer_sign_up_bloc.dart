@@ -1,4 +1,6 @@
 import 'package:bloc/bloc.dart';
+import 'package:dicetable/src/model/cafe_owner/auth/signUp/apple_sign-up_request.dart';
+import 'package:dicetable/src/model/cafe_owner/auth/signUp/apple_sign-up_response.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/google_sign-up_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/google_sign-up_response.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/signUp/sign_up_request.dart';
@@ -232,6 +234,63 @@ class CustomerSignUpBloc extends Bloc<CustomerSignUpEvent, CustomerSignUpState> 
         }
       }
     });
+
+    on<SubmitCustomerAppleSignUp>((
+      SubmitCustomerAppleSignUp event,
+      Emitter<CustomerSignUpState> emit,
+    ) async {
+      // Final validation before submission
+      final validatedState = _validateAllFields(
+        _formState.copyWith(
+          name: event.signupRequest.name ?? '',
+          email: event.signupRequest.email ?? '',
+          password: event.signupRequest.password ?? '',
+          confirmPassword: event.signupRequest.passwordConfirmation ?? '',
+          phone: event.signupRequest.phone ?? '',
+          country: event.signupRequest.country ?? '',
+          region: event.signupRequest.region ?? '',
+        ),
+      );
+
+      if (!validatedState.isFormValid) {
+        _formState = validatedState;
+        emit(_formState);
+        return;
+      }
+
+      emit(GoogleSignUpLoadingState());
+
+      final result = await authDataProvider.appleRegisterUser(
+        event.signupRequest,
+      );
+
+      if (result!.isError) {
+        final error = result.error;
+        String errorMessage = "Something went wrong.";
+
+        if (error is AppleSignUpRequestResponse) {
+          errorMessage = error.errors?.values.first.first ?? "Signup failed.";
+        } else if (error is String) {
+          errorMessage = error;
+        }
+
+        emit(AppleSignUpErrorState(errorMessage: errorMessage));
+        emit(_formState);
+      } else if (result.isSuccess) {
+        final response = result.data as AppleSignUpRequestResponse;
+
+        if (response.status == true) {
+          emit(AppleSignUpSuccessState(appleSignUpRequestResponse: response));
+        } else {
+          final errorMessage =
+              response.errors?.values.first.first ?? "Signup failed";
+          emit(AppleSignUpErrorState(errorMessage: errorMessage));
+          emit(_formState);
+        }
+      }
+    });
+
+
   }
 
   // Validation Methods
@@ -246,10 +305,7 @@ class CustomerSignUpBloc extends Bloc<CustomerSignUpEvent, CustomerSignUpState> 
     if (trimmedName.length > 50) {
       return 'Name must be less than 50 characters';
     }
-    // Check for invalid characters
-    // if (!RegExp(r'^[a-zA-Z\s\.\']+$').hasMatch(trimmedName)) {
-    // return 'Name contains invalid characters';
-    // }
+    
   return null;
 }
 

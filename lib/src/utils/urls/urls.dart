@@ -18,6 +18,7 @@ class UrlsDiceApp {
   static const String venueType = '/api/venue-types';
   static const String appleSignIn = '/api/apple/auth';
   static const String cafeProfileDelete = '/api/cafe/profile/delete';
+  static const String appleSignUp = '/api/apple/signup';
 
 
 

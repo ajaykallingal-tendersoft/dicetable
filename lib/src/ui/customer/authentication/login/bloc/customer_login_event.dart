@@ -40,3 +40,10 @@ class GuestUserEvent extends CustomerLoginEvent {
   @override
   List<Object?> get props => [guestUserRequest];
 }
+
+class CustomerAppleLoginEvent extends CustomerLoginEvent {
+  final AppleLoginRequest appleLoginRequest;
+  const CustomerAppleLoginEvent({required this.appleLoginRequest});
+  @override
+  List<Object?> get props => [appleLoginRequest];
+}

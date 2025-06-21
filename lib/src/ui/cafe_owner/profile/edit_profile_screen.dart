@@ -18,7 +18,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 
-
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key, required this.profileState});
 
@@ -580,7 +579,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Widget _buildSliverAppBar() {
-    final isTabletOrLarger = ResponsiveBreakpoints.of(context).largerThan(MOBILE);
+    final isTabletOrLarger = ResponsiveBreakpoints.of(
+      context,
+    ).largerThan(MOBILE);
     final state = context.read<ProfileBloc>().state;
     return SliverAppBar(
       expandedHeight: 380.h,
@@ -650,7 +651,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               builder: (context, state) {
                 final image = state.image;
                 return Positioned(
-                  top: isTabletOrLarger ? (350.h / 1.5.h) -20.h : (350.h / 1.9.h) - 60.h,
+                  top:
+                      isTabletOrLarger
+                          ? (350.h / 1.5.h) - 20.h
+                          : (350.h / 1.9.h) - 60.h,
                   left: 0,
                   right: 0,
                   child: Center(
@@ -663,7 +667,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             backgroundColor: Colors.transparent,
                             radius: 85.r,
                             child: ClipOval(
-
                               child:
                                   image != null
                                       ? Image.file(
@@ -779,7 +782,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 "SAVE",
                 style: GoogleFonts.roboto(
                   color: AppColors.primary,
-                  fontSize: 12.sp,
+                  fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -787,7 +790,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 padding: EdgeInsets.symmetric(horizontal: 10.h, vertical: 2.h),
                 foregroundColor: AppColors.primaryWhiteColor,
                 side: const BorderSide(color: AppColors.primaryWhiteColor),
-                fixedSize: Size(75.w, 26.h),
+                fixedSize: Size(85.w, 26.h),
               ),
             ),
           ],

@@ -22,7 +22,6 @@ class Prefs {
   static const String _USER_MAIL_VERIFIED = "_user_mail_verified";
   static const String _IS_GOOGLE = "is_google";
 
-
   static const String _USER_MAIL = "USER_MAIL";
   static const String _USER_ID = "user_id";
   static const String _CAFE_ID = "cafe_id";
@@ -57,18 +56,15 @@ class Prefs {
   static const String _LONGITUDE_ = "long";
   static const String _CLEAR_USER_IMAGE = "clear_image";
   static const String _IS_FIRST_LAUNCH = "is_first_launch";
-  static const String _PENDING_NOTIFICATION_NAVIGATION = 'pending_notification_navigation';
+  static const String _PENDING_NOTIFICATION_NAVIGATION =
+      'pending_notification_navigation';
   static const String _DEVICE_ID = 'device_id';
   static const String _IS_GUEST = "is_GUEST";
   static const String _CAFE_USER_ID = "cafe_user_id";
+  static const String _APPLE_AUTH_ID = "apple_auth_id";
+    static const String _IS_APPLE = "is_apple";
 
-
-
-
-
-
-
-
+  
 
   Prefs();
 
@@ -77,17 +73,34 @@ class Prefs {
   }
 
 
+   void setIsApple(bool status) {
+    _sharedPreferences!.setBool(_IS_APPLE, status);
+  }
+
+  bool? isApple() =>
+      _sharedPreferences!.getBool(_IS_APPLE) != null &&
+              _sharedPreferences!.getBool(_IS_APPLE) == true
+          ? true
+          : false;
+
+  ///saving Apple Auth ID
+  void setAppleAuthID({String? appleAuthID}) {
+    _sharedPreferences!.setString(_APPLE_AUTH_ID, appleAuthID!);
+  }
+
+  ///get method  Apple Auth ID
+  String? getAppleAuthID() => _sharedPreferences?.getString(_APPLE_AUTH_ID);
 
   void setIsGuestUser(bool status) {
     _sharedPreferences!.setBool(_IS_GUEST, status);
   }
 
   ///Save User remember Decision
-  bool? isGuestUser() => _sharedPreferences!.getBool(_IS_GUEST) != null &&
-      _sharedPreferences!.getBool(_IS_GUEST) == true
-      ? true
-      : false;
-
+  bool? isGuestUser() =>
+      _sharedPreferences!.getBool(_IS_GUEST) != null &&
+              _sharedPreferences!.getBool(_IS_GUEST) == true
+          ? true
+          : false;
 
   ///saving DeviceID
   void setDeviceID({String? deviceID}) {
@@ -117,16 +130,14 @@ class Prefs {
   ///get method  for cafe user name
   String? getCafeUserName() => _sharedPreferences?.getString(_CAFE_USER_NAME);
 
-
   ///saving user name
   void setCustomerUserName({String? customerUserName}) {
     _sharedPreferences!.setString(_CUSTOMER_USER_NAME, customerUserName!);
   }
 
   ///get method  for user name
-  String? getCustomerUserName() => _sharedPreferences?.getString(_CUSTOMER_USER_NAME);
-
-
+  String? getCustomerUserName() =>
+      _sharedPreferences?.getString(_CUSTOMER_USER_NAME);
 
   ///saving  the auth token as a String
   void setAuthToken({String? token}) {
@@ -150,7 +161,8 @@ class Prefs {
   }
 
   ///get method  for auth token
-  String? getCustomerAuthToken() => _sharedPreferences?.getString(_CUSTOMER_AUTH_TOKEN);
+  String? getCustomerAuthToken() =>
+      _sharedPreferences?.getString(_CUSTOMER_AUTH_TOKEN);
 
   ///saving customer mail
   void setCustomerMail({String? mail}) {
@@ -189,7 +201,8 @@ class Prefs {
   }
 
   ///get method  for customer user mail
-  String? getCustomerUserMail() => _sharedPreferences?.getString(_CUSTOMER_USER_MAIL);
+  String? getCustomerUserMail() =>
+      _sharedPreferences?.getString(_CUSTOMER_USER_MAIL);
 
   ///saving cafe user email
   void setCafeUserMail({String? cafeUserMail}) {
@@ -239,8 +252,6 @@ class Prefs {
   ///get method  for latitude
   String? getLatitude() => _sharedPreferences!.getString(_LATITUDE_);
 
-
-
   ///Get method for longitude
   void setLongitude({String? long}) {
     _sharedPreferences!.setString(_LONGITUDE_, long!);
@@ -249,7 +260,6 @@ class Prefs {
   ///get method  for longitude
   String? getLongitude() => _sharedPreferences!.getString(_LONGITUDE_);
 
-
   ///saving  the auth token as a String
   void setFcmToken({String? token}) async {
     await _sharedPreferences!.setString(_FCM_TOKEN, token!);
@@ -257,7 +267,6 @@ class Prefs {
 
   ///get method  for auth token
   String? getFcmToken() => _sharedPreferences!.getString(_FCM_TOKEN);
-
 
   /// Set First Launch
   void setIsFirstLaunch(bool status) {
@@ -285,20 +294,22 @@ class Prefs {
   }
 
   ///Save User remember Decision
-  bool? isLoggedIn() => _sharedPreferences!.getBool(_IS_LOGGED_IN) != null &&
-      _sharedPreferences!.getBool(_IS_LOGGED_IN) == true
-      ? true
-      : false;
+  bool? isLoggedIn() =>
+      _sharedPreferences!.getBool(_IS_LOGGED_IN) != null &&
+              _sharedPreferences!.getBool(_IS_LOGGED_IN) == true
+          ? true
+          : false;
 
   void setRememberDecision(bool status) {
     _sharedPreferences!.setBool(_REMEMBER_DECISION, status);
   }
 
   ///Get User Remember decision
-  bool? getRememberDecision() => _sharedPreferences!.getBool(_REMEMBER_DECISION) != null &&
-      _sharedPreferences!.getBool(_REMEMBER_DECISION) == true
-      ? true
-      : false;
+  bool? getRememberDecision() =>
+      _sharedPreferences!.getBool(_REMEMBER_DECISION) != null &&
+              _sharedPreferences!.getBool(_REMEMBER_DECISION) == true
+          ? true
+          : false;
 
   ///after login set isLoggedIn true
   ///before logout set isLoggedIn false
@@ -306,32 +317,33 @@ class Prefs {
     _sharedPreferences!.setBool(_IS_CUSTOMER_LOGGED_IN, status);
   }
 
-  bool? isCustomerLoggedIn() => _sharedPreferences!.getBool(_IS_CUSTOMER_LOGGED_IN) != null &&
-      _sharedPreferences!.getBool(_IS_CUSTOMER_LOGGED_IN) == true
-      ? true
-      : false;
+  bool? isCustomerLoggedIn() =>
+      _sharedPreferences!.getBool(_IS_CUSTOMER_LOGGED_IN) != null &&
+              _sharedPreferences!.getBool(_IS_CUSTOMER_LOGGED_IN) == true
+          ? true
+          : false;
 
   ///Set  email is verified.
   void setEmailVerified(bool status) {
     _sharedPreferences!.setBool(_USER_MAIL_VERIFIED, status);
   }
 
-  bool? isEmailVerified() => _sharedPreferences!.getBool(_USER_MAIL_VERIFIED) != null &&
-      _sharedPreferences!.getBool(_USER_MAIL_VERIFIED) == true
-      ? true
-      : false;
+  bool? isEmailVerified() =>
+      _sharedPreferences!.getBool(_USER_MAIL_VERIFIED) != null &&
+              _sharedPreferences!.getBool(_USER_MAIL_VERIFIED) == true
+          ? true
+          : false;
 
   ///Set is Google.
   void setIsGoogle(bool status) {
     _sharedPreferences!.setBool(_IS_GOOGLE, status);
   }
 
-  bool? isGoogle() => _sharedPreferences!.getBool(_IS_GOOGLE) != null &&
-      _sharedPreferences!.getBool(_IS_GOOGLE) == true
-      ? true
-      : false;
-
-
+  bool? isGoogle() =>
+      _sharedPreferences!.getBool(_IS_GOOGLE) != null &&
+              _sharedPreferences!.getBool(_IS_GOOGLE) == true
+          ? true
+          : false;
 
   /// for clearing the data in preference
   void clearPrefs() async {
@@ -384,7 +396,7 @@ class Prefs {
   //   jsonDecode(_sharedPreferences!.getString(_USER_DATA)!);
   //   var result = LoginRequestResponse.fromJson(resultMap!);
   //   return result;
-  }
+}
 
   ///  save user data signUp
   // void saveUserDataSignup(SignUpRequestResponse result) {

@@ -122,3 +122,28 @@ class GuestUserErrorState extends CustomerLoginState {
   @override
   List<Object> get props => [errorMessage];
 }
+
+class LoginWithAppleLoading extends CustomerLoginState {
+  @override
+  List<Object> get props => [];
+}
+
+class LoginWithAppleLoaded extends CustomerLoginState {
+  final AppleLoginRequestResponse appleLoginRequestResponse;
+
+  const LoginWithAppleLoaded({required this.appleLoginRequestResponse});
+
+  @override
+  List<Object> get props => [appleLoginRequestResponse];
+}
+
+class LoginWithAppleError extends CustomerLoginState {
+  final String errorMsg;
+  final AppleLoginRequestResponse? response;
+  final String? appleId;
+
+  const LoginWithAppleError(this.errorMsg, this.response, this.appleId);
+
+  @override
+  List<Object> get props => [errorMsg, appleId ?? ''];
+}
