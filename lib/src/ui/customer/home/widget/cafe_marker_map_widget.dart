@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:geolocator/geolocator.dart';
+
 
 class CafeMarkerMapWidget extends StatefulWidget {
   const CafeMarkerMapWidget({super.key});
@@ -45,7 +47,6 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
     target: LatLng(-40.9006, 174.8860),
     zoom: 6,
   );
-
 
   Future<void> _updateMarkersFromCafes(List<CafeLocation> cafeLocations) async {
     await _loadMarkerIcon();
@@ -136,17 +137,6 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
   }
 
 
-  Future<void> _moveCameraToUserLocation(LatLng userLocation) async {
-    if (!_mapInitialized) return;
-    final GoogleMapController controller = await _controller.future;
-    await controller.animateCamera(
-      CameraUpdate.newLatLngZoom(
-        userLocation,
-        5, // Street-level zoom
-      ),
-    );
-  }
-
   @override
   void initState() {
     super.initState();
@@ -155,61 +145,47 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<CustomerHomeBloc, CustomerHomeState>(
-      listener: (context, state) {
-        if (state is CafeSearchSuccess) {
-          EasyLoading.dismiss();
-          _updateMarkersFromCafes(state.cafeLocations);
-        } else if (state is CafeSearchInitial) {
-          setState(() {
-            _markers.clear();
-          });
-        } else if (state is LocationLoaded) {
-          setState(() {
-            _userLocation = LatLng(state.latitude, state.longitude);
-          });
-          if (_mapInitialized && _userLocation != null) {
-            _moveCameraToUserLocation(_userLocation!);
-          }
-        } else if (state is LocationError) {
-          setState(() {
-            _userLocation = null;
-          });
-        }
-      },
-      builder: (context, state) {
-        if (_userLocation == null &&
-            (state is LocationLoading || state is CustomerHomeInitial)) {
-          EasyLoading.show();
-        }
-
-        return GoogleMap(
-          mapToolbarEnabled: true,
-          zoomControlsEnabled: true,
-          initialCameraPosition: _userLocation != null
-              ? CameraPosition(
-            target: _userLocation!,
-            zoom: 15, // Street-level zoom
-          )
-              : _kDefaultPosition,
-          markers: Set<Marker>.of(_markers),
-          mapType: MapType.normal,
-          myLocationEnabled: true,
-          myLocationButtonEnabled: true,
-          compassEnabled: true,
-          zoomGesturesEnabled: true,
-          scrollGesturesEnabled: true,
-          onMapCreated: (GoogleMapController controller) {
-            _controller.complete(controller);
-            setState(() {
-              _mapInitialized = true;
-            });
-            if (_userLocation != null) {
-              _moveCameraToUserLocation(_userLocation!);
+    return Stack(
+      children: [
+        BlocConsumer<CustomerHomeBloc, CustomerHomeState>(
+          listener: (context, state) {
+            if (state is CafeSearchSuccess) {
+              EasyLoading.dismiss();
+              _updateMarkersFromCafes(state.cafeLocations);
+            } else if (state is CafeSearchInitial) {
+              setState(() {
+                _markers.clear();
+              });
             }
           },
-        );
-      },
+          builder: (context, state) {
+            if (_userLocation == null &&
+                (state is LocationLoading || state is CustomerHomeInitial)) {
+              EasyLoading.show();
+            }
+
+            return GoogleMap(
+              mapToolbarEnabled: true,
+              zoomControlsEnabled: true,
+              initialCameraPosition: _kDefaultPosition,
+              markers: Set<Marker>.of(_markers),
+              mapType: MapType.normal,
+              myLocationEnabled: true,
+              myLocationButtonEnabled: true,
+              compassEnabled: true,
+              zoomGesturesEnabled: true,
+              scrollGesturesEnabled: true,
+              onMapCreated: (GoogleMapController controller) {
+                _controller.complete(controller);
+                setState(() {
+                  _mapInitialized = true;
+                });
+              },
+            );
+          },
+        ),
+
+      ],
     );
   }
 }

@@ -663,6 +663,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             backgroundColor: Colors.transparent,
                             radius: 85.r,
                             child: ClipOval(
+
                               child:
                                   image != null
                                       ? Image.file(

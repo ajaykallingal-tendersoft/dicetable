@@ -1,7 +1,11 @@
 import 'dart:async';
 import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+
+import '../customer/home/bloc/customer_home_bloc.dart';
+
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -18,16 +22,17 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     _navigateAfterDelay();
     ObjectFactory().prefs.setIsGuestUser(false);
+
   }
 
   Future<void> _navigateAfterDelay() async {
+
     await Future.delayed(const Duration(seconds: splashDelay));
     _navigateToNextScreen();
   }
 
   void _navigateToNextScreen() {
     if (!mounted) return;
-
     final isLoggedIn = ObjectFactory().prefs.isLoggedIn() == true;
     final isCustomerLoggedIn = ObjectFactory().prefs.isCustomerLoggedIn() == true;
     final rememberDecision = ObjectFactory().prefs.getRememberDecision() ?? false;

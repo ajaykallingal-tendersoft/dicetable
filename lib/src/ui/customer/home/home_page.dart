@@ -24,39 +24,41 @@ class CustomerHomePage extends StatefulWidget {
 }
 
 class _CustomerHomePageState extends State<CustomerHomePage> {
-  late final String latitude;
-  late final String longitude;
-@override
+  String? latitude;
+  String? longitude;
+
+  @override
   void initState() {
     super.initState();
-    latitude = ObjectFactory().prefs.getLatitude().toString();
-    longitude = ObjectFactory().prefs.getLongitude().toString();
-    _performSearch();
     // WidgetsBinding.instance.addPostFrameCallback((_) {
     //   context.read<CustomerHomeBloc>().add(FetchLocationEvent(context: context));
     // });
-
+    latitude = ObjectFactory().prefs.getLatitude().toString();
+    longitude = ObjectFactory().prefs.getLongitude().toString();
+    _performSearch();
   }
 
-void _performSearch() {
-  final isGuest = ObjectFactory().prefs.isGuestUser() == true;
-  final deviceToken = isGuest ? ObjectFactory().prefs.getDeviceID() ?? '' : '';
-  final double? lat = latitude != null ? double.tryParse(latitude) : 0.0;
-  final double? lon = longitude != null ? double.tryParse(longitude) : 0.0;
+  void _performSearch() {
+    final isGuest = ObjectFactory().prefs.isGuestUser() == true;
+    final deviceToken = isGuest
+        ? ObjectFactory().prefs.getDeviceID() ?? ''
+        : '';
+    final double lat = latitude != null ? double.tryParse(latitude!) ?? 0.0 : 0.0;
+    final double lon = longitude != null ? double.tryParse(longitude!) ?? 0.0 : 0.0;
 
-  final searchRequest = CafeSearchRequest(
-    search: "",
-    openTime: '',
-    closeTime: '',
-    diceTableFilter: [],
-    accommodationsFilter: [],
-    deviceToken: deviceToken,
-    latitude: lat!,
-    longitude: lon!,
-  );
+    final searchRequest = CafeSearchRequest(
+      search: "",
+      openTime: '',
+      closeTime: '',
+      diceTableFilter: [],
+      accommodationsFilter: [],
+      deviceToken: deviceToken,
+      latitude: lat!,
+      longitude: lon!,
+    );
 
-  context.read<CustomerHomeBloc>().add(SearchCafesEvent(searchRequest));
-}
+    context.read<CustomerHomeBloc>().add(SearchCafesEvent(searchRequest));
+  }
 
   void showFilterBottomSheet(BuildContext context) {
     showModalBottomSheet(
@@ -79,7 +81,8 @@ void _performSearch() {
 
   @override
   Widget build(BuildContext context) {
-    final isTabletOrLarger = ResponsiveBreakpoints.of(context).largerThan(MOBILE);
+    final isTabletOrLarger = ResponsiveBreakpoints.of(context).largerThan(
+        MOBILE);
     return Container(
       height: double.infinity,
       decoration: const BoxDecoration(
@@ -132,7 +135,7 @@ void _performSearch() {
                             ),
                             InkWell(
                               onTap: () {
-                               context.push('/notification');
+                                context.push('/notification');
                               },
                               child: Stack(
                                 children: [
@@ -180,101 +183,117 @@ void _performSearch() {
                 ),
               ),
             ),
-      SliverPadding(
-        padding: EdgeInsets.zero,
-        sliver: SliverToBoxAdapter(
-          child: CafeSearchBar(
-            onSearch: (query) {
-              // Call your API or filter list
-              print('Search for: $query');
-            },
-            onFilterTap: () => showFilterBottomSheet(context),
-          ),
-        ),
-      ),
+            SliverPadding(
+              padding: EdgeInsets.zero,
+              sliver: SliverToBoxAdapter(
+                child: CafeSearchBar(
+                  onSearch: (query) {
+                    // Call your API or filter list
+                    print('Search for: $query');
+                  },
+                  onFilterTap: () => showFilterBottomSheet(context),
+                ),
+              ),
+            ),
 
             BlocConsumer<CustomerHomeBloc, CustomerHomeState>(
               listener: (context, state) {
-                if (state is CafeSearchLoading) {
-                  EasyLoading.show();
-                } else {
-                  EasyLoading.dismiss();
+                if (state is LocationLoaded) {
+                  setState(() {
+                    latitude = state.latitude.toString();
+                    longitude = state.longitude.toString();
+                  });
+                  _performSearch();
                 }
-                if (state is LocationError) {
-                  if (state.errorType == LocationErrorType.permissionDeniedForever) {
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Location Permission Required'),
-                        content: const Text(
-                          'Location access is permanently denied. Please enable it in your device settings.',
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('Cancel'),
-                          ),
-                          TextButton(
-                            onPressed: () async {
-                              Navigator.pop(context);
-                              await Geolocator.openAppSettings();
-                            },
-                            child: const Text('Open Settings'),
-                          ),
-                        ],
-                      ),
-                    );
-                  } else if (state.errorType == LocationErrorType.serviceDisabled) {
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Location Services Disabled'),
-                        content: const Text(
-                          'Location services are disabled. Please enable them in your device settings.',
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('Cancel'),
-                          ),
-                          TextButton(
-                            onPressed: () async {
-                              Navigator.pop(context);
-                              await Geolocator.openLocationSettings();
-                            },
-                            child: const Text('Open Settings'),
-                          ),
-                        ],
-                      ),
-                    );
-                  } else if (state.errorType == LocationErrorType.unknown) {
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Location Error'),
-                        content: Text(state.errorMessage),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('Cancel'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              context.pop();
-                              context.read<CustomerHomeBloc>().add(FetchLocationEvent(context: context));
-                            },
-                            child: const Text('Retry'),
-                          ),
-                        ],
-                      ),
-                    );
+                  if (state is CafeSearchLoading) {
+                    EasyLoading.show();
+                  } else {
+                    EasyLoading.dismiss();
                   }
-                }
+                  if (state is LocationError) {
+                    if (state.errorType ==
+                        LocationErrorType.permissionDeniedForever) {
+                      showDialog(
+                        context: context,
+                        builder: (context) =>
+                            AlertDialog(
+                              title: const Text('Location Permission Required'),
+                              content: const Text(
+                                'Location access is permanently denied. Please enable it in your device settings.',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () async {
+                                    Navigator.pop(context);
+                                    await Geolocator.openAppSettings();
+                                  },
+                                  child: const Text('Open Settings'),
+                                ),
+                              ],
+                            ),
+                      );
+                    } else
+                    if (state.errorType == LocationErrorType.serviceDisabled) {
+                      showDialog(
+                        context: context,
+                        builder: (context) =>
+                            AlertDialog(
+                              title: const Text('Location Services Disabled'),
+                              content: const Text(
+                                'Location services are disabled. Please enable them in your device settings.',
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () async {
+                                    Navigator.pop(context);
+                                    await Geolocator.openLocationSettings();
+                                  },
+                                  child: const Text('Open Settings'),
+                                ),
+                              ],
+                            ),
+                      );
+                    } else if (state.errorType == LocationErrorType.unknown) {
+                      showDialog(
+                        context: context,
+                        builder: (context) =>
+                            AlertDialog(
+                              title: const Text('Location Error'),
+                              content: Text(state.errorMessage),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    context.pop();
+                                    context.read<CustomerHomeBloc>().add(
+                                        FetchLocationEvent(context: context));
+                                  },
+                                  child: const Text('Retry'),
+                                ),
+                              ],
+                            ),
+                      );
+                    }
+                  }
               },
+
               builder: (context, state) {
                 return SliverToBoxAdapter(
                   child: Container(
-                    height: MediaQuery.sizeOf(context).height,
+                    height: MediaQuery
+                        .sizeOf(context)
+                        .height,
                     width: double.infinity,
                     decoration: BoxDecoration(
                       color: AppColors.primaryWhiteColor,

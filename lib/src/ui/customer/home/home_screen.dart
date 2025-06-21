@@ -57,9 +57,9 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<CustomerHomeBloc>().add(FetchLocationEvent(context: context));
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   context.read<CustomerHomeBloc>().add(FetchLocationEvent(context: context));
+    // });
   }
 
   @override

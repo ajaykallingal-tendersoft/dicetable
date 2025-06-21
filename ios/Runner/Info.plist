@@ -48,6 +48,10 @@
 	<string>We need your location while updating your profile to list the venues based on your location.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Dicetable requires access to your photo library to select images for uploading and profile photos.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+    <string>We need your location to find nearby cafes.</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>We need your location to find nearby cafes.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UIBackgroundModes</key>
