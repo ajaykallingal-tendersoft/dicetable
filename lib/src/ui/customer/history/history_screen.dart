@@ -1,5 +1,7 @@
+import 'package:badges/badges.dart' as badges;
 import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/resources/api_providers/customer/history_data_provider.dart';
+import 'package:dicetable/src/ui/cafe_owner/notification/count_controller.dart';
 import 'package:dicetable/src/ui/customer/cafe_list/bloc/cafe_list_bloc.dart';
 import 'package:dicetable/src/ui/customer/history/widget/history_card.dart';
 import 'package:flutter/cupertino.dart';
@@ -8,12 +10,21 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
+import 'package:get/get.dart';
+import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:go_router/go_router.dart';
 
 import 'bloc/history_bloc.dart';
 
-class HistoryScreen extends StatelessWidget {
+class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
+
+  @override
+  _HistoryScreenState createState() => _HistoryScreenState();
+
+}
+  class _HistoryScreenState extends State<HistoryScreen> {
+    final CounterController controller = Get.find<CounterController>();
 
   @override
   Widget build(BuildContext context) {
@@ -67,41 +78,33 @@ class HistoryScreen extends StatelessWidget {
                   onTap: () {
                     context.push('/notification');
                   },
-                  child: Stack(
-                    children: [
-                      const Icon(
+                  child: Obx(() {
+                    return controller.notificationBadgeAmount.value > 0
+                        ? badges.Badge(
+                      position: badges.BadgePosition.topEnd(top: 0, end: 0),
+                      badgeAnimation: badges.BadgeAnimation.slide(),
+                      showBadge: true,
+                      badgeStyle: badges.BadgeStyle(
+                        shape: badges.BadgeShape.square,
+                        borderRadius: BorderRadius.circular(10),
+                        badgeColor: Colors.red,
+                        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      ),
+                      badgeContent: Text(
+                        controller.notificationBadgeAmount.value.toString(),
+                        style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                      ),
+                      child: const Icon(
                         Icons.notifications_outlined,
                         color: AppColors.primaryWhiteColor,
                         size: 35,
                       ),
-                      // if (count > 0)
-                      Positioned(
-                        right: 0,
-                        top: 0,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(
-                            color: AppColors.appRedColor,
-                            shape: BoxShape.circle,
-                          ),
-                          constraints: const BoxConstraints(
-                            minWidth: 16,
-                            minHeight: 16,
-                          ),
-                          child: Center(
-                            child: Text(
-                              '8',
-                              style: const TextStyle(
-                                color: AppColors.primaryWhiteColor,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+                    ) : const Icon(
+                      Icons.notifications_outlined,
+                      color: AppColors.primaryWhiteColor,
+                      size: 35,
+                    );
+                  }),
                 ),
               ],
               leading: const SizedBox(),

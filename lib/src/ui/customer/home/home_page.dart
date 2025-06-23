@@ -1,5 +1,7 @@
+import 'package:badges/badges.dart' as badges;
 import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/model/customer/cafe/cafe_search_request.dart';
+import 'package:dicetable/src/ui/cafe_owner/notification/count_controller.dart';
 import 'package:dicetable/src/ui/customer/home/widget/cafe_marker_map_widget.dart';
 import 'package:dicetable/src/ui/customer/home/widget/cafe_search_bar.dart';
 import 'package:dicetable/src/ui/customer/home/widget/filter_bottom_sheet.dart';
@@ -10,6 +12,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:get/get.dart';
+import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
 import 'bloc/customer_home_bloc.dart';
@@ -26,6 +30,8 @@ class CustomerHomePage extends StatefulWidget {
 class _CustomerHomePageState extends State<CustomerHomePage> {
   late final String latitude;
   late final String longitude;
+  final CounterController controller = Get.find<CounterController>();
+
 @override
   void initState() {
     super.initState();
@@ -121,10 +127,7 @@ void _performSearch() {
                           children: [
                             Text(
                               "DICE TABLE",
-                              style: TextTheme
-                                  .of(context)
-                                  .labelMedium!
-                                  .copyWith(
+                              style: TextTheme.of(context).labelMedium!.copyWith(
                                 color: AppColors.primaryWhiteColor,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 30.sp,
@@ -132,47 +135,38 @@ void _performSearch() {
                             ),
                             InkWell(
                               onTap: () {
-                               context.push('/notification');
-                              },
-                              child: Stack(
-                                children: [
-                                  const Icon(
+                                context.push('/notification');
+                                },
+                              child: Obx(() {
+                                return controller.notificationBadgeAmount.value > 0
+                                    ? badges.Badge(
+                                  position: badges.BadgePosition.topEnd(top: 0, end: 0),
+                                  badgeAnimation: badges.BadgeAnimation.slide(),
+                                  showBadge: true,
+                                  badgeStyle: badges.BadgeStyle(
+                                    shape: badges.BadgeShape.square,
+                                    borderRadius: BorderRadius.circular(10),
+                                    badgeColor: Colors.red,
+                                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  ),
+                                  badgeContent: Text(
+                                    controller.notificationBadgeAmount.value.toString(),
+                                    style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                  ),
+                                  child: const Icon(
                                     Icons.notifications_outlined,
                                     color: AppColors.primaryWhiteColor,
                                     size: 35,
                                   ),
-                                  // if (count > 0)
-                                  Positioned(
-                                    right: 0,
-                                    top: 0,
-                                    child: Container(
-                                      padding: const EdgeInsets.all(4),
-                                      decoration: const BoxDecoration(
-                                        color: AppColors.appRedColor,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      constraints: const BoxConstraints(
-                                        minWidth: 16,
-                                        minHeight: 16,
-                                      ),
-                                      child: Center(
-                                        child: Text(
-                                          '8',
-                                          style: const TextStyle(
-                                            color: AppColors.primaryWhiteColor,
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
+                                ) : const Icon(
+                                  Icons.notifications_outlined,
+                                  color: AppColors.primaryWhiteColor,
+                                  size: 35,
+                                );
+                              }),
+                            )
                           ],
-                        ),
-
+                        )
                       ],
                     ),
                   ),
