@@ -1,5 +1,7 @@
+import 'package:badges/badges.dart' as badges;
 import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/model/customer/cafe/favourite_list_response.dart';
+import 'package:dicetable/src/ui/cafe_owner/notification/count_controller.dart';
 import 'package:dicetable/src/ui/customer/cafe_list/bloc/cafe_list_bloc.dart';
 import 'package:dicetable/src/ui/customer/favourites/widget/fav_list_container.dart';
 import 'package:flutter/cupertino.dart';
@@ -7,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 
 class FavouritesScreen extends StatefulWidget {
@@ -17,6 +20,8 @@ class FavouritesScreen extends StatefulWidget {
 }
 
 class _FavouritesScreenState extends State<FavouritesScreen> {
+  final CounterController controller = Get.find<CounterController>();
+
   @override
   void initState() {
     super.initState();
@@ -111,40 +116,33 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                       onTap: () {
                         context.push('/notification');
                       },
-                      child: Stack(
-                        children: [
-                          const Icon(
+                      child: Obx(() {
+                        return controller.notificationBadgeAmount.value > 0
+                            ? badges.Badge(
+                          position: badges.BadgePosition.topEnd(top: 0, end: 0),
+                          badgeAnimation: badges.BadgeAnimation.slide(),
+                          showBadge: true,
+                          badgeStyle: badges.BadgeStyle(
+                            shape: badges.BadgeShape.square,
+                            borderRadius: BorderRadius.circular(10),
+                            badgeColor: Colors.red,
+                            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          ),
+                          badgeContent: Text(
+                            controller.notificationBadgeAmount.value.toString(),
+                            style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                          ),
+                          child: const Icon(
                             Icons.notifications_outlined,
                             color: AppColors.primaryWhiteColor,
                             size: 35,
                           ),
-                          Positioned(
-                            right: 0,
-                            top: 0,
-                            child: Container(
-                              padding: const EdgeInsets.all(4),
-                              decoration: const BoxDecoration(
-                                color: AppColors.appRedColor,
-                                shape: BoxShape.circle,
-                              ),
-                              constraints: const BoxConstraints(
-                                minWidth: 16,
-                                minHeight: 16,
-                              ),
-                              child: Center(
-                                child: Text(
-                                  '8', // Replace with dynamic count if available
-                                  style: const TextStyle(
-                                    color: AppColors.primaryWhiteColor,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                        ) : const Icon(
+                          Icons.notifications_outlined,
+                          color: AppColors.primaryWhiteColor,
+                          size: 35,
+                        );
+                      }),
                     ),
                   ],
                   leading: const SizedBox(),

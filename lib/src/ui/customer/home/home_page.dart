@@ -24,10 +24,11 @@ class CustomerHomePage extends StatefulWidget {
 }
 
 class _CustomerHomePageState extends State<CustomerHomePage> {
-  String? latitude;
-  String? longitude;
+  late final String latitude;
+  late final String longitude;
+  final CounterController controller = Get.find<CounterController>();
 
-  @override
+@override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -36,6 +37,10 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
     latitude = ObjectFactory().prefs.getLatitude().toString();
     longitude = ObjectFactory().prefs.getLongitude().toString();
     _performSearch();
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   context.read<CustomerHomeBloc>().add(FetchLocationEvent(context: context));
+    // });
+
   }
 
   void _performSearch() {
@@ -136,10 +141,24 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                             InkWell(
                               onTap: () {
                                 context.push('/notification');
-                              },
-                              child: Stack(
-                                children: [
-                                  const Icon(
+                                },
+                              child: Obx(() {
+                                return controller.notificationBadgeAmount.value > 0
+                                    ? badges.Badge(
+                                  position: badges.BadgePosition.topEnd(top: 0, end: 0),
+                                  badgeAnimation: badges.BadgeAnimation.slide(),
+                                  showBadge: true,
+                                  badgeStyle: badges.BadgeStyle(
+                                    shape: badges.BadgeShape.square,
+                                    borderRadius: BorderRadius.circular(10),
+                                    badgeColor: Colors.red,
+                                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                  ),
+                                  badgeContent: Text(
+                                    controller.notificationBadgeAmount.value.toString(),
+                                    style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                                  ),
+                                  child: const Icon(
                                     Icons.notifications_outlined,
                                     color: AppColors.primaryWhiteColor,
                                     size: 35,
@@ -183,18 +202,18 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                 ),
               ),
             ),
-            SliverPadding(
-              padding: EdgeInsets.zero,
-              sliver: SliverToBoxAdapter(
-                child: CafeSearchBar(
-                  onSearch: (query) {
-                    // Call your API or filter list
-                    print('Search for: $query');
-                  },
-                  onFilterTap: () => showFilterBottomSheet(context),
-                ),
-              ),
-            ),
+      SliverPadding(
+        padding: EdgeInsets.zero,
+        sliver: SliverToBoxAdapter(
+          child: CafeSearchBar(
+            onSearch: (query) {
+              // Call your API or filter list
+              print('Search for: $query');
+            },
+            onFilterTap: () => showFilterBottomSheet(context),
+          ),
+        ),
+      ),
 
             BlocConsumer<CustomerHomeBloc, CustomerHomeState>(
               listener: (context, state) {
@@ -212,7 +231,6 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                   }
 
               },
-
               builder: (context, state) {
                 return SliverToBoxAdapter(
                   child: Container(

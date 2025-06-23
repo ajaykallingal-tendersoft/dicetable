@@ -343,7 +343,9 @@ class ApiClient {
   }
 
   Future<Response> markNotificationAsRead(NotificationReadRequest request) {
-    final token = ObjectFactory().prefs.getAuthToken();
+    final token = ObjectFactory().prefs.getUserDecisionName() == "PUBLIC_USER"
+        ? ObjectFactory().prefs.getCustomerAuthToken()
+        : ObjectFactory().prefs.getAuthToken();
     final url = UrlsDiceApp.markNotificationAsRead;
 
     print("Bearer $token");
@@ -359,7 +361,9 @@ class ApiClient {
   }
 
   Future<Response> notificationStatus(NotificationStatusRequest request) {
-    final token = ObjectFactory().prefs.getAuthToken();
+    final token = ObjectFactory().prefs.getUserDecisionName() == "PUBLIC_USER"
+        ? ObjectFactory().prefs.getCustomerAuthToken()
+        : ObjectFactory().prefs.getAuthToken();
     final url = UrlsDiceApp.updateNotificationStatus;
 
     print("Bearer $token");

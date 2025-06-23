@@ -1,8 +1,10 @@
+import 'package:badges/badges.dart' as badges;
 import 'package:dicetable/src/common/custom_text_field.dart';
 import 'package:dicetable/src/common/elevated_button_widget.dart';
 import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/resources/api_providers/customer/profile_data_provider.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/login/cubit/google_sign_in_cubit.dart';
+import 'package:dicetable/src/ui/cafe_owner/notification/count_controller.dart';
 import 'package:dicetable/src/ui/customer/profile/bloc/customer_profile_bloc.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +14,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
+import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -30,6 +33,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
   final TextEditingController countryController = TextEditingController();
   final TextEditingController stateController = TextEditingController();
   bool _isMounted = false;
+  final CounterController controller = Get.find<CounterController>();
 
   @override
   void initState() {
@@ -103,40 +107,33 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                     onTap: () {
                       context.push('/notification');
                     },
-                    child: Stack(
-                      children: [
-                        const Icon(
+                    child: Obx(() {
+                      return controller.notificationBadgeAmount.value > 0
+                          ? badges.Badge(
+                        position: badges.BadgePosition.topEnd(top: 0, end: 0),
+                        badgeAnimation: badges.BadgeAnimation.slide(),
+                        showBadge: true,
+                        badgeStyle: badges.BadgeStyle(
+                          shape: badges.BadgeShape.square,
+                          borderRadius: BorderRadius.circular(10),
+                          badgeColor: Colors.red,
+                          padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        ),
+                        badgeContent: Text(
+                          controller.notificationBadgeAmount.value.toString(),
+                          style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                        ),
+                        child: const Icon(
                           Icons.notifications_outlined,
                           color: AppColors.primaryWhiteColor,
                           size: 35,
                         ),
-                        Positioned(
-                          right: 0,
-                          top: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                              color: AppColors.appRedColor,
-                              shape: BoxShape.circle,
-                            ),
-                            constraints: const BoxConstraints(
-                              minWidth: 16,
-                              minHeight: 16,
-                            ),
-                            child: const Center(
-                              child: Text(
-                                '8',
-                                style: TextStyle(
-                                  color: AppColors.primaryWhiteColor,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                      ) : const Icon(
+                        Icons.notifications_outlined,
+                        color: AppColors.primaryWhiteColor,
+                        size: 35,
+                      );
+                    }),
                   ),
                 ],
               ),

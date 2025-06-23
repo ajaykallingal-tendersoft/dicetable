@@ -1,3 +1,5 @@
+import 'package:dicetable/src/ui/cafe_owner/notification/bloc/notification_bloc.dart';
+import 'package:dicetable/src/ui/cafe_owner/notification/count_controller.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:flutter/services.dart';
 import 'package:dicetable/src/constants/app_colors.dart';
@@ -11,7 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-
+import 'package:get/get.dart';
 import 'bloc/customer_home_bloc.dart';
 
 class CustomerHomeScreen extends StatefulWidget {
@@ -24,6 +26,7 @@ class CustomerHomeScreen extends StatefulWidget {
 class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   int _selectedIndex = 0;
   DateTime? currentBackPressTime;
+  final CounterController controller = Get.find<CounterController>();
 
   void _onTabSelected(int index) {
     final isGuest = ObjectFactory().prefs.isGuestUser() == true;
@@ -58,6 +61,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<CustomerHomeBloc>().add(FetchLocationEvent(context: context));
+      context.read<NotificationBloc>().add(FetchNotifications());
     });
   }
 
@@ -75,7 +79,18 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
           transitionBuilder: (Widget child, Animation<double> animation) {
             return FadeTransition(opacity: animation, child: child);
           },
-          child: _buildPage(_selectedIndex, isGuest),
+          child: BlocConsumer<NotificationBloc, NotificationState>(
+            listener: (context, state) async {
+              if (state is NotificationLoaded) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  controller.notificationBadgeAmount.value = state.notificationItems.data.unread.length;
+                });
+              }
+            },
+            builder: (context, state) {
+              return _buildPage(_selectedIndex, isGuest);
+            },
+          ),
         ),
 
         bottomNavigationBar: PhysicalShape(
