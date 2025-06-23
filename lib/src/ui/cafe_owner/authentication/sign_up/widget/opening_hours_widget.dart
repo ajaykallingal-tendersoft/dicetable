@@ -4,8 +4,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../bloc/sign_up/sign_up_bloc.dart';
 
-
-
 class OpeningHoursWidget extends StatefulWidget {
   final String day;
   final OpeningHour data;
@@ -25,12 +23,32 @@ class OpeningHoursWidget extends StatefulWidget {
 class _OpeningHoursWidgetState extends State<OpeningHoursWidget> {
   bool isExpanded = false; // Track expanded/collapsed state
 
+  // Future<void> _pickTime(
+  //     BuildContext context,
+  //     TimeOfDay initialTime,
+  //     void Function(TimeOfDay) onPicked,
+  //     ) async {
+  //   final picked = await showTimePicker(context: context, initialTime: initialTime);
+  //   if (picked != null) {
+  //     onPicked(picked);
+  //   }
+  // }
+
   Future<void> _pickTime(
-      BuildContext context,
-      TimeOfDay initialTime,
-      void Function(TimeOfDay) onPicked,
-      ) async {
-    final picked = await showTimePicker(context: context, initialTime: initialTime);
+    BuildContext context,
+    TimeOfDay initialTime,
+    void Function(TimeOfDay) onPicked,
+  ) async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: initialTime,
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+          child: child!,
+        );
+      },
+    );
     if (picked != null) {
       onPicked(picked);
     }
@@ -41,7 +59,8 @@ class _OpeningHoursWidgetState extends State<OpeningHoursWidget> {
     final fromTime = widget.data.from;
     final toTime = widget.data.to;
     final isEnabled = widget.data.isEnabled;
-    final displayTime = '${fromTime.format(context)} - ${toTime.format(context)}';
+    final displayTime =
+        '${fromTime.format(context)} - ${toTime.format(context)}';
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
@@ -50,9 +69,10 @@ class _OpeningHoursWidgetState extends State<OpeningHoursWidget> {
       decoration: BoxDecoration(
         color: AppColors.primaryWhiteColor,
         borderRadius: BorderRadius.circular(15),
-        border: isEnabled
-            ? Border.all(color: AppColors.activeBorderColor)
-            : Border.all(color: Colors.transparent),
+        border:
+            isEnabled
+                ? Border.all(color: AppColors.activeBorderColor)
+                : Border.all(color: Colors.transparent),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
@@ -65,133 +85,143 @@ class _OpeningHoursWidgetState extends State<OpeningHoursWidget> {
         children: [
           !isEnabled
               ? Row(
-            children: [
-              SizedBox(
-                height: 35,
-                width: 55,
-                child: FittedBox(
-                  fit: BoxFit.fill,
-                  child: Switch(
-                    activeColor: AppColors.primaryWhiteColor,
-                    activeTrackColor: AppColors.tertiary,
-                    inactiveThumbColor: AppColors.disabledColor,
-                    inactiveTrackColor: AppColors.primaryWhiteColor,
-                    value: isEnabled,
-                    onChanged: (val) {
-                      widget.onChanged(widget.data.copyWith(isEnabled: val));
-                      // Auto-expand when enabling the switch
-                      if (val && !isExpanded) {
-                        setState(() {
-                          isExpanded = true;
-                        });
+                children: [
+                  SizedBox(
+                    height: 35,
+                    width: 55,
+                    child: FittedBox(
+                      fit: BoxFit.fill,
+                      child: Switch(
+                        activeColor: AppColors.primaryWhiteColor,
+                        activeTrackColor: AppColors.tertiary,
+                        inactiveThumbColor: AppColors.disabledColor,
+                        inactiveTrackColor: AppColors.primaryWhiteColor,
+                        value: isEnabled,
+                        onChanged: (val) {
+                          widget.onChanged(
+                            widget.data.copyWith(isEnabled: val),
+                          );
+                          // Auto-expand when enabling the switch
+                          if (val && !isExpanded) {
+                            setState(() {
+                              isExpanded = true;
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 8,
+                  ), // Small spacing between Switch and Day
+                  Text(
+                    widget.day,
+                    style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      'Closed',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.timeTextColor,
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        isExpanded = !isExpanded;
+                      });
+                      // Enable the day if not enabled when expanding
+                      if (!isEnabled && isExpanded) {
+                        widget.onChanged(widget.data.copyWith(isEnabled: true));
                       }
                     },
+                    child: Icon(
+                      isExpanded ? Icons.expand_less : Icons.expand_more,
+                      color: AppColors.textPrimaryGrey,
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(width: 8), // Small spacing between Switch and Day
-              Text(
-                widget.day,
-                style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                  color: AppColors.primary,
-                ),
-              ),
-              Expanded(
-                child: Text(
-                  'Closed',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.timeTextColor,
-                  ),
-                ),
-              ),
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    isExpanded = !isExpanded;
-                  });
-                  // Enable the day if not enabled when expanding
-                  if (!isEnabled && isExpanded) {
-                    widget.onChanged(widget.data.copyWith(isEnabled: true));
-                  }
-                },
-                child: Icon(
-                  isExpanded ? Icons.expand_less : Icons.expand_more,
-                  color: AppColors.textPrimaryGrey,
-                ),
-              ),
-            ],
-          )
+                ],
+              )
               : Row(
-            children: [
-              SizedBox(
-                height: 35,
-                width: 55,
-                child: FittedBox(
-                  fit: BoxFit.fill,
-                  child: Switch(
-                    activeColor: AppColors.primaryWhiteColor,
-                    activeTrackColor: AppColors.tertiary,
-                    inactiveThumbColor: AppColors.disabledColor,
-                    inactiveTrackColor: AppColors.primaryWhiteColor,
-                    value: isEnabled,
-                    onChanged: (val) {
-                      widget.onChanged(widget.data.copyWith(isEnabled: val));
-                      // Auto-expand when enabling the switch
-                      if (val && !isExpanded) {
-                        setState(() {
-                          isExpanded = true;
-                        });
-                      }
+                children: [
+                  SizedBox(
+                    height: 35,
+                    width: 55,
+                    child: FittedBox(
+                      fit: BoxFit.fill,
+                      child: Switch(
+                        activeColor: AppColors.primaryWhiteColor,
+                        activeTrackColor: AppColors.tertiary,
+                        inactiveThumbColor: AppColors.disabledColor,
+                        inactiveTrackColor: AppColors.primaryWhiteColor,
+                        value: isEnabled,
+                        onChanged: (val) {
+                          widget.onChanged(
+                            widget.data.copyWith(isEnabled: val),
+                          );
+                          // Auto-expand when enabling the switch
+                          if (val && !isExpanded) {
+                            setState(() {
+                              isExpanded = true;
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      widget.day,
+                      style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                  Text(
+                    displayTime,
+                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.timeTextColor,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        isExpanded = !isExpanded;
+                      });
                     },
+                    child: Icon(
+                      isExpanded ? Icons.expand_less : Icons.expand_more,
+                      color: AppColors.timeTextColor,
+                    ),
                   ),
-                ),
+                ],
               ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  widget.day,
-                  style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 14,
-                    color: AppColors.primary,
-                  ),
-                ),
-              ),
-              Text(
-                displayTime,
-                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.timeTextColor,
-                ),
-              ),
-              const SizedBox(width: 10),
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    isExpanded = !isExpanded;
-                  });
-                },
-                child: Icon(
-                  isExpanded ? Icons.expand_less : Icons.expand_more,
-                  color: AppColors.timeTextColor,
-                ),
-              ),
-            ],
-          ),
-          if (isEnabled && isExpanded) // Show time pickers only if enabled and expanded
+          if (isEnabled &&
+              isExpanded) // Show time pickers only if enabled and expanded
             Padding(
               padding: const EdgeInsets.only(top: 12),
               child: Row(
                 children: [
                   Expanded(
                     child: GestureDetector(
-                      onTap: () => _pickTime(context, fromTime, (picked) {
-                        widget.onChanged(widget.data.copyWith(from: picked));
-                      }),
+                      onTap:
+                          () => _pickTime(context, fromTime, (picked) {
+                            widget.onChanged(
+                              widget.data.copyWith(from: picked),
+                            );
+                          }),
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
@@ -201,9 +231,8 @@ class _OpeningHoursWidgetState extends State<OpeningHoursWidget> {
                         alignment: Alignment.center,
                         child: Text(
                           fromTime.format(context),
-                          style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                            color: AppColors.pickedTimeColor,
-                          ),
+                          style: Theme.of(context).textTheme.bodyMedium!
+                              .copyWith(color: AppColors.pickedTimeColor),
                         ),
                       ),
                     ),
@@ -220,9 +249,10 @@ class _OpeningHoursWidgetState extends State<OpeningHoursWidget> {
                   ),
                   Expanded(
                     child: GestureDetector(
-                      onTap: () => _pickTime(context, toTime, (picked) {
-                        widget.onChanged(widget.data.copyWith(to: picked));
-                      }),
+                      onTap:
+                          () => _pickTime(context, toTime, (picked) {
+                            widget.onChanged(widget.data.copyWith(to: picked));
+                          }),
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
@@ -232,9 +262,8 @@ class _OpeningHoursWidgetState extends State<OpeningHoursWidget> {
                         alignment: Alignment.center,
                         child: Text(
                           toTime.format(context),
-                          style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                            color: AppColors.pickedTimeColor,
-                          ),
+                          style: Theme.of(context).textTheme.bodyMedium!
+                              .copyWith(color: AppColors.pickedTimeColor),
                         ),
                       ),
                     ),

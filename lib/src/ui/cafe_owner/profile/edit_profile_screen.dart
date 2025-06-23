@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -106,7 +107,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           actions: [
             TextButton(
               onPressed: () {
-                Navigator.of(dialogContext).pop();
+                dialogContext.pop();
               },
               child: Text(
                 'Cancel',
@@ -142,7 +143,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             else
               ElevatedButton(
                 onPressed: () {
-                  Navigator.of(dialogContext).pop();
+                  dialogContext.pop();
                   context.read<ProfileBloc>().add(PickImageFromGalleryEvent());
                 },
                 style: ElevatedButton.styleFrom(
@@ -190,18 +191,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             _cityController.text = state.city;
 
             EasyLoading.dismiss();
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Profile updated successfully'),
-                backgroundColor: AppColors.appGreenColor,
-              ),
+            Fluttertoast.showToast(
+              msg: 'Profile updated successfully',
+              backgroundColor: AppColors.primaryWhiteColor,
+              textColor: AppColors.appGreenColor,
             );
           } else if (state is ProfileUpdateError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.errorMessage),
-                backgroundColor: AppColors.appRedColor,
-              ),
+            Fluttertoast.showToast(
+              msg: state.errorMessage,
+              backgroundColor: AppColors.primaryWhiteColor,
+              textColor: AppColors.appGreenColor,
             );
           } else if (state is ProfileEditViewLoaded) {
             _cityController.text =
@@ -643,9 +642,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               builder: (context, state) {
                 final image = state.image;
                 return Positioned(
-                  top: isTabletOrLarger
-                      ? (350.h / 1.5.h) - 20.h
-                      : (350.h / 1.9.h) - 60.h,
+                  top:
+                      isTabletOrLarger
+                          ? (350.h / 1.5.h) - 20.h
+                          : (350.h / 1.9.h) - 60.h,
                   left: 0,
                   right: 0,
                   child: Center(
@@ -657,9 +657,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                           child: CircleAvatar(
                             backgroundColor: Colors.transparent,
                             radius: 85.r,
-                            child: ClipOval(
-                              child: _buildProfileImage(state),
-                            ),
+                            child: ClipOval(child: _buildProfileImage(state)),
                           ),
                         ),
                         Positioned(
@@ -699,7 +697,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 );
               },
             ),
-
           ],
         ),
       ),
@@ -741,12 +738,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         height: 170.r,
         // Add gaplessPlayback to prevent flickering during rebuilds
         gaplessPlayback: true,
-        errorBuilder: (context, error, stackTrace) => Image.asset(
-          'assets/png/profile-img.png',
-          fit: BoxFit.cover,
-          width: 170.r,
-          height: 170.r,
-        ),
+        errorBuilder:
+            (context, error, stackTrace) => Image.asset(
+              'assets/png/profile-img.png',
+              fit: BoxFit.cover,
+              width: 170.r,
+              height: 170.r,
+            ),
       );
     }
 
@@ -765,12 +763,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       gaplessPlayback: true,
     );
   }
+
   Widget _buildBase64Image(String? base64Image) {
     if (base64Image != null && base64Image.isNotEmpty) {
       try {
-        final cleanBase64 = base64Image.startsWith('data:image')
-            ? base64Image.split(',').last
-            : base64Image;
+        final cleanBase64 =
+            base64Image.startsWith('data:image')
+                ? base64Image.split(',').last
+                : base64Image;
         final decodedBytes = base64Decode(cleanBase64);
         return Image.memory(
           decodedBytes,
@@ -779,13 +779,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           height: 170.r,
           // Add gaplessPlayback to prevent flickering
           gaplessPlayback: true,
-          errorBuilder: (context, error, stackTrace) => Image.asset(
-            'assets/png/profile-img.png',
-            fit: BoxFit.cover,
-            width: 170.r,
-            height: 170.r,
-            gaplessPlayback: true,
-          ),
+          errorBuilder:
+              (context, error, stackTrace) => Image.asset(
+                'assets/png/profile-img.png',
+                fit: BoxFit.cover,
+                width: 170.r,
+                height: 170.r,
+                gaplessPlayback: true,
+              ),
         );
       } catch (e) {
         debugPrint('Invalid base64 image: $e');

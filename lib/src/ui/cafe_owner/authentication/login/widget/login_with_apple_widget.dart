@@ -77,7 +77,7 @@ class LoginWithAppleWidget extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Image.asset(
                   Assets.APPLE_LOGO,
@@ -96,13 +96,17 @@ class LoginWithAppleWidget extends StatelessWidget {
                         color: AppColors.primary,
                       ),
                     )
-                    : Text(
-                      'Sign in with Apple',
-                      textAlign: TextAlign.left,
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: AppColors.textFieldTextColor,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
+                    : Expanded(
+                      child: Text(
+                        'Sign in with Apple',
+                        textAlign: TextAlign.left,
+                        style: Theme.of(
+                          context,
+                        ).textTheme.labelMedium?.copyWith(
+                          color: AppColors.textFieldTextColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                        ),
                       ),
                     ),
               ],

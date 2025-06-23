@@ -108,19 +108,25 @@ class ProfileState extends Equatable {
       city: city ?? this.city,
       postalCode: postalCode ?? this.postalCode,
       venueType: venueType ?? this.venueType,
-      venueTypes: venueTypes != null ? List<VenueType>.from(venueTypes) : List<VenueType>.from(this.venueTypes),
-      selectedVenueTypeIds: selectedVenueTypeIds != null
-          ? List<int>.from(selectedVenueTypeIds)
-          : List<int>.from(this.selectedVenueTypeIds),
-      openingHours: openingHours != null
-          ? Map<String, ProfileOpeningHour>.from(openingHours)
-          : Map<String, ProfileOpeningHour>.from(this.openingHours),
+      venueTypes:
+          venueTypes != null
+              ? List<VenueType>.from(venueTypes)
+              : List<VenueType>.from(this.venueTypes),
+      selectedVenueTypeIds:
+          selectedVenueTypeIds != null
+              ? List<int>.from(selectedVenueTypeIds)
+              : List<int>.from(this.selectedVenueTypeIds),
+      openingHours:
+          openingHours != null
+              ? Map<String, ProfileOpeningHour>.from(openingHours)
+              : Map<String, ProfileOpeningHour>.from(this.openingHours),
       image: image ?? this.image,
       blob: blob ?? this.blob,
       originalName: originalName ?? this.originalName,
       isEditMode: isEditMode ?? this.isEditMode,
       profileViewResponse: profileViewResponse ?? this.profileViewResponse,
-      profileEditViewResponse: profileEditViewResponse ?? this.profileEditViewResponse,
+      profileEditViewResponse:
+          profileEditViewResponse ?? this.profileEditViewResponse,
       errorMessage: errorMessage ?? this.errorMessage,
       isLoading: isLoading ?? this.isLoading,
     );
@@ -223,11 +229,11 @@ class ProfileImageLoadedState extends ProfileState {
   }) : super(isLoading: false);
 
   factory ProfileImageLoadedState.fromState(
-      ProfileState state, {
-        required XFile image,
-        required String blob,
-        required String originalName,
-      }) {
+    ProfileState state, {
+    required XFile image,
+    required String blob,
+    required String originalName,
+  }) {
     return ProfileImageLoadedState(
       venueName: state.venueName,
       venueDescription: state.venueDescription,
@@ -272,13 +278,13 @@ class ProfileImageErrorState extends ProfileState {
     required super.isEditMode,
     super.profileViewResponse,
     super.profileEditViewResponse,
-     super.errorMessage,
+    super.errorMessage,
   }) : super(isLoading: false);
 
   factory ProfileImageErrorState.fromState(
-      ProfileState state, {
-         String? errorMessage,
-      }) {
+    ProfileState state, {
+    String? errorMessage,
+  }) {
     return ProfileImageErrorState(
       venueName: state.venueName,
       venueDescription: state.venueDescription,
@@ -325,15 +331,15 @@ class ProfileImagePermissionDeniedState extends ProfileState {
     required super.isEditMode,
     super.profileViewResponse,
     super.profileEditViewResponse,
-     super.errorMessage,
+    super.errorMessage,
     required this.isPermanentlyDenied,
   }) : super(isLoading: false);
 
   factory ProfileImagePermissionDeniedState.fromState(
-      ProfileState state, {
-        required bool isPermanentlyDenied,
-        required String errorMessage,
-      }) {
+    ProfileState state, {
+    required bool isPermanentlyDenied,
+    required String errorMessage,
+  }) {
     return ProfileImagePermissionDeniedState(
       venueName: state.venueName,
       venueDescription: state.venueDescription,
@@ -380,14 +386,13 @@ class ProfileViewLoaded extends ProfileState {
     required super.postalCode,
     required super.venueType,
     required super.openingHours,
-  }) : super(
-    profileViewResponse: profileViewResponse,
-  );
+  }) : super(profileViewResponse: profileViewResponse);
 }
 
 class ProfileViewError extends ProfileState {
   final String errorMessage;
-  const ProfileViewError({required this.errorMessage}) : super(errorMessage: errorMessage);
+  const ProfileViewError({required this.errorMessage})
+    : super(errorMessage: errorMessage);
 }
 
 class ProfileEditViewLoading extends ProfileState {
@@ -412,26 +417,28 @@ class ProfileEditViewLoaded extends ProfileState {
     String? blob, // Added
     String? originalName, // Added
   }) : super(
-    profileEditViewResponse: profileEditViewResponse,
-    venueName: venueName,
-    venueDescription: venueDescription,
-    email: email,
-    phone: phone,
-    address: address,
-    // city: city,
-    postalCode: postalCode,
-    venueTypes: venueTypes,
-    selectedVenueTypeIds: selectedVenueTypeIds,
-    openingHours: openingHours,
-    image: image,
-    blob: blob,
-    originalName: originalName,
-    isEditMode: true,
-  );
+         profileEditViewResponse: profileEditViewResponse,
+         venueName: venueName,
+         venueDescription: venueDescription,
+         email: email,
+         phone: phone,
+         address: address,
+         // city: city,
+         postalCode: postalCode,
+         venueTypes: venueTypes,
+         selectedVenueTypeIds: selectedVenueTypeIds,
+         openingHours: openingHours,
+         image: image,
+         blob: blob,
+         originalName: originalName,
+         isEditMode: true,
+       );
 }
+
 class ProfileEditViewError extends ProfileState {
   final String errorMessage;
-  const ProfileEditViewError({required this.errorMessage}) : super(errorMessage: errorMessage);
+  const ProfileEditViewError({required this.errorMessage})
+    : super(errorMessage: errorMessage);
 }
 
 class ProfileUpdateLoading extends ProfileState {
@@ -445,11 +452,11 @@ class ProfileUpdateSuccess extends ProfileState {
 
 class ProfileUpdateError extends ProfileState {
   final String errorMessage;
-  const ProfileUpdateError({required this.errorMessage}) : super(errorMessage: errorMessage);
+  const ProfileUpdateError({required this.errorMessage})
+    : super(errorMessage: errorMessage);
 }
 
 class ProfileDeleteLoading extends ProfileState {}
-
 
 class ProfileDeleteSuccess extends ProfileState {
   final DeleteProfileResponse cafeDeleteProfileResponse;
@@ -458,5 +465,52 @@ class ProfileDeleteSuccess extends ProfileState {
 
 class ProfileDeleteError extends ProfileState {
   final String errorMessage;
-  const ProfileDeleteError({required this.errorMessage}) : super(errorMessage: errorMessage);
+  const ProfileDeleteError({required this.errorMessage})
+    : super(errorMessage: errorMessage);
+}
+
+// Add this to your profile_state.dart file
+
+class ProfileImageLimitedAccessState extends ProfileState {
+  final String message;
+
+  const ProfileImageLimitedAccessState({
+    required this.message,
+    required super.venueName,
+    required super.venueDescription,
+    required super.email,
+    required super.phone,
+    required super.address,
+    required super.postalCode,
+    required super.selectedVenueTypeIds,
+    required super.openingHours,
+    super.image,
+    super.blob,
+    super.originalName,
+    super.isEditMode = false,
+  });
+
+  factory ProfileImageLimitedAccessState.fromState(
+    ProfileState state, {
+    required String message,
+  }) {
+    return ProfileImageLimitedAccessState(
+      message: message,
+      venueName: state.venueName,
+      venueDescription: state.venueDescription,
+      email: state.email,
+      phone: state.phone,
+      address: state.address,
+      postalCode: state.postalCode,
+      selectedVenueTypeIds: state.selectedVenueTypeIds,
+      openingHours: state.openingHours,
+      image: state.image,
+      blob: state.blob,
+      originalName: state.originalName,
+      isEditMode: state.isEditMode,
+    );
+  }
+
+  @override
+  List<Object?> get props => [...super.props, message];
 }

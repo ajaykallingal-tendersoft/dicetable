@@ -17,8 +17,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'bloc/profile_bloc.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 
-
-
 class ManageProfileScreen extends StatefulWidget {
   const ManageProfileScreen({super.key});
 
@@ -29,7 +27,7 @@ class ManageProfileScreen extends StatefulWidget {
 class _ManageProfileScreenState extends State<ManageProfileScreen> {
   late TextEditingController _venueNameController = TextEditingController();
   late TextEditingController _venueDescriptionController =
-  TextEditingController();
+      TextEditingController();
   late TextEditingController _emailController = TextEditingController();
 
   // late TextEditingController _passwordController = TextEditingController();
@@ -52,12 +50,11 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
   }
 
   void _initializeControllers() {
-    final state = context
-        .read<ProfileBloc>()
-        .state;
+    final state = context.read<ProfileBloc>().state;
     _venueNameController = TextEditingController(text: state.venueName);
-    _venueDescriptionController =
-        TextEditingController(text: state.venueDescription);
+    _venueDescriptionController = TextEditingController(
+      text: state.venueDescription,
+    );
     _emailController = TextEditingController(text: state.email);
     // _passwordController = TextEditingController(text: state.password);
     _phoneController = TextEditingController(text: state.phone);
@@ -87,7 +84,8 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
 
     if (username.length <= 2) return email;
 
-    final maskedUsername = username[0] +
+    final maskedUsername =
+        username[0] +
         '*' * (username.length - 2) +
         username[username.length - 1];
 
@@ -104,6 +102,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
         maskedPart +
         phone.substring(phone.length - visibleDigits);
   }
+
   void _showToast(String message, Color textColor) {
     if (!_isMounted) return;
 
@@ -114,7 +113,6 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
       msg: message,
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -134,7 +132,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
           _imageFile = File(state.image!.path);
         }
 
-        if(state is ProfileUpdateLoading) {
+        if (state is ProfileUpdateLoading) {
           EasyLoading.show();
         }
         if (state is ProfileUpdateSuccess) {
@@ -145,18 +143,16 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
           _addressController.text = state.address;
           _postalCodeController.text = state.postalCode;
           EasyLoading.dismiss();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.profileUpdateResponse.message ?? 'Profile updated successfully'),
-              backgroundColor: AppColors.appGreenColor,
-            ),
+          Fluttertoast.showToast(
+            msg: 'Profile updated successfully',
+            backgroundColor: AppColors.primaryWhiteColor,
+            textColor: AppColors.appGreenColor,
           );
         } else if (state is ProfileUpdateError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.errorMessage),
-              backgroundColor: AppColors.appRedColor,
-            ),
+          Fluttertoast.showToast(
+            msg: state.errorMessage,
+            backgroundColor: AppColors.primaryWhiteColor,
+            textColor: AppColors.appRedColor,
           );
         }
 
@@ -165,40 +161,36 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
         } else {
           await EasyLoading.dismiss();
           if (state is ProfileImageErrorState) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text("Something went wrong!.")),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text("Something went wrong!.")));
           }
         }
 
-        if(state is ProfileDeleteLoading) {
+        if (state is ProfileDeleteLoading) {
           EasyLoading.show();
         }
-        if(state is ProfileDeleteSuccess) {
-         if(state.cafeDeleteProfileResponse.status == true) {
-           EasyLoading.dismiss();
-           _showToast(
-             state.cafeDeleteProfileResponse.message ??
-                 "Account Deleted successful",
-             AppColors.appGreenColor,
-           );
-           context.go('/category');
-         }else if(state.cafeDeleteProfileResponse.status == false){
-           EasyLoading.dismiss();
-           _showToast(
-             state.cafeDeleteProfileResponse.message ??
-                 "Failed to delete account",
-             AppColors.appRedColor,
-           );
-         }
-        } else if(state is ProfileDeleteError) {
+        if (state is ProfileDeleteSuccess) {
+          if (state.cafeDeleteProfileResponse.status == true) {
+            EasyLoading.dismiss();
+            _showToast(
+              state.cafeDeleteProfileResponse.message ??
+                  "Account Deleted successful",
+              AppColors.appGreenColor,
+            );
+            context.go('/category');
+          } else if (state.cafeDeleteProfileResponse.status == false) {
+            EasyLoading.dismiss();
+            _showToast(
+              state.cafeDeleteProfileResponse.message ??
+                  "Failed to delete account",
+              AppColors.appRedColor,
+            );
+          }
+        } else if (state is ProfileDeleteError) {
           EasyLoading.dismiss();
-          _showToast(
-            state.errorMessage,
-            AppColors.appRedColor,
-          );
+          _showToast(state.errorMessage, AppColors.appRedColor);
         }
-
       },
       builder: (context, state) {
         if (state is ProfileViewError) {
@@ -232,7 +224,8 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                           isProfile: true,
                           readOnly: true,
                           hintText: 'Your Venue description here',
-                          textFieldAnnotationText: 'Your Venue description here',
+                          textFieldAnnotationText:
+                              'Your Venue description here',
                           maxLines: 5,
                           controller: _venueDescriptionController,
                           onChanged: (value) {},
@@ -251,7 +244,8 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                                     activeColor: AppColors.primaryWhiteColor,
                                     activeTrackColor: AppColors.tertiary,
                                     inactiveThumbColor: AppColors.disabledColor,
-                                    inactiveTrackColor: AppColors.primaryWhiteColor,
+                                    inactiveTrackColor:
+                                        AppColors.primaryWhiteColor,
                                     value: _isEmailVisible,
                                     onChanged: (val) {
                                       setState(() {
@@ -264,10 +258,9 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                               Gap(1),
                               Text(
                                 "Show to user",
-                                style: TextTheme
-                                    .of(context)
-                                    .bodySmall!
-                                    .copyWith(
+                                style: TextTheme.of(
+                                  context,
+                                ).bodySmall!.copyWith(
                                   color: AppColors.primaryWhiteColor,
                                   fontSize: 12,
                                 ),
@@ -279,9 +272,10 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                           isProfile: true,
                           readOnly: true,
                           controller: TextEditingController(
-                            text: _isEmailVisible
-                                ? state.email
-                                : _getMaskedEmail(state.email),
+                            text:
+                                _isEmailVisible
+                                    ? state.email
+                                    : _getMaskedEmail(state.email),
                           ),
                           hintText: 'Email',
                           textFieldAnnotationText: 'Email',
@@ -301,7 +295,8 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                                     activeColor: AppColors.primaryWhiteColor,
                                     activeTrackColor: AppColors.tertiary,
                                     inactiveThumbColor: AppColors.disabledColor,
-                                    inactiveTrackColor: AppColors.primaryWhiteColor,
+                                    inactiveTrackColor:
+                                        AppColors.primaryWhiteColor,
                                     value: _isPhoneVisible,
                                     onChanged: (val) {
                                       setState(() {
@@ -314,10 +309,9 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                               Gap(1),
                               Text(
                                 "Show to user",
-                                style: TextTheme
-                                    .of(context)
-                                    .bodySmall!
-                                    .copyWith(
+                                style: TextTheme.of(
+                                  context,
+                                ).bodySmall!.copyWith(
                                   color: AppColors.primaryWhiteColor,
                                   fontSize: 12,
                                 ),
@@ -329,9 +323,10 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                           isProfile: true,
                           readOnly: true,
                           controller: TextEditingController(
-                            text: _isPhoneVisible
-                                ? state.phone
-                                : _getMaskedPhone(state.phone),
+                            text:
+                                _isPhoneVisible
+                                    ? state.phone
+                                    : _getMaskedPhone(state.phone),
                           ),
                           hintText: 'Phone',
                           textFieldAnnotationText: 'Phone',
@@ -385,7 +380,8 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                             ObjectFactory().prefs.setIsLoggedIn(false);
                             ObjectFactory().prefs.setAuthToken(token: "");
                             ObjectFactory().prefs.setCafeUserName(
-                                cafeUserName: "");
+                              cafeUserName: "",
+                            );
                             ObjectFactory().prefs.setCafeId(cafeId: '');
                             ObjectFactory().prefs.setCafeUserId(cafeUserId: '');
                             ObjectFactory().prefs.getNavigationSource();
@@ -404,7 +400,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                         InkWell(
                           onTap: () {
                             _showDeleteAccountDialog(context);
-                            },
+                          },
                           child: ElevatedButtonWidget(
                             height: 70.h,
                             width: double.infinity,
@@ -499,15 +495,16 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
     );
   }
 
-
   // For venue types, convert selected types to a readable string
   String _formatVenueTypes(Map<String, bool> venueTypes) {
-    final selectedTypes = venueTypes.entries
-        .where((entry) => entry.value)
-        .map((entry) => entry.key)
-        .toList();
-    return selectedTypes.isEmpty ? 'No venue types selected' : selectedTypes
-        .join(', ');
+    final selectedTypes =
+        venueTypes.entries
+            .where((entry) => entry.value)
+            .map((entry) => entry.key)
+            .toList();
+    return selectedTypes.isEmpty
+        ? 'No venue types selected'
+        : selectedTypes.join(', ');
   }
 
   // For opening hours, create a formatted string with each day and its hours
@@ -534,10 +531,10 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
   }
 
   Widget _buildSliverAppBar() {
-    final isTabletOrLarger = ResponsiveBreakpoints.of(context).largerThan(MOBILE);
-    final state = context
-        .read<ProfileBloc>()
-        .state;
+    final isTabletOrLarger = ResponsiveBreakpoints.of(
+      context,
+    ).largerThan(MOBILE);
+    final state = context.read<ProfileBloc>().state;
     return SliverAppBar(
       expandedHeight: 380.h,
       pinned: false,
@@ -585,10 +582,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                     Gap(60),
                     Text(
                       state.venueName,
-                      style: TextTheme
-                          .of(context)
-                          .bodyLarge!
-                          .copyWith(
+                      style: TextTheme.of(context).bodyLarge!.copyWith(
                         color: AppColors.primaryWhiteColor,
                         fontSize: 22,
                       ),
@@ -596,10 +590,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                     SizedBox(height: 4),
                     Text(
                       state.venueDescription,
-                      style: TextTheme
-                          .of(context)
-                          .bodySmall!
-                          .copyWith(
+                      style: TextTheme.of(context).bodySmall!.copyWith(
                         color: AppColors.primaryWhiteColor,
                         fontSize: 12,
                       ),
@@ -609,7 +600,10 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
               ),
             ),
             Positioned(
-              top: isTabletOrLarger ? (350.h / 1.9.h) -20.h : (350.h / 1.9.h) - 60.h,
+              top:
+                  isTabletOrLarger
+                      ? (350.h / 1.9.h) - 20.h
+                      : (350.h / 1.9.h) - 60.h,
               left: 0,
               right: 0,
               child: Center(
@@ -622,24 +616,22 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                     child: ClipOval(
                       child: BlocBuilder<ProfileBloc, ProfileState>(
                         builder: (context, state) {
-                          final base64Image = state.profileViewResponse?.data
-                              ?.photo;
+                          final base64Image =
+                              state.profileViewResponse?.data?.photo;
                           if (base64Image != null && base64Image.isNotEmpty) {
                             try {
-                              final cleanBase64 = base64Image.startsWith(
-                                  'data:image')
-                                  ? base64Image
-                                  .split(',')
-                                  .last
-                                  : base64Image;
+                              final cleanBase64 =
+                                  base64Image.startsWith('data:image')
+                                      ? base64Image.split(',').last
+                                      : base64Image;
                               final decodedBytes = base64Decode(cleanBase64);
                               return Image.memory(
                                 decodedBytes,
                                 fit: BoxFit.cover,
                                 width: 170.r,
                                 height: 170.r,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    Image.asset(
+                                errorBuilder:
+                                    (context, error, stackTrace) => Image.asset(
                                       'assets/png/profile-img.png',
                                       fit: BoxFit.cover,
                                       width: 170.r,
@@ -693,11 +685,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
           children: [
             Text(
               "Venue Information",
-              style: Theme
-                  .of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 fontSize: 14,
                 color: AppColors.primaryWhiteColor,
                 fontWeight: FontWeight.bold,
@@ -705,11 +693,11 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
             ),
             ElevatedButton.icon(
               onPressed: () async {
-                final profileState = context
-                    .read<ProfileBloc>()
-                    .state;
+                final profileState = context.read<ProfileBloc>().state;
                 final dynamic result = await context.push(
-                    '/edit_profile', extra: profileState);
+                  '/edit_profile',
+                  extra: profileState,
+                );
                 if (result is String && result.isNotEmpty) {
                   setState(() {
                     _imageFile = File(result);
@@ -728,7 +716,9 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
               ),
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 6),
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 foregroundColor: AppColors.primaryWhiteColor,
                 side: const BorderSide(color: AppColors.primaryWhiteColor),
                 fixedSize: Size(75.w, 26.h),

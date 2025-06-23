@@ -25,7 +25,6 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-
   final CounterController controller = Get.find<CounterController>();
 
   @override
@@ -40,7 +39,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final isTabletOrLarger = ResponsiveBreakpoints.of(context).largerThan(MOBILE);
+    final isTabletOrLarger = ResponsiveBreakpoints.of(
+      context,
+    ).largerThan(MOBILE);
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -68,14 +69,12 @@ class _HomePageState extends State<HomePage> {
               padding: EdgeInsets.symmetric(horizontal: 20.h, vertical: 10.h),
               sliver: SliverAppBar(
                 backgroundColor: Colors.transparent,
-                expandedHeight: isTabletOrLarger ? 150.h :  110.h,
+                expandedHeight: isTabletOrLarger ? 150.h : 110.h,
                 leading: const SizedBox(),
                 flexibleSpace: FlexibleSpaceBar(
                   centerTitle: false,
                   collapseMode: CollapseMode.parallax,
-                  stretchModes: const [
-                    StretchMode.zoomBackground,
-                  ],
+                  stretchModes: const [StretchMode.zoomBackground],
                   background: SizedBox.fromSize(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -84,7 +83,8 @@ class _HomePageState extends State<HomePage> {
                           listener: (context, state) async {
                             if (state is NotificationLoaded) {
                               WidgetsBinding.instance.addPostFrameCallback((_) {
-                                controller.notificationBadgeAmount.value = state.notificationItems.data.unread.length;
+                                controller.notificationBadgeAmount.value =
+                                    state.notificationItems.data.unread.length;
                               });
                             }
                           },
@@ -94,7 +94,9 @@ class _HomePageState extends State<HomePage> {
                               children: [
                                 Text(
                                   "DICE TABLE",
-                                  style: TextTheme.of(context).labelMedium!.copyWith(
+                                  style: TextTheme.of(
+                                    context,
+                                  ).labelMedium!.copyWith(
                                     color: AppColors.primaryWhiteColor,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 30.sp,
@@ -105,40 +107,61 @@ class _HomePageState extends State<HomePage> {
                                     GoRouter.of(context).push('/notification');
                                   },
                                   child: Obx(() {
-                                    return controller.notificationBadgeAmount.value > 0
+                                    return controller
+                                                .notificationBadgeAmount
+                                                .value >
+                                            0
                                         ? badges.Badge(
-                                      position: badges.BadgePosition.topEnd(top: 0, end: 0),
-                                      badgeAnimation: badges.BadgeAnimation.slide(),
-                                      showBadge: true,
-                                      badgeStyle: badges.BadgeStyle(
-                                        shape: badges.BadgeShape.square,
-                                        borderRadius: BorderRadius.circular(10),
-                                        badgeColor: Colors.red,
-                                        padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                      ),
-                                      badgeContent: Text(
-                                        controller.notificationBadgeAmount.value.toString(),
-                                        style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                                      ),
-                                      child: const Icon(
-                                        Icons.notifications_outlined,
-                                        color: AppColors.primaryWhiteColor,
-                                        size: 35,
-                                      ),
-                                    ) : const Icon(
-                                      Icons.notifications_outlined,
-                                      color: AppColors.primaryWhiteColor,
-                                      size: 35,
-                                    );
+                                          position: badges.BadgePosition.topEnd(
+                                            top: 0,
+                                            end: 0,
+                                          ),
+                                          badgeAnimation:
+                                              badges.BadgeAnimation.slide(),
+                                          showBadge: true,
+                                          badgeStyle: badges.BadgeStyle(
+                                            shape: badges.BadgeShape.square,
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                            badgeColor: Colors.red,
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 6,
+                                              vertical: 2,
+                                            ),
+                                          ),
+                                          badgeContent: Text(
+                                            controller
+                                                .notificationBadgeAmount
+                                                .value
+                                                .toString(),
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          child: const Icon(
+                                            Icons.notifications_outlined,
+                                            color: AppColors.primaryWhiteColor,
+                                            size: 35,
+                                          ),
+                                        )
+                                        : const Icon(
+                                          Icons.notifications_outlined,
+                                          color: AppColors.primaryWhiteColor,
+                                          size: 35,
+                                        );
                                   }),
-                                )
+                                ),
                               ],
                             );
                           },
                         ),
                         const Gap(30),
                         Text(
-                          "Hi, ${ObjectFactory().prefs.getCafeUserName()}" ?? "Hi",
+                          "Hi, ${ObjectFactory().prefs.getCafeUserName()}" ??
+                              "Hi",
                           style: TextTheme.of(context).labelMedium!.copyWith(
                             color: AppColors.primaryWhiteColor,
                             fontWeight: FontWeight.w600,
@@ -153,37 +176,26 @@ class _HomePageState extends State<HomePage> {
             ),
             SliverPadding(
               padding: const EdgeInsets.only(bottom: 20),
-              sliver: BlocBuilder<HomeBloc, HomeState>(
+              sliver: BlocConsumer<HomeBloc, HomeState>(
                 builder: (context, state) {
                   if (state is HomeLoaded) {
                     EasyLoading.dismiss();
-                    if(state.subscriptionStatus == false) {
-                      Fluttertoast.showToast(
-                        backgroundColor: AppColors.primaryWhiteColor,
-                        textColor: AppColors.appRedColor,
-                        gravity: ToastGravity.BOTTOM,
-                        msg: "Your subscription have expired!.",
-                      );
-                      context.go('/login');
-                    }
+
                     return AnimationLimiter(
                       child: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                              (context, index) {
-                            final card = state.cards[index];
-                            return AnimationConfiguration.staggeredList(
-                              position: index,
-                              duration: const Duration(milliseconds: 375),
-                              child: SlideAnimation(
-                                verticalOffset: 50.0,
-                                child: FadeInAnimation(
-                                  child: ExpandableCard(index: index, card: card),
-                                ),
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          final card = state.cards[index];
+                          return AnimationConfiguration.staggeredList(
+                            position: index,
+                            duration: const Duration(milliseconds: 375),
+                            child: SlideAnimation(
+                              verticalOffset: 50.0,
+                              child: FadeInAnimation(
+                                child: ExpandableCard(index: index, card: card),
                               ),
-                            );
-                          },
-                          childCount: state.cards.length,
-                        ),
+                            ),
+                          );
+                        }, childCount: state.cards.length),
                       ),
                     );
                   } else if (state is HomeLoading) {
@@ -191,20 +203,6 @@ class _HomePageState extends State<HomePage> {
                   }
                   if (state is HomeError) {
                     EasyLoading.dismiss();
-                    if (state.errorMessage.contains("UnAuthorized") ||
-                        state.errorMessage.contains("status code of 401") ||
-                        state.errorMessage.contains("Unknown error")) {
-
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        context.go('/login');
-                        Fluttertoast.showToast(
-                          backgroundColor: AppColors.primaryWhiteColor,
-                          textColor: AppColors.appGreenColor,
-                          gravity: ToastGravity.BOTTOM,
-                          msg: "Exception caught for UnAuthorized access. Please login again!",
-                        );
-                      });
-                    }
                     return SliverFillRemaining(
                       child: Center(
                         child: Column(
@@ -228,7 +226,6 @@ class _HomePageState extends State<HomePage> {
                             ElevatedButton(
                               onPressed: () {
                                 // context.read<HomeBloc>().add(GetHomeDataEvent());
-
                               },
                               child: const Text('Retry'),
                             ),
@@ -238,6 +235,36 @@ class _HomePageState extends State<HomePage> {
                     );
                   }
                   return const SliverToBoxAdapter(child: SizedBox.shrink());
+                },
+                listener: (BuildContext context, HomeState state) {
+                  if (state is HomeLoaded) {
+                    if (state.subscriptionStatus == false) {
+                      Fluttertoast.showToast(
+                        backgroundColor: AppColors.primaryWhiteColor,
+                        textColor: AppColors.appRedColor,
+                        gravity: ToastGravity.BOTTOM,
+                        msg: "Your subscription have expired!.",
+                      );
+                      context.go('/login');
+                    }
+                  }
+                  if (state is HomeError) {
+                    EasyLoading.dismiss();
+                    if (state.errorMessage.contains("UnAuthorized") ||
+                        state.errorMessage.contains("status code of 401") ||
+                        state.errorMessage.contains("Unknown error")) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        context.go('/login');
+                        Fluttertoast.showToast(
+                          backgroundColor: AppColors.primaryWhiteColor,
+                          textColor: AppColors.appGreenColor,
+                          gravity: ToastGravity.BOTTOM,
+                          msg:
+                              "Exception caught for UnAuthorized access. Please login again!",
+                        );
+                      });
+                    }
+                  }
                 },
               ),
             ),

@@ -82,9 +82,7 @@ class SignUpRequest {
     if (fcmToken != null) {
       json['fcm_token'] = fcmToken;
     }
-    if (fcmToken != null) {
-      json['fcm_token'] = fcmToken;
-    }
+   
 
     return json;
   }

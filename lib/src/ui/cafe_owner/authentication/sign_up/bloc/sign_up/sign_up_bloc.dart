@@ -466,7 +466,7 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
     on<SubmitGoogleSignUp>((event, emit) async {
       emit(GoogleSignUpLoadingState());
       final result = await authDataProvider.googleRegisterUser(
-        event.signupRequest,
+        event.googleSignUpRequest,
       );
 
       if (result!.isError) {
@@ -509,7 +509,7 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
     on<SubmitAppleSignUp>((event, emit) async {
       emit(AppleSignUpLoadingState());
       final result = await authDataProvider.appleRegisterUser(
-        event.signupRequest,
+        event.appleSignUpRequest,
       );
 
       if (result!.isError) {

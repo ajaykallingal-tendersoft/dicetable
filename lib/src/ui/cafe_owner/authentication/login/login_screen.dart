@@ -222,6 +222,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 .toString() ??
                             "",
                         isGoggleSignUp: true,
+                        isAppleSignUp: false,
                         email:
                             ObjectFactory().prefs
                                 .getCafeUserMail()
@@ -334,6 +335,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ObjectFactory().prefs.getCafeUserImage().toString() ??
                           "",
                       isGoggleSignUp: true,
+                      isAppleSignUp: false,
                       email:
                           ObjectFactory().prefs.getCafeUserMail().toString() ??
                           "",

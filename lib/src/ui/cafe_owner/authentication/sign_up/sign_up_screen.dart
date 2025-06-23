@@ -87,8 +87,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
     _countryController = TextEditingController();
     _regionController = TextEditingController();
     _phoneController = TextEditingController();
-
-
   }
 
   @override
@@ -641,7 +639,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   final minutes = time.minute
                                       .toString()
                                       .padLeft(2, '0');
-                                  return '$hours:$minutes';
+                                  return '$hours:$minutes:00';
                                 }
 
                                 final selectedVenueTypeIds =
@@ -656,40 +654,19 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   final dayLower = day.toLowerCase();
                                   workingDaysMap[dayLower] = {
                                     "is_open": value.isEnabled,
-                                    "open": value.isEnabled ? formatTime(value.from) : "00:00:00",
-                                    "close": value.isEnabled ? formatTime(value.to) : "00:00:00",
+                                    "open":
+                                        value.isEnabled
+                                            ? formatTime(value.from)
+                                            : "00:00:00",
+                                    "close":
+                                        value.isEnabled
+                                            ? formatTime(value.to)
+                                            : "00:00:00",
                                   };
                                 });
-                                if (isAppleSignUp) {
-                                  final appleAuthID =
-                                      ObjectFactory().prefs.getAppleAuthID();
-                                  final appleSignUpRequest = AppleSignUpRequest(
-                                    name: _venueNameController.text,
-                                    venueDescription: state.venueDescription,
-                                    email: _emailController.text,
-                                    password: state.password,
-                                    passwordConfirmation: state.confirmPassword,
-                                    address: state.address,
-                                    // country: state.country,
-                                    loginType: 3,
-                                    phone: state.phone,
-                                    postcode: state.postalCode,
-                                    // region: state.region,
-                                    accommodations: selectedVenueTypeIds,
-                                    workingDays: workingDaysMap,
-                                    blob: state.base64Image,
-                                    fcmToken:
-                                        ObjectFactory().prefs.getFcmToken(),
-                                    apple_id: appleAuthID,
-                                  );
 
-                                  context.read<SignUpBloc>().add(
-                                    SubmitAppleSignUp(
-                                      signupRequest: appleSignUpRequest,
-                                    ),
-                                  );
-                                }
                                 if (isGoogleSignUp) {
+                                  print("Name:${_venueNameController.text}");
                                   final googleSignUpRequest =
                                       GoogleSignUpRequest(
                                         name: _venueNameController.text,
@@ -714,10 +691,40 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
                                   context.read<SignUpBloc>().add(
                                     SubmitGoogleSignUp(
-                                      signupRequest: googleSignUpRequest,
+                                      googleSignUpRequest: googleSignUpRequest,
                                     ),
                                   );
-                                } else {
+                                } else if (isAppleSignUp) {
+                                  print("IS_APPLE${isAppleSignUp}");
+                                  print("Name: ${_venueNameController.text}.");
+                                  final appleAuthID =
+                                      ObjectFactory().prefs.getAppleAuthID();
+                                  final appleSignUpRequest = AppleSignUpRequest(
+                                    name: _venueNameController.text,
+                                    venueDescription: state.venueDescription,
+                                    email: _emailController.text,
+                                    password: state.password,
+                                    passwordConfirmation: state.confirmPassword,
+                                    address: state.address,
+                                    // country: state.country,
+                                    loginType: 3,
+                                    phone: state.phone,
+                                    postcode: state.postalCode,
+                                    // region: state.region,
+                                    accommodations: selectedVenueTypeIds,
+                                    workingDays: workingDaysMap,
+                                    blob: state.base64Image,
+                                    fcmToken:
+                                        ObjectFactory().prefs.getFcmToken(),
+                                    apple_id: appleAuthID,
+                                  );
+
+                                  context.read<SignUpBloc>().add(
+                                    SubmitAppleSignUp(
+                                      appleSignUpRequest: appleSignUpRequest,
+                                    ),
+                                  );
+                                } else if (!isGoogleSignUp && !isAppleSignUp) {
                                   final signUpRequest = SignUpRequest(
                                     name: state.venueName,
                                     venueDescription: state.venueDescription,
