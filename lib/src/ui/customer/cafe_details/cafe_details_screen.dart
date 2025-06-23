@@ -204,15 +204,15 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
             onPressed: () {
               context.pop();
 
-              if( _isFromFavorites == false) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  // context.read<CafeListBloc>().add(GetCafeListEvent(cafeListRequest: null));
-                });
-              }else {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  // context.read<CafeListBloc>().add(GetFavListEvent());
-                });
-              }
+              // if( _isFromFavorites == false) {
+              //   WidgetsBinding.instance.addPostFrameCallback((_) {
+              //     // context.read<CafeListBloc>().add(GetCafeListEvent(cafeListRequest: null));
+              //   });
+              // }else {
+              //   WidgetsBinding.instance.addPostFrameCallback((_) {
+              //     // context.read<CafeListBloc>().add(GetFavListEvent());
+              //   });
+              // }
 
             },
           ),
@@ -351,7 +351,6 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   TextField(
-                    // Input text style: Initially grey, can change dynamically if needed
                     style: Theme.of(context).textTheme.bodySmall!.copyWith(
                       color: AppColors.textPrimaryGrey, // Default text color
                       fontWeight: FontWeight.w500,
