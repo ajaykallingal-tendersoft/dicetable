@@ -157,6 +157,15 @@ class _HomePageState extends State<HomePage> {
                 builder: (context, state) {
                   if (state is HomeLoaded) {
                     EasyLoading.dismiss();
+                    if(state.subscriptionStatus == false) {
+                      Fluttertoast.showToast(
+                        backgroundColor: AppColors.primaryWhiteColor,
+                        textColor: AppColors.appRedColor,
+                        gravity: ToastGravity.BOTTOM,
+                        msg: "Your subscription have expired!.",
+                      );
+                      context.go('/login');
+                    }
                     return AnimationLimiter(
                       child: SliverList(
                         delegate: SliverChildBuilderDelegate(
@@ -179,15 +188,22 @@ class _HomePageState extends State<HomePage> {
                     );
                   } else if (state is HomeLoading) {
                     EasyLoading.show();
+                  }
+                  if (state is HomeError) {
+                    EasyLoading.dismiss();
+                    if (state.errorMessage.contains("UnAuthorized") ||
+                        state.errorMessage.contains("status code of 401") ||
+                        state.errorMessage.contains("Unknown error")) {
 
-                  } else if (state is HomeError) {
-                    if(state.errorMessage == "UnAuthorized" || state.errorMessage.contains("status code of 401")) {
-                      Fluttertoast.showToast(
-                        backgroundColor: AppColors.primaryWhiteColor,
-                        textColor: AppColors.appGreenColor,
-                        gravity: ToastGravity.BOTTOM,
-                        msg: "Exception caught for UnAuthorized access. Please login again!.",
-                      );
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        context.go('/login');
+                        Fluttertoast.showToast(
+                          backgroundColor: AppColors.primaryWhiteColor,
+                          textColor: AppColors.appGreenColor,
+                          gravity: ToastGravity.BOTTOM,
+                          msg: "Exception caught for UnAuthorized access. Please login again!",
+                        );
+                      });
                     }
                     return SliverFillRemaining(
                       child: Center(
@@ -211,7 +227,8 @@ class _HomePageState extends State<HomePage> {
                             const Gap(16),
                             ElevatedButton(
                               onPressed: () {
-                                context.read<HomeBloc>().add(GetHomeDataEvent());
+                                // context.read<HomeBloc>().add(GetHomeDataEvent());
+
                               },
                               child: const Text('Retry'),
                             ),

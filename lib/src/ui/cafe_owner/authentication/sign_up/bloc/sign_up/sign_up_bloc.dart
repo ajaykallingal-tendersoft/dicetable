@@ -31,6 +31,7 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
   String base64String = '';
   String base64Encoded = '';
   SignUpFormState _formState;
+  final SignUpFormState _initialFormState;
 
   SignUpBloc({required this.authDataProvider})
     : _formState = SignUpFormState(
@@ -43,11 +44,29 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
             ),
         },
       ),
+        _initialFormState = SignUpFormState(
+          openingHours: {
+            for (final day in ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'])
+              day: OpeningHour(
+                isEnabled: false,
+                from: const TimeOfDay(hour: 9, minute: 0),
+                to: const TimeOfDay(hour: 17, minute: 0),
+              ),
+          },
+        ),
       super(SignUpInitial()) {
     emit(_formState);
 
     on<UpdateTextField>((event, emit) {
       _formState = event.update(_formState);
+      emit(_formState);
+    });
+    on<ResetFormEvent>((event, emit) {
+      _formState = _initialFormState; // Reset to initial state
+      _image = null;
+      base64String = '';
+      base64Encoded = '';
+      ObjectFactory().prefs.clearImageData();
       emit(_formState);
     });
 

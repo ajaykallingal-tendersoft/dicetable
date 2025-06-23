@@ -180,8 +180,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         } else if (state is ProfileUpdateLoading) {
           await EasyLoading.show();
         } else {
-          await EasyLoading.dismiss();
           if (state is ProfileUpdateSuccess) {
+            _venueNameController.text = state.venueName;
+            _venueDescriptionController.text = state.venueDescription;
+            _emailController.text = state.email;
+            _phoneController.text = state.phone;
+            _addressController.text = state.address;
+            _postalCodeController.text = state.postalCode;
+            _cityController.text = state.city;
+
+            EasyLoading.dismiss();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('Profile updated successfully'),
@@ -529,7 +537,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     context.read<ProfileBloc>().add(
       SubmitProfile(profileUpdateRequest: profileUpdateRequest),
     );
-    context.read<ProfileBloc>().add(GetProfileViewEvent());
+    // context.read<ProfileBloc>().add(GetProfileViewEvent());
     context.pop();
   }
 
@@ -537,45 +545,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final hour = time.hour.toString().padLeft(2, '0');
     final minute = time.minute.toString().padLeft(2, '0');
     return '$hour:$minute:00';
-  }
-
-  Widget _buildBase64Image(String? base64Image) {
-    if (base64Image != null && base64Image.isNotEmpty) {
-      try {
-        final cleanBase64 =
-            base64Image.startsWith('data:image')
-                ? base64Image.split(',').last
-                : base64Image;
-        final decodedBytes = base64Decode(cleanBase64);
-        return Image.memory(
-          decodedBytes,
-          fit: BoxFit.cover,
-          width: 170.r,
-          height: 170.r,
-          errorBuilder:
-              (context, error, stackTrace) => Image.asset(
-                'assets/png/profile-img.png',
-                fit: BoxFit.cover,
-                width: 170.r,
-                height: 170.r,
-              ),
-        );
-      } catch (e) {
-        debugPrint('Invalid base64 image: $e');
-        return Image.asset(
-          'assets/png/profile-img.png',
-          fit: BoxFit.cover,
-          width: 170.r,
-          height: 170.r,
-        );
-      }
-    }
-    return Image.asset(
-      'assets/png/profile-img.png',
-      fit: BoxFit.cover,
-      width: 170.r,
-      height: 170.r,
-    );
   }
 
   Widget _buildSliverAppBar() {
@@ -648,13 +617,35 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
             ),
             BlocBuilder<ProfileBloc, ProfileState>(
+              buildWhen: (previous, current) {
+                final prevImagePath = previous.image?.path;
+                final currImagePath = current.image?.path;
+
+                final prevPhoto = previous.profileEditViewResponse?.data?.photo;
+                final currPhoto = current.profileEditViewResponse?.data?.photo;
+
+                final prevBlob = previous.blob;
+                final currBlob = current.blob;
+
+                final imageChanged = prevImagePath != currImagePath;
+                final photoChanged = prevPhoto != currPhoto;
+                final blobChanged = prevBlob != currBlob;
+
+                if (imageChanged || photoChanged || blobChanged) {
+                  debugPrint('Profile image rebuild triggered:');
+                  debugPrint('  Image changed: $imageChanged');
+                  debugPrint('  Photo changed: $photoChanged');
+                  debugPrint('  Blob changed: $blobChanged');
+                }
+
+                return imageChanged || photoChanged || blobChanged;
+              },
               builder: (context, state) {
                 final image = state.image;
                 return Positioned(
-                  top:
-                      isTabletOrLarger
-                          ? (350.h / 1.5.h) - 20.h
-                          : (350.h / 1.9.h) - 60.h,
+                  top: isTabletOrLarger
+                      ? (350.h / 1.5.h) - 20.h
+                      : (350.h / 1.9.h) - 60.h,
                   left: 0,
                   right: 0,
                   child: Center(
@@ -667,28 +658,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                             backgroundColor: Colors.transparent,
                             radius: 85.r,
                             child: ClipOval(
-                              child:
-                                  image != null
-                                      ? Image.file(
-                                        File(image.path),
-                                        fit: BoxFit.cover,
-                                        width: 170.r,
-                                        height: 170.r,
-                                        errorBuilder:
-                                            (context, error, stackTrace) =>
-                                                Image.asset(
-                                                  'assets/png/profile-img.png',
-                                                  fit: BoxFit.cover,
-                                                  width: 170.r,
-                                                  height: 170.r,
-                                                ),
-                                      )
-                                      : _buildBase64Image(
-                                        state
-                                            .profileEditViewResponse
-                                            ?.data
-                                            ?.photo,
-                                      ),
+                              child: _buildProfileImage(state),
                             ),
                           ),
                         ),
@@ -729,6 +699,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 );
               },
             ),
+
           ],
         ),
       ),
@@ -755,6 +726,84 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           child: SvgPicture.asset('assets/svg/notify.svg'),
         ),
       ],
+    );
+  }
+
+  Widget _buildProfileImage(ProfileState state) {
+    final image = state.image;
+
+    // If user has selected a new image file, show it
+    if (image != null) {
+      return Image.file(
+        File(image.path),
+        fit: BoxFit.cover,
+        width: 170.r,
+        height: 170.r,
+        // Add gaplessPlayback to prevent flickering during rebuilds
+        gaplessPlayback: true,
+        errorBuilder: (context, error, stackTrace) => Image.asset(
+          'assets/png/profile-img.png',
+          fit: BoxFit.cover,
+          width: 170.r,
+          height: 170.r,
+        ),
+      );
+    }
+
+    // If there's a photo from server, show it
+    if (state.profileEditViewResponse?.data?.photo?.isNotEmpty ?? false) {
+      return _buildBase64Image(state.profileEditViewResponse!.data!.photo);
+    }
+
+    // Default fallback image
+    return Image.asset(
+      'assets/png/profile-img.png',
+      fit: BoxFit.cover,
+      width: 170.r,
+      height: 170.r,
+      // Add gaplessPlayback here too
+      gaplessPlayback: true,
+    );
+  }
+  Widget _buildBase64Image(String? base64Image) {
+    if (base64Image != null && base64Image.isNotEmpty) {
+      try {
+        final cleanBase64 = base64Image.startsWith('data:image')
+            ? base64Image.split(',').last
+            : base64Image;
+        final decodedBytes = base64Decode(cleanBase64);
+        return Image.memory(
+          decodedBytes,
+          fit: BoxFit.cover,
+          width: 170.r,
+          height: 170.r,
+          // Add gaplessPlayback to prevent flickering
+          gaplessPlayback: true,
+          errorBuilder: (context, error, stackTrace) => Image.asset(
+            'assets/png/profile-img.png',
+            fit: BoxFit.cover,
+            width: 170.r,
+            height: 170.r,
+            gaplessPlayback: true,
+          ),
+        );
+      } catch (e) {
+        debugPrint('Invalid base64 image: $e');
+        return Image.asset(
+          'assets/png/profile-img.png',
+          fit: BoxFit.cover,
+          width: 170.r,
+          height: 170.r,
+          gaplessPlayback: true,
+        );
+      }
+    }
+    return Image.asset(
+      'assets/png/profile-img.png',
+      fit: BoxFit.cover,
+      width: 170.r,
+      height: 170.r,
+      gaplessPlayback: true,
     );
   }
 

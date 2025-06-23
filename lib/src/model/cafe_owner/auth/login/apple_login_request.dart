@@ -14,17 +14,20 @@ String appleLoginRequestToJson(AppleLoginRequest data) =>
 class AppleLoginRequest {
   final String identityToken;
   final int loginType;
+  final String fcmToken;
 
-  AppleLoginRequest({required this.identityToken, required this.loginType});
+  AppleLoginRequest({required this.identityToken, required this.loginType,required this.fcmToken});
 
   factory AppleLoginRequest.fromJson(Map<String, dynamic> json) =>
       AppleLoginRequest(
         identityToken: json["identity_token"],
         loginType: json["login_type"],
+        fcmToken: json["fcm_token"],
       );
 
   Map<String, dynamic> toJson() => {
     "identity_token": identityToken,
     "login_type": loginType,
+    "fcm_token": fcmToken,
   };
 }

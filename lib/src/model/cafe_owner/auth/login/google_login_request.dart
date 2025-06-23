@@ -10,19 +10,23 @@ String googleLoginRequestToJson(GoogleLoginRequest data) => json.encode(data.toJ
 class GoogleLoginRequest {
   final String email;
   final int loginType;
+  final String fcmToken;
 
   GoogleLoginRequest({
     required this.email,
     required this.loginType,
+    required this.fcmToken,
   });
 
   factory GoogleLoginRequest.fromJson(Map<String, dynamic> json) => GoogleLoginRequest(
     email: json["email"],
     loginType: json["login_type"],
+    fcmToken: json["fcm_token"]
   );
 
   Map<String, dynamic> toJson() => {
     "email": email,
     "login_type": loginType,
+    "fcm_token": fcmToken,
   };
 }

@@ -38,6 +38,7 @@ class LoginWithGoogleWidget extends StatelessWidget {
                   googleLoginRequest: GoogleLoginRequest(
                     email: state.user.email!,
                     loginType: 5,
+                    fcmToken: ObjectFactory().prefs.getFcmToken().toString(),
                   ),
                 ),
               );
@@ -53,6 +54,7 @@ class LoginWithGoogleWidget extends StatelessWidget {
                   googleLoginRequest: GoogleLoginRequest(
                     email: state.user.email!,
                     loginType: 3,
+                    fcmToken: ObjectFactory().prefs.getFcmToken().toString(),
                   ),
                 ),
               );

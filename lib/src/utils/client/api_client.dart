@@ -327,7 +327,7 @@ class ApiClient {
   }
 
   Future<Response> getCustomerNotificationDataById() {
-    final token = ObjectFactory().prefs.getAuthToken();
+    final token = ObjectFactory().prefs.getCustomerAuthToken();
     final userID = ObjectFactory().prefs.getUserId(); // Ensure this exists
     final url = '${UrlsDiceApp.getCustomerNotification}/$userID';
 

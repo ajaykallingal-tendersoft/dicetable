@@ -16,11 +16,13 @@ final class HomeLoading extends HomeState {
 
 class HomeLoaded extends HomeState {
   final List<CardModel> cards;
-  final dynamic response; // or use your specific response type
+  final dynamic response;
+  final bool subscriptionStatus;// or use your specific response type
 
   const HomeLoaded({
     required this.cards,
     required this.response,
+    required this.subscriptionStatus,
   });
 
   @override
@@ -29,10 +31,12 @@ class HomeLoaded extends HomeState {
   HomeLoaded copyWith({
     List<CardModel>? cards,
     dynamic response,
+    bool? subscriptionStatus
   }) {
     return HomeLoaded(
       cards: cards ?? this.cards,
       response: response ?? this.response,
+      subscriptionStatus: subscriptionStatus ?? this.subscriptionStatus,
     );
   }
 }

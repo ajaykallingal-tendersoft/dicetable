@@ -283,7 +283,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       final StateModel? stateModel = await profileDataProvider.profileUpdateById(event.profileUpdateRequest);
       if (stateModel is SuccessState) {
         final response = stateModel.value as ProfileUpdateResponse;
-        if (response.status) {
+        if (response.status == true) {
           emit(ProfileUpdateSuccess(profileUpdateResponse: response));
           add(GetProfileViewEvent());
         } else {

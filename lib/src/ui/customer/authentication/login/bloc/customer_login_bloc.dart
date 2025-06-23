@@ -6,6 +6,7 @@ import 'package:dicetable/src/model/cafe_owner/auth/login/login_request_response
 import 'package:dicetable/src/model/customer/guest/guest_signin_response.dart';
 import 'package:dicetable/src/model/customer/guest/guest_user_request.dart';
 import 'package:dicetable/src/resources/api_providers/auth/auth_data_provider.dart';
+import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:dicetable/src/utils/extension/state_model_extension.dart';
 import 'package:equatable/equatable.dart';
 
@@ -89,7 +90,7 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
       emit(CustomerLoginLoadingState());
 
       try {
-        final loginRequest = LoginRequest(login: email, password: password);
+        final loginRequest = LoginRequest(login: email, password: password, fcmToken: ObjectFactory().prefs.getFcmToken().toString());
         final stateModel = await authDataProvider.loginUser(loginRequest);
         print("EmailAfter: $email");
         print("PasswordAfter: $password");

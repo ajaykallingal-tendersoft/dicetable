@@ -88,8 +88,9 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         final List<CardModel> cards = response.data.diceTables!
             .map<CardModel>((diceTable) => CardModel.fromDiceTable(diceTable))
             .toList();
+        final bool subscriptionStatus = response.data.subscriptionStatus;
 
-        emit(HomeLoaded(cards: cards, response: response.data));
+        emit(HomeLoaded(cards: cards, response: response, subscriptionStatus: subscriptionStatus));
       } else {
         emit(HomeError(errorMessage: response?.data.message ?? 'Unknown error'));
       }

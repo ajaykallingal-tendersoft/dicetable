@@ -14,23 +14,27 @@ class VenueOwnerHomeScreenResponse {
   final bool? status;
   final List<DiceTable>? diceTables;
   final String? message;
+  final bool? subscriptionStatus;
 
   VenueOwnerHomeScreenResponse({
     this.status,
     this.diceTables,
     this.message,
+    this.subscriptionStatus,
   });
 
   factory VenueOwnerHomeScreenResponse.fromJson(Map<String, dynamic> json) => VenueOwnerHomeScreenResponse(
     status: json["status"],
     diceTables: json["dice_tables"] == null ? [] : List<DiceTable>.from(json["dice_tables"]!.map((x) => DiceTable.fromJson(x))),
     message: json["message"],
+    subscriptionStatus: json["subscription_status"],
   );
 
   Map<String, dynamic> toJson() => {
     "status": status,
     "dice_tables": diceTables == null ? [] : List<dynamic>.from(diceTables!.map((x) => x.toJson())),
     "message": message,
+    "subscription_status": subscriptionStatus,
   };
 }
 

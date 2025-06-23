@@ -5,7 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/sign_up/sign_up_bloc.dart';
 
 
-class OpeningHoursWidget extends StatelessWidget {
+
+class OpeningHoursWidget extends StatefulWidget {
   final String day;
   final OpeningHour data;
   final void Function(OpeningHour updated) onChanged;
@@ -16,6 +17,13 @@ class OpeningHoursWidget extends StatelessWidget {
     required this.data,
     required this.onChanged,
   });
+
+  @override
+  State<OpeningHoursWidget> createState() => _OpeningHoursWidgetState();
+}
+
+class _OpeningHoursWidgetState extends State<OpeningHoursWidget> {
+  bool isExpanded = false; // Track expanded/collapsed state
 
   Future<void> _pickTime(
       BuildContext context,
@@ -30,9 +38,9 @@ class OpeningHoursWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fromTime = data.from;
-    final toTime = data.to;
-    final isEnabled = data.isEnabled;
+    final fromTime = widget.data.from;
+    final toTime = widget.data.to;
+    final isEnabled = widget.data.isEnabled;
     final displayTime = '${fromTime.format(context)} - ${toTime.format(context)}';
 
     return AnimatedContainer(
@@ -70,34 +78,50 @@ class OpeningHoursWidget extends StatelessWidget {
                     inactiveTrackColor: AppColors.primaryWhiteColor,
                     value: isEnabled,
                     onChanged: (val) {
-                      onChanged(data.copyWith(isEnabled: val));
+                      widget.onChanged(widget.data.copyWith(isEnabled: val));
+                      // Auto-expand when enabling the switch
+                      if (val && !isExpanded) {
+                        setState(() {
+                          isExpanded = true;
+                        });
+                      }
                     },
                   ),
                 ),
               ),
               const SizedBox(width: 8), // Small spacing between Switch and Day
               Text(
-                day,
-                style: TextTheme.of(context).labelLarge!.copyWith(
+                widget.day,
+                style: Theme.of(context).textTheme.labelLarge!.copyWith(
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
                   color: AppColors.primary,
                 ),
               ),
-              // const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   'Closed',
                   textAlign: TextAlign.center,
-                  style: TextTheme.of(context).bodyMedium!.copyWith(
+                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                     fontWeight: FontWeight.w600,
                     color: AppColors.timeTextColor,
                   ),
                 ),
               ),
-              Icon(
-                Icons.expand_more,
-                color: AppColors.textPrimaryGrey,
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    isExpanded = !isExpanded;
+                  });
+                  // Enable the day if not enabled when expanding
+                  if (!isEnabled && isExpanded) {
+                    widget.onChanged(widget.data.copyWith(isEnabled: true));
+                  }
+                },
+                child: Icon(
+                  isExpanded ? Icons.expand_less : Icons.expand_more,
+                  color: AppColors.textPrimaryGrey,
+                ),
               ),
             ],
           )
@@ -115,7 +139,13 @@ class OpeningHoursWidget extends StatelessWidget {
                     inactiveTrackColor: AppColors.primaryWhiteColor,
                     value: isEnabled,
                     onChanged: (val) {
-                      onChanged(data.copyWith(isEnabled: val));
+                      widget.onChanged(widget.data.copyWith(isEnabled: val));
+                      // Auto-expand when enabling the switch
+                      if (val && !isExpanded) {
+                        setState(() {
+                          isExpanded = true;
+                        });
+                      }
                     },
                   ),
                 ),
@@ -123,8 +153,8 @@ class OpeningHoursWidget extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  day,
-                  style: TextTheme.of(context).labelLarge!.copyWith(
+                  widget.day,
+                  style: Theme.of(context).textTheme.labelLarge!.copyWith(
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
                     color: AppColors.primary,
@@ -133,19 +163,26 @@ class OpeningHoursWidget extends StatelessWidget {
               ),
               Text(
                 displayTime,
-                style: TextTheme.of(context).bodyMedium!.copyWith(
+                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                   fontWeight: FontWeight.w600,
                   color: AppColors.timeTextColor,
                 ),
               ),
               const SizedBox(width: 10),
-              Icon(
-                Icons.expand_more,
-                color: AppColors.timeTextColor,
+              GestureDetector(
+                onTap: () {
+                  setState(() {
+                    isExpanded = !isExpanded;
+                  });
+                },
+                child: Icon(
+                  isExpanded ? Icons.expand_less : Icons.expand_more,
+                  color: AppColors.timeTextColor,
+                ),
               ),
             ],
           ),
-          if (isEnabled)
+          if (isEnabled && isExpanded) // Show time pickers only if enabled and expanded
             Padding(
               padding: const EdgeInsets.only(top: 12),
               child: Row(
@@ -153,7 +190,7 @@ class OpeningHoursWidget extends StatelessWidget {
                   Expanded(
                     child: GestureDetector(
                       onTap: () => _pickTime(context, fromTime, (picked) {
-                        onChanged(data.copyWith(from: picked));
+                        widget.onChanged(widget.data.copyWith(from: picked));
                       }),
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -164,7 +201,7 @@ class OpeningHoursWidget extends StatelessWidget {
                         alignment: Alignment.center,
                         child: Text(
                           fromTime.format(context),
-                          style: TextTheme.of(context).bodyMedium!.copyWith(
+                          style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                             color: AppColors.pickedTimeColor,
                           ),
                         ),
@@ -175,7 +212,7 @@ class OpeningHoursWidget extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     child: Text(
                       'to',
-                      style: TextTheme.of(context).bodySmall!.copyWith(
+                      style: Theme.of(context).textTheme.bodySmall!.copyWith(
                         color: AppColors.timeDividerColor,
                         fontWeight: FontWeight.w600,
                       ),
@@ -184,7 +221,7 @@ class OpeningHoursWidget extends StatelessWidget {
                   Expanded(
                     child: GestureDetector(
                       onTap: () => _pickTime(context, toTime, (picked) {
-                        onChanged(data.copyWith(to: picked));
+                        widget.onChanged(widget.data.copyWith(to: picked));
                       }),
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -195,7 +232,7 @@ class OpeningHoursWidget extends StatelessWidget {
                         alignment: Alignment.center,
                         child: Text(
                           toTime.format(context),
-                          style: TextTheme.of(context).bodyMedium!.copyWith(
+                          style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                             color: AppColors.pickedTimeColor,
                           ),
                         ),

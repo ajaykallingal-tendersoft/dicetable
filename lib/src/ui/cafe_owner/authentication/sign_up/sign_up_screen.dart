@@ -52,7 +52,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   void initState() {
     super.initState();
-
+    context.read<SignUpBloc>().add(LoadVenueTypes());
+    context.read<SignUpBloc>().add(ClearImageEvent());
+    context.read<SignUpBloc>().add(const ResetFormEvent());
     isGoogleSignUp = widget.signUpScreenArgument.isGoggleSignUp ?? false;
     isAppleSignUp = widget.signUpScreenArgument.isAppleSignUp ?? false;
     if (isAppleSignUp) {
@@ -86,8 +88,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     _regionController = TextEditingController();
     _phoneController = TextEditingController();
 
-    context.read<SignUpBloc>().add(LoadVenueTypes());
-    context.read<SignUpBloc>().add(ClearImageEvent());
+
   }
 
   @override
@@ -655,8 +656,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                   final dayLower = day.toLowerCase();
                                   workingDaysMap[dayLower] = {
                                     "is_open": value.isEnabled,
-                                    "open": formatTime(value.from),
-                                    "close": formatTime(value.to),
+                                    "open": value.isEnabled ? formatTime(value.from) : "00:00:00",
+                                    "close": value.isEnabled ? formatTime(value.to) : "00:00:00",
                                   };
                                 });
                                 if (isAppleSignUp) {

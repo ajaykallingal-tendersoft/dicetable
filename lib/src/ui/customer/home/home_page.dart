@@ -30,9 +30,9 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
   @override
   void initState() {
     super.initState();
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   context.read<CustomerHomeBloc>().add(FetchLocationEvent(context: context));
-    // });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CustomerHomeBloc>().add(FetchLocationEvent(context: context));
+    });
     latitude = ObjectFactory().prefs.getLatitude().toString();
     longitude = ObjectFactory().prefs.getLongitude().toString();
     _performSearch();
@@ -53,8 +53,8 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
       diceTableFilter: [],
       accommodationsFilter: [],
       deviceToken: deviceToken,
-      latitude: lat!,
-      longitude: lon!,
+      latitude: lat,
+      longitude: lon,
     );
 
     context.read<CustomerHomeBloc>().add(SearchCafesEvent(searchRequest));
@@ -210,82 +210,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                   } else {
                     EasyLoading.dismiss();
                   }
-                  if (state is LocationError) {
-                    if (state.errorType ==
-                        LocationErrorType.permissionDeniedForever) {
-                      showDialog(
-                        context: context,
-                        builder: (context) =>
-                            AlertDialog(
-                              title: const Text('Location Permission Required'),
-                              content: const Text(
-                                'Location access is permanently denied. Please enable it in your device settings.',
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text('Cancel'),
-                                ),
-                                TextButton(
-                                  onPressed: () async {
-                                    Navigator.pop(context);
-                                    await Geolocator.openAppSettings();
-                                  },
-                                  child: const Text('Open Settings'),
-                                ),
-                              ],
-                            ),
-                      );
-                    } else
-                    if (state.errorType == LocationErrorType.serviceDisabled) {
-                      showDialog(
-                        context: context,
-                        builder: (context) =>
-                            AlertDialog(
-                              title: const Text('Location Services Disabled'),
-                              content: const Text(
-                                'Location services are disabled. Please enable them in your device settings.',
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text('Cancel'),
-                                ),
-                                TextButton(
-                                  onPressed: () async {
-                                    Navigator.pop(context);
-                                    await Geolocator.openLocationSettings();
-                                  },
-                                  child: const Text('Open Settings'),
-                                ),
-                              ],
-                            ),
-                      );
-                    } else if (state.errorType == LocationErrorType.unknown) {
-                      showDialog(
-                        context: context,
-                        builder: (context) =>
-                            AlertDialog(
-                              title: const Text('Location Error'),
-                              content: Text(state.errorMessage),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text('Cancel'),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    context.pop();
-                                    context.read<CustomerHomeBloc>().add(
-                                        FetchLocationEvent(context: context));
-                                  },
-                                  child: const Text('Retry'),
-                                ),
-                              ],
-                            ),
-                      );
-                    }
-                  }
+
               },
 
               builder: (context, state) {

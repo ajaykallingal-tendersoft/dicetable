@@ -259,6 +259,21 @@ class _CafeListScreenState extends State<CafeListScreen> {
                         }
                       }
                       if (state is CafeListError) {
+                        EasyLoading.dismiss();
+                        if (state.errorMessage.contains("UnAuthorized") ||
+                            state.errorMessage.contains("status code of 401") ||
+                            state.errorMessage.contains("Unknown error")) {
+
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            context.go('/customer_login');
+                            Fluttertoast.showToast(
+                              backgroundColor: AppColors.primaryWhiteColor,
+                              textColor: AppColors.appGreenColor,
+                              gravity: ToastGravity.BOTTOM,
+                              msg: "Exception caught for UnAuthorized access. Please login again!",
+                            );
+                          });
+                        }
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(state.errorMessage),
@@ -266,6 +281,7 @@ class _CafeListScreenState extends State<CafeListScreen> {
                           ),
                         );
                       }
+
                     },
                     builder: (context, state) {
 

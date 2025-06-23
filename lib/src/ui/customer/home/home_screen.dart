@@ -8,7 +8,6 @@ import 'package:dicetable/src/ui/customer/home/home_page.dart';
 import 'package:dicetable/src/ui/customer/home/widget/bottom_navigation_bar.dart';
 import 'package:dicetable/src/ui/customer/profile/customer_profile_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -57,9 +56,9 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   @override
   void initState() {
     super.initState();
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   context.read<CustomerHomeBloc>().add(FetchLocationEvent(context: context));
-    // });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CustomerHomeBloc>().add(FetchLocationEvent(context: context));
+    });
   }
 
   @override

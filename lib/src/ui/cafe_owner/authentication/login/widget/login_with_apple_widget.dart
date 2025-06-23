@@ -31,6 +31,7 @@ class LoginWithAppleWidget extends StatelessWidget {
                 appleLoginRequest: AppleLoginRequest(
                   identityToken: state.identityToken,
                   loginType: 5,
+                  fcmToken: ObjectFactory().prefs.getFcmToken().toString(),
                 ),
               ),
             );
@@ -46,6 +47,7 @@ class LoginWithAppleWidget extends StatelessWidget {
                 appleLoginRequest: AppleLoginRequest(
                   identityToken: state.identityToken,
                   loginType: 3,
+                  fcmToken: ObjectFactory().prefs.getFcmToken().toString(),
                 ),
               ),
             );

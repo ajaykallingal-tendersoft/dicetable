@@ -136,9 +136,9 @@ class LocationError extends CustomerHomeState {
   List<Object?> get props => [errorMessage, errorType];
 }
 
-enum LocationErrorType {
-  serviceDisabled,
-  permissionDenied,
-  permissionDeniedForever,
-  unknown,
-}
+// enum LocationErrorType {
+//   serviceDisabled,
+//   permissionDenied,
+//   permissionDeniedForever,
+//   unknown,
+// }

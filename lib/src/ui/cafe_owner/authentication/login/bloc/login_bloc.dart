@@ -7,6 +7,7 @@ import 'package:dicetable/src/model/cafe_owner/auth/login/login_request.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/login/login_request_response.dart';
 import 'package:dicetable/src/model/state_model.dart';
 import 'package:dicetable/src/resources/api_providers/auth/auth_data_provider.dart';
+import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:dicetable/src/utils/extension/state_model_extension.dart';
 import 'package:equatable/equatable.dart';
 
@@ -79,7 +80,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       emit(LoginLoadingState());
 
       try {
-        final loginRequest = LoginRequest(login: email, password: password);
+        final loginRequest = LoginRequest(login: email, password: password, fcmToken: ObjectFactory().prefs.getFcmToken().toString());
         final stateModel = await authDataProvider.loginUser(loginRequest);
         print("EmailAfter: $email");
         print("PasswordAfter: $password");

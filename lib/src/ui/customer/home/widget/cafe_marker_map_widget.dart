@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
+import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/ui/customer/home/bloc/customer_home_bloc.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:geolocator/geolocator.dart';
@@ -149,6 +152,23 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
       children: [
         BlocConsumer<CustomerHomeBloc, CustomerHomeState>(
           listener: (context, state) {
+            if(state is CafeSearchError) {
+              EasyLoading.dismiss();
+              if (state.message.contains("UnAuthorized") ||
+                  state.message.contains("status code of 401") ||
+                  state.message.contains("Unknown error")) {
+
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  context.go('/customer_login');
+                  Fluttertoast.showToast(
+                    backgroundColor: AppColors.primaryWhiteColor,
+                    textColor: AppColors.appGreenColor,
+                    gravity: ToastGravity.BOTTOM,
+                    msg: "Exception caught for UnAuthorized access. Please login again!",
+                  );
+                });
+              }
+            }
             if (state is CafeSearchSuccess) {
               EasyLoading.dismiss();
               _updateMarkersFromCafes(state.cafeLocations);

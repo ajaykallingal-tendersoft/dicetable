@@ -139,6 +139,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     }
                     context.go('/home');
                   }
+                  if(state.loginRequestResponse.subscriptionStatus == false) {
+                    context.go('/login');
+                  }
                 } else if (state.loginRequestResponse.status == false) {
                   EasyLoading.dismiss();
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -177,6 +180,11 @@ class _LoginScreenState extends State<LoginScreen> {
               if (state is GoogleLoginLoaded) {
                 EasyLoading.dismiss();
                 final response = state.googleLoginResponse;
+               if(response.status == true) {
+                 if(response.subscriptionStatus == false) {
+                   context.go('/login');
+                 }
+               }
                 if (response.status == true && response.token != null) {
                   ObjectFactory().prefs.setIsLoggedIn(true);
                   ObjectFactory().prefs.setIsGoogle(true);
@@ -237,7 +245,13 @@ class _LoginScreenState extends State<LoginScreen> {
 
               if (state is LoginWithAppleLoaded) {
                 EasyLoading.dismiss();
+
                 final response = state.appleLoginRequestResponse;
+                if(response.status == true) {
+                  if(response.subscriptionStatus == false) {
+                    context.go('/login');
+                  }
+                }
                 if (response.status == true && response.token != null) {
                   ObjectFactory().prefs.setIsLoggedIn(true);
                   ObjectFactory().prefs.setIsApple(true);

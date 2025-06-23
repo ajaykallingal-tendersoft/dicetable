@@ -12,6 +12,12 @@ class UpdateTextField extends SignUpEvent {
 
   const UpdateTextField(this.update);
 }
+class ResetFormEvent extends SignUpEvent {
+  const ResetFormEvent();
+
+  @override
+  List<Object?> get props => [];
+}
 
 class ToggleVenueType extends SignUpEvent {
   final int id;

@@ -38,7 +38,10 @@ class _ExpandableCardState extends State<ExpandableCard> {
     _promoController = TextEditingController(text: widget.card.moreInfo);
     selectedDays = List.from(widget.card.selectedDays);
   }
-
+  String capitalizeFirstLetter(String text) {
+    if (text.isEmpty) return text;
+    return "${text[0].toUpperCase()}${text.substring(1).toLowerCase()}";
+  }
 
   @override
   void didUpdateWidget(covariant ExpandableCard oldWidget) {
@@ -234,7 +237,7 @@ class _ExpandableCardState extends State<ExpandableCard> {
                               ? d.closeTime!.substring(0, 5)
                               : d.closeTime;
                           return Text(
-                            "${d.day}: $open - $close",
+                            "${capitalizeFirstLetter(d.day!)}: $open - $close",
                             style: GoogleFonts.roboto(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
@@ -244,7 +247,7 @@ class _ExpandableCardState extends State<ExpandableCard> {
                         }).toList(),
                       )
                           : Text(
-                        'All Days', // Display "All days" if not selected
+                        'All Days',
                         style: GoogleFonts.roboto(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
@@ -523,9 +526,10 @@ class _AvailableDaysMultiSelectFieldState
                     children: [
                       ...widget.availableDays.map((day) {
                         final isChecked = tempSelected.any((d) => d.day == day.day);
+
                         return CheckboxListTile(
                           title: Text(
-                            "${day.day}: ${day.openTime!.substring(0, 5)} - ${day.closeTime!.substring(0, 5)}",
+                            "${capitalizeFirstLetter(day.day!)}:: ${day.openTime!.substring(0, 5)} - ${day.closeTime!.substring(0, 5)}",
                             style: Theme.of(context).textTheme.bodySmall!.copyWith(
                               color: AppColors.textPrimaryGrey,
                               fontSize: 13,
@@ -628,6 +632,10 @@ class _AvailableDaysMultiSelectFieldState
         ),
       ),
     );
+  }
+  String capitalizeFirstLetter(String text) {
+    if (text.isEmpty) return text;
+    return "${text[0].toUpperCase()}${text.substring(1).toLowerCase()}";
   }
 }
 

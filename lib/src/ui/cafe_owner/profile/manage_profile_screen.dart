@@ -138,10 +138,16 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
           EasyLoading.show();
         }
         if (state is ProfileUpdateSuccess) {
-          await EasyLoading.dismiss();
+          _venueNameController.text = state.venueName;
+          _venueDescriptionController.text = state.venueDescription;
+          _emailController.text = state.email;
+          _phoneController.text = state.phone;
+          _addressController.text = state.address;
+          _postalCodeController.text = state.postalCode;
+          EasyLoading.dismiss();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Profile updated successfully'),
+              content: Text(state.profileUpdateResponse.message ?? 'Profile updated successfully'),
               backgroundColor: AppColors.appGreenColor,
             ),
           );
