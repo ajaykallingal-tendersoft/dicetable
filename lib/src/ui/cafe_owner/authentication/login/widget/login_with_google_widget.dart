@@ -102,7 +102,7 @@ class LoginWithGoogleWidget extends StatelessWidget {
                     },
 
             child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 10.h),
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
               margin: EdgeInsets.all(16),
               height: 70.h,
               decoration: BoxDecoration(
@@ -113,20 +113,26 @@ class LoginWithGoogleWidget extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   SvgPicture.asset('assets/svg/google.svg'),
-                  Gap(10),
+
                   state is GoogleSignInCubitLoading
-                      ? CircularProgressIndicator(
-                        backgroundColor: AppColors.primaryWhiteColor,
-                        color: AppColors.primary,
+                      ? Padding(
+                        padding: const EdgeInsets.only(left: 24),
+                        child: CircularProgressIndicator(
+                          backgroundColor: AppColors.primaryWhiteColor,
+                          color: AppColors.primary,
+                        ),
                       )
-                      : Text(
-                        'Sign in with Google',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.labelMedium!.copyWith(
-                          color: AppColors.textFieldTextColor,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
+                      : Padding(
+                        padding: const EdgeInsets.only(left: 24),
+                        child: Text(
+                          'Sign in with Google',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.labelMedium!.copyWith(
+                            color: AppColors.textFieldTextColor,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                          ),
                         ),
                       ),
                 ],

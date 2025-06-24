@@ -4,37 +4,32 @@
 
 import 'dart:convert';
 
-ProfileViewResponse profileViewResponseFromJson(String str) => ProfileViewResponse.fromJson(json.decode(str));
+ProfileViewResponse profileViewResponseFromJson(String str) =>
+    ProfileViewResponse.fromJson(json.decode(str));
 
-String profileViewResponseToJson(ProfileViewResponse data) => json.encode(data.toJson());
+String profileViewResponseToJson(ProfileViewResponse data) =>
+    json.encode(data.toJson());
 
 class ProfileViewResponse {
   final bool? status;
   final Data? data;
   final String? message;
 
-  ProfileViewResponse({
-    this.status,
-    this.data,
-    this.message,
-  });
+  ProfileViewResponse({this.status, this.data, this.message});
 
-  ProfileViewResponse copyWith({
-    bool? status,
-    Data? data,
-    String? message,
-  }) =>
+  ProfileViewResponse copyWith({bool? status, Data? data, String? message}) =>
       ProfileViewResponse(
         status: status ?? this.status,
         data: data ?? this.data,
         message: message ?? this.message,
       );
 
-  factory ProfileViewResponse.fromJson(Map<String, dynamic> json) => ProfileViewResponse(
-    status: json["status"],
-    data: json["data"] == null ? null : Data.fromJson(json["data"]),
-    message: json["message"],
-  );
+  factory ProfileViewResponse.fromJson(Map<String, dynamic> json) =>
+      ProfileViewResponse(
+        status: json["status"],
+        data: json["data"] == null ? null : Data.fromJson(json["data"]),
+        message: json["message"],
+      );
 
   Map<String, dynamic> toJson() => {
     "status": status,
@@ -55,6 +50,7 @@ class Data {
   final String? photo;
   final String? venueType;
   final List<OpeningHour>? openingHours;
+  final String? cafeSince;
 
   Data({
     this.id,
@@ -68,6 +64,7 @@ class Data {
     this.photo,
     this.venueType,
     this.openingHours,
+    this.cafeSince,
   });
 
   Data copyWith({
@@ -82,20 +79,21 @@ class Data {
     String? photo,
     String? venueType,
     List<OpeningHour>? openingHours,
-  }) =>
-      Data(
-        id: id ?? this.id,
-        name: name ?? this.name,
-        venueDescription: venueDescription ?? this.venueDescription,
-        email: email ?? this.email,
-        phone: phone ?? this.phone,
-        address: address ?? this.address,
-        city: city ?? this.city,
-        postcode: postcode ?? this.postcode,
-        photo: photo ?? this.photo,
-        venueType: venueType ?? this.venueType,
-        openingHours: openingHours ?? this.openingHours,
-      );
+    String? cafeSince,
+  }) => Data(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    venueDescription: venueDescription ?? this.venueDescription,
+    email: email ?? this.email,
+    phone: phone ?? this.phone,
+    address: address ?? this.address,
+    city: city ?? this.city,
+    postcode: postcode ?? this.postcode,
+    photo: photo ?? this.photo,
+    venueType: venueType ?? this.venueType,
+    openingHours: openingHours ?? this.openingHours,
+    cafeSince: cafeSince ?? this.cafeSince,
+  );
 
   factory Data.fromJson(Map<String, dynamic> json) => Data(
     id: json["id"],
@@ -108,7 +106,14 @@ class Data {
     postcode: json["postcode"],
     photo: json["photo"],
     venueType: json["venue_type"],
-    openingHours: json["opening_hours"] == null ? [] : List<OpeningHour>.from(json["opening_hours"]!.map((x) => OpeningHour.fromJson(x))),
+    openingHours:
+        json["opening_hours"] == null
+            ? []
+            : List<OpeningHour>.from(
+              json["opening_hours"]!.map((x) => OpeningHour.fromJson(x)),
+            
+            ),
+            cafeSince: json["cafe_since"],
   );
 
   Map<String, dynamic> toJson() => {
@@ -122,7 +127,11 @@ class Data {
     "postcode": postcode,
     "photo": photo,
     "venue_type": venueType,
-    "opening_hours": openingHours == null ? [] : List<dynamic>.from(openingHours!.map((x) => x.toJson())),
+    "opening_hours":
+        openingHours == null
+            ? []
+            : List<dynamic>.from(openingHours!.map((x) => x.toJson())),
+    "cafe_since": cafeSince,
   };
 }
 
@@ -133,13 +142,7 @@ class OpeningHour {
   final String? opening;
   final String? closing;
 
-  OpeningHour({
-    this.id,
-    this.day,
-    this.isOpen,
-    this.opening,
-    this.closing,
-  });
+  OpeningHour({this.id, this.day, this.isOpen, this.opening, this.closing});
 
   OpeningHour copyWith({
     int? id,
@@ -147,14 +150,13 @@ class OpeningHour {
     bool? isOpen,
     String? opening,
     String? closing,
-  }) =>
-      OpeningHour(
-        id: id ?? this.id,
-        day: day ?? this.day,
-        isOpen: isOpen ?? this.isOpen,
-        opening: opening ?? this.opening,
-        closing: closing ?? this.closing,
-      );
+  }) => OpeningHour(
+    id: id ?? this.id,
+    day: day ?? this.day,
+    isOpen: isOpen ?? this.isOpen,
+    opening: opening ?? this.opening,
+    closing: closing ?? this.closing,
+  );
 
   factory OpeningHour.fromJson(Map<String, dynamic> json) => OpeningHour(
     id: json["id"],

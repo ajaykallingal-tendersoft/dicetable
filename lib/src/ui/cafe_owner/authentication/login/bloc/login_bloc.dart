@@ -80,7 +80,11 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       emit(LoginLoadingState());
 
       try {
-        final loginRequest = LoginRequest(login: email, password: password, fcmToken: ObjectFactory().prefs.getFcmToken().toString());
+        final loginRequest = LoginRequest(
+          login: email,
+          password: password,
+          fcmToken: ObjectFactory().prefs.getFcmToken().toString(),
+        );
         final stateModel = await authDataProvider.loginUser(loginRequest);
         print("EmailAfter: $email");
         print("PasswordAfter: $password");
@@ -127,7 +131,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     }
   }
 
- Future<void> _handleAppleLogin(
+  Future<void> _handleAppleLogin(
     GetAppleLoginEvent event,
     Emitter<LoginState> emit,
   ) async {
@@ -153,14 +157,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       }
     } catch (e) {
       // Optional: Pass appleId from event if available
-      emit(
-        LoginWithAppleError(
-          e.toString(),
-          null,
-          null,
-        ),
-      );
+      emit(LoginWithAppleError(e.toString(), null, null));
     }
   }
-
 }

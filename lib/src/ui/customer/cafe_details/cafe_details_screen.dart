@@ -40,6 +40,7 @@ class CafeDetailsScreen extends StatefulWidget {
 
 class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
   bool _isLoadingDialogShown = false;
+  final isGuest = ObjectFactory().prefs.isGuestUser() == true;
 
   late final String _name;
   late final List<String> _tableType;
@@ -213,7 +214,6 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
               //     // context.read<CafeListBloc>().add(GetFavListEvent());
               //   });
               // }
-
             },
           ),
           actionsPadding: EdgeInsets.only(right: 10),
@@ -222,33 +222,48 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
               onTap: () {
                 context.push('/notification');
               },
-              child: Obx(() {
-                return controller.notificationBadgeAmount.value > 0
-                    ? badges.Badge(
-                  position: badges.BadgePosition.topEnd(top: 0, end: 0),
-                  badgeAnimation: badges.BadgeAnimation.slide(),
-                  showBadge: true,
-                  badgeStyle: badges.BadgeStyle(
-                    shape: badges.BadgeShape.square,
-                    borderRadius: BorderRadius.circular(10),
-                    badgeColor: Colors.red,
-                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  ),
-                  badgeContent: Text(
-                    controller.notificationBadgeAmount.value.toString(),
-                    style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                  ),
-                  child: const Icon(
-                    Icons.notifications_outlined,
-                    color: AppColors.primaryWhiteColor,
-                    size: 35,
-                  ),
-                ) : const Icon(
-                  Icons.notifications_outlined,
-                  color: AppColors.primaryWhiteColor,
-                  size: 35,
-                );
-              }),
+              child:
+                  isGuest
+                      ? SizedBox.shrink()
+                      : Obx(() {
+                        return controller.notificationBadgeAmount.value > 0
+                            ? badges.Badge(
+                              position: badges.BadgePosition.topEnd(
+                                top: 0,
+                                end: 0,
+                              ),
+                              badgeAnimation: badges.BadgeAnimation.slide(),
+                              showBadge: true,
+                              badgeStyle: badges.BadgeStyle(
+                                shape: badges.BadgeShape.square,
+                                borderRadius: BorderRadius.circular(10),
+                                badgeColor: Colors.red,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                              ),
+                              badgeContent: Text(
+                                controller.notificationBadgeAmount.value
+                                    .toString(),
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.notifications_outlined,
+                                color: AppColors.primaryWhiteColor,
+                                size: 35,
+                              ),
+                            )
+                            : const Icon(
+                              Icons.notifications_outlined,
+                              color: AppColors.primaryWhiteColor,
+                              size: 35,
+                            );
+                      }),
             ),
           ],
         ),
@@ -284,8 +299,6 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                   const Gap(40),
                   InkWell(
                     onTap: () {
-                      final isGuest = ObjectFactory().prefs.isGuestUser() == true;
-
                       if (isGuest) {
                         Fluttertoast.showToast(
                           msg: "Please signup to proceed.",
@@ -295,6 +308,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                         );
 
                         Future.delayed(Duration.zero, () {
+                          ObjectFactory().prefs.setIsGuestUser(false);
                           context.go('/customer_login');
                         });
 
@@ -309,12 +323,14 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                       height: 70.h,
                       width: double.infinity,
                       iconEnabled: false,
-                      iconLabel: _bookingStatus ? "WITHDRAW INTEREST" : "SHOW INTEREST",
+                      iconLabel:
+                          _bookingStatus
+                              ? "WITHDRAW INTEREST"
+                              : "SHOW INTEREST",
                       color: AppColors.primary,
                       textColor: AppColors.primaryWhiteColor,
                     ),
                   ),
-
                 ],
               ),
             ),
