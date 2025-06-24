@@ -543,10 +543,6 @@ class AuthDataProvider {
       final response = await ObjectFactory().apiClient.appleRegisterUser(
         appleSignUpRequest,
       );
-      // print(response.toString());
-      // String jsonRequest = jsonEncode(appleRegisterUser);
-      // print("Request Payload:");
-      // print(jsonRequest);
       if (response.statusCode == 200) {
         return StateModel<AppleSignUpRequestResponse>.success(
           AppleSignUpRequestResponse.fromJson(response.data),

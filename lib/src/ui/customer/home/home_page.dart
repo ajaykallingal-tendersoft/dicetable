@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -27,10 +28,10 @@ class CustomerHomePage extends StatefulWidget {
 }
 
 class _CustomerHomePageState extends State<CustomerHomePage> {
-  late final String latitude;
-  late final String longitude;
+  String? latitude;
+  String? longitude;
   final CounterController controller = Get.find<CounterController>();
-
+  final isGuest = ObjectFactory().prefs.isGuestUser() == true;
   @override
   void initState() {
     super.initState();
@@ -138,54 +139,60 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                                 fontSize: 30.sp,
                               ),
                             ),
-                            InkWell(
-                              onTap: () {
-                                context.push('/notification');
-                              },
-                              child: Obx(() {
-                                return controller
-                                            .notificationBadgeAmount
-                                            .value >
-                                        0
-                                    ? badges.Badge(
-                                      position: badges.BadgePosition.topEnd(
-                                        top: 0,
-                                        end: 0,
-                                      ),
-                                      badgeAnimation:
-                                          badges.BadgeAnimation.slide(),
-                                      showBadge: true,
-                                      badgeStyle: badges.BadgeStyle(
-                                        shape: badges.BadgeShape.square,
-                                        borderRadius: BorderRadius.circular(10),
-                                        badgeColor: Colors.red,
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 6,
-                                          vertical: 2,
-                                        ),
-                                      ),
-                                      badgeContent: Text(
-                                        controller.notificationBadgeAmount.value
-                                            .toString(),
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      child: const Icon(
-                                        Icons.notifications_outlined,
-                                        color: AppColors.primaryWhiteColor,
-                                        size: 35,
-                                      ),
-                                    )
-                                    : const Icon(
-                                      Icons.notifications_outlined,
-                                      color: AppColors.primaryWhiteColor,
-                                      size: 35,
-                                    );
-                              }),
-                            ),
+                            isGuest
+                                ? SizedBox.shrink()
+                                : InkWell(
+                                  onTap: () {
+                                    context.push('/notification');
+                                  },
+                                  child: Obx(() {
+                                    return controller
+                                                .notificationBadgeAmount
+                                                .value >
+                                            0
+                                        ? badges.Badge(
+                                          position: badges.BadgePosition.topEnd(
+                                            top: 0,
+                                            end: 0,
+                                          ),
+                                          badgeAnimation:
+                                              badges.BadgeAnimation.slide(),
+                                          showBadge: true,
+                                          badgeStyle: badges.BadgeStyle(
+                                            shape: badges.BadgeShape.square,
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                            badgeColor: Colors.red,
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 6,
+                                              vertical: 2,
+                                            ),
+                                          ),
+                                          badgeContent: Text(
+                                            controller
+                                                .notificationBadgeAmount
+                                                .value
+                                                .toString(),
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          child: const Icon(
+                                            Icons.notifications_outlined,
+                                            color: AppColors.primaryWhiteColor,
+                                            size: 35,
+                                          ),
+                                        )
+                                        : const Icon(
+                                          Icons.notifications_outlined,
+                                          color: AppColors.primaryWhiteColor,
+                                          size: 35,
+                                        );
+                                  }),
+                                ),
                           ],
                         ),
                       ],
@@ -220,6 +227,23 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                   EasyLoading.show();
                 } else {
                   EasyLoading.dismiss();
+                }
+                if (state is CafeSearchError) {
+                   EasyLoading.dismiss();
+                  if (state.message.contains("UnAuthorized") ||
+                      state.message.contains("status code of 401") ||
+                      state.message.contains("Unknown error")) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      context.go('/customer_login');
+                      Fluttertoast.showToast(
+                        backgroundColor: AppColors.primaryWhiteColor,
+                        textColor: AppColors.appGreenColor,
+                        gravity: ToastGravity.BOTTOM,
+                        msg:
+                            "Exception caught for UnAuthorized access. Please login again!",
+                      );
+                    });
+                  }
                 }
               },
               builder: (context, state) {

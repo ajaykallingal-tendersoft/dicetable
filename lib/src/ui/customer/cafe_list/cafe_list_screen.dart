@@ -18,9 +18,6 @@ import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 
-
-
-
 class CafeListScreen extends StatefulWidget {
   const CafeListScreen({super.key});
 
@@ -32,6 +29,7 @@ class _CafeListScreenState extends State<CafeListScreen> {
   late final String latitude;
   late final String longitude;
   final CounterController controller = Get.find<CounterController>();
+  final isGuest = ObjectFactory().prefs.isGuestUser() == true;
 
   @override
   void initState() {
@@ -45,11 +43,13 @@ class _CafeListScreenState extends State<CafeListScreen> {
       _fetchCafeListWithLocation();
     });
   }
+
   void _fetchCafeListWithLocation() {
     final double? lat = latitude != null ? double.tryParse(latitude) : 0.0;
     final double? lon = longitude != null ? double.tryParse(longitude) : 0.0;
     final isGuest = ObjectFactory().prefs.isGuestUser() == true;
-    final deviceToken = isGuest ? ObjectFactory().prefs.getDeviceID() ?? '' : '';
+    final deviceToken =
+        isGuest ? ObjectFactory().prefs.getDeviceID() ?? '' : '';
 
     if (lat != null && lon != null) {
       context.read<CafeListBloc>().add(
@@ -92,12 +92,11 @@ class _CafeListScreenState extends State<CafeListScreen> {
     }
   }
 
-  void showFilterBottomSheet(BuildContext context) async { // Make it async
+  void showFilterBottomSheet(BuildContext context) async {
+    // Make it async
     await showModalBottomSheet(
       constraints: BoxConstraints(
-        maxHeight: MediaQuery
-            .sizeOf(context)
-            .height * 0.9,
+        maxHeight: MediaQuery.sizeOf(context).height * 0.9,
         minWidth: double.infinity,
       ),
       context: context,
@@ -105,303 +104,334 @@ class _CafeListScreenState extends State<CafeListScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
-      builder: (context) =>
-          FractionallySizedBox(
-              child: const CafeListFilter()),
+      builder: (context) => FractionallySizedBox(child: const CafeListFilter()),
     );
     // _fetchCafeListWithLocation();
   }
 
   @override
   Widget build(BuildContext context) {
-    final isTabletOrLarger = ResponsiveBreakpoints.of(context).largerThan(MOBILE);
+    final isTabletOrLarger = ResponsiveBreakpoints.of(
+      context,
+    ).largerThan(MOBILE);
     return Container(
-        height: double.infinity,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              AppColors.primary,
-              AppColors.primary,
-              AppColors.secondary,
-              AppColors.tertiary,
-            ],
-            stops: [0.0, 0.5, 0.75, 1.0],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
+      height: double.infinity,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primary,
+            AppColors.primary,
+            AppColors.secondary,
+            AppColors.tertiary,
+          ],
+          stops: [0.0, 0.5, 0.75, 1.0],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
         ),
-        child: SafeArea(
-          child: CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              CupertinoSliverRefreshControl(
-                onRefresh: () async {
-                  // context.read<CardCubit>().fetchCards();
-                },
-              ),
-              SliverAppBar(
-                pinned: false,
-                backgroundColor: Colors.transparent,
-                expandedHeight: isTabletOrLarger ? 110.h : 10.h,
-                leading: SizedBox.shrink(),
-                elevation: 0,
-                flexibleSpace: FlexibleSpaceBar(
-                  collapseMode: CollapseMode.parallax,
-                  background: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 20.h),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              "DICE TABLE",
-                              style: TextTheme.of(context).labelMedium!.copyWith(
-                                color: AppColors.primaryWhiteColor,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 30.sp,
-                              ),
-                            ),
-                            InkWell(
-                              onTap: () {
-                                context.push('/notification');
-                              },
-                              child: Obx(() {
-                                return controller.notificationBadgeAmount.value > 0
-                                    ? badges.Badge(
-                                  position: badges.BadgePosition.topEnd(top: 0, end: 0),
-                                  badgeAnimation: badges.BadgeAnimation.slide(),
-                                  showBadge: true,
-                                  badgeStyle: badges.BadgeStyle(
-                                    shape: badges.BadgeShape.square,
-                                    borderRadius: BorderRadius.circular(10),
-                                    badgeColor: Colors.red,
-                                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  ),
-                                  badgeContent: Text(
-                                    controller.notificationBadgeAmount.value.toString(),
-                                    style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                                  ),
-                                  child: const Icon(
-                                    Icons.notifications_outlined,
-                                    color: AppColors.primaryWhiteColor,
-                                    size: 35,
-                                  ),
-                                ) : const Icon(
-                                  Icons.notifications_outlined,
-                                  color: AppColors.primaryWhiteColor,
-                                  size: 35,
-                                );
-                              }),
-                            )
-                          ],
-                        ),
-                        SizedBox(height: 10.h),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              SliverAppBar(
-                pinned: true,
-                backgroundColor: AppColors.primary,
-                automaticallyImplyLeading: false,
-                elevation: 0,
-                toolbarHeight: 50.h,
-                flexibleSpace: Padding(
+      ),
+      child: SafeArea(
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            CupertinoSliverRefreshControl(
+              onRefresh: () async {
+                // context.read<CardCubit>().fetchCards();
+              },
+            ),
+            SliverAppBar(
+              pinned: false,
+              backgroundColor: Colors.transparent,
+              expandedHeight: isTabletOrLarger ? 110.h : 10.h,
+              leading: SizedBox.shrink(),
+              elevation: 0,
+              flexibleSpace: FlexibleSpaceBar(
+                collapseMode: CollapseMode.parallax,
+                background: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 20.h),
-                  child: Align(
-                    alignment: Alignment.centerLeft,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          "Cafes near by you",
-                          style: TextTheme.of(context).labelMedium!.copyWith(
-                            color: AppColors.primaryWhiteColor,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14.sp,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "DICE TABLE",
+                            style: TextTheme.of(context).labelMedium!.copyWith(
+                              color: AppColors.primaryWhiteColor,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 30.sp,
+                            ),
                           ),
-                        ),
-                        IconButton(
-                          icon: SvgPicture.asset(
-                            'assets/svg/search-filter.svg',
-                            fit: BoxFit.scaleDown,
-                            color: AppColors.primaryWhiteColor,
-                          ),
-                          onPressed: () => showFilterBottomSheet(context),
-                        ),
-                      ],
-                    ),
+                          isGuest
+                              ? SizedBox.shrink()
+                              : InkWell(
+                                onTap: () {
+                                  context.push('/notification');
+                                },
+                                child: Obx(() {
+                                  return controller
+                                              .notificationBadgeAmount
+                                              .value >
+                                          0
+                                      ? badges.Badge(
+                                        position: badges.BadgePosition.topEnd(
+                                          top: 0,
+                                          end: 0,
+                                        ),
+                                        badgeAnimation:
+                                            badges.BadgeAnimation.slide(),
+                                        showBadge: true,
+                                        badgeStyle: badges.BadgeStyle(
+                                          shape: badges.BadgeShape.square,
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                          badgeColor: Colors.red,
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                            vertical: 2,
+                                          ),
+                                        ),
+                                        badgeContent: Text(
+                                          controller
+                                              .notificationBadgeAmount
+                                              .value
+                                              .toString(),
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          Icons.notifications_outlined,
+                                          color: AppColors.primaryWhiteColor,
+                                          size: 35,
+                                        ),
+                                      )
+                                      : const Icon(
+                                        Icons.notifications_outlined,
+                                        color: AppColors.primaryWhiteColor,
+                                        size: 35,
+                                      );
+                                }),
+                              ),
+                        ],
+                      ),
+                      SizedBox(height: 10.h),
+                    ],
                   ),
                 ),
               ),
-              SliverPadding(
-                padding: EdgeInsets.only(bottom: 10,top: 0),
-                sliver: SliverToBoxAdapter(
-                  child: BlocConsumer<CafeListBloc, CafeListState>(
-                    listener: (context, state) {
-                      if(state is CafeListLoaded) {
-                        if(state.cafeListResponse.status == false || state.cafeListResponse.message!.contains("signup")||state.cafeListResponse.message == "Please signup to proceed.") {
-                          Fluttertoast.showToast(
-                            msg: "Please signup to proceed.",
-                            backgroundColor: AppColors.appRedColor,
-                            textColor: AppColors.primaryWhiteColor,
-                            gravity: ToastGravity.BOTTOM,
-                          );
-                          Future.delayed(Duration.zero, () {
-                            context.push('/login');
-                          });
-                        }
-                      }
-                      if (state is CafeListError) {
-                        EasyLoading.dismiss();
-                        if (state.errorMessage.contains("UnAuthorized") ||
-                            state.errorMessage.contains("status code of 401") ||
-                            state.errorMessage.contains("Unknown error")) {
-
-                          WidgetsBinding.instance.addPostFrameCallback((_) {
-                            context.go('/customer_login');
-                            Fluttertoast.showToast(
-                              backgroundColor: AppColors.primaryWhiteColor,
-                              textColor: AppColors.appGreenColor,
-                              gravity: ToastGravity.BOTTOM,
-                              msg: "Exception caught for UnAuthorized access. Please login again!",
-                            );
-                          });
-                        }
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(state.errorMessage),
-                            backgroundColor: AppColors.appRedColor,
-                          ),
+            ),
+            SliverAppBar(
+              pinned: true,
+              backgroundColor: AppColors.primary,
+              automaticallyImplyLeading: false,
+              elevation: 0,
+              toolbarHeight: 50.h,
+              flexibleSpace: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20.h),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Cafes near by you",
+                        style: TextTheme.of(context).labelMedium!.copyWith(
+                          color: AppColors.primaryWhiteColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14.sp,
+                        ),
+                      ),
+                      IconButton(
+                        icon: SvgPicture.asset(
+                          'assets/svg/search-filter.svg',
+                          fit: BoxFit.scaleDown,
+                          color: AppColors.primaryWhiteColor,
+                        ),
+                        onPressed: () => showFilterBottomSheet(context),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            SliverPadding(
+              padding: EdgeInsets.only(bottom: 10, top: 0),
+              sliver: SliverToBoxAdapter(
+                child: BlocConsumer<CafeListBloc, CafeListState>(
+                  listener: (context, state) {
+                    if (state is CafeListLoaded) {
+                      if (state.cafeListResponse.status == false ||
+                          state.cafeListResponse.message!.contains("signup") ||
+                          state.cafeListResponse.message ==
+                              "Please signup to proceed.") {
+                        Fluttertoast.showToast(
+                          msg: "Please signup to proceed.",
+                          backgroundColor: AppColors.appRedColor,
+                          textColor: AppColors.primaryWhiteColor,
+                          gravity: ToastGravity.BOTTOM,
                         );
+                        Future.delayed(Duration.zero, () {
+                          context.push('/login');
+                        });
                       }
-
-                    },
-                    builder: (context, state) {
-
-                      final double? lat = latitude != null ? double.tryParse(latitude) : null;
-                      final double? lon = longitude != null ? double.tryParse(longitude) : null;
-                      if (state is CafeListLoading) {
-                        EasyLoading.show();
-                      } else if (state is CafeListLoaded) {
-                        EasyLoading.dismiss();
-                        if (state.cafeListResponse.cafes != null && state.cafeListResponse.cafes!.isNotEmpty) {
-                          return ListView.builder(
-                            physics: NeverScrollableScrollPhysics(),
-                            shrinkWrap: true,
-                            itemCount: state.cafeListResponse.cafes!.length,
-                            itemBuilder: (context, index) {
-                              final cafe = state.cafeListResponse.cafes![index];
-                              return CafeListCard(
-                                cafes: cafe,
-                                isLoading: false,
-                                onFavoriteToggle: () => context.read<CafeListBloc>().add(
-                                  ToggleFavoriteEvent(index, context),
-                                )
-                              );
-                            },
+                    }
+                    if (state is CafeListError) {
+                      EasyLoading.dismiss();
+                      if (state.errorMessage.contains("UnAuthorized") ||
+                          state.errorMessage.contains("status code of 401") ||
+                          state.errorMessage.contains("Unknown error")) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          context.go('/customer_login');
+                          Fluttertoast.showToast(
+                            backgroundColor: AppColors.primaryWhiteColor,
+                            textColor: AppColors.appGreenColor,
+                            gravity: ToastGravity.BOTTOM,
+                            msg:
+                                "Exception caught for UnAuthorized access. Please login again!",
                           );
-                        } else {
-                          return Center(
-                            child: Text(
-                              'No cafes found.',
-                              style: TextStyle(color: AppColors.primaryWhiteColor),
-                            ),
-                          );
-                        }
+                        });
                       }
-                      else if (state is FavoriteToggleLoading) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(state.errorMessage),
+                          backgroundColor: AppColors.appRedColor,
+                        ),
+                      );
+                    }
+                  },
+                  builder: (context, state) {
+                    final double? lat =
+                        latitude != null ? double.tryParse(latitude) : null;
+                    final double? lon =
+                        longitude != null ? double.tryParse(longitude) : null;
+                    if (state is CafeListLoading) {
+                      EasyLoading.show();
+                    } else if (state is CafeListLoaded) {
+                      EasyLoading.dismiss();
+                      if (state.cafeListResponse.cafes != null &&
+                          state.cafeListResponse.cafes!.isNotEmpty) {
                         return ListView.builder(
-                          padding: EdgeInsets.zero,
                           physics: NeverScrollableScrollPhysics(),
                           shrinkWrap: true,
                           itemCount: state.cafeListResponse.cafes!.length,
                           itemBuilder: (context, index) {
                             final cafe = state.cafeListResponse.cafes![index];
-                            final isThisCafeLoading = state.toggledCafeIndex == index;
-
                             return CafeListCard(
                               cafes: cafe,
-                              isLoading: isThisCafeLoading,
-                              onFavoriteToggle: isThisCafeLoading
-                                  ? null
-                                  : () => context.read<CafeListBloc>().add(
-                                  ToggleFavoriteEvent(index,context)
-                              ),
+                              isLoading: false,
+                              onFavoriteToggle:
+                                  () => context.read<CafeListBloc>().add(
+                                    ToggleFavoriteEvent(index, context),
+                                  ),
                             );
                           },
                         );
-                      } else if (state is CafeListError) {
-                        EasyLoading.dismiss();
+                      } else {
                         return Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(50.0),
-                            child: Column(
-                              children: [
-                                Icon(
-                                  Icons.error_outline,
-                                  size: 60,
-                                  color: AppColors.primaryWhiteColor,
-                                ),
-                                Gap(16),
-                                Text(
-                                  'Failed to load cafes',
-                                  style: TextStyle(
-                                    color: AppColors.primaryWhiteColor,
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Gap(8),
-                                Text(
-                                  state.errorMessage,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: AppColors.primaryWhiteColor.withOpacity(0.8),
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                Gap(16),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    context.read<CafeListBloc>().add(
-                                      GetCafeListEvent(
-                                        cafeListRequest: CafeListRequest(
-                                          latitude: lat!,
-                                          longitude: lon!,
-                                          diceTableFilter: [],
-                                          accommodationsFilter: [],
-                                          openTime: "",
-                                          closeTime: "",
-                                          search: "",
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.primaryWhiteColor,
-                                    foregroundColor: AppColors.primary,
-                                  ),
-                                  child: Text('Retry'),
-                                ),
-                              ],
+                          child: Text(
+                            'No cafes found.',
+                            style: TextStyle(
+                              color: AppColors.primaryWhiteColor,
                             ),
                           ),
                         );
                       }
+                    } else if (state is FavoriteToggleLoading) {
+                      return ListView.builder(
+                        padding: EdgeInsets.zero,
+                        physics: NeverScrollableScrollPhysics(),
+                        shrinkWrap: true,
+                        itemCount: state.cafeListResponse.cafes!.length,
+                        itemBuilder: (context, index) {
+                          final cafe = state.cafeListResponse.cafes![index];
+                          final isThisCafeLoading =
+                              state.toggledCafeIndex == index;
 
-                      return SizedBox.shrink();
-                    },
-                  ),
+                          return CafeListCard(
+                            cafes: cafe,
+                            isLoading: isThisCafeLoading,
+                            onFavoriteToggle:
+                                isThisCafeLoading
+                                    ? null
+                                    : () => context.read<CafeListBloc>().add(
+                                      ToggleFavoriteEvent(index, context),
+                                    ),
+                          );
+                        },
+                      );
+                    } else if (state is CafeListError) {
+                      EasyLoading.dismiss();
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(50.0),
+                          child: Column(
+                            children: [
+                              Icon(
+                                Icons.error_outline,
+                                size: 60,
+                                color: AppColors.primaryWhiteColor,
+                              ),
+                              Gap(16),
+                              Text(
+                                'Failed to load cafes',
+                                style: TextStyle(
+                                  color: AppColors.primaryWhiteColor,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Gap(8),
+                              Text(
+                                state.errorMessage,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: AppColors.primaryWhiteColor
+                                      .withOpacity(0.8),
+                                  fontSize: 14,
+                                ),
+                              ),
+                              Gap(16),
+                              ElevatedButton(
+                                onPressed: () {
+                                  context.read<CafeListBloc>().add(
+                                    GetCafeListEvent(
+                                      cafeListRequest: CafeListRequest(
+                                        latitude: lat!,
+                                        longitude: lon!,
+                                        diceTableFilter: [],
+                                        accommodationsFilter: [],
+                                        openTime: "",
+                                        closeTime: "",
+                                        search: "",
+                                      ),
+                                    ),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primaryWhiteColor,
+                                  foregroundColor: AppColors.primary,
+                                ),
+                                child: Text('Retry'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+
+                    return SizedBox.shrink();
+                  },
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-      );
+      ),
+    );
   }
 }

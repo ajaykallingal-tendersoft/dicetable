@@ -69,7 +69,7 @@ class LoginWithAppleWidget extends StatelessWidget {
                   ? null
                   : () => _signInWithApple(context),
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 30.w, vertical: 10.h),
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
             margin: EdgeInsets.all(16),
             height: 70.h,
             decoration: BoxDecoration(
@@ -97,15 +97,18 @@ class LoginWithAppleWidget extends StatelessWidget {
                       ),
                     )
                     : Expanded(
-                      child: Text(
-                        'Sign in with Apple',
-                        textAlign: TextAlign.left,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.labelMedium?.copyWith(
-                          color: AppColors.textFieldTextColor,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 4),
+                        child: Text(
+                          'Sign in with Apple',
+                          textAlign: TextAlign.left,
+                          style: Theme.of(
+                            context,
+                          ).textTheme.labelMedium?.copyWith(
+                            color: AppColors.textFieldTextColor,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                          ),
                         ),
                       ),
                     ),

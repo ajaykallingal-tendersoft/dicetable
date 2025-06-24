@@ -40,8 +40,6 @@
 		</array>
 		<key>LSRequiresIPhoneOS</key>
 		<true/>
-		<key>FirebaseAppDelegateProxyEnabled</key>
-		<true/>
 		<key>NSCameraUsageDescription</key>
 		<string>Dicetable needs access to your camera to allow photo uploads and profile pictures.</string>
 		<key>NSLocationWhenInUseUsageDescription</key>
@@ -49,14 +47,27 @@
 		<key>NSPhotoLibraryUsageDescription</key>
 		<string>Dicetable requires access to your photo library to select images for uploading and profile photos.</string>
 		<key>NSLocationWhenInUseUsageDescription</key>
-		<string>We need your location to show nearby results.</string>
+		<string>Dicetable need your location to show nearby results.</string>
 		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-		<string>We use your location to enhance your experience.</string>
+		<string>Dicetable use your location to enhance your experience.</string>
 		<key>NSLocationAlwaysUsageDescription</key>
-		<string>This app needs background location access.</string>
-
+		<string>Dicetable app needs background location access.</string>
 		<key>UIApplicationSupportsIndirectInputEvents</key>
 		<true/>
+		<key>UIBackgroundModes</key>
+		<array>
+			<string>fetch</string>
+			<string>remote-notification</string>
+		</array>
+		<key>FirebaseAppDelegateProxyEnabled</key>
+		<true/>
+		<key>NSAppTransportSecurity</key>
+		<dict>
+			<key>NSAllowsArbitraryLoads</key>
+			<true/>
+		</dict>
+		<key>NSUserNotificationUsageDescription</key>
+		<string>Dicetable app uses notifications to keep you updated.</string>
 		<key>UIBackgroundModes</key>
 		<array>
 			<string>fetch</string>

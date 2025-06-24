@@ -589,7 +589,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      state.venueDescription,
+                      state.profileViewResponse!.data!.cafeSince.toString(),
                       style: TextTheme.of(context).bodySmall!.copyWith(
                         color: AppColors.primaryWhiteColor,
                         fontSize: 12,

@@ -605,7 +605,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     SizedBox(height: 4.h),
                     Text(
-                      state.venueDescription,
+                      state.profileEditViewResponse!.data!.cafeSince.toString(),
                       style: Theme.of(context).textTheme.bodySmall!.copyWith(
                         color: AppColors.primaryWhiteColor,
                         fontSize: 12.sp,
