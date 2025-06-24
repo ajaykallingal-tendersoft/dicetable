@@ -264,22 +264,22 @@ class _CafeListScreenState extends State<CafeListScreen> {
               sliver: SliverToBoxAdapter(
                 child: BlocConsumer<CafeListBloc, CafeListState>(
                   listener: (context, state) {
-                    if (state is CafeListLoaded) {
-                      if (state.cafeListResponse.status == false ||
-                          state.cafeListResponse.message!.contains("signup") ||
-                          state.cafeListResponse.message ==
-                              "Please signup to proceed.") {
-                        Fluttertoast.showToast(
-                          msg: "Please signup to proceed.",
-                          backgroundColor: AppColors.appRedColor,
-                          textColor: AppColors.primaryWhiteColor,
-                          gravity: ToastGravity.BOTTOM,
-                        );
-                        Future.delayed(Duration.zero, () {
-                          context.push('/login');
-                        });
-                      }
-                    }
+                    // if (state is CafeListLoaded) {
+                    //   if (state.cafeListResponse.status == false ||
+                    //       state.cafeListResponse.message!.contains("signup") ||
+                    //       state.cafeListResponse.message ==
+                    //           "Please signup to proceed.") {
+                    //     Fluttertoast.showToast(
+                    //       msg: "Please signup to proceed.",
+                    //       backgroundColor: AppColors.appRedColor,
+                    //       textColor: AppColors.primaryWhiteColor,
+                    //       gravity: ToastGravity.BOTTOM,
+                    //     );
+                    //     Future.delayed(Duration.zero, () {
+                    //       context.push('/login');
+                    //     });
+                    //   }
+                    // }
                     if (state is CafeListError) {
                       EasyLoading.dismiss();
                       if (state.errorMessage.contains("UnAuthorized") ||

@@ -218,24 +218,43 @@ class _ExpandableCardState extends State<ExpandableCard> {
                           ? Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children:
-                                selectedDays.map((d) {
-                                  String? open =
-                                      d.openTime!.length >= 5
-                                          ? d.openTime!.substring(0, 5)
-                                          : d.openTime;
-                                  String? close =
-                                      d.closeTime!.length >= 5
-                                          ? d.closeTime!.substring(0, 5)
-                                          : d.closeTime;
-                                  return Text(
-                                    "${capitalizeFirstLetter(d.day!)}: $open - $close",
-                                    style: GoogleFonts.roboto(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.shadowColor,
-                                    ),
+                                (() {
+                                  final dayOrder = {
+                                    'mon': 1,
+                                    'tue': 2,
+                                    'wed': 3,
+                                    'thu': 4,
+                                    'fri': 5,
+                                    'sat': 6,
+                                    'sun': 7,
+                                  };
+
+                                  final sortedDays = [...selectedDays]..sort(
+                                    (a, b) => dayOrder[a.day!.toLowerCase()]!
+                                        .compareTo(
+                                          dayOrder[b.day!.toLowerCase()]!,
+                                        ),
                                   );
-                                }).toList(),
+
+                                  return sortedDays.map((d) {
+                                    String? open =
+                                        d.openTime!.length >= 5
+                                            ? d.openTime!.substring(0, 5)
+                                            : d.openTime;
+                                    String? close =
+                                        d.closeTime!.length >= 5
+                                            ? d.closeTime!.substring(0, 5)
+                                            : d.closeTime;
+                                    return Text(
+                                      "${capitalizeFirstLetter(d.day!)}: $open - $close",
+                                      style: GoogleFonts.roboto(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppColors.shadowColor,
+                                      ),
+                                    );
+                                  }).toList();
+                                })(),
                           )
                           : Text(
                             'All Days',
@@ -245,6 +264,39 @@ class _ExpandableCardState extends State<ExpandableCard> {
                               color: AppColors.shadowColor,
                             ),
                           ),
+
+                      // card.isSelected && selectedDays.isNotEmpty
+                      //     ? Column(
+                      //       crossAxisAlignment: CrossAxisAlignment.start,
+                      //       children:
+                      //           selectedDays.map((d) {
+
+                      //             String? open =
+                      //                 d.openTime!.length >= 5
+                      //                     ? d.openTime!.substring(0, 5)
+                      //                     : d.openTime;
+                      //             String? close =
+                      //                 d.closeTime!.length >= 5
+                      //                     ? d.closeTime!.substring(0, 5)
+                      //                     : d.closeTime;
+                      //             return Text(
+                      //               "${capitalizeFirstLetter(d.day!)}: $open - $close",
+                      //               style: GoogleFonts.roboto(
+                      //                 fontSize: 10,
+                      //                 fontWeight: FontWeight.w600,
+                      //                 color: AppColors.shadowColor,
+                      //               ),
+                      //             );
+                      //           }).toList(),
+                      //     )
+                      //     : Text(
+                      //       'All Days',
+                      //       style: GoogleFonts.roboto(
+                      //         fontSize: 10,
+                      //         fontWeight: FontWeight.w600,
+                      //         color: AppColors.shadowColor,
+                      //       ),
+                      //     ),
                     ],
                   ),
                   !card.isExpanded

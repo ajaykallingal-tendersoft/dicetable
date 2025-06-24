@@ -679,123 +679,99 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                                               ),
                                               Gap(10),
                                               BlocListener<
-                                                    CustomerLoginBloc,
-                                                    CustomerLoginState
-                                                  >(
-                                                    listener: (context, state) {
-                                                      if (state
-                                                          is GuestUserLoadingState) {
-                                                        EasyLoading.show();
-                                                      }
-                                                      if (state
-                                                          is GuestUserLoadedState) {
-                                                        if (state
-                                                                .guestSignInResponse
-                                                                .status ==
-                                                            true) {
-                                                          EasyLoading.dismiss();
-                                                          ObjectFactory().prefs
-                                                              .setDeviceID(
-                                                                deviceID:
-                                                                    state
-                                                                        .guestSignInResponse
-                                                                        .deviceToken,
-                                                              );
-                                                          ObjectFactory().prefs
-                                                              .setIsGuestUser(
-                                                                true,
-                                                              );
-                                                          _showToast(
-                                                            state
+                                                CustomerLoginBloc,
+                                                CustomerLoginState
+                                              >(
+                                                listener: (context, state) {
+                                                  if (state
+                                                      is GuestUserLoadingState) {
+                                                    EasyLoading.show();
+                                                  }
+                                                  if (state
+                                                      is GuestUserLoadedState) {
+                                                    if (state
+                                                            .guestSignInResponse
+                                                            .status ==
+                                                        true) {
+                                                      EasyLoading.dismiss();
+                                                      ObjectFactory().prefs
+                                                          .setDeviceID(
+                                                            deviceID:
+                                                                state
                                                                     .guestSignInResponse
-                                                                    .message! ??
-                                                                "",
-                                                            AppColors
-                                                                .appGreenColor,
+                                                                    .deviceToken,
                                                           );
-                                                          context.go(
-                                                            '/customer_home',
-                                                          );
-                                                        } else if (state
+                                                      ObjectFactory().prefs
+                                                          .setIsGuestUser(true);
+                                                      _showToast(
+                                                        state
                                                                 .guestSignInResponse
-                                                                .status ==
-                                                            false) {
-                                                          EasyLoading.dismiss();
-                                                          ObjectFactory().prefs
-                                                              .setIsGuestUser(
-                                                                false,
-                                                              );
-                                                          _showToast(
-                                                            state
-                                                                    .guestSignInResponse
-                                                                    .message! ??
-                                                                "",
-                                                            AppColors
-                                                                .appRedColor,
+                                                                .message! ??
+                                                            "",
+                                                        AppColors.appGreenColor,
+                                                      );
+                                                      context.go(
+                                                        '/customer_home',
+                                                      );
+                                                    } else if (state
+                                                            .guestSignInResponse
+                                                            .status ==
+                                                        false) {
+                                                      EasyLoading.dismiss();
+                                                      ObjectFactory().prefs
+                                                          .setIsGuestUser(
+                                                            false,
                                                           );
-                                                        }
-                                                      }
-                                                      if (state
-                                                          is GuestUserErrorState) {
-                                                        EasyLoading.dismiss();
-                                                        ObjectFactory().prefs
-                                                            .setIsGuestUser(
-                                                              false,
-                                                            );
-                                                        _showToast(
-                                                          state.errorMessage ??
-                                                              "",
-                                                          AppColors.appRedColor,
+                                                      _showToast(
+                                                        state
+                                                                .guestSignInResponse
+                                                                .message! ??
+                                                            "",
+                                                        AppColors.appRedColor,
+                                                      );
+                                                    }
+                                                  }
+                                                  if (state
+                                                      is GuestUserErrorState) {
+                                                    EasyLoading.dismiss();
+                                                    ObjectFactory().prefs
+                                                        .setIsGuestUser(false);
+                                                    _showToast(
+                                                      state.errorMessage ?? "",
+                                                      AppColors.appRedColor,
+                                                    );
+                                                  }
+                                                },
+                                                child: TextButton(
+                                                  onPressed: () async {
+                                                    context
+                                                        .read<
+                                                          CustomerLoginBloc
+                                                        >()
+                                                        .add(
+                                                          GuestUserEvent(
+                                                            guestUserRequest:
+                                                                GuestUserRequest(
+                                                                  deviceToken:
+                                                                      await _getDeviceId(),
+                                                                ),
+                                                          ),
                                                         );
-                                                      }
-                                                    },
-                                                    child: TextButton(
-                                                      onPressed: () async {
-                                                        context
-                                                            .read<
-                                                              CustomerLoginBloc
-                                                            >()
-                                                            .add(
-                                                              GuestUserEvent(
-                                                                guestUserRequest:
-                                                                    GuestUserRequest(
-                                                                      deviceToken:
-                                                                          await _getDeviceId(),
-                                                                    ),
-                                                              ),
-                                                            );
-                                                      },
-                                                      child: Text(
-                                                        'SKIP SIGN IN',
-                                                        style: Theme.of(context)
-                                                            .textTheme
-                                                            .labelMedium!
-                                                            .copyWith(
-                                                              color:
-                                                                  AppColors
-                                                                      .primaryWhiteColor,
-                                                              fontSize: 16.sp,
-                                                            ),
-                                                      ),
-                                                    ),
-                                                  )
-                                                  .animate()
-                                                  .fadeIn(
-                                                    duration: 500.ms,
-                                                    delay: 1100.ms,
-                                                  )
-                                                  .then()
-                                                  .animate(
-                                                    onPlay:
-                                                        (controller) =>
-                                                            controller.repeat(
-                                                              reverse: true,
-                                                            ),
-                                                  )
-                                                  .fadeIn(
-                                                    begin: 0.6,
-                                                    duration: 1500.ms,
+                                                  },
+                                                  child: Text(
+                                                    'SKIP SIGN IN',
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .labelMedium!
+                                                        .copyWith(
+                                                          color:
+                                                              AppColors
+                                                                  .primaryWhiteColor,
+                                                          fontSize: 16.sp,
+                                                        ),
                                                   ),
+                                                ),
+                                              ),
                                             ],
                                           ),
                                         ),

@@ -58,7 +58,10 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
     });
   }
 
-  Widget _buildSubscriptionContent(BuildContext context, InitialSubscriptionPlanResponse data) {
+  Widget _buildSubscriptionContent(
+    BuildContext context,
+    InitialSubscriptionPlanResponse data,
+  ) {
     cafeId = data.data!.cafeId!;
     ObjectFactory().prefs.setCafeId(cafeId: data.data!.cafeId!.toString());
     subscriptionTypeId = data.data!.subscriptionTypeId!;
@@ -72,23 +75,23 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
           children: [
             Gap(30),
             SvgPicture.asset(
-              'assets/svg/free-icon.svg',
-              height: 123,
-              width: 123,
-            )
+                  'assets/svg/free-icon.svg',
+                  height: 123,
+                  width: 123,
+                )
                 .animate()
                 .scale(
-              begin: const Offset(0.7, 0.7),
-              end: const Offset(1, 1),
-              duration: 500.ms,
-              curve: Curves.easeOutBack,
-            )
+                  begin: const Offset(0.7, 0.7),
+                  end: const Offset(1, 1),
+                  duration: 500.ms,
+                  curve: Curves.easeOutBack,
+                )
                 .shake(
-              hz: 4,
-              duration: 400.ms,
-              delay: 500.ms,
-              curve: Curves.easeInOut,
-            )
+                  hz: 4,
+                  duration: 400.ms,
+                  delay: 500.ms,
+                  curve: Curves.easeInOut,
+                )
                 .fadeIn(duration: 400.ms),
             Gap(30),
             SingleChildScrollView(
@@ -119,7 +122,9 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                             Text(
                               'Start With A Free 3-Month Trial,\nThen \$ ${data.data!.amount} Per Year!',
                               textAlign: TextAlign.center,
-                              style: TextTheme.of(context).labelMedium!.copyWith(
+                              style: TextTheme.of(
+                                context,
+                              ).labelMedium!.copyWith(
                                 color: AppColors.primary,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 18.sp,
@@ -142,52 +147,78 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                                 children: [
                                   TextSpan(
                                     text: 'Promo Code: ',
-                                    style: TextTheme.of(context).bodyMedium!.copyWith(
+                                    style: TextTheme.of(
+                                      context,
+                                    ).bodyMedium!.copyWith(
                                       color: AppColors.tertiary,
                                       fontWeight: FontWeight.w700,
-                                      fontSize: 14.sp, // Using .sp for responsive font size
+                                      fontSize:
+                                          14.sp, // Using .sp for responsive font size
                                     ),
                                   ),
                                   TextSpan(
                                     text: 'E23FTU6',
-                                    style: TextTheme.of(context).bodyMedium!.copyWith(
+                                    style: TextTheme.of(
+                                      context,
+                                    ).bodyMedium!.copyWith(
                                       color: AppColors.tertiary,
                                       fontWeight: FontWeight.w700,
-                                      fontSize: 14.sp, // Using .sp for responsive font size
+                                      fontSize:
+                                          14.sp, // Using .sp for responsive font size
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                            SizedBox(height: 10.h), // Using .h for responsive height
+                            SizedBox(
+                              height: 10.h,
+                            ), // Using .h for responsive height
                             TextField(
-                              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                              style: Theme.of(
+                                context,
+                              ).textTheme.bodyMedium!.copyWith(
                                 color: AppColors.hintColor,
                                 fontWeight: FontWeight.w600,
-                                fontSize: 14.sp, // Using .sp for responsive font size
+                                fontSize:
+                                    14.sp, // Using .sp for responsive font size
                               ),
                               decoration: InputDecoration(
                                 hintText: 'Enter Promo Code',
                                 hintStyle: TextStyle(
                                   color: AppColors.textPrimaryGrey,
                                   fontWeight: FontWeight.w600,
-                                  fontSize: 14.sp, // Using .sp for responsive font size
+                                  fontSize:
+                                      14.sp, // Using .sp for responsive font size
                                 ),
-                                contentPadding: EdgeInsets.symmetric(horizontal: 16.w), // Using .w for responsive width
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16.w,
+                                ), // Using .w for responsive width
                                 border: OutlineInputBorder(
-                                  borderSide: BorderSide(color: AppColors.borderColor1),
-                                  borderRadius: BorderRadius.circular(10.r), // Using .r for responsive radius
+                                  borderSide: BorderSide(
+                                    color: AppColors.borderColor1,
+                                  ),
+                                  borderRadius: BorderRadius.circular(
+                                    10.r,
+                                  ), // Using .r for responsive radius
                                 ),
                                 focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: AppColors.borderColor1),
-                                  borderRadius: BorderRadius.circular(10.r), // Using .r for responsive radius
+                                  borderSide: BorderSide(
+                                    color: AppColors.borderColor1,
+                                  ),
+                                  borderRadius: BorderRadius.circular(
+                                    10.r,
+                                  ), // Using .r for responsive radius
                                 ),
                                 enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(color: AppColors.borderColor1),
-                                  borderRadius: BorderRadius.circular(10.r), // Using .r for responsive radius
+                                  borderSide: BorderSide(
+                                    color: AppColors.borderColor1,
+                                  ),
+                                  borderRadius: BorderRadius.circular(
+                                    10.r,
+                                  ), // Using .r for responsive radius
                                 ),
                               ),
-                            )
+                            ),
                           ],
                         ),
                       ),
@@ -222,15 +253,20 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                                 children: [
                                   TextSpan(
                                     text: '\$${data.data!.amount}',
-                                    style: TextTheme.of(context).bodyLarge!.copyWith(
+                                    style: TextTheme.of(
+                                      context,
+                                    ).bodyLarge!.copyWith(
                                       color: AppColors.primary,
                                       fontSize: 24.sp,
                                     ),
                                   ),
                                   TextSpan(
                                     text: ' / ${data.data!.type}',
-                                    style: TextTheme.of(context).bodyMedium!.copyWith(
-                                      color: AppColors.subscriptionPriceSubColor,
+                                    style: TextTheme.of(
+                                      context,
+                                    ).bodyMedium!.copyWith(
+                                      color:
+                                          AppColors.subscriptionPriceSubColor,
                                       fontWeight: FontWeight.w600,
                                       fontSize: 14.sp,
                                     ),
@@ -258,34 +294,34 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
             ),
             Gap(30),
             BlocBuilder<SubscriptionBloc, SubscriptionState>(
-              builder: (context, state) {
-                return InkWell(
-                  splashColor: AppColors.secondary,
-                  splashFactory: InkRipple.splashFactory,
-                  onTap: () {
-                    context.read<SubscriptionBloc>().add(
-                      StartSubscriptionEvent(
-                        subscriptionStartRequest: SubscriptionStartRequest(
-                          cafeId: cafeId,
-                          subscriptionTypeId: subscriptionTypeId,
-                          paymentMethod: paymentMethod,
-                          amount: amount,
-                          autoRenew: true,
-                        ),
+                  builder: (context, state) {
+                    return InkWell(
+                      splashColor: AppColors.secondary,
+                      splashFactory: InkRipple.splashFactory,
+                      onTap: () {
+                        context.read<SubscriptionBloc>().add(
+                          StartSubscriptionEvent(
+                            subscriptionStartRequest: SubscriptionStartRequest(
+                              cafeId: cafeId,
+                              subscriptionTypeId: subscriptionTypeId,
+                              paymentMethod: paymentMethod,
+                              amount: amount,
+                              autoRenew: true,
+                            ),
+                          ),
+                        );
+                      },
+                      child: ElevatedButtonWidget(
+                        height: 70.h,
+                        width: double.infinity,
+                        iconEnabled: false,
+                        iconLabel: "START FREE TRAIL",
+                        color: AppColors.primary,
+                        textColor: AppColors.primaryWhiteColor,
                       ),
                     );
                   },
-                  child: ElevatedButtonWidget(
-                    height: 70.h,
-                    width: double.infinity,
-                    iconEnabled: false,
-                    iconLabel: "START FREE TRAIL",
-                    color: AppColors.primary,
-                    textColor: AppColors.primaryWhiteColor,
-                  ),
-                );
-              },
-            )
+                )
                 .animate()
                 .fadeIn(duration: 450.ms)
                 .slideY(begin: 0.2, delay: 600.ms),
@@ -333,15 +369,17 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                   backgroundColor: AppColors.primaryWhiteColor,
                   textColor: AppColors.appGreenColor,
                   gravity: ToastGravity.BOTTOM,
-                  msg: state.subscriptionStartResponse.message.toString() ?? "",
+                  msg:
+                      state.subscriptionStartResponse.message.toString() ??
+                      "Your subscription was successful.",
                 );
                 context.go('/home');
-              } else {
+              } else if (state.subscriptionStartResponse.status == true) {
                 Fluttertoast.showToast(
                   backgroundColor: AppColors.primaryWhiteColor,
                   textColor: AppColors.appGreenColor,
                   gravity: ToastGravity.BOTTOM,
-                  msg: state.subscriptionStartResponse.message.toString() ?? "",
+                  msg: "Your subscription was successful.",
                 );
                 context.go('/home');
               }
@@ -357,14 +395,19 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
             }
           },
           builder: (context, state) {
-            if (state is InitialSubscriptionLoading || state is StartSubscriptionLoading) {
+            if (state is InitialSubscriptionLoading ||
+                state is StartSubscriptionLoading) {
               return const SizedBox(); // Empty widget, as EasyLoading handles the overlay
             }
             if (state is InitialSubscriptionLoaded &&
-                state.initialSubscriptionPlanResponse.message == "Subscription type found!" &&
+                state.initialSubscriptionPlanResponse.message ==
+                    "Subscription type found!" &&
                 state.initialSubscriptionPlanResponse.data != null) {
               initialData = state.initialSubscriptionPlanResponse;
-              return _buildSubscriptionContent(context, state.initialSubscriptionPlanResponse);
+              return _buildSubscriptionContent(
+                context,
+                state.initialSubscriptionPlanResponse,
+              );
             }
             if (state is StartSubscriptionError && initialData != null) {
               return _buildSubscriptionContent(context, initialData!);

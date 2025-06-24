@@ -156,6 +156,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                       EasyLoading.showError(state.errorMessage!);
                     });
                   }
+                 
                   if (state.profile.data != null) {
                     _updateControllerText(nameController, state.profile.data?.name);
                     _updateControllerText(emailController, state.profile.data?.email);
