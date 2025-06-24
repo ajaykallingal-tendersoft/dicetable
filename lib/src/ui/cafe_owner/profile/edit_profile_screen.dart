@@ -551,6 +551,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       context,
     ).largerThan(MOBILE);
     final state = context.read<ProfileBloc>().state;
+    final subTitle = state.profileEditViewResponse?.data?.cafeSince?.toString() ?? "";
     return SliverAppBar(
       expandedHeight: 380.h,
       pinned: true,
@@ -605,7 +606,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     SizedBox(height: 4.h),
                     Text(
-                      state.profileEditViewResponse!.data!.cafeSince.toString(),
+                      subTitle,
                       style: Theme.of(context).textTheme.bodySmall!.copyWith(
                         color: AppColors.primaryWhiteColor,
                         fontSize: 12.sp,

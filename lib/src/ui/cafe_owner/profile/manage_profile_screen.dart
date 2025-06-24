@@ -535,6 +535,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
       context,
     ).largerThan(MOBILE);
     final state = context.read<ProfileBloc>().state;
+    final subTitle = state.profileViewResponse?.data?.cafeSince?.toString() ?? "";
     return SliverAppBar(
       expandedHeight: 380.h,
       pinned: false,
@@ -589,7 +590,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                     ),
                     SizedBox(height: 4),
                     Text(
-                      state.profileViewResponse!.data!.cafeSince.toString(),
+                      subTitle,
                       style: TextTheme.of(context).bodySmall!.copyWith(
                         color: AppColors.primaryWhiteColor,
                         fontSize: 12,

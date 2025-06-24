@@ -358,7 +358,7 @@ class _CafeListFilterState extends State<CafeListFilter> {
                           IconButton(
                             icon: SvgPicture.asset(
                                 'assets/svg/filter-close.svg'),
-                            onPressed: () => Navigator.pop(context),
+                            onPressed: () => context.pop(),
                           ),
                         ],
                       ),
