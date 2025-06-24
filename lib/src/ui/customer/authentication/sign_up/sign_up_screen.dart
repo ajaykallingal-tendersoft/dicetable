@@ -37,6 +37,9 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
   late final bool isGoogleSignUp;
   late final bool isAppleSignUp;
   String? appleMail;
+  final _formKey = GlobalKey<FormState>();
+  AutovalidateMode autovalidateMode = AutovalidateMode.disabled;
+
 
   @override
   void initState() {
@@ -303,264 +306,272 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                 ),
               ),
             ),
-            body: Container(
-              height: double.infinity,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.primary,
-                    AppColors.primary,
-                    AppColors.secondary,
-                    AppColors.tertiary,
-                  ],
-                  stops: [0.0, 0.5, 0.75, 1.0],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
+            body: Form(
+              key: _formKey,
+              autovalidateMode: autovalidateMode,
+              child: Container(
+                height: double.infinity,
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.primary,
+                      AppColors.primary,
+                      AppColors.secondary,
+                      AppColors.tertiary,
+                    ],
+                    stops: [0.0, 0.5, 0.75, 1.0],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
                 ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.only(
-                  left: 20.0,
-                  right: 20,
-                  bottom: 30,
-                ),
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      const Gap(10),
-                      RequiredTextField(
-                        readOnly: isGoogleSignUp,
-                        hint: 'Name',
-                        isRequired: true,
-                        controller: _nameController,
-                        errorText: formState.nameError,
-                        onChanged: (value) {
-                          context.read<CustomerSignUpBloc>().add(
-                            NameChanged(name: value),
-                          );
-                        },
-                      ),
-                      RequiredTextField(
-                        readOnly: isGoogleSignUp,
-                        hint:
-                            isAppleSignUp
-                                ? 'Personal email is required for contact'
-                                : 'Email',
-                        isRequired: true,
-                        isEmail: true,
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        errorText: formState.emailError,
-                        onChanged: (value) {
-                          context.read<CustomerSignUpBloc>().add(
-                            EmailChanged(email: value),
-                          );
-                        },
-                      ),
-                      RequiredTextField(
-                        hint: 'Password',
-                        isRequired: true,
-                        obscureText: true,
-                        controller: _passwordController,
-                        errorText: formState.passwordError,
-                        onChanged: (value) {
-                          context.read<CustomerSignUpBloc>().add(
-                            PasswordChanged(password: value),
-                          );
-                        },
-                      ),
-                      RequiredTextField(
-                        hint: 'Confirm Password',
-                        isRequired: true,
-                        obscureText: true,
-                        controller: _confirmPasswordController,
-                        errorText: formState.confirmPasswordError,
-                        onChanged: (value) {
-                          context.read<CustomerSignUpBloc>().add(
-                            ConfirmPasswordChanged(confirmPassword: value),
-                          );
-                        },
-                      ),
-                      RequiredTextField(
-                        hint: 'Phone number',
-                        isRequired: false,
-                        controller: _phoneController,
-                        keyboardType: TextInputType.phone,
-                        errorText: formState.phoneError,
-                        onChanged: (value) {
-                          context.read<CustomerSignUpBloc>().add(
-                            PhoneChanged(phone: value),
-                          );
-                        },
-                      ),
-                      RequiredTextField(
-                        hint: 'Country',
-                        isRequired: true,
-                        controller: _countryController,
-                        errorText: formState.countryError,
-                        onChanged: (value) {
-                          context.read<CustomerSignUpBloc>().add(
-                            CountryChanged(country: value),
-                          );
-                        },
-                      ),
-                      RequiredTextField(
-                        hint: 'Region',
-                        isRequired: true,
-                        controller: _regionController,
-                        errorText: formState.regionError,
-                        onChanged: (value) {
-                          context.read<CustomerSignUpBloc>().add(
-                            RegionChanged(region: value),
-                          );
-                        },
-                      ),
-                      BlocBuilder<CustomerSignUpBloc, CustomerSignUpState>(
-                        builder: (context, state) {
-                          if (state is CustomerSignUpLoadingState ||
-                              state is GoogleSignUpLoadingState) {
-                            return const Center(
-                              child: RefreshProgressIndicator(
-                                color: AppColors.primaryWhiteColor,
-                                backgroundColor: AppColors.primary,
-                              ),
+                child: Padding(
+                  padding: const EdgeInsets.only(
+                    left: 20.0,
+                    right: 20,
+                    bottom: 30,
+                  ),
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        const Gap(10),
+                        RequiredTextField(
+                          readOnly: isGoogleSignUp,
+                          hint: 'Name',
+                          isRequired: true,
+                          controller: _nameController,
+                          errorText: formState.nameError,
+                          onChanged: (value) {
+                            context.read<CustomerSignUpBloc>().add(
+                              NameChanged(name: value),
                             );
-                          }
-
-                          return InkWell(
-                            onTap: () {
-                              final name = _nameController.text.trim();
-                              final email = _emailController.text.trim();
-                              final password = _passwordController.text.trim();
-                              final confirmPassword =
-                                  _confirmPasswordController.text.trim();
-                              final phone = _phoneController.text.trim();
-                              final country = _countryController.text.trim();
-                              final region = _regionController.text.trim();
-
-                              // First, update the form state with current controller values
-                              context.read<CustomerSignUpBloc>().add(
-                                UpdateTextField(
-                                  (state) => state.copyWith(
-                                    name: name,
-                                    email: email,
-                                    password: password,
-                                    confirmPassword: confirmPassword,
-                                    phone: phone,
-                                    country: country,
-                                    region: region,
-                                  ),
+                          },
+                        ),
+                        RequiredTextField(
+                          readOnly: isGoogleSignUp,
+                          hint:
+                              isAppleSignUp
+                                  ? 'Personal email is required for contact'
+                                  : 'Email',
+                          isRequired: true,
+                          isEmail: true,
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          errorText: formState.emailError,
+                          onChanged: (value) {
+                            context.read<CustomerSignUpBloc>().add(
+                              EmailChanged(email: value),
+                            );
+                          },
+                        ),
+                        RequiredTextField(
+                          hint: 'Password',
+                          isRequired: true,
+                          obscureText: true,
+                          controller: _passwordController,
+                          errorText: formState.passwordError,
+                          onChanged: (value) {
+                            context.read<CustomerSignUpBloc>().add(
+                              PasswordChanged(password: value),
+                            );
+                          },
+                        ),
+                        RequiredTextField(
+                          hint: 'Confirm Password',
+                          isRequired: true,
+                          obscureText: true,
+                          controller: _confirmPasswordController,
+                          errorText: formState.confirmPasswordError,
+                          onChanged: (value) {
+                            context.read<CustomerSignUpBloc>().add(
+                              ConfirmPasswordChanged(confirmPassword: value),
+                            );
+                          },
+                        ),
+                        RequiredTextField(
+                          hint: 'Phone number',
+                          isRequired: false,
+                          controller: _phoneController,
+                          keyboardType: TextInputType.phone,
+                          errorText: formState.phoneError,
+                          onChanged: (value) {
+                            context.read<CustomerSignUpBloc>().add(
+                              PhoneChanged(phone: value),
+                            );
+                          },
+                        ),
+                        RequiredTextField(
+                          hint: 'Country',
+                          isRequired: true,
+                          controller: _countryController,
+                          errorText: formState.countryError,
+                          onChanged: (value) {
+                            context.read<CustomerSignUpBloc>().add(
+                              CountryChanged(country: value),
+                            );
+                          },
+                        ),
+                        RequiredTextField(
+                          hint: 'Region',
+                          isRequired: true,
+                          controller: _regionController,
+                          errorText: formState.regionError,
+                          onChanged: (value) {
+                            context.read<CustomerSignUpBloc>().add(
+                              RegionChanged(region: value),
+                            );
+                          },
+                        ),
+                        BlocBuilder<CustomerSignUpBloc, CustomerSignUpState>(
+                          builder: (context, state) {
+                            if (state is CustomerSignUpLoadingState ||
+                                state is GoogleSignUpLoadingState) {
+                              return const Center(
+                                child: RefreshProgressIndicator(
+                                  color: AppColors.primaryWhiteColor,
+                                  backgroundColor: AppColors.primary,
                                 ),
                               );
+                            }
 
-                              context.read<CustomerSignUpBloc>().add(
-                                ValidateForm(),
-                              );
+                            return InkWell(
+                              onTap: () {
+                                final name = _nameController.text.trim();
+                                final email = _emailController.text.trim();
+                                final password = _passwordController.text.trim();
+                                final confirmPassword =
+                                    _confirmPasswordController.text.trim();
+                                final phone = _phoneController.text.trim();
+                                final country = _countryController.text.trim();
+                                final region = _regionController.text.trim();
 
-                              Future.delayed(const Duration(milliseconds: 100), () {
-                                final currentState =
-                                    context.read<CustomerSignUpBloc>().state;
-
-                                // Check if current state is valid before submitting
-                                if (currentState is SignUpFormState &&
-                                    currentState.isFormValid) {
-                                  if (isGoogleSignUp) {
-                                    final googleSignUpRequest =
-                                        GoogleSignUpRequest(
-                                          name: name,
-                                          email: email,
-                                          password: password,
-                                          passwordConfirmation: confirmPassword,
-                                          country: country,
-                                          loginType: 5,
-                                          phone: phone,
-                                          region: region,
-                                          fcmToken:
-                                              ObjectFactory().prefs
-                                                  .getFcmToken()
-                                                  .toString(),
-                                        );
-                                    context.read<CustomerSignUpBloc>().add(
-                                      SubmitGoogleSignUp(
-                                        signupRequest: googleSignUpRequest,
-                                      ),
-                                    );
-                                  } else if (isAppleSignUp) {
-                                    final appleSignUpRequest =
-                                        AppleSignUpRequest(
-                                          name: name,
-                                          email: email,
-                                          password: password,
-                                          passwordConfirmation: confirmPassword,
-                                          country: country,
-                                          loginType: 5,
-                                          phone: phone,
-                                          region: region,
-                                          fcmToken:
-                                              ObjectFactory().prefs
-                                                  .getFcmToken()
-                                                  .toString(),
-                                        );
-                                        context.read<CustomerSignUpBloc>().add(
-                                      SubmitCustomerAppleSignUp(
-                                        appleSignUpRequest: appleSignUpRequest,
-                                      ),
-                                    );
-                                  }else if(!isAppleSignUp && !isGoogleSignUp){
-                                    final signUpRequest = SignUpRequest(
+                                // First, update the form state with current controller values
+                                context.read<CustomerSignUpBloc>().add(
+                                  UpdateTextField(
+                                    (state) => state.copyWith(
                                       name: name,
                                       email: email,
                                       password: password,
-                                      passwordConfirmation: confirmPassword,
-                                      country: country,
-                                      loginType: 5,
+                                      confirmPassword: confirmPassword,
                                       phone: phone,
+                                      country: country,
                                       region: region,
-                                      fcmToken:
-                                          ObjectFactory().prefs
-                                              .getFcmToken()
-                                              .toString(),
-                                    );
-                                    context.read<CustomerSignUpBloc>().add(
-                                      SubmitSignUp(
-                                        signupRequest: signUpRequest,
+                                    ),
+                                  ),
+                                );
+
+                                autovalidateMode = AutovalidateMode.onUserInteraction;
+
+                                /*context.read<CustomerSignUpBloc>().add(
+                                  ValidateForm(),
+                                );*/
+
+                                Future.delayed(const Duration(milliseconds: 100), () {
+                                  final currentState =
+                                      context.read<CustomerSignUpBloc>().state;
+
+                                  // Check if current state is valid before submitting
+                                  if (currentState is SignUpFormState &&
+                                      _formKey.currentState!.validate()) {
+                                    if (isGoogleSignUp) {
+                                      final googleSignUpRequest =
+                                          GoogleSignUpRequest(
+                                            name: name,
+                                            email: email,
+                                            password: password,
+                                            passwordConfirmation: confirmPassword,
+                                            country: country,
+                                            loginType: 5,
+                                            phone: phone,
+                                            region: region,
+                                            fcmToken:
+                                                ObjectFactory().prefs
+                                                    .getFcmToken()
+                                                    .toString(),
+                                          );
+                                      context.read<CustomerSignUpBloc>().add(
+                                        SubmitGoogleSignUp(
+                                          signupRequest: googleSignUpRequest,
+                                        ),
+                                      );
+                                    }
+                                    else if (isAppleSignUp) {
+                                      final appleSignUpRequest =
+                                          AppleSignUpRequest(
+                                            name: name,
+                                            email: email,
+                                            password: password,
+                                            passwordConfirmation: confirmPassword,
+                                            country: country,
+                                            loginType: 5,
+                                            phone: phone,
+                                            region: region,
+                                            fcmToken:
+                                                ObjectFactory().prefs
+                                                    .getFcmToken()
+                                                    .toString(),
+                                          );
+                                          context.read<CustomerSignUpBloc>().add(
+                                        SubmitCustomerAppleSignUp(
+                                          appleSignUpRequest: appleSignUpRequest,
+                                        ),
+                                      );
+                                    }
+                                    else if(!isAppleSignUp && !isGoogleSignUp){
+                                      final signUpRequest = SignUpRequest(
+                                        name: name,
+                                        email: email,
+                                        password: password,
+                                        passwordConfirmation: confirmPassword,
+                                        country: country,
+                                        loginType: 5,
+                                        phone: phone,
+                                        region: region,
+                                        fcmToken:
+                                            ObjectFactory().prefs
+                                                .getFcmToken()
+                                                .toString(),
+                                      );
+                                      context.read<CustomerSignUpBloc>().add(
+                                        SubmitSignUp(
+                                          signupRequest: signUpRequest,
+                                        ),
+                                      );
+                                    }
+
+                                  } else {
+                                    // Show a general error message if form is not valid
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          'Please fix all errors before submitting',
+                                        ),
+                                        backgroundColor: AppColors.appRedColor,
+                                        duration: Duration(seconds: 2),
                                       ),
                                     );
                                   }
-                                  
-                                } else {
-                                  // Show a general error message if form is not valid
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Please fix all errors before submitting',
-                                      ),
-                                      backgroundColor: AppColors.appRedColor,
-                                      duration: Duration(seconds: 2),
-                                    ),
-                                  );
-                                }
-                              });
-                            },
-                            child: ElevatedButtonWidget(
-                              height: 70.h,
-                              width: double.infinity,
-                              iconEnabled: false,
-                              iconLabel: 'SIGN UP',
-                              color: AppColors.primary,
-                              textColor: AppColors.primaryWhiteColor,
-                            ),
-                          );
-                        },
-                      ),
-                      const Gap(20),
-                      LoginOrSignupPrompt(
-                        spanText: 'Already have an account',
-                        promptText: 'Sign in now',
-                        onSignInTap: () => context.go('/customer_login'),
-                      ),
-                    ],
+                                });
+                              },
+                              child: ElevatedButtonWidget(
+                                height: 70.h,
+                                width: double.infinity,
+                                iconEnabled: false,
+                                iconLabel: 'SIGN UP',
+                                color: AppColors.primary,
+                                textColor: AppColors.primaryWhiteColor,
+                              ),
+                            );
+                          },
+                        ),
+                        const Gap(20),
+                        LoginOrSignupPrompt(
+                          spanText: 'Already have an account',
+                          promptText: 'Sign in now',
+                          onSignInTap: () => context.go('/customer_login'),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
