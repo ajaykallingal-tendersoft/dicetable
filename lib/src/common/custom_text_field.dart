@@ -16,6 +16,7 @@ class CustomTextField extends StatefulWidget {
   final double height;
   final String? errorText;
   final bool? isPhoneNumber;
+  final TextAlign? textAlign;
 
   const CustomTextField({
     super.key,
@@ -31,6 +32,7 @@ class CustomTextField extends StatefulWidget {
     this.height = 60,
     this.errorText,
     this.isPhoneNumber,
+    this.textAlign,
 
   });
 
@@ -96,6 +98,9 @@ class _CustomTextFieldState extends State<CustomTextField> {
                   ? Alignment.topLeft
                   : Alignment.centerLeft,
               child: TextFormField(
+                textAlign: widget.readOnly
+                    ? (widget.textAlign ?? TextAlign.start)
+                    : TextAlign.start,
                 inputFormatters: [
                   if (widget.isPhoneNumber == true) ...[
                     LengthLimitingTextInputFormatter(10),

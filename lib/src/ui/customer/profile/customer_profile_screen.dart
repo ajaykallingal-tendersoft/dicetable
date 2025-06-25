@@ -242,7 +242,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
 
                             ),
                             CustomTextField(
-                              // isPhoneNumber: true,
+                              isPhoneNumber: true,
                               textFieldAnnotationText: 'Phone',
                               controller: phoneController,
                               readOnly: !state.isEditMode,
@@ -252,7 +252,6 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                                   .read<CustomerProfileBloc>()
                                   .add(UpdateProfileFieldEvent(field: 'phone', value: val)),
                               hintText: 'Phone',
-
                             ),
                             CustomTextField(
                               textFieldAnnotationText: 'Country',
