@@ -350,8 +350,9 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                         ),
                         const Gap(10),
                         CustomTextField(
-                          height: 100,
-                          maxLines: null,
+                          textAlign: TextAlign.left,
+                          height: 90.h,
+                          maxLines: 3,
                           isProfile: true,
                           readOnly: true,
                           controller: TextEditingController(
@@ -361,6 +362,39 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                           textFieldAnnotationText: 'Venue Type',
                           onChanged: (value) {},
                         ),
+
+                        // LayoutBuilder(
+                        //   builder: (context, constraints) {
+                        //     final venueTypeText = state.venueType ?? 'No venue type selected';
+                        //     final textStyle = TextStyle(
+                        //       fontSize: 14.sp, // Adjust based on your text style
+                        //       fontWeight: FontWeight.w600, // Match your design
+                        //     );
+                        //     final textSpan = TextSpan(text: venueTypeText, style: textStyle);
+                        //     final textPainter = TextPainter(
+                        //       text: textSpan,
+                        //       maxLines: 1,
+                        //       textDirection: TextDirection.ltr,
+                        //       textScaleFactor: MediaQuery.of(context).textScaleFactor,
+                        //     )..layout(maxWidth: constraints.maxWidth - 32); // Subtract padding
+                        //
+                        //     final lineCount = textPainter.computeLineMetrics().length;
+                        //     final dynamicHeight = lineCount == 1 ? 70.h : 90.h; // Single line or multi-line height
+                        //     final dynamicMaxLines = lineCount == 1 ? 1 : 3;
+                        //
+                        //     return CustomTextField(
+                        //       textAlign: TextAlign.left,
+                        //       height: dynamicHeight,
+                        //       maxLines: dynamicMaxLines,
+                        //       isProfile: true,
+                        //       readOnly: true,
+                        //       controller: TextEditingController(text: venueTypeText),
+                        //       hintText: 'Venue Type',
+                        //       textFieldAnnotationText: 'Venue Type',
+                        //       onChanged: (value) {},
+                        //     );
+                        //   },
+                        // ),
 
                         const Gap(17),
                         CustomTextField(

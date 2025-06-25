@@ -90,7 +90,7 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
       emit(CustomerLoginLoadingState());
 
       try {
-        final loginRequest = LoginRequest(login: email, password: password, fcmToken: ObjectFactory().prefs.getFcmToken().toString());
+        final loginRequest = LoginRequest(login: email, password: password, fcmToken: ObjectFactory().prefs.getFcmToken().toString(), loginType: 5);
         final stateModel = await authDataProvider.loginUser(loginRequest);
         print("EmailAfter: $email");
         print("PasswordAfter: $password");

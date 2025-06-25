@@ -83,7 +83,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         final loginRequest = LoginRequest(
           login: email,
           password: password,
-          fcmToken: ObjectFactory().prefs.getFcmToken().toString(),
+          fcmToken: ObjectFactory().prefs.getFcmToken().toString(), loginType: 3,
         );
         final stateModel = await authDataProvider.loginUser(loginRequest);
         print("EmailAfter: $email");

@@ -13,6 +13,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+
 
 class CafeListFilter extends StatefulWidget {
   const CafeListFilter({super.key});
@@ -174,6 +176,23 @@ class _CafeListFilterState extends State<CafeListFilter> {
   }
 
   void _applyFilters(GetFilterOptionsResponse filterResponse) {
+
+    final bool hasTimeFilter = openTime != const TimeOfDay(hour: 00, minute: 0) ||
+        closeTime != const TimeOfDay(hour: 00, minute: 0);
+    final bool hasTableTypeFilter = selectedTableTypes.isNotEmpty;
+    final bool hasVenueTypeFilter = selectedVenueTypes.isNotEmpty;
+
+    if (!hasTimeFilter && !hasTableTypeFilter && !hasVenueTypeFilter) {
+      Fluttertoast.showToast(
+        msg: "Please select at least one filter",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: AppColors.primaryWhiteColor,
+        textColor: AppColors.appRedColor,
+      );
+      return;
+    }
+
     context.read<CafeListBloc>().add(FiltersUpdateEvent(
       selectedTableTypes: selectedTableTypes,
       selectedVenueTypes: selectedVenueTypes,

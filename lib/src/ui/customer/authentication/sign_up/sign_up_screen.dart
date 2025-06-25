@@ -540,11 +540,10 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                                     }
 
                                   } else {
-                                    // Show a general error message if form is not valid
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
                                         content: Text(
-                                          'Please fix all errors before submitting',
+                                          'Please fill all required fields before submitting.',
                                         ),
                                         backgroundColor: AppColors.appRedColor,
                                         duration: Duration(seconds: 2),

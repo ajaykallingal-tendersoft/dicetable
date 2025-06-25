@@ -56,7 +56,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   }
 
   void _initializeTimer() {
-    resendTimerSeconds = 60;
+    resendTimerSeconds = 45;
     canResend = false;
     _startTimer();
   }
