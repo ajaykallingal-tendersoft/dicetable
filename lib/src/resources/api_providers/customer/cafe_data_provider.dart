@@ -105,7 +105,6 @@ class CafeDataProvider {
 
   ///CafeList
   Future<StateModel?> getCafeList(CafeListRequest request) async {
-
     try {
       final response = await ObjectFactory().apiClient.getCafeList(request);
       if (response.statusCode == 200) {

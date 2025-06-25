@@ -43,9 +43,9 @@ class VenueTypeCheckboxes extends StatelessWidget {
           );
         }
 
-        if (state.venueTypes.isEmpty) {
-          return const Center(child: Text('No venue types available'));
-        }
+        // if (state.venueTypes.isEmpty) {
+        //   return const Center(child: Text('No venue types available'));
+        // }
 
         return Container(
           width: double.infinity,
