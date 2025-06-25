@@ -434,6 +434,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
 
                     CustomTextField(
+                      isPhoneNumber: true,
                       controller: _phoneController,
                       hintText: 'Phone',
                       errorText:
