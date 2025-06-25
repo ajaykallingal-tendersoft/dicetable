@@ -498,6 +498,13 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                                           ),
                                         );
                                       } else if (isAppleSignUp) {
+                                        final fcmToken =
+                                            ObjectFactory().prefs
+                                                .getFcmToken()
+                                                .toString();
+                                        final appleId =
+                                            ObjectFactory().prefs
+                                                .getAppleAuthID();
                                         final appleSignUpRequest =
                                             AppleSignUpRequest(
                                               name: name,
@@ -509,11 +516,10 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                                               loginType: 5,
                                               phone: phone,
                                               region: region,
-                                              fcmToken:
-                                                  ObjectFactory().prefs
-                                                      .getFcmToken()
-                                                      .toString(),
+                                              fcmToken: fcmToken,
+                                              apple_id: appleId,
                                             );
+
                                         context.read<CustomerSignUpBloc>().add(
                                           SubmitCustomerAppleSignUp(
                                             appleSignUpRequest:

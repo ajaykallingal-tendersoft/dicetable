@@ -177,9 +177,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return BlocConsumer<ProfileBloc, ProfileState>(
       listener: (context, state) async {
         if (state is ProfileEditViewLoading) {
-          await EasyLoading.show();
+           EasyLoading.show();
         } else if (state is ProfileUpdateLoading) {
-          await EasyLoading.show();
+           EasyLoading.show();
         } else {
           if (state is ProfileUpdateSuccess) {
             _venueNameController.text = state.venueName;

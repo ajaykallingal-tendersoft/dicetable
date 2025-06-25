@@ -157,9 +157,9 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
         }
 
         if (state is ProfileViewLoading) {
-          await EasyLoading.show();
+           EasyLoading.show();
         } else {
-          await EasyLoading.dismiss();
+           EasyLoading.dismiss();
           if (state is ProfileImageErrorState) {
             ScaffoldMessenger.of(
               context,
