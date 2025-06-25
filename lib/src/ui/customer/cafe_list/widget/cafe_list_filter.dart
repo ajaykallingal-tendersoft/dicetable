@@ -174,7 +174,6 @@ class _CafeListFilterState extends State<CafeListFilter> {
   }
 
   void _applyFilters(GetFilterOptionsResponse filterResponse) {
-    // First update the BLoC state with new filters
     context.read<CafeListBloc>().add(FiltersUpdateEvent(
       selectedTableTypes: selectedTableTypes,
       selectedVenueTypes: selectedVenueTypes,

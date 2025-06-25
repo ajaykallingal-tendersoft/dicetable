@@ -177,6 +177,17 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
                 _markers.clear();
               });
             }
+            if(state is CafeSearchSuccess) {
+              if(state.response.cafes!.isEmpty) {
+                Fluttertoast.showToast(
+                  backgroundColor: AppColors.primaryWhiteColor,
+                  textColor: AppColors.appRedColor,
+                  gravity: ToastGravity.BOTTOM,
+                  msg: "No Cafes Found.",
+                );
+              }
+
+            }
           },
           builder: (context, state) {
             if (_userLocation == null &&

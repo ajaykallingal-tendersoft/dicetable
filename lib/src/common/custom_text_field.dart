@@ -1,5 +1,6 @@
 import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 
 class CustomTextField extends StatefulWidget {
@@ -14,6 +15,7 @@ class CustomTextField extends StatefulWidget {
   final String? textFieldAnnotationText;
   final double height;
   final String? errorText;
+  final bool? isPhoneNumber;
 
   const CustomTextField({
     super.key,
@@ -28,6 +30,7 @@ class CustomTextField extends StatefulWidget {
     this.textFieldAnnotationText,
     this.height = 60,
     this.errorText,
+    this.isPhoneNumber,
 
   });
 
@@ -93,6 +96,15 @@ class _CustomTextFieldState extends State<CustomTextField> {
                   ? Alignment.topLeft
                   : Alignment.centerLeft,
               child: TextFormField(
+                inputFormatters: [
+                  if (widget.isPhoneNumber == true) ...[
+                    LengthLimitingTextInputFormatter(10),
+                    FilteringTextInputFormatter.digitsOnly,
+                  ],
+                ],
+
+
+
                 readOnly: widget.readOnly,
                 controller: widget.controller,
                 obscureText: widget.isPassword ? _obscureText : false,

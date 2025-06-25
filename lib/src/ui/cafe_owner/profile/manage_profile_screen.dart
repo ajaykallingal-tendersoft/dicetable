@@ -350,6 +350,8 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                         ),
                         const Gap(10),
                         CustomTextField(
+                          height: 100,
+                          maxLines: null,
                           isProfile: true,
                           readOnly: true,
                           controller: TextEditingController(

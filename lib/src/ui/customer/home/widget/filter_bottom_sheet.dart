@@ -13,6 +13,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 class FilterBottomSheet extends StatefulWidget {
   const FilterBottomSheet({super.key});
@@ -145,6 +146,23 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   }
 
   void _applyFilters(GetFilterOptionsResponse filterResponse) {
+    // Check if no filters are selected
+    final bool hasTimeFilter = openTime != const TimeOfDay(hour: 00, minute: 0) ||
+        closeTime != const TimeOfDay(hour: 00, minute: 0);
+    final bool hasTableTypeFilter = selectedTableTypes.isNotEmpty;
+    final bool hasVenueTypeFilter = selectedVenueTypes.isNotEmpty;
+
+    if (!hasTimeFilter && !hasTableTypeFilter && !hasVenueTypeFilter) {
+      Fluttertoast.showToast(
+        msg: "Please select at least one filter",
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: AppColors.primaryWhiteColor,
+        textColor: AppColors.appRedColor,
+      );
+      return;
+    }
+
     context.read<CustomerHomeBloc>().add(UpdateFiltersEvent(
       selectedTableTypes: selectedTableTypes,
       selectedVenueTypes: selectedVenueTypes,
@@ -157,10 +175,10 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
 
     final String openTimeString = openTime == const TimeOfDay(hour: 00, minute: 0)
         ? ''
-        : '${openTime.hour.toString().padLeft(2, '0')}:${openTime.minute.toString().padLeft(2, '0')}';
+        : '${openTime.hour.toString().padLeft(2, '0')}:${openTime.minute.toString().padLeft(2, '0')}:00';
     final String closeTimeString = closeTime == const TimeOfDay(hour: 00, minute: 0)
         ? ''
-        : '${closeTime.hour.toString().padLeft(2, '0')}:${closeTime.minute.toString().padLeft(2, '0')}';
+        : '${closeTime.hour.toString().padLeft(2, '0')}:${closeTime.minute.toString().padLeft(2, '0')}:00';
 
     final isGuest = ObjectFactory().prefs.isGuestUser() == true;
     final deviceToken = isGuest ? ObjectFactory().prefs.getDeviceID() ?? '' : '';
@@ -179,6 +197,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     context.read<CustomerHomeBloc>().add(SearchCafesEvent(searchRequest));
     context.pop();
   }
+
   Future<void> pickTime(bool isOpen) async {
     final picked = await showTimePicker(
       context: context,
