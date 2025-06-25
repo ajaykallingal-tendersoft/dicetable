@@ -134,6 +134,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
 
     final bloc = context.read<CustomerHomeBloc>();
     bloc.add(const ClearFiltersEvent());
+    context.pop();
   }
 
   void _applyFilters(GetFilterOptionsResponse filterResponse) {
