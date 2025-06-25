@@ -321,6 +321,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                     //   },
                                     // ),
                                     CustomTextField(
+                                      isPhoneNumber: true,
                                       controller: _phoneController,
                                       hintText: 'Phone',
                                       textFieldAnnotationText: 'Phone',

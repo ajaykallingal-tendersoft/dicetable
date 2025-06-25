@@ -1,6 +1,7 @@
 // required_text_field_widget.dart
 import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -16,6 +17,7 @@ class RequiredTextField extends StatefulWidget {
   final String? errorText;
   final String? Function(String?)? validator;
   final FocusNode? focusNode;
+  final bool? isPhoneNumber;
 
   const RequiredTextField({
     super.key,
@@ -30,6 +32,7 @@ class RequiredTextField extends StatefulWidget {
     this.errorText,
     this.validator,
     this.focusNode,
+    this.isPhoneNumber,
   });
 
   @override
@@ -61,19 +64,20 @@ class _RequiredTextFieldState extends State<RequiredTextField> {
         fontWeight: FontWeight.w600,
         fontSize: 14.sp,
       ),
-      children: widget.isRequired
-          ? const [
-        TextSpan(
-          text: ' *',
-          style: TextStyle(color: AppColors.appRedColor),
-        ),
-      ]
-          : const [
-        TextSpan(
-          text: ' (Optional)',
-          style: TextStyle(color: AppColors.textPrimaryGrey),
-        ),
-      ],
+      children:
+          widget.isRequired
+              ? const [
+                TextSpan(
+                  text: ' *',
+                  style: TextStyle(color: AppColors.appRedColor),
+                ),
+              ]
+              : const [
+                TextSpan(
+                  text: ' (Optional)',
+                  style: TextStyle(color: AppColors.textPrimaryGrey),
+                ),
+              ],
     );
 
     return Container(
@@ -90,21 +94,32 @@ class _RequiredTextFieldState extends State<RequiredTextField> {
         controller: widget.controller,
         obscureText: _obscureText,
         keyboardType: widget.keyboardType,
+        inputFormatters: [
+          if (widget.isPhoneNumber == true) ...[
+            LengthLimitingTextInputFormatter(10),
+            FilteringTextInputFormatter.digitsOnly,
+          ],
+        ],
         onChanged: _handleTextChange,
         style: Theme.of(context).textTheme.bodyMedium!.copyWith(
           color: AppColors.textPrimaryGrey,
           fontWeight: FontWeight.w600,
           fontSize: 14.sp,
         ),
-        validator: widget.validator ??
-                (value) {
-              if (widget.isRequired && (value == null || value.trim().isEmpty)) {
+        validator:
+            widget.validator ??
+            (value) {
+              if (widget.isRequired &&
+                  (value == null || value.trim().isEmpty)) {
                 return '${widget.hint} is required';
               }
               return null;
             },
         decoration: InputDecoration(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 20,
+          ),
           isDense: true,
           filled: true,
           fillColor: AppColors.primaryWhiteColor,
@@ -116,33 +131,35 @@ class _RequiredTextFieldState extends State<RequiredTextField> {
           floatingLabelBehavior: FloatingLabelBehavior.never,
           label: RichText(text: labelText),
           errorText: widget.errorText,
-          errorStyle: TextStyle(
-            color: AppColors.appRedColor,
-            fontSize: 12.sp,
+          errorStyle: TextStyle(color: AppColors.appRedColor, fontSize: 12.sp),
+          suffixIcon:
+              widget.obscureText
+                  ? InkWell(
+                    onTap: () {
+                      setState(() {
+                        _obscureText = !_obscureText;
+                      });
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 12.0),
+                      child:
+                          _obscureText
+                              ? Icon(
+                                Icons.visibility_off,
+                                color: AppColors.primary,
+                              )
+                              : SvgPicture.asset(
+                                'assets/svg/pw-view.svg',
+                                fit: BoxFit.scaleDown,
+                                color: AppColors.primary,
+                              ),
+                    ),
+                  )
+                  : null,
+          suffixIconConstraints: const BoxConstraints(
+            minWidth: 0,
+            minHeight: 0,
           ),
-          suffixIcon: widget.obscureText
-              ? InkWell(
-            onTap: () {
-              setState(() {
-                _obscureText = !_obscureText;
-              });
-            },
-            child: Padding(
-              padding: const EdgeInsets.only(right: 12.0),
-              child: _obscureText
-                  ? Icon(
-                Icons.visibility_off,
-                color: AppColors.primary,
-              )
-                  : SvgPicture.asset(
-                'assets/svg/pw-view.svg',
-                fit: BoxFit.scaleDown,
-                color: AppColors.primary,
-              ),
-            ),
-          )
-              : null,
-          suffixIconConstraints: const BoxConstraints(minWidth: 0, minHeight: 0),
         ),
       ),
     );

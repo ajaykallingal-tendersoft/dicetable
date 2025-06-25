@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 
 import '../customer/home/bloc/customer_home_bloc.dart';
 
-
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
 
@@ -22,11 +21,9 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     _navigateAfterDelay();
     ObjectFactory().prefs.setIsGuestUser(false);
-
   }
 
   Future<void> _navigateAfterDelay() async {
-
     await Future.delayed(const Duration(seconds: splashDelay));
     _navigateToNextScreen();
   }
@@ -34,8 +31,10 @@ class _SplashScreenState extends State<SplashScreen> {
   void _navigateToNextScreen() {
     if (!mounted) return;
     final isLoggedIn = ObjectFactory().prefs.isLoggedIn() == true;
-    final isCustomerLoggedIn = ObjectFactory().prefs.isCustomerLoggedIn() == true;
-    final rememberDecision = ObjectFactory().prefs.getRememberDecision() ?? false;
+    final isCustomerLoggedIn =
+        ObjectFactory().prefs.isCustomerLoggedIn() == true;
+    final rememberDecision =
+        ObjectFactory().prefs.getRememberDecision() ?? false;
     final userCategory = ObjectFactory().prefs.getUserDecisionName();
 
     ObjectFactory().prefs.setNavigationSource('splash_screen');
@@ -68,7 +67,7 @@ class _SplashScreenState extends State<SplashScreen> {
         decoration: const BoxDecoration(
           image: DecorationImage(
             image: AssetImage('assets/png/splash-screen.png'),
-            fit: BoxFit.cover,
+            fit: BoxFit.contain,
           ),
         ),
         child: const SizedBox.shrink(),

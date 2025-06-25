@@ -385,6 +385,7 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                           },
                         ),
                         RequiredTextField(
+                          isPhoneNumber: true,
                           hint: 'Phone number',
                           isRequired: false,
                           controller: _phoneController,
