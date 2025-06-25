@@ -25,7 +25,6 @@ class VenueTypeCheckboxes extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<SignUpBloc, SignUpState>(
       builder: (context, state) {
-        // Show loading indicator if not in form state
         if (state is! SignUpFormState) {
           return const _LoadingIndicator();
         }
@@ -34,7 +33,7 @@ class VenueTypeCheckboxes extends StatelessWidget {
           return const _LoadingIndicator();
         }
 
-        if (state.error != null && state.error!.isNotEmpty) {
+        if (state.error != null && state.error != null) {
           return Center(
             child: Text(
               state.error!,
@@ -47,56 +46,60 @@ class VenueTypeCheckboxes extends StatelessWidget {
         //   return const Center(child: Text('No venue types available'));
         // }
 
-        return Container(
-          width: double.infinity,
-          padding: EdgeInsets.only(top: 16, left: 16, right: 8, bottom: 16),
-          decoration: BoxDecoration(
-            color: AppColors.signUpContainerColor,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Venue Type',
-                style: Theme.of(context).textTheme.labelMedium!.copyWith(
-                  fontSize: 14,
-                  color: AppColors.primary,
-                ),
-              ),
-              const SizedBox(height: 16),
-              GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 3.5,
-                  mainAxisSpacing: 8,
-                  crossAxisSpacing: 8,
-                ),
-                itemCount: state.venueTypes.length,
-                itemBuilder: (context, index) {
-                  final model = state.venueTypes[index];
-                  return _VenueTypeCheckbox(model: model);
-                },
-              ),
-              const SizedBox(height: 16),
-              if (showValidationErrors! &&
-                  hasSelectedVenue! &&
-                  state is SignUpFormState)
-                Padding(
-                  padding: const EdgeInsets.only(left: 16.0, top: 4.0),
-                  child: Text(
-                    'Please select at least one venue type',
-                    style: TextStyle(
-                      color: AppColors.appRedColor,
-                      fontSize: 12.sp,
-                    ),
+        if (state.venueTypes.isNotEmpty) {
+          return Container(
+            width: double.infinity,
+            padding: EdgeInsets.only(top: 16, left: 16, right: 8, bottom: 16),
+            decoration: BoxDecoration(
+              color: AppColors.signUpContainerColor,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Venue Type',
+                  style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                    fontSize: 14,
+                    color: AppColors.primary,
                   ),
                 ),
-            ],
-          ),
-        );
+                const SizedBox(height: 16),
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    childAspectRatio: 3.5,
+                    mainAxisSpacing: 8,
+                    crossAxisSpacing: 8,
+                  ),
+                  itemCount: state.venueTypes.length,
+                  itemBuilder: (context, index) {
+                    final model = state.venueTypes[index];
+                    return _VenueTypeCheckbox(model: model);
+                  },
+                ),
+                const SizedBox(height: 16),
+                if (showValidationErrors! &&
+                    hasSelectedVenue! &&
+                    state is SignUpFormState)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 16.0, top: 4.0),
+                    child: Text(
+                      'Please select at least one venue type',
+                      style: TextStyle(
+                        color: AppColors.appRedColor,
+                        fontSize: 12.sp,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        } else {
+          return const _LoadingIndicator();
+        }
       },
     );
   }

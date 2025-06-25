@@ -15,7 +15,6 @@ import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
-
 class CafeListFilter extends StatefulWidget {
   const CafeListFilter({super.key});
 
@@ -65,10 +64,7 @@ class _CafeListFilterState extends State<CafeListFilter> {
             child: Center(
               child: Text(
                 'Clear All Filters',
-                style: TextTheme
-                    .of(context)
-                    .labelMedium!
-                    .copyWith(
+                style: TextTheme.of(context).labelMedium!.copyWith(
                   color: AppColors.primary,
                   fontWeight: FontWeight.w500,
                   fontSize: 14.sp,
@@ -95,10 +91,7 @@ class _CafeListFilterState extends State<CafeListFilter> {
                   child: Center(
                     child: Text(
                       'Cancel',
-                      style: TextTheme
-                          .of(context)
-                          .labelMedium!
-                          .copyWith(
+                      style: TextTheme.of(context).labelMedium!.copyWith(
                         color: AppColors.primary,
                         fontWeight: FontWeight.w600,
                         fontSize: 16.sp,
@@ -122,10 +115,7 @@ class _CafeListFilterState extends State<CafeListFilter> {
                   child: Center(
                     child: Text(
                       'Apply',
-                      style: TextTheme
-                          .of(context)
-                          .labelMedium!
-                          .copyWith(
+                      style: TextTheme.of(context).labelMedium!.copyWith(
                         color: AppColors.primaryWhiteColor,
                         fontWeight: FontWeight.w600,
                         fontSize: 16.sp,
@@ -143,8 +133,8 @@ class _CafeListFilterState extends State<CafeListFilter> {
 
   void _clearAllFilters() {
     setState(() {
-      openTime = const TimeOfDay(hour: 10, minute: 0);
-      closeTime = const TimeOfDay(hour: 14, minute: 0);
+      openTime = const TimeOfDay(hour: 00, minute: 0);
+      closeTime = const TimeOfDay(hour: 00, minute: 0);
       selectedTableTypes.clear();
       selectedVenueTypes.clear();
     });
@@ -158,7 +148,8 @@ class _CafeListFilterState extends State<CafeListFilter> {
     final double? lat = latitude != null ? double.tryParse(latitude) : 0.0;
     final double? lon = longitude != null ? double.tryParse(longitude) : 0.0;
     final isGuest = ObjectFactory().prefs.isGuestUser() == true;
-    final deviceToken = isGuest ? ObjectFactory().prefs.getDeviceID() ?? '' : '';
+    final deviceToken =
+        isGuest ? ObjectFactory().prefs.getDeviceID() ?? '' : '';
 
     final cafeListRequest = CafeListRequest(
       latitude: lat!,
@@ -176,8 +167,8 @@ class _CafeListFilterState extends State<CafeListFilter> {
   }
 
   void _applyFilters(GetFilterOptionsResponse filterResponse) {
-
-    final bool hasTimeFilter = openTime != const TimeOfDay(hour: 00, minute: 0) ||
+    final bool hasTimeFilter =
+        openTime != const TimeOfDay(hour: 00, minute: 0) ||
         closeTime != const TimeOfDay(hour: 00, minute: 0);
     final bool hasTableTypeFilter = selectedTableTypes.isNotEmpty;
     final bool hasVenueTypeFilter = selectedVenueTypes.isNotEmpty;
@@ -193,12 +184,14 @@ class _CafeListFilterState extends State<CafeListFilter> {
       return;
     }
 
-    context.read<CafeListBloc>().add(FiltersUpdateEvent(
-      selectedTableTypes: selectedTableTypes,
-      selectedVenueTypes: selectedVenueTypes,
-      openTime: openTime,
-      closeTime: closeTime,
-    ));
+    context.read<CafeListBloc>().add(
+      FiltersUpdateEvent(
+        selectedTableTypes: selectedTableTypes,
+        selectedVenueTypes: selectedVenueTypes,
+        openTime: openTime,
+        closeTime: closeTime,
+      ),
+    );
 
     // Prepare the filter parameters
     final List<String> diceTableTitles = selectedTableTypes.toList();
@@ -214,7 +207,8 @@ class _CafeListFilterState extends State<CafeListFilter> {
     final double? lat = latitude != null ? double.tryParse(latitude) : 0.0;
     final double? lon = longitude != null ? double.tryParse(longitude) : 0.0;
     final isGuest = ObjectFactory().prefs.isGuestUser() == true;
-    final deviceToken = isGuest ? ObjectFactory().prefs.getDeviceID() ?? '' : '';
+    final deviceToken =
+        isGuest ? ObjectFactory().prefs.getDeviceID() ?? '' : '';
 
     final cafeListRequest = CafeListRequest(
       latitude: lat!,
@@ -227,19 +221,23 @@ class _CafeListFilterState extends State<CafeListFilter> {
       deviceToken: deviceToken,
     );
 
-    context.read<CafeListBloc>().add(GetCafeListEvent(cafeListRequest: cafeListRequest));
+    context.read<CafeListBloc>().add(
+      GetCafeListEvent(cafeListRequest: cafeListRequest),
+    );
     context.pop();
   }
 
   void _reApplyPreviousFilters() {
     final bloc = context.read<CafeListBloc>();
 
-    bloc.add(FiltersUpdateEvent(
-      selectedTableTypes: originalTableTypes,
-      selectedVenueTypes: originalVenueTypes,
-      openTime: originalOpenTime,
-      closeTime: originalCloseTime,
-    ));
+    bloc.add(
+      FiltersUpdateEvent(
+        selectedTableTypes: originalTableTypes,
+        selectedVenueTypes: originalVenueTypes,
+        openTime: originalOpenTime,
+        closeTime: originalCloseTime,
+      ),
+    );
 
     final List<String> diceTableTitles = originalTableTypes.toList();
     final List<String> venueTypeTitles = originalVenueTypes.toList();
@@ -254,14 +252,17 @@ class _CafeListFilterState extends State<CafeListFilter> {
     final double? lat = double.tryParse(latitude);
     final double? lon = double.tryParse(longitude);
     final isGuest = ObjectFactory().prefs.isGuestUser() == true;
-    final deviceToken = isGuest ? ObjectFactory().prefs.getDeviceID() ?? '' : '';
+    final deviceToken =
+        isGuest ? ObjectFactory().prefs.getDeviceID() ?? '' : '';
 
     final cafeListRequest = CafeListRequest(
       latitude: lat!,
       longitude: lon!,
       search: "",
-      openTime: openTimeString,
-      closeTime: closeTimeString,
+      openTime: "",
+      // openTimeString,
+      closeTime: "",
+      // closeTimeString,
       diceTableFilter: diceTableTitles,
       accommodationsFilter: venueTypeTitles,
       deviceToken: deviceToken,
@@ -333,8 +334,7 @@ class _CafeListFilterState extends State<CafeListFilter> {
               listener: (context, state) {
                 if (state is FilterLoading) {
                   EasyLoading.show();
-                } else if (state is FilterLoaded ||
-                    state is FilterError) {
+                } else if (state is FilterLoaded || state is FilterError) {
                   EasyLoading.dismiss();
                 }
                 if (state is UpdateFilter) {
@@ -348,8 +348,8 @@ class _CafeListFilterState extends State<CafeListFilter> {
                   setState(() {
                     selectedTableTypes.clear();
                     selectedVenueTypes.clear();
-                    openTime = const TimeOfDay(hour: 10, minute: 0);
-                    closeTime = const TimeOfDay(hour: 14, minute: 0);
+                    openTime = const TimeOfDay(hour: 00, minute: 0);
+                    closeTime = const TimeOfDay(hour: 00, minute: 0);
                   });
                 }
               },
@@ -357,17 +357,17 @@ class _CafeListFilterState extends State<CafeListFilter> {
                 if (state is FilterLoaded &&
                     state.getFilterOptionsResponse.diceTables!.isNotEmpty &&
                     state.getFilterOptionsResponse.venueTypes!.isNotEmpty) {
-                  final List<String> tableTypes = state.getFilterOptionsResponse
-                      .diceTables!
-                      .map((diceTable) => diceTable.title ?? '')
-                      .where((title) => title.isNotEmpty)
-                      .toList();
+                  final List<String> tableTypes =
+                      state.getFilterOptionsResponse.diceTables!
+                          .map((diceTable) => diceTable.title ?? '')
+                          .where((title) => title.isNotEmpty)
+                          .toList();
 
-                  final List<String> venueTypes = state.getFilterOptionsResponse
-                      .venueTypes!
-                      .map((venueType) => venueType.title ?? '')
-                      .where((title) => title.isNotEmpty)
-                      .toList();
+                  final List<String> venueTypes =
+                      state.getFilterOptionsResponse.venueTypes!
+                          .map((venueType) => venueType.title ?? '')
+                          .where((title) => title.isNotEmpty)
+                          .toList();
 
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -377,10 +377,7 @@ class _CafeListFilterState extends State<CafeListFilter> {
                         children: [
                           Text(
                             "FILTERS",
-                            style: TextTheme
-                                .of(context)
-                                .bodyMedium!
-                                .copyWith(
+                            style: TextTheme.of(context).bodyMedium!.copyWith(
                               color: AppColors.textPrimaryGrey,
                               fontWeight: FontWeight.w600,
                               fontSize: 14.sp,
@@ -388,7 +385,8 @@ class _CafeListFilterState extends State<CafeListFilter> {
                           ),
                           IconButton(
                             icon: SvgPicture.asset(
-                                'assets/svg/filter-close.svg'),
+                              'assets/svg/filter-close.svg',
+                            ),
                             onPressed: () => _reApplyPreviousFilters(),
                           ),
                         ],
@@ -398,12 +396,18 @@ class _CafeListFilterState extends State<CafeListFilter> {
                       _buildHoursPicker(),
                       Gap(20.h),
                       _buildSectionTitle("TYPE OF TABLE"),
-                      _buildCustomCheckboxList(tableTypes, selectedTableTypes,
-                          _updateSelectedTableType),
+                      _buildCustomCheckboxList(
+                        tableTypes,
+                        selectedTableTypes,
+                        _updateSelectedTableType,
+                      ),
                       Gap(20.h),
                       _buildSectionTitle("VENUE TYPE"),
-                      _buildCustomCheckboxGrid(venueTypes, selectedVenueTypes,
-                          _updateSelectedVenueType),
+                      _buildCustomCheckboxGrid(
+                        venueTypes,
+                        selectedVenueTypes,
+                        _updateSelectedVenueType,
+                      ),
                       Gap(30.h),
                       _buildActionButtons(state.getFilterOptionsResponse),
                     ],
@@ -415,10 +419,7 @@ class _CafeListFilterState extends State<CafeListFilter> {
                       children: [
                         Text(
                           'Error loading filters: ${state.message}',
-                          style: TextTheme
-                              .of(context)
-                              .bodyMedium!
-                              .copyWith(
+                          style: TextTheme.of(context).bodyMedium!.copyWith(
                             color: AppColors.primary,
                             fontSize: 14.sp,
                           ),
@@ -426,23 +427,23 @@ class _CafeListFilterState extends State<CafeListFilter> {
                         ),
                         SizedBox(height: 16.h),
                         ElevatedButton(
-                          onPressed: () =>
-                              context.read<CafeListBloc>().add(
-                                  FilterOptionsEvent()),
+                          onPressed:
+                              () => context.read<CafeListBloc>().add(
+                                FilterOptionsEvent(),
+                              ),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AppColors.primary,
                             padding: EdgeInsets.symmetric(
-                                horizontal: 20.w, vertical: 10.h),
+                              horizontal: 20.w,
+                              vertical: 10.h,
+                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12.r),
                             ),
                           ),
                           child: Text(
                             'Retry',
-                            style: TextTheme
-                                .of(context)
-                                .labelMedium!
-                                .copyWith(
+                            style: TextTheme.of(context).labelMedium!.copyWith(
                               color: AppColors.primaryWhiteColor,
                               fontWeight: FontWeight.w600,
                               fontSize: 16.sp,
@@ -453,8 +454,13 @@ class _CafeListFilterState extends State<CafeListFilter> {
                     ),
                   );
                 }
-                return  Center(child: Lottie.asset(
-                    Assets.JUMBING_DOT, width: 40, height: 40));
+                return Center(
+                  child: Lottie.asset(
+                    Assets.JUMBING_DOT,
+                    width: 40,
+                    height: 40,
+                  ),
+                );
               },
             ),
           ),
@@ -468,10 +474,7 @@ class _CafeListFilterState extends State<CafeListFilter> {
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Text(
         title,
-        style: TextTheme
-            .of(context)
-            .labelMedium!
-            .copyWith(
+        style: TextTheme.of(context).labelMedium!.copyWith(
           color: AppColors.primary,
           fontWeight: FontWeight.bold,
           fontSize: 16.sp,
@@ -500,10 +503,7 @@ class _CafeListFilterState extends State<CafeListFilter> {
               padding: const EdgeInsets.only(left: 10, top: 10, right: 28),
               child: Text(
                 "To",
-                style: TextTheme
-                    .of(context)
-                    .bodySmall!
-                    .copyWith(
+                style: TextTheme.of(context).bodySmall!.copyWith(
                   color: AppColors.timeTextColor,
                   fontWeight: FontWeight.w600,
                   fontSize: 12.sp,
@@ -525,10 +525,7 @@ class _CafeListFilterState extends State<CafeListFilter> {
       children: [
         Text(
           label,
-          style: TextTheme
-              .of(context)
-              .bodySmall!
-              .copyWith(
+          style: TextTheme.of(context).bodySmall!.copyWith(
             color: AppColors.shadowColor,
             fontWeight: FontWeight.w600,
             fontSize: 14.sp,
@@ -559,10 +556,7 @@ class _CafeListFilterState extends State<CafeListFilter> {
                 ),
                 Text(
                   time.format(context),
-                  style: TextTheme
-                      .of(context)
-                      .bodySmall!
-                      .copyWith(
+                  style: TextTheme.of(context).bodySmall!.copyWith(
                     color: AppColors.timeTextColor,
                     fontWeight: FontWeight.w600,
                     fontSize: 12.sp,
@@ -581,8 +575,11 @@ class _CafeListFilterState extends State<CafeListFilter> {
     );
   }
 
-  Widget _buildCustomCheckboxList(List<String> items, Set<String> selectedSet,
-      Function(String, bool) onChanged) {
+  Widget _buildCustomCheckboxList(
+    List<String> items,
+    Set<String> selectedSet,
+    Function(String, bool) onChanged,
+  ) {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
@@ -591,43 +588,43 @@ class _CafeListFilterState extends State<CafeListFilter> {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
-        children: items.map((item) {
-          final isSelected = selectedSet.contains(item);
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8.0),
-            child: Row(
-              children: [
-                StyledCheckbox(
-                  value: isSelected,
-                  onChanged: (newValue) {
-                    onChanged(item, newValue!);
-                  },
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    item,
-                    style: TextTheme
-                        .of(context)
-                        .labelMedium!
-                        .copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 14.sp,
+        children:
+            items.map((item) {
+              final isSelected = selectedSet.contains(item);
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Row(
+                  children: [
+                    StyledCheckbox(
+                      value: isSelected,
+                      onChanged: (newValue) {
+                        onChanged(item, newValue!);
+                      },
                     ),
-                  ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        item,
+                        style: TextTheme.of(context).labelMedium!.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14.sp,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-          );
-        }).toList(),
+              );
+            }).toList(),
       ),
     );
   }
 
-  Widget _buildCustomCheckboxGrid(List<String> items, Set<String> selectedSet,
-      Function(String, bool) onChanged) {
-
+  Widget _buildCustomCheckboxGrid(
+    List<String> items,
+    Set<String> selectedSet,
+    Function(String, bool) onChanged,
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: AppColors.primaryWhiteColor,
@@ -663,10 +660,7 @@ class _CafeListFilterState extends State<CafeListFilter> {
                 child: Text(
                   item,
                   textAlign: TextAlign.left,
-                  style: TextTheme
-                      .of(context)
-                      .labelMedium!
-                      .copyWith(
+                  style: TextTheme.of(context).labelMedium!.copyWith(
                     color: AppColors.primary,
                     fontWeight: FontWeight.w600,
                     fontSize: 14.sp,

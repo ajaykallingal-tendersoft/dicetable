@@ -1,5 +1,6 @@
 import 'package:dicetable/src/common/modal_barrier_with_progress_indicator_widget.dart';
 import 'package:dicetable/src/constants/assets.dart';
+import 'package:dicetable/src/ui/cafe_owner/authentication/sign_up/bloc/sign_up/sign_up_bloc.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/sign_up/sign_up_screen_argument.dart';
 import 'package:dicetable/src/ui/verification/verify_screen_argument.dart';
 import 'package:dicetable/src/utils/network_connectivity/network_connectivity_bloc.dart';
@@ -139,7 +140,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     }
                     context.go('/home');
                   }
-                  if(state.loginRequestResponse.subscriptionStatus == false) {
+                  if (state.loginRequestResponse.subscriptionStatus == false) {
                     context.go('/login');
                   }
                 } else if (state.loginRequestResponse.status == false) {
@@ -180,11 +181,11 @@ class _LoginScreenState extends State<LoginScreen> {
               if (state is GoogleLoginLoaded) {
                 EasyLoading.dismiss();
                 final response = state.googleLoginResponse;
-               if(response.status == true) {
-                 if(response.subscriptionStatus == false) {
-                   context.go('/login');
-                 }
-               }
+                if (response.status == true) {
+                  if (response.subscriptionStatus == false) {
+                    context.go('/login');
+                  }
+                }
                 if (response.status == true && response.token != null) {
                   ObjectFactory().prefs.setIsLoggedIn(true);
                   ObjectFactory().prefs.setIsGoogle(true);
@@ -248,8 +249,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 EasyLoading.dismiss();
 
                 final response = state.appleLoginRequestResponse;
-                if(response.status == true) {
-                  if(response.subscriptionStatus == false) {
+                if (response.status == true) {
+                  if (response.subscriptionStatus == false) {
                     context.go('/login');
                   }
                 }

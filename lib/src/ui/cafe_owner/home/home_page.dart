@@ -225,7 +225,9 @@ class _HomePageState extends State<HomePage> {
                             const Gap(16),
                             ElevatedButton(
                               onPressed: () {
-                                // context.read<HomeBloc>().add(GetHomeDataEvent());
+                                context.read<HomeBloc>().add(
+                                  GetHomeDataEvent(),
+                                );
                               },
                               child: const Text('Retry'),
                             ),

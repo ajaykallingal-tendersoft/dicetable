@@ -40,7 +40,6 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
   final _formKey = GlobalKey<FormState>();
   AutovalidateMode autovalidateMode = AutovalidateMode.disabled;
 
-
   @override
   void initState() {
     super.initState();
@@ -349,10 +348,7 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                         ),
                         RequiredTextField(
                           readOnly: isGoogleSignUp,
-                          hint:
-                              isAppleSignUp
-                                  ? 'Personal email is required for contact'
-                                  : 'Email',
+                          hint: isAppleSignUp ? 'Email is Required' : 'Email',
                           isRequired: true,
                           isEmail: true,
                           controller: _emailController,
@@ -438,7 +434,8 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                               onTap: () {
                                 final name = _nameController.text.trim();
                                 final email = _emailController.text.trim();
-                                final password = _passwordController.text.trim();
+                                final password =
+                                    _passwordController.text.trim();
                                 final confirmPassword =
                                     _confirmPasswordController.text.trim();
                                 final phone = _phoneController.text.trim();
@@ -460,97 +457,107 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                                   ),
                                 );
 
-                                autovalidateMode = AutovalidateMode.onUserInteraction;
+                                autovalidateMode =
+                                    AutovalidateMode.onUserInteraction;
 
                                 /*context.read<CustomerSignUpBloc>().add(
                                   ValidateForm(),
                                 );*/
 
-                                Future.delayed(const Duration(milliseconds: 100), () {
-                                  final currentState =
-                                      context.read<CustomerSignUpBloc>().state;
+                                Future.delayed(
+                                  const Duration(milliseconds: 100),
+                                  () {
+                                    final currentState =
+                                        context
+                                            .read<CustomerSignUpBloc>()
+                                            .state;
 
-                                  // Check if current state is valid before submitting
-                                  if (currentState is SignUpFormState &&
-                                      _formKey.currentState!.validate()) {
-                                    if (isGoogleSignUp) {
-                                      final googleSignUpRequest =
-                                          GoogleSignUpRequest(
-                                            name: name,
-                                            email: email,
-                                            password: password,
-                                            passwordConfirmation: confirmPassword,
-                                            country: country,
-                                            loginType: 5,
-                                            phone: phone,
-                                            region: region,
-                                            fcmToken:
-                                                ObjectFactory().prefs
-                                                    .getFcmToken()
-                                                    .toString(),
-                                          );
-                                      context.read<CustomerSignUpBloc>().add(
-                                        SubmitGoogleSignUp(
-                                          signupRequest: googleSignUpRequest,
+                                    // Check if current state is valid before submitting
+                                    if (currentState is SignUpFormState &&
+                                        _formKey.currentState!.validate()) {
+                                      if (isGoogleSignUp) {
+                                        final googleSignUpRequest =
+                                            GoogleSignUpRequest(
+                                              name: name,
+                                              email: email,
+                                              password: password,
+                                              passwordConfirmation:
+                                                  confirmPassword,
+                                              country: country,
+                                              loginType: 5,
+                                              phone: phone,
+                                              region: region,
+                                              fcmToken:
+                                                  ObjectFactory().prefs
+                                                      .getFcmToken()
+                                                      .toString(),
+                                            );
+                                        context.read<CustomerSignUpBloc>().add(
+                                          SubmitGoogleSignUp(
+                                            signupRequest: googleSignUpRequest,
+                                          ),
+                                        );
+                                      } else if (isAppleSignUp) {
+                                        final appleSignUpRequest =
+                                            AppleSignUpRequest(
+                                              name: name,
+                                              email: email,
+                                              password: password,
+                                              passwordConfirmation:
+                                                  confirmPassword,
+                                              country: country,
+                                              loginType: 5,
+                                              phone: phone,
+                                              region: region,
+                                              fcmToken:
+                                                  ObjectFactory().prefs
+                                                      .getFcmToken()
+                                                      .toString(),
+                                            );
+                                        context.read<CustomerSignUpBloc>().add(
+                                          SubmitCustomerAppleSignUp(
+                                            appleSignUpRequest:
+                                                appleSignUpRequest,
+                                          ),
+                                        );
+                                      } else if (!isAppleSignUp &&
+                                          !isGoogleSignUp) {
+                                        final signUpRequest = SignUpRequest(
+                                          name: name,
+                                          email: email,
+                                          password: password,
+                                          passwordConfirmation: confirmPassword,
+                                          country: country,
+                                          loginType: 5,
+                                          phone: phone,
+                                          region: region,
+                                          fcmToken:
+                                              ObjectFactory().prefs
+                                                  .getFcmToken()
+                                                  .toString(),
+                                        );
+                                        context.read<CustomerSignUpBloc>().add(
+                                          SubmitSignUp(
+                                            signupRequest: signUpRequest,
+                                          ),
+                                        );
+                                      }
+                                    } else {
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Please fill all required fields before submitting.',
+                                          ),
+                                          backgroundColor:
+                                              AppColors.appRedColor,
+                                          duration: Duration(seconds: 2),
                                         ),
                                       );
                                     }
-                                    else if (isAppleSignUp) {
-                                      final appleSignUpRequest =
-                                          AppleSignUpRequest(
-                                            name: name,
-                                            email: email,
-                                            password: password,
-                                            passwordConfirmation: confirmPassword,
-                                            country: country,
-                                            loginType: 5,
-                                            phone: phone,
-                                            region: region,
-                                            fcmToken:
-                                                ObjectFactory().prefs
-                                                    .getFcmToken()
-                                                    .toString(),
-                                          );
-                                          context.read<CustomerSignUpBloc>().add(
-                                        SubmitCustomerAppleSignUp(
-                                          appleSignUpRequest: appleSignUpRequest,
-                                        ),
-                                      );
-                                    }
-                                    else if(!isAppleSignUp && !isGoogleSignUp){
-                                      final signUpRequest = SignUpRequest(
-                                        name: name,
-                                        email: email,
-                                        password: password,
-                                        passwordConfirmation: confirmPassword,
-                                        country: country,
-                                        loginType: 5,
-                                        phone: phone,
-                                        region: region,
-                                        fcmToken:
-                                            ObjectFactory().prefs
-                                                .getFcmToken()
-                                                .toString(),
-                                      );
-                                      context.read<CustomerSignUpBloc>().add(
-                                        SubmitSignUp(
-                                          signupRequest: signUpRequest,
-                                        ),
-                                      );
-                                    }
-
-                                  } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                          'Please fill all required fields before submitting.',
-                                        ),
-                                        backgroundColor: AppColors.appRedColor,
-                                        duration: Duration(seconds: 2),
-                                      ),
-                                    );
-                                  }
-                                });
+                                  },
+                                );
                               },
                               child: ElevatedButtonWidget(
                                 height: 70.h,

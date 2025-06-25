@@ -182,8 +182,8 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
   ) {
     _selectedTableTypes.clear();
     _selectedVenueTypes.clear();
-    _openTime = const TimeOfDay(hour: 10, minute: 0);
-    _closeTime = const TimeOfDay(hour: 14, minute: 0);
+    _openTime = const TimeOfDay(hour: 00, minute: 0);
+    _closeTime = const TimeOfDay(hour: 00, minute: 0);
 
     emit(FiltersCleared());
     // Re-emit cached filter options if available
