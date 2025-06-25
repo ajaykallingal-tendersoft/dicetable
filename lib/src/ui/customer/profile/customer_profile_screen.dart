@@ -242,6 +242,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
 
                             ),
                             CustomTextField(
+                              // isPhoneNumber: true,
                               textFieldAnnotationText: 'Phone',
                               controller: phoneController,
                               readOnly: !state.isEditMode,
