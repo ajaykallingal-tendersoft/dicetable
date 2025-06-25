@@ -421,6 +421,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
               errorMessage: response.message ?? 'Failed to update profile',
             ),
           );
+          add(GetProfileViewEvent());
         }
       } else if (stateModel is ErrorState) {
         emit(ProfileUpdateError(errorMessage: stateModel.msg));
