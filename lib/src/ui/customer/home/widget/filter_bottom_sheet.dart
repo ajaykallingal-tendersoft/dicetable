@@ -135,14 +135,15 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
 
   void _clearAllFilters() {
     setState(() {
-      openTime = const TimeOfDay(hour: 10, minute: 0);
-      closeTime = const TimeOfDay(hour: 14, minute: 0);
+      openTime = const TimeOfDay(hour: 00, minute: 0);
+      closeTime = const TimeOfDay(hour: 00, minute: 0);
       selectedTableTypes.clear();
       selectedVenueTypes.clear();
     });
 
     final bloc = context.read<CustomerHomeBloc>();
     bloc.add(const ClearFiltersEvent());
+    context.pop();
   }
 
   void _applyFilters(GetFilterOptionsResponse filterResponse) {

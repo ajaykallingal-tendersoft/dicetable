@@ -24,8 +24,8 @@ class CafeListBloc extends Bloc<CafeListEvent, CafeListState> {
   CafeDataProvider cafeDataProvider;
   late Set<String> _selectedTableTypes = {};
   late Set<String> _selectedVenueTypes = {};
-  late TimeOfDay _openTime = const TimeOfDay(hour: 10, minute: 0);
-  late TimeOfDay _closeTime = const TimeOfDay(hour: 14, minute: 0);
+  late TimeOfDay _openTime = const TimeOfDay(hour: 00, minute: 0);
+  late TimeOfDay _closeTime = const TimeOfDay(hour: 00, minute: 0);
   GetFilterOptionsResponse? _cachedFilterOptions; // Cache for filter options
 
   Set<String> get selectedTableTypes => Set.from(_selectedTableTypes);
@@ -323,8 +323,8 @@ class CafeListBloc extends Bloc<CafeListEvent, CafeListState> {
       Emitter<CafeListState> emit,) {
     _selectedTableTypes.clear();
     _selectedVenueTypes.clear();
-    _openTime = const TimeOfDay(hour: 10, minute: 0);
-    _closeTime = const TimeOfDay(hour: 14, minute: 0);
+    _openTime = const TimeOfDay(hour: 00, minute: 0);
+    _closeTime = const TimeOfDay(hour: 00, minute: 0);
 
     emit(FilterClear());
 

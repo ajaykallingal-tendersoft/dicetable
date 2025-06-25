@@ -143,8 +143,8 @@ class _CafeListFilterState extends State<CafeListFilter> {
 
   void _clearAllFilters() {
     setState(() {
-      openTime = const TimeOfDay(hour: 10, minute: 0);
-      closeTime = const TimeOfDay(hour: 14, minute: 0);
+      openTime = const TimeOfDay(hour: 00, minute: 0);
+      closeTime = const TimeOfDay(hour: 00, minute: 0);
       selectedTableTypes.clear();
       selectedVenueTypes.clear();
     });
@@ -348,8 +348,8 @@ class _CafeListFilterState extends State<CafeListFilter> {
                   setState(() {
                     selectedTableTypes.clear();
                     selectedVenueTypes.clear();
-                    openTime = const TimeOfDay(hour: 10, minute: 0);
-                    closeTime = const TimeOfDay(hour: 14, minute: 0);
+                    openTime = const TimeOfDay(hour: 00, minute: 0);
+                    closeTime = const TimeOfDay(hour: 00, minute: 0);
                   });
                 }
               },
