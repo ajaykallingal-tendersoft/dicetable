@@ -18,6 +18,7 @@ class RequiredTextField extends StatefulWidget {
   final String? Function(String?)? validator;
   final FocusNode? focusNode;
   final bool? isPhoneNumber;
+  final String? customRequiredMessage;
 
   const RequiredTextField({
     super.key,
@@ -33,6 +34,7 @@ class RequiredTextField extends StatefulWidget {
     this.validator,
     this.focusNode,
     this.isPhoneNumber,
+      this.customRequiredMessage,
   });
 
   @override
@@ -106,15 +108,18 @@ class _RequiredTextFieldState extends State<RequiredTextField> {
           fontWeight: FontWeight.w600,
           fontSize: 14.sp,
         ),
-        validator:
-            widget.validator ??
-            (value) {
-              if (widget.isRequired &&
-                  (value == null || value.trim().isEmpty)) {
-                return '${widget.hint} is required';
-              }
-              return null;
-            },
+    validator:
+            widget.errorText != null
+                ? null
+                : widget.validator ??
+                    (value) {
+                      if (widget.isRequired &&
+                          (value == null || value.trim().isEmpty)) {
+                        return widget.customRequiredMessage ??
+                            '${widget.hint} is required';
+                      }
+                      return null;
+                    },
         decoration: InputDecoration(
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 20,

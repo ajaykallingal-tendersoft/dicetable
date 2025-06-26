@@ -177,9 +177,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return BlocConsumer<ProfileBloc, ProfileState>(
       listener: (context, state) async {
         if (state is ProfileEditViewLoading) {
-           EasyLoading.show();
+          EasyLoading.show();
         } else if (state is ProfileUpdateLoading) {
-           EasyLoading.show();
+          EasyLoading.show();
         } else {
           if (state is ProfileUpdateSuccess) {
             _venueNameController.text = state.venueName;
@@ -263,6 +263,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                 child: Column(
                                   children: [
                                     CustomTextField(
+                                      isEditMode: true,
                                       controller: _venueNameController,
                                       hintText: 'Venue Name',
                                       textFieldAnnotationText: 'Venue Name',
@@ -277,6 +278,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                       },
                                     ),
                                     CustomTextField(
+                                      isEditMode: true,
                                       height: 112,
                                       hintText: 'Your Venue description here',
                                       maxLines: 5,
@@ -294,6 +296,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                       },
                                     ),
                                     CustomTextField(
+                                      isEditMode: true,
                                       controller: _emailController,
                                       hintText: 'Email',
                                       textFieldAnnotationText: 'Email',
@@ -306,21 +309,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                         );
                                       },
                                     ),
-                                    // CustomTextField(
-                                    //   controller: _passwordController,
-                                    //   hintText: 'Password',
-                                    //   textFieldAnnotationText: 'Password',
-                                    //   isPassword: true,
-                                    //   onChanged: (value) {
-                                    //     context.read<ProfileBloc>().add(
-                                    //       UpdateTextField(
-                                    //             (state) =>
-                                    //             state.copyWith(password: value),
-                                    //       ),
-                                    //     );
-                                    //   },
-                                    // ),
+
                                     CustomTextField(
+                                      isEditMode: true,
                                       isPhoneNumber: true,
                                       controller: _phoneController,
                                       hintText: 'Phone',
@@ -335,6 +326,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                       },
                                     ),
                                     CustomTextField(
+                                      isEditMode: true,
                                       controller: _addressController,
                                       hintText: 'Street Address',
                                       textFieldAnnotationText: 'Street Address',
@@ -347,8 +339,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                         );
                                       },
                                     ),
-
                                     CustomTextField(
+                                      isEditMode: true,
                                       controller: _postalCodeController,
                                       hintText: 'Postal Code',
                                       textFieldAnnotationText: 'Postal Code',
@@ -552,7 +544,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       context,
     ).largerThan(MOBILE);
     final state = context.read<ProfileBloc>().state;
-    final subTitle = state.profileEditViewResponse?.data?.cafeSince?.toString() ?? "";
+    final subTitle =
+        state.profileEditViewResponse?.data?.cafeSince?.toString() ?? "";
     return SliverAppBar(
       expandedHeight: 380.h,
       pinned: true,

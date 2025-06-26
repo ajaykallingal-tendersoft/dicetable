@@ -83,7 +83,8 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         final loginRequest = LoginRequest(
           login: email,
           password: password,
-          fcmToken: ObjectFactory().prefs.getFcmToken().toString(), loginType: 3,
+          fcmToken: ObjectFactory().prefs.getFcmToken().toString(),
+          loginType: 3,
         );
         final stateModel = await authDataProvider.loginUser(loginRequest);
         print("EmailAfter: $email");
@@ -114,6 +115,10 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     GetGoogleLoginEvent event,
     Emitter<LoginState> emit,
   ) async {
+    final formState =
+        state is LoginFormState
+            ? state as LoginFormState
+            : const LoginFormState();
     try {
       emit(GoogleLoginLoading());
       await Future.delayed(Duration(seconds: 1));
@@ -123,11 +128,14 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
       );
       if (response!.data.status == true) {
         emit(GoogleLoginLoaded(googleLoginResponse: response.data));
+        emit(formState);
       } else {
         emit(GoogleLoginErrorState(msg: response.data.message));
+        emit(formState);
       }
     } catch (e) {
       emit(GoogleLoginErrorState(msg: e.toString()));
+      emit(formState);
     }
   }
 
@@ -135,6 +143,10 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     GetAppleLoginEvent event,
     Emitter<LoginState> emit,
   ) async {
+    final formState =
+        state is LoginFormState
+            ? state as LoginFormState
+            : const LoginFormState();
     try {
       emit(LoginWithAppleLoading());
       await Future.delayed(Duration(seconds: 1));
@@ -145,6 +157,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
       if (response!.data.status == true) {
         emit(LoginWithAppleLoaded(appleLoginRequestResponse: response.data));
+        emit(formState);
       } else {
         // Pass appleId from response
         emit(
@@ -154,10 +167,11 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
             response.data.appleId,
           ),
         );
+        emit(formState);
       }
     } catch (e) {
-      // Optional: Pass appleId from event if available
       emit(LoginWithAppleError(e.toString(), null, null));
+      emit(formState);
     }
   }
 }

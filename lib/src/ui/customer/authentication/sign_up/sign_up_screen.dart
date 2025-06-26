@@ -349,6 +349,8 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                         RequiredTextField(
                           readOnly: isGoogleSignUp,
                           hint: isAppleSignUp ? 'Email is Required' : 'Email',
+                          customRequiredMessage:
+                              isAppleSignUp ? 'Email is Required' : null,
                           isRequired: true,
                           isEmail: true,
                           controller: _emailController,

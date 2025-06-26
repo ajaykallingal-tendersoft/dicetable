@@ -316,7 +316,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   }
                 }
               }
-
               if (state is GoogleLoginErrorState) {
                 EasyLoading.dismiss();
                 print('GoogleLoginErrorState reached');

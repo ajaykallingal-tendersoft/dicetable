@@ -17,6 +17,7 @@ class CustomTextField extends StatefulWidget {
   final String? errorText;
   final bool? isPhoneNumber;
   final TextAlign? textAlign;
+   final bool isEditMode;
 
   const CustomTextField({
     super.key,
@@ -33,7 +34,7 @@ class CustomTextField extends StatefulWidget {
     this.errorText,
     this.isPhoneNumber,
     this.textAlign,
-
+    this.isEditMode = false,
   });
 
   @override
@@ -66,14 +67,16 @@ class _CustomTextFieldState extends State<CustomTextField> {
       margin: const EdgeInsets.symmetric(vertical: 8),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        color: widget.isProfile && widget.readOnly
-            ? AppColors.primary
-            : AppColors.primaryWhiteColor,
+        color:
+            widget.isProfile && widget.readOnly
+                ? AppColors.primary
+                : AppColors.primaryWhiteColor,
         borderRadius: BorderRadius.circular(15),
         border: Border.all(
-          color: widget.isProfile
-              ? AppColors.profileTextFiledBorderColor
-              : AppColors.primaryWhiteColor,
+          color:
+              widget.isProfile
+                  ? AppColors.profileTextFiledBorderColor
+                  : AppColors.primaryWhiteColor,
         ),
       ),
       child: Column(
@@ -85,31 +88,28 @@ class _CustomTextFieldState extends State<CustomTextField> {
               child: Text(
                 widget.textFieldAnnotationText!,
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                  color: widget.isProfile && widget.readOnly
-                      ? AppColors.profileTextFiledSubColor
-                      : AppColors.textPrimaryGrey,
+                  color:
+                      widget.isProfile && widget.readOnly
+                          ? AppColors.profileTextFiledSubColor
+                          : AppColors.textPrimaryGrey,
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ),
           Expanded(
             child: Align(
-              alignment: isMultiline
-                  ? Alignment.topLeft
-                  : Alignment.centerLeft,
+              alignment: isMultiline ? Alignment.topLeft : Alignment.centerLeft,
               child: TextFormField(
-                textAlign: widget.readOnly
-                    ? (widget.textAlign ?? TextAlign.start)
-                    : TextAlign.start,
+                textAlign:
+                    widget.readOnly
+                        ? (widget.textAlign ?? TextAlign.start)
+                        : TextAlign.start,
                 inputFormatters: [
                   if (widget.isPhoneNumber == true) ...[
                     LengthLimitingTextInputFormatter(10),
                     FilteringTextInputFormatter.digitsOnly,
                   ],
                 ],
-
-
-
                 readOnly: widget.readOnly,
                 controller: widget.controller,
                 obscureText: widget.isPassword ? _obscureText : false,
@@ -119,18 +119,23 @@ class _CustomTextFieldState extends State<CustomTextField> {
                   }
                 },
                 maxLines: isMultiline ? widget.maxLines : 1,
-                keyboardType: isMultiline
-                    ? TextInputType.multiline
-                    : (widget.isPassword
-                    ? TextInputType.visiblePassword
-                    : TextInputType.text),
-                textAlignVertical: isMultiline
-                    ? TextAlignVertical.top
-                    : TextAlignVertical.center,
+                keyboardType:
+                    isMultiline
+                        ? TextInputType.multiline
+                        : (widget.isPassword
+                            ? TextInputType.visiblePassword
+                            : TextInputType.text),
+                textAlignVertical:
+                    isMultiline
+                        ? TextAlignVertical.top
+                        : TextAlignVertical.center,
                 style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                  color: widget.isProfile && widget.readOnly
-                      ? AppColors.primaryWhiteColor
-                      : AppColors.primary,
+                  color:
+                      widget.isProfile && widget.readOnly
+                          ? AppColors.primaryWhiteColor
+                          : widget.isEditMode 
+                          ? AppColors.primary
+                          : AppColors.textPrimaryGrey,
                   fontWeight: FontWeight.w600,
                   fontSize: 12,
                 ),
@@ -149,31 +154,34 @@ class _CustomTextFieldState extends State<CustomTextField> {
                   contentPadding: EdgeInsets.symmetric(
                     vertical: isMultiline ? 4.0 : 0.0,
                   ),
-                  suffixIcon: widget.isPassword
-                      ? InkWell(
-                    onTap: () {
-                      setState(() {
-                        _obscureText = !_obscureText;
-                      });
-                    },
-                    child: _obscureText
-                        ? Icon(
-                      Icons.visibility_off,
-                      color: widget.isProfile && widget.readOnly
-                          ? AppColors.primaryWhiteColor
-                          : AppColors.primary,
-                    )
-                        : SvgPicture.asset(
-                      'assets/svg/pw-view.svg',
-                      fit: BoxFit.scaleDown,
-                      color: widget.isProfile && widget.readOnly
-                          ? AppColors.primaryWhiteColor
-                          : AppColors.primary,
-                    ),
-                  )
-                      : null,
+                  suffixIcon:
+                      widget.isPassword
+                          ? InkWell(
+                            onTap: () {
+                              setState(() {
+                                _obscureText = !_obscureText;
+                              });
+                            },
+                            child:
+                                _obscureText
+                                    ? Icon(
+                                      Icons.visibility_off,
+                                      color:
+                                          widget.isProfile && widget.readOnly
+                                              ? AppColors.primaryWhiteColor
+                                              : AppColors.primary,
+                                    )
+                                    : SvgPicture.asset(
+                                      'assets/svg/pw-view.svg',
+                                      fit: BoxFit.scaleDown,
+                                      color:
+                                          widget.isProfile && widget.readOnly
+                                              ? AppColors.primaryWhiteColor
+                                              : AppColors.primary,
+                                    ),
+                          )
+                          : null,
                 ),
-
               ),
             ),
           ),
@@ -182,4 +190,3 @@ class _CustomTextFieldState extends State<CustomTextField> {
     );
   }
 }
-

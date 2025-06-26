@@ -367,10 +367,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                     CustomTextField(
                       controller: _emailController,
-                      hintText:
-                          isAppleSignUp
-                              ? 'Personal email is required for contact'
-                              : 'Email',
+                      hintText: isAppleSignUp ? 'Email is required' : 'Email',
                       readOnly: isGoogleSignUp,
                       errorText:
                           showValidationErrors && formState != null
@@ -748,6 +745,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     SubmitSignUp(signupRequest: signUpRequest),
                                   );
                                 }
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Please fill all required fields before submitting.',
+                                    ),
+                                    backgroundColor: AppColors.appRedColor,
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
                               }
                             },
                             child: ElevatedButtonWidget(
