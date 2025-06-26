@@ -16,8 +16,8 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:go_router/go_router.dart';
 
-
 part 'cafe_list_event.dart';
+
 part 'cafe_list_state.dart';
 
 class CafeListBloc extends Bloc<CafeListEvent, CafeListState> {
@@ -35,6 +35,7 @@ class CafeListBloc extends Bloc<CafeListEvent, CafeListState> {
   TimeOfDay get openTime => _openTime;
 
   TimeOfDay get closeTime => _closeTime;
+
   CafeListBloc({required this.cafeDataProvider}) : super(CafeListInitial()) {
     on<GetCafeListEvent>(_onGetCafeList);
     on<GetFavListEvent>(_onGetFavList);
@@ -42,16 +43,17 @@ class CafeListBloc extends Bloc<CafeListEvent, CafeListState> {
     on<FilterOptionsEvent>(_onGetFilterOptions);
     on<FiltersUpdateEvent>(_onUpdateFilters);
     on<FiltersClearEvent>(_onClearFilters);
-
   }
 
   Future<void> _onGetCafeList(
-      GetCafeListEvent event,
-      Emitter<CafeListState> emit,
-      ) async {
+    GetCafeListEvent event,
+    Emitter<CafeListState> emit,
+  ) async {
     emit(CafeListLoading());
     try {
-      final StateModel? stateModel = await cafeDataProvider.getCafeList(event.cafeListRequest);
+      final StateModel? stateModel = await cafeDataProvider.getCafeList(
+        event.cafeListRequest,
+      );
 
       if (stateModel is SuccessState) {
         final response = stateModel.value as CafeListResponse;
@@ -67,9 +69,9 @@ class CafeListBloc extends Bloc<CafeListEvent, CafeListState> {
   }
 
   Future<void> _onGetFavList(
-      GetFavListEvent event,
-      Emitter<CafeListState> emit,
-      ) async {
+    GetFavListEvent event,
+    Emitter<CafeListState> emit,
+  ) async {
     emit(FavListLoading());
     try {
       final StateModel? stateModel = await cafeDataProvider.getFavourite();
@@ -87,9 +89,9 @@ class CafeListBloc extends Bloc<CafeListEvent, CafeListState> {
   }
 
   Future<void> _onToggleFavorite(
-      ToggleFavoriteEvent event,
-      Emitter<CafeListState> emit,
-      ) async {
+    ToggleFavoriteEvent event,
+    Emitter<CafeListState> emit,
+  ) async {
     final currentState = state;
 
     if (currentState is CafeListLoaded) {
@@ -114,29 +116,35 @@ class CafeListBloc extends Bloc<CafeListEvent, CafeListState> {
       final cafeId = cafe.id!;
       final isFavorite = cafe.favourites!;
       // final isGuest = ObjectFactory().prefs.isGuestUser() == true;
-      final deviceToken = isGuest ? ObjectFactory().prefs.getDeviceID() ?? '' : '';
+      final deviceToken =
+          isGuest ? ObjectFactory().prefs.getDeviceID() ?? '' : '';
 
-      emit(FavoriteToggleLoading(
-        cafeListResponse: currentState.cafeListResponse,
-        toggledCafeIndex: event.cafeIndex,
-      ));
+      emit(
+        FavoriteToggleLoading(
+          cafeListResponse: currentState.cafeListResponse,
+          toggledCafeIndex: event.cafeIndex,
+        ),
+      );
 
       try {
         StateModel? result;
 
         if (isFavorite) {
-          result = await cafeDataProvider
-              .removeFavourite(RemoveFavouriteRequest(cafeId: cafeId));
+          result = await cafeDataProvider.removeFavourite(
+            RemoveFavouriteRequest(cafeId: cafeId),
+          );
         } else {
-          result = await cafeDataProvider
-              .addFavourite(AddFavouriteRequest(cafeId: cafeId,deviceToken: deviceToken));
+          result = await cafeDataProvider.addFavourite(
+            AddFavouriteRequest(cafeId: cafeId, deviceToken: deviceToken),
+          );
         }
 
         if (result is SuccessState) {
-          final updatedCafes = List<Cafe>.from(currentState.cafeListResponse.cafes!);
-          updatedCafes[event.cafeIndex] = updatedCafes[event.cafeIndex].copyWith(
-            favourites: !isFavorite,
+          final updatedCafes = List<Cafe>.from(
+            currentState.cafeListResponse.cafes!,
           );
+          updatedCafes[event.cafeIndex] = updatedCafes[event.cafeIndex]
+              .copyWith(favourites: !isFavorite);
 
           final updatedResponse = currentState.cafeListResponse.copyWith(
             cafes: updatedCafes,
@@ -145,74 +153,93 @@ class CafeListBloc extends Bloc<CafeListEvent, CafeListState> {
           emit(CafeListLoaded(cafeListResponse: updatedResponse));
         } else if (result is ErrorState) {
           final errorMessage = result.error ?? "";
-          if (errorMessage.toLowerCase().contains("signup")) {
-            emit(CafeListError(errorMessage: "Please signup to proceed."));
+          if (errorMessage.toLowerCase().contains("signup") ||
+              errorMessage.contains("UnAuthorized") ||
+              errorMessage.contains("status code of 401") ||
+              errorMessage.contains("Unknown error")) {
+            emit(CafeListError(errorMessage: "Please login to proceed."));
           } else {
-            emit(CafeListLoaded(cafeListResponse: currentState.cafeListResponse));
+            emit(
+              CafeListLoaded(cafeListResponse: currentState.cafeListResponse),
+            );
           }
         }
-
       } catch (e, stackTrace) {
         print('Toggle Favorite Error: $e');
         print('StackTrace: $stackTrace');
         emit(CafeListLoaded(cafeListResponse: currentState.cafeListResponse));
       }
-    }
-
-    else if (currentState is FavListLoaded) {
+    } else if (currentState is FavListLoaded) {
       final cafe = currentState.favListResponse.cafes![event.cafeIndex];
       final cafeId = cafe.id!;
       final isFavorite = cafe.favourites!;
 
       // Convert FavWorkingHour to WorkingHour
-      List<WorkingHour>? convertWorkingHours(List<FavWorkingHour>? favWorkingHours) {
+      List<WorkingHour>? convertWorkingHours(
+        List<FavWorkingHour>? favWorkingHours,
+      ) {
         if (favWorkingHours == null) return null;
-        return favWorkingHours.map((favHour) => WorkingHour(
-          day: favHour.day,
-          opening: favHour.opening,
-          closing: favHour.closing,
-        )).toList();
+        return favWorkingHours
+            .map(
+              (favHour) => WorkingHour(
+                day: favHour.day,
+                opening: favHour.opening,
+                closing: favHour.closing,
+              ),
+            )
+            .toList();
       }
 
-      emit(FavoriteToggleLoading(
-        cafeListResponse: CafeListResponse(
-          cafes: currentState.favListResponse.cafes!
-              .asMap()
-              .entries
-              .map((entry) => Cafe(
-            id: entry.value.id,
-            name: entry.value.name,
-            photo: entry.value.photo,
-            venueDescription: entry.value.venueDescription,
-            tableTypes: entry.value.tableTypes,
-            workingHours: convertWorkingHours(entry.value.workingHours),
-            favourites: entry.value.favourites,
-            bookingStatus: entry.value.bookingStatus,
-          ))
-              .toList(),
+      emit(
+        FavoriteToggleLoading(
+          cafeListResponse: CafeListResponse(
+            cafes:
+                currentState.favListResponse.cafes!
+                    .asMap()
+                    .entries
+                    .map(
+                      (entry) => Cafe(
+                        id: entry.value.id,
+                        name: entry.value.name,
+                        photo: entry.value.photo,
+                        venueDescription: entry.value.venueDescription,
+                        tableTypes: entry.value.tableTypes,
+                        workingHours: convertWorkingHours(
+                          entry.value.workingHours,
+                        ),
+                        favourites: entry.value.favourites,
+                        bookingStatus: entry.value.bookingStatus,
+                      ),
+                    )
+                    .toList(),
+          ),
+          toggledCafeIndex: event.cafeIndex,
         ),
-        toggledCafeIndex: event.cafeIndex,
-      ));
+      );
 
       try {
         StateModel? result;
 
         if (isFavorite) {
-          result = await cafeDataProvider
-              .removeFavourite(RemoveFavouriteRequest(cafeId: cafeId));
+          result = await cafeDataProvider.removeFavourite(
+            RemoveFavouriteRequest(cafeId: cafeId),
+          );
         } else {
-          result = await cafeDataProvider
-              .addFavourite(AddFavouriteRequest(cafeId: cafeId));
+          result = await cafeDataProvider.addFavourite(
+            AddFavouriteRequest(cafeId: cafeId),
+          );
         }
 
         if (result is SuccessState) {
-          final updatedCafes = List<FavCafe>.from(currentState.favListResponse.cafes!);
-          updatedCafes[event.cafeIndex] = updatedCafes[event.cafeIndex].copyWith(
-            favourites: !isFavorite,
+          final updatedCafes = List<FavCafe>.from(
+            currentState.favListResponse.cafes!,
           );
+          updatedCafes[event.cafeIndex] = updatedCafes[event.cafeIndex]
+              .copyWith(favourites: !isFavorite);
 
           // Filter out cafes that are no longer favorites
-          final filteredCafes = updatedCafes.where((cafe) => cafe.favourites == true).toList();
+          final filteredCafes =
+              updatedCafes.where((cafe) => cafe.favourites == true).toList();
 
           final updatedResponse = currentState.favListResponse.copyWith(
             cafes: filteredCafes,
@@ -278,13 +305,14 @@ class CafeListBloc extends Bloc<CafeListEvent, CafeListState> {
   //   }
   // }
 
-  Future<void> _onGetFilterOptions(FilterOptionsEvent event,
-      Emitter<CafeListState> emit,) async {
+  Future<void> _onGetFilterOptions(
+    FilterOptionsEvent event,
+    Emitter<CafeListState> emit,
+  ) async {
     if (_cachedFilterOptions != null &&
         _cachedFilterOptions!.diceTables!.isNotEmpty &&
         _cachedFilterOptions!.venueTypes!.isNotEmpty) {
-      emit(
-          FilterLoaded(getFilterOptionsResponse: _cachedFilterOptions!));
+      emit(FilterLoaded(getFilterOptionsResponse: _cachedFilterOptions!));
       return;
     }
 
@@ -304,23 +332,24 @@ class CafeListBloc extends Bloc<CafeListEvent, CafeListState> {
       emit(FilterError(e.toString()));
     }
   }
-  void _onUpdateFilters(FiltersUpdateEvent event,
-      Emitter<CafeListState> emit,) {
+
+  void _onUpdateFilters(FiltersUpdateEvent event, Emitter<CafeListState> emit) {
     _selectedTableTypes = Set.from(event.selectedTableTypes);
     _selectedVenueTypes = Set.from(event.selectedVenueTypes);
     _openTime = event.openTime;
     _closeTime = event.closeTime;
 
-    emit(UpdateFilter(
-      selectedTableTypes: _selectedTableTypes,
-      selectedVenueTypes: _selectedVenueTypes,
-      openTime: _openTime,
-      closeTime: _closeTime,
-    ));
+    emit(
+      UpdateFilter(
+        selectedTableTypes: _selectedTableTypes,
+        selectedVenueTypes: _selectedVenueTypes,
+        openTime: _openTime,
+        closeTime: _closeTime,
+      ),
+    );
   }
 
-  void _onClearFilters(FiltersClearEvent event,
-      Emitter<CafeListState> emit,) {
+  void _onClearFilters(FiltersClearEvent event, Emitter<CafeListState> emit) {
     _selectedTableTypes.clear();
     _selectedVenueTypes.clear();
     _openTime = const TimeOfDay(hour: 00, minute: 0);
@@ -331,12 +360,9 @@ class CafeListBloc extends Bloc<CafeListEvent, CafeListState> {
     if (_cachedFilterOptions != null &&
         _cachedFilterOptions!.diceTables!.isNotEmpty &&
         _cachedFilterOptions!.venueTypes!.isNotEmpty) {
-      emit(
-          FilterLoaded(getFilterOptionsResponse: _cachedFilterOptions!));
+      emit(FilterLoaded(getFilterOptionsResponse: _cachedFilterOptions!));
     } else {
-
       add(FilterOptionsEvent());
     }
   }
-
 }
