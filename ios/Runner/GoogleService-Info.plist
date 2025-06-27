@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>1093901587661-r2ct9vmcs7c5jt29t2u7foshj4crji4n.apps.googleusercontent.com</string>
+	<string>1093901587661-kgnk7r0um5h5j4maepmdevqt2jilvu5s.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.1093901587661-r2ct9vmcs7c5jt29t2u7foshj4crji4n</string>
+	<string>com.googleusercontent.apps.1093901587661-kgnk7r0um5h5j4maepmdevqt2jilvu5s</string>
 	<key>ANDROID_CLIENT_ID</key>
 	<string>1093901587661-mv63151dfadit63gh4qmc8uu3cn4pihi.apps.googleusercontent.com</string>
 	<key>API_KEY</key>
@@ -15,7 +15,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.mydicetable.app</string>
+	<string>com.soloseaters.app</string>
 	<key>PROJECT_ID</key>
 	<string>evident-factor-458405-d7</string>
 	<key>STORAGE_BUCKET</key>
@@ -31,6 +31,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:1093901587661:ios:089e84abd34c1dd77fc584</string>
+	<string>1:1093901587661:ios:77020b216c829b537fc584</string>
 </dict>
 </plist>
