@@ -41,17 +41,17 @@
 		<key>LSRequiresIPhoneOS</key>
 		<true/>
 		<key>NSCameraUsageDescription</key>
-		<string>Dicetable needs access to your camera to allow photo uploads and profile pictures.</string>
+		<string>Dice table app needs access to your camera to allow photo uploads and profile pictures.</string>
 		<key>NSLocationWhenInUseUsageDescription</key>
-		<string>We need your location while updating your profile to list the venues based on your location.</string>
+		<string>Dice table app need your location while updating your profile to list the venues based on your location.</string>
 		<key>NSPhotoLibraryUsageDescription</key>
-		<string>Dicetable requires access to your photo library to select images for uploading and profile photos.</string>
+		<string>Dice table app requires access to your photo library to select images for uploading and profile photos.</string>
 		<key>NSLocationWhenInUseUsageDescription</key>
-		<string>Dicetable need your location to show nearby results.</string>
+		<string>Dice table app need your location to show nearby results.</string>
 		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-		<string>Dicetable use your location to enhance your experience.</string>
+		<string>Dice table app use your location to enhance your experience.</string>
 		<key>NSLocationAlwaysUsageDescription</key>
-		<string>Dicetable app needs background location access.</string>
+		<string>Dice table app needs background location access.</string>
 		<key>UIApplicationSupportsIndirectInputEvents</key>
 		<true/>
 		<key>UIBackgroundModes</key>

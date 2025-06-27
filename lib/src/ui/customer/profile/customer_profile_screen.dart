@@ -155,6 +155,20 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       EasyLoading.showError(state.errorMessage!);
                     });
+                    if (state.errorMessage!.contains("UnAuthorized") ||
+                        state.errorMessage!.contains("status code of 401") ||
+                        state.errorMessage!.contains("Unknown error")) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        context.go('/customer_login');
+                        Fluttertoast.showToast(
+                          backgroundColor: AppColors.primaryWhiteColor,
+                          textColor: AppColors.appGreenColor,
+                          gravity: ToastGravity.BOTTOM,
+                          msg:
+                          "Exception caught for UnAuthorized access. Please login again!",
+                        );
+                      });
+                    }
                   }
                  
                   if (state.profile.data != null) {

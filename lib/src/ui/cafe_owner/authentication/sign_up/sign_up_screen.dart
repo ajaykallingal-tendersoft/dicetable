@@ -374,6 +374,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                               ? (_emailController.text.isEmpty
                                   ? 'Email is required'
                                   : !RegExp(
+
                                     r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
                                   ).hasMatch(_emailController.text)
                                   ? 'Invalid email format'

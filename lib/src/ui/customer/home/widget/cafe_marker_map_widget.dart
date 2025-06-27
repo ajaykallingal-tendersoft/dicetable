@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:dicetable/src/constants/app_colors.dart';
+import 'package:dicetable/src/ui/customer/cafe_list/bloc/cafe_list_bloc.dart';
 import 'package:dicetable/src/ui/customer/home/bloc/customer_home_bloc.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
@@ -187,6 +188,17 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
                 );
               }
 
+            }else if(state is CafeListError) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                context.go('/customer_login');
+                Fluttertoast.showToast(
+                  backgroundColor: AppColors.primaryWhiteColor,
+                  textColor: AppColors.appGreenColor,
+                  gravity: ToastGravity.BOTTOM,
+                  msg:
+                  "Exception caught for UnAuthorized access. Please login again!",
+                );
+              });
             }
           },
           builder: (context, state) {
