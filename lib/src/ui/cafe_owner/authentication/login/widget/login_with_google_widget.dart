@@ -32,7 +32,6 @@ class LoginWithGoogleWidget extends StatelessWidget {
         listener: (context, state) {
           if (state is GoogleSignInSuccess) {
             if (userCategory == 'PUBLIC_USER') {
-              print(state.user.email);
               BlocProvider.of<CustomerLoginBloc>(context).add(
                 CustomerGoogleLoginEvent(
                   googleLoginRequest: GoogleLoginRequest(
@@ -68,12 +67,7 @@ class LoginWithGoogleWidget extends StatelessWidget {
                 cafeUserImage: state.base64Image,
               );
             }
-            // Fluttertoast.showToast(
-            //   backgroundColor: AppColors.primaryWhiteColor,
-            //   textColor: AppColors.primaryWhiteColor,
-            //   gravity: ToastGravity.BOTTOM,
-            //   msg: "Successfully Authenticated With Google.",
-            // );
+
           }
           if (state is GoogleSignInDenied) {
             ScaffoldMessenger.of(context).showSnackBar(

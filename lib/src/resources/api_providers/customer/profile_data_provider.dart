@@ -40,9 +40,9 @@ class CustomerProfileDataProvider {
       final response = await ObjectFactory().apiClient.updateCustomerProfile(request);
       if (response.statusCode == 200) {
         print('Update Response: ${response.data}');
-        String jsonRequest = jsonEncode(request);
-        print("Request Payload:");
-        print(jsonRequest);
+        // String jsonRequest = jsonEncode(request);
+        // print("Request Payload:");
+        // print(jsonRequest);
         return StateModel<CustomerUpdateProfileResponse>.success(
             CustomerUpdateProfileResponse.fromJson(response.data));
       } else {

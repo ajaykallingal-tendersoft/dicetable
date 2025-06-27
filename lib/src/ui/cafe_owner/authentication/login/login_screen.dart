@@ -96,8 +96,6 @@ class _LoginScreenState extends State<LoginScreen> {
         builder: (context) {
           return BlocConsumer<LoginBloc, LoginState>(
             listener: (context, state) async {
-              print('Login state: $state');
-              debugPrint('Login state: $state');
 
               if (state is LoginLoadingState) {
                 EasyLoading.show();
@@ -152,10 +150,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   );
                 }
-                // else {
-                //   ObjectFactory().prefs.setIsLoggedIn(false);
-                //   context.go('/verify',extra: VerifyScreenArguments(email: _emailController.text, otp: "", type: "register"));
-                // }
 
                 if (state.loginRequestResponse.status == false &&
                     state.loginRequestResponse.message ==
@@ -205,7 +199,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   context.go('/home');
                 } else {
                   EasyLoading.dismiss();
-                  print("Message: ${response.message}");
+
                   Fluttertoast.showToast(
                     msg: response.message ?? "Google login failed",
                     backgroundColor: AppColors.primaryWhiteColor,
@@ -277,7 +271,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     appleAuthID: state.appleLoginRequestResponse.appleId,
                   );
                   EasyLoading.dismiss();
-                  print("Message: ${response.message}");
                   Fluttertoast.showToast(
                     msg: response.message ?? "Apple login failed",
                     backgroundColor: AppColors.primaryWhiteColor,
@@ -318,7 +311,6 @@ class _LoginScreenState extends State<LoginScreen> {
               }
               if (state is GoogleLoginErrorState) {
                 EasyLoading.dismiss();
-                print('GoogleLoginErrorState reached');
                 Fluttertoast.showToast(
                   msg: state.msg,
                   backgroundColor: AppColors.primaryWhiteColor,
@@ -327,7 +319,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 if (state.msg ==
                     "You are not registered in our app. Please complete the signup process!") {
-                  print('Navigating to /signup');
                   context.push(
                     '/signup',
                     extra: SignUpScreenArgument(
@@ -355,7 +346,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ObjectFactory().prefs.setAppleAuthID(
                   appleAuthID: state.appleId,
                 );
-                print('LoginWithAppleErrorState reached');
                 Fluttertoast.showToast(
                   msg: state.errorMsg,
                   backgroundColor: AppColors.primaryWhiteColor,
@@ -364,7 +354,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 if (state.errorMsg ==
                     "You are not registered in our app. Please complete the signup process!") {
-                  print('Navigating to /signup');
                   context.push(
                     '/signup',
                     extra: SignUpScreenArgument(

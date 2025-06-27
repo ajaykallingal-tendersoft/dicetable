@@ -45,8 +45,6 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
 
       String email = formState.email.trim();
       String password = formState.password;
-      print("Email: $email");
-      print("Password: $password");
 
       String? emailError;
       String? passwordError;
@@ -87,8 +85,6 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
           loginType: 3,
         );
         final stateModel = await authDataProvider.loginUser(loginRequest);
-        print("EmailAfter: $email");
-        print("PasswordAfter: $password");
 
         if (stateModel.isSuccess) {
           emit(

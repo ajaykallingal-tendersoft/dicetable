@@ -34,9 +34,6 @@ class _CafeListScreenState extends State<CafeListScreen> {
   @override
   void initState() {
     super.initState();
-    print("Latitude::${ObjectFactory().prefs.getLatitude().toString()}");
-    print("Latitude::${ObjectFactory().prefs.getLongitude().toString()}");
-
     latitude = ObjectFactory().prefs.getLatitude().toString();
     longitude = ObjectFactory().prefs.getLongitude().toString();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -81,7 +78,6 @@ class _CafeListScreenState extends State<CafeListScreen> {
           ),
         ),
       );
-
       Fluttertoast.showToast(
         msg: "Location data unavailable. Using default location.",
         toastLength: Toast.LENGTH_LONG,

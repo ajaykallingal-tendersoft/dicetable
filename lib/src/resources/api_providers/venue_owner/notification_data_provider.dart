@@ -76,8 +76,8 @@ class NotificationDataProvider {
       final response = await ObjectFactory().apiClient.markNotificationAsRead(request);
 
       final String jsonRequest = jsonEncode(request);
-      print("Request Payload:");
-      print(jsonRequest);
+      // print("Request Payload:");
+      // print(jsonRequest);
       print("Response status code: ${response.statusCode}");
       print("Response data: ${response.data}");
 
@@ -138,8 +138,8 @@ class NotificationDataProvider {
       final response = await ObjectFactory().apiClient.notificationStatus(request);
 
       final String jsonRequest = jsonEncode(request.toJson());
-      print("Request Payload:");
-      print(jsonRequest);
+      // print("Request Payload:");
+      // print(jsonRequest);
       print("Response status code: ${response.statusCode}");
       print("Response data: ${response.data}");
 

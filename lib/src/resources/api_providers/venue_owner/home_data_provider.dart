@@ -44,9 +44,9 @@ class HomeDataProvider {
       final response =
       await ObjectFactory().apiClient.updateDiceTableType(diceTableUpdateRequest);
       print(response.toString());
-      String jsonRequest = jsonEncode(diceTableUpdateRequest);
-      print("Request Payload:");
-      print(jsonRequest);
+      // String jsonRequest = jsonEncode(diceTableUpdateRequest);
+      // print("Request Payload:");
+      // print(jsonRequest);
       if (response.statusCode == 200) {
         return StateModel<DiceTableTypeUpdateResponse>.success(
             DiceTableTypeUpdateResponse.fromJson(response.data));

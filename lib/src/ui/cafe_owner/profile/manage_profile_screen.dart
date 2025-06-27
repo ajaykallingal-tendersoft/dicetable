@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dicetable/src/common/custom_text_field.dart';
 import 'package:dicetable/src/common/elevated_button_widget.dart';
 import 'package:dicetable/src/constants/app_colors.dart';
+import 'package:dicetable/src/ui/cafe_owner/authentication/login/cubit/apple_signin_cubit.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/login/cubit/google_sign_in_cubit.dart';
 import 'package:flutter/material.dart';
@@ -363,39 +364,6 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                           onChanged: (value) {},
                         ),
 
-                        // LayoutBuilder(
-                        //   builder: (context, constraints) {
-                        //     final venueTypeText = state.venueType ?? 'No venue type selected';
-                        //     final textStyle = TextStyle(
-                        //       fontSize: 14.sp, // Adjust based on your text style
-                        //       fontWeight: FontWeight.w600, // Match your design
-                        //     );
-                        //     final textSpan = TextSpan(text: venueTypeText, style: textStyle);
-                        //     final textPainter = TextPainter(
-                        //       text: textSpan,
-                        //       maxLines: 1,
-                        //       textDirection: TextDirection.ltr,
-                        //       textScaleFactor: MediaQuery.of(context).textScaleFactor,
-                        //     )..layout(maxWidth: constraints.maxWidth - 32); // Subtract padding
-                        //
-                        //     final lineCount = textPainter.computeLineMetrics().length;
-                        //     final dynamicHeight = lineCount == 1 ? 70.h : 90.h; // Single line or multi-line height
-                        //     final dynamicMaxLines = lineCount == 1 ? 1 : 3;
-                        //
-                        //     return CustomTextField(
-                        //       textAlign: TextAlign.left,
-                        //       height: dynamicHeight,
-                        //       maxLines: dynamicMaxLines,
-                        //       isProfile: true,
-                        //       readOnly: true,
-                        //       controller: TextEditingController(text: venueTypeText),
-                        //       hintText: 'Venue Type',
-                        //       textFieldAnnotationText: 'Venue Type',
-                        //       onChanged: (value) {},
-                        //     );
-                        //   },
-                        // ),
-
                         const Gap(17),
                         CustomTextField(
                           height: 213,
@@ -413,6 +381,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                         InkWell(
                           onTap: () {
                             context.read<GoogleSignInCubit>().signOut();
+                            context.read<AppleSignInCubit>().signOut();
                             ObjectFactory().prefs.setIsLoggedIn(false);
                             ObjectFactory().prefs.setAuthToken(token: "");
                             ObjectFactory().prefs.setCafeUserName(
@@ -676,7 +645,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                                     ),
                               );
                             } catch (e) {
-                              debugPrint('Invalid base64 image: $e');
+                              // debugPrint('Invalid base64 image: $e');
                               return Image.asset(
                                 'assets/png/profile-img.png',
                                 fit: BoxFit.cover,

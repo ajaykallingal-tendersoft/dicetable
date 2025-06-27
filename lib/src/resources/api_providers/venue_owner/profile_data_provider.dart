@@ -79,8 +79,8 @@ class ProfileDataProvider {
     try {
       final response = await ObjectFactory().apiClient.profileUpdateById(request);
       String jsonRequest = jsonEncode(request);
-      print("Request Payload:");
-      print(jsonRequest);
+      // print("Request Payload:");
+      // print(jsonRequest);
       print("Response status code: ${response.statusCode}");
       print("Response data: ${response.data}");
       if (response.data != null) {
@@ -188,8 +188,5 @@ class ProfileDataProvider {
     }
     return null;
   }
-
-
-
 
 }

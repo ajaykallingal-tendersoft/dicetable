@@ -70,8 +70,8 @@ class AuthDataProvider {
     print("loginUser called with: $loginRequest");
     try {
       final response = await ObjectFactory().apiClient.loginUser(loginRequest);
-      print("Response status code: ${response.statusCode}");
-      print("Response data: ${response.data}");
+      // print("Response status code: ${response.statusCode}");
+      // print("Response data: ${response.data}");
       if (response.data != null) {
         if (response.statusCode == 200) {
           print(response);
@@ -211,7 +211,7 @@ class AuthDataProvider {
       final response = await ObjectFactory().apiClient.resendOtp(
         resendOtpRequest,
       );
-      print(response.toString());
+      // print(response.toString());
 
       final responseData =
           response.data is Map<String, dynamic>
@@ -355,9 +355,9 @@ class AuthDataProvider {
         googleSignUpRequest,
       );
       print(response.toString());
-      String jsonRequest = jsonEncode(googleSignUpRequest);
-      print("Request Payload:");
-      print(jsonRequest);
+      // String jsonRequest = jsonEncode(googleSignUpRequest);
+      // print("Request Payload:");
+      // print(jsonRequest);
       if (response.statusCode == 200) {
         return StateModel<GoogleSignUpRequestResponse>.success(
           GoogleSignUpRequestResponse.fromJson(response.data),

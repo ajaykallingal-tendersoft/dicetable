@@ -3,6 +3,7 @@ import 'package:dicetable/src/common/custom_text_field.dart';
 import 'package:dicetable/src/common/elevated_button_widget.dart';
 import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/resources/api_providers/customer/profile_data_provider.dart';
+import 'package:dicetable/src/ui/cafe_owner/authentication/login/cubit/apple_signin_cubit.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/login/cubit/google_sign_in_cubit.dart';
 import 'package:dicetable/src/ui/cafe_owner/notification/count_controller.dart';
 import 'package:dicetable/src/ui/customer/profile/bloc/customer_profile_bloc.dart';
@@ -295,6 +296,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                             InkWell(
                               onTap: () {
                                 context.read<GoogleSignInCubit>().signOut();
+                                context.read<AppleSignInCubit>().signOut();
                                 ObjectFactory().prefs.setIsCustomerLoggedIn(false);
                                 ObjectFactory().prefs.setAuthToken(token: "");
                                 ObjectFactory().prefs.setCustomerUserName(customerUserName: "");

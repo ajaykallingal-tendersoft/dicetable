@@ -15,9 +15,9 @@ class BookingDataProvider {
       final response =
       await ObjectFactory().apiClient.booking(bookingRequest);
       print(response.toString());
-      String jsonRequest = jsonEncode(bookingRequest);
-      print("Request Payload:");
-      print(jsonRequest);
+      // String jsonRequest = jsonEncode(bookingRequest);
+      // print("Request Payload:");
+      // print(jsonRequest);
       if (response.statusCode == 200) {
         return StateModel<BookingRequestResponse>.success(
             BookingRequestResponse.fromJson(response.data));

@@ -76,9 +76,9 @@ class SubscriptionDataProvider {
       final response =
       await ObjectFactory().apiClient.subscriptionStart(subscriptionStart);
       print(response.toString());
-      String jsonRequest = jsonEncode(subscriptionStart);
-      print("Request Payload:");
-      print(jsonRequest);
+      // String jsonRequest = jsonEncode(subscriptionStart);
+      // print("Request Payload:");
+      // print(jsonRequest);
       if (response.statusCode == 200) {
         return StateModel<SubscriptionStartResponse>.success(
             SubscriptionStartResponse.fromJson(response.data));
@@ -101,6 +101,5 @@ class SubscriptionDataProvider {
     }
     return null;
   }
-
 
 }
