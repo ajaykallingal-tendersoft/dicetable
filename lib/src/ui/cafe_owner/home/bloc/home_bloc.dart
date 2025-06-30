@@ -95,8 +95,6 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
         emit(HomeError(errorMessage: response?.data.message ?? 'Unknown error'));
       }
     } catch (e, stackTrace) {
-      print('HomeBloc Error: $e');
-      print('StackTrace: $stackTrace');
       emit(HomeError(errorMessage: e.toString()));
     }
   }

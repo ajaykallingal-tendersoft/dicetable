@@ -20,7 +20,10 @@ class HistoryDataProvider {
             "The server isn't responding! Please try again later.");
       } else if (e.response != null && e.response!.statusCode == 401) {
         return StateModel.error(
-            "Unauthorized error");
+            "UnAuthorized error");
+      }else if(e.response == null) {
+        return StateModel.error(
+            "The server isn't responding! Please try again later.");
       }
     }
     return null;

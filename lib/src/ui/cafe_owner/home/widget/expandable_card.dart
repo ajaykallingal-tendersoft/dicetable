@@ -75,9 +75,7 @@ class _ExpandableCardState extends State<ExpandableCard> {
 
     return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
-        if (state is HomeLoading) {
-          EasyLoading.show();
-        }
+
         if (state is HomeLoaded) {
           EasyLoading.dismiss();
           final updatedCard = state.cards[widget.index];
@@ -264,39 +262,6 @@ class _ExpandableCardState extends State<ExpandableCard> {
                               color: AppColors.shadowColor,
                             ),
                           ),
-
-                      // card.isSelected && selectedDays.isNotEmpty
-                      //     ? Column(
-                      //       crossAxisAlignment: CrossAxisAlignment.start,
-                      //       children:
-                      //           selectedDays.map((d) {
-
-                      //             String? open =
-                      //                 d.openTime!.length >= 5
-                      //                     ? d.openTime!.substring(0, 5)
-                      //                     : d.openTime;
-                      //             String? close =
-                      //                 d.closeTime!.length >= 5
-                      //                     ? d.closeTime!.substring(0, 5)
-                      //                     : d.closeTime;
-                      //             return Text(
-                      //               "${capitalizeFirstLetter(d.day!)}: $open - $close",
-                      //               style: GoogleFonts.roboto(
-                      //                 fontSize: 10,
-                      //                 fontWeight: FontWeight.w600,
-                      //                 color: AppColors.shadowColor,
-                      //               ),
-                      //             );
-                      //           }).toList(),
-                      //     )
-                      //     : Text(
-                      //       'All Days',
-                      //       style: GoogleFonts.roboto(
-                      //         fontSize: 10,
-                      //         fontWeight: FontWeight.w600,
-                      //         color: AppColors.shadowColor,
-                      //       ),
-                      //     ),
                     ],
                   ),
                   !card.isExpanded

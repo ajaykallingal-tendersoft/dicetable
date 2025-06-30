@@ -169,7 +169,6 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                         dashPattern: const [6, 4],
                         child: Row(
                           children: [
-                            // Discount Code Label
                             Text(
                               'Discount Code: ',
                               style: Theme.of(
@@ -201,6 +200,7 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                                 ).textTheme.bodyMedium?.copyWith(
                                   fontWeight: FontWeight.normal,
                                   fontSize: 14.sp,
+                                  color: AppColors.textPrimaryGrey,
                                 ),
                                 keyboardType: TextInputType.text,
                                 textInputAction: TextInputAction.done,

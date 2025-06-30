@@ -2,18 +2,20 @@ import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/ui/cafe_owner/notification/notification_item.dart';
 import 'package:dicetable/src/ui/cafe_owner/notification/tab_button.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
+import 'package:dicetable/src/utils/data/sign_out.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'bloc/notification_bloc.dart';
 import 'count_controller.dart';
 
 class NotificationScreen extends StatefulWidget {
-  NotificationScreen({super.key});
+  const NotificationScreen({super.key});
 
   @override
   State<NotificationScreen> createState() => _NotificationScreenState();
@@ -71,10 +73,27 @@ class _NotificationScreenState extends State<NotificationScreen> {
       body: SafeArea(
         child: BlocConsumer<NotificationBloc, NotificationState>(
           listener: (context, state) async {
+            if(state is NotificationLoaded) {
+              if(state.notificationItems.status == false) {
+                if(state.notificationItems.message.contains("Unauthorized")) {
+                  EasyLoading.dismiss();
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    SignOut().logout(context);
+                    Fluttertoast.showToast(
+                      backgroundColor: AppColors.primaryWhiteColor,
+                      textColor: AppColors.appRedColor,
+                      gravity: ToastGravity.BOTTOM,
+                      msg:
+                      "Your session has expired. Please sign in again.",
+                    );
+                  });
+                }
+              }
+            }
             if (state is NotificationLoading) {
-              await EasyLoading.show();
+              EasyLoading.show();
             } else {
-              await EasyLoading.dismiss();
+              EasyLoading.dismiss();
               if (state is NotificationError) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text(state.errorMessage)),

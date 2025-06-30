@@ -34,6 +34,9 @@ class BookingDataProvider {
       } else if (e.type.name == "connectionError") {
         return StateModel.error(
             "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!");
+      }else if(e.response == null) {
+        return StateModel.error(
+            "The server isn't responding! Please try again later.");
       }
 
     }

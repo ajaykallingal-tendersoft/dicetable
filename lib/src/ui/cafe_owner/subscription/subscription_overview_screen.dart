@@ -1,7 +1,6 @@
 import 'package:dicetable/src/constants/app_colors.dart';
-import 'package:dicetable/src/ui/cafe_owner/subscription/widget/billing_history_card.dart';
-import 'package:dicetable/src/ui/cafe_owner/subscription/widget/payment_methods_card.dart';
 import 'package:dicetable/src/ui/cafe_owner/subscription/widget/subscription_overview_card.dart';
+import 'package:dicetable/src/utils/data/sign_out.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -44,7 +43,38 @@ class _SubscriptionOverviewScreenState
             backgroundColor: AppColors.primaryWhiteColor,
             textColor: AppColors.appRedColor,
           );
+          if (state.errorMessage.contains("UnAuthorized") ||
+              state.errorMessage.contains("status code of 401") ) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              SignOut().logout(context);
+              Fluttertoast.showToast(
+                backgroundColor: AppColors.primaryWhiteColor,
+                textColor: AppColors.appRedColor,
+                gravity: ToastGravity.BOTTOM,
+                msg:
+                "Your session has expired. Please sign in again.",
+              );
+            });
+          }
         }
+        // if(state is SubscriptionOverviewLoaded) {
+        //   if (state.subscriptionOverviewResponse.status == false) {
+        //     if (state.subscriptionOverviewResponse.message.contains("Unauthorized") ||
+        //         state.subscriptionOverviewResponse.message.contains("status code of 401") ) {
+        //       EasyLoading.dismiss();
+        //       WidgetsBinding.instance.addPostFrameCallback((_) {
+        //         SignOut().logout(context);
+        //         Fluttertoast.showToast(
+        //           backgroundColor: AppColors.primaryWhiteColor,
+        //           textColor: AppColors.appGreenColor,
+        //           gravity: ToastGravity.BOTTOM,
+        //           msg:
+        //           "Exception caught for UnAuthorized access. Please login again!",
+        //         );
+        //       });
+        //     }
+        //   }
+        //  }
       },
       builder: (context, state) {
         Widget child;

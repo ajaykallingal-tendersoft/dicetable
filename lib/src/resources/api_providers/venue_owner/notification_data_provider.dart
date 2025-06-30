@@ -27,11 +27,15 @@ class NotificationDataProvider {
       } else if (e.response?.statusCode == 408) {
         return StateModel.error(
             "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-        // Something happened in setting up or sending the request that triggered an Error
+      } else if (e.response!.statusCode == 401) {
+        return StateModel.error(
+            "UnAuthorized error");
       } else if (e.type.name == "connectionError") {
         return StateModel.error(
             "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-        // Something happened in setting up or sending the request that triggered an Error
+      }else if(e.response == null) {
+        return StateModel.error(
+            "The server isn't responding! Please try again later.");
       }
 
     }
@@ -54,15 +58,18 @@ class NotificationDataProvider {
       if (e.response?.statusCode == 500) {
         return StateModel.error(
             "The server isn't responding! Please try again later.");
-        // return response!;
       } else if (e.response?.statusCode == 408) {
         return StateModel.error(
             "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-        // Something happened in setting up or sending the request that triggered an Error
+      } else if (e.response!.statusCode == 401) {
+        return StateModel.error(
+            "UnAuthorized error");
       } else if (e.type.name == "connectionError") {
         return StateModel.error(
             "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-        // Something happened in setting up or sending the request that triggered an Error
+      }else if(e.response == null) {
+        return StateModel.error(
+            "The server isn't responding! Please try again later.");
       }
 
     }
@@ -71,15 +78,14 @@ class NotificationDataProvider {
 
   /// Mark notification as read
   Future<StateModel<dynamic>> markNotificationAsRead(NotificationReadRequest request) async {
-    print("markNotificationAsRead called with: $request");
     try {
       final response = await ObjectFactory().apiClient.markNotificationAsRead(request);
 
       final String jsonRequest = jsonEncode(request);
       // print("Request Payload:");
       // print(jsonRequest);
-      print("Response status code: ${response.statusCode}");
-      print("Response data: ${response.data}");
+      // print("Response status code: ${response.statusCode}");
+      // print("Response data: ${response.data}");
 
       if (response.data != null) {
         if (response.statusCode == 200) {
@@ -114,7 +120,8 @@ class NotificationDataProvider {
         } else if (e.response!.statusCode == 408) {
           return StateModel.error("Request timed out. Please try again later.");
         } else if (e.response!.statusCode == 401) {
-          return StateModel.error("Unauthorized access.");
+          return StateModel.error(
+              "UnAuthorized error");
         } else if (e.response!.statusCode == 422) {
           return StateModel.error("Validation failed. Please check your input.");
         } else {
@@ -176,7 +183,8 @@ class NotificationDataProvider {
         } else if (e.response!.statusCode == 408) {
           return StateModel.error("Request timed out. Please try again later.");
         } else if (e.response!.statusCode == 401) {
-          return StateModel.error("Unauthorized access.");
+          return StateModel.error(
+              "UnAuthorized error");
         } else if (e.response!.statusCode == 422) {
           return StateModel.error("Validation failed. Please check your input.");
         } else {

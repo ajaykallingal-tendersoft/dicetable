@@ -27,15 +27,18 @@ class ProfileDataProvider {
       if (e.response!.statusCode == 500) {
         return StateModel.error(
             "The server isn't responding! Please try again later.");
-        // return response!;
       } else if (e.response!.statusCode == 408) {
         return StateModel.error(
             "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-        // Something happened in setting up or sending the request that triggered an Error
+      }else if (e.response!.statusCode == 401) {
+        return StateModel.error(
+            "UnAuthorized error");
       } else if (e.type.name == "connectionError") {
         return StateModel.error(
             "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-        // Something happened in setting up or sending the request that triggered an Error
+      }else if(e.response == null) {
+        return StateModel.error(
+            "The server isn't responding! Please try again later.");
       }
 
     }
@@ -58,15 +61,18 @@ class ProfileDataProvider {
       if (e.response!.statusCode == 500) {
         return StateModel.error(
             "The server isn't responding! Please try again later.");
-        // return response!;
       } else if (e.response!.statusCode == 408) {
         return StateModel.error(
             "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-        // Something happened in setting up or sending the request that triggered an Error
+      } else if (e.response!.statusCode == 401) {
+        return StateModel.error(
+            "UnAuthorized error");
       } else if (e.type.name == "connectionError") {
         return StateModel.error(
             "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-        // Something happened in setting up or sending the request that triggered an Error
+      }else if(e.response == null) {
+        return StateModel.error(
+            "The server isn't responding! Please try again later.");
       }
 
     }
@@ -81,7 +87,7 @@ class ProfileDataProvider {
       String jsonRequest = jsonEncode(request);
       // print("Request Payload:");
       // print(jsonRequest);
-      print("Response status code: ${response.statusCode}");
+      // print("Response status code: ${response.statusCode}");
       print("Response data: ${response.data}");
       if (response.data != null) {
 
@@ -139,7 +145,7 @@ class ProfileDataProvider {
         } else if (e.response!.statusCode == 408) {
           return StateModel.error("Request timed out. Please try again later.");
         } else if (e.response!.statusCode == 401) {
-          return StateModel.error("Invalid credentials provided");
+          return StateModel.error("UnAuthorized error");
         } else if (e.response!.statusCode == 403) {
           return StateModel.error("Email not verified");
         } else if (e.response!.statusCode == 422) {
@@ -174,15 +180,18 @@ class ProfileDataProvider {
       if (e.response!.statusCode == 500) {
         return StateModel.error(
             "The server isn't responding! Please try again later.");
-        // return response!;
       } else if (e.response!.statusCode == 408) {
         return StateModel.error(
             "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-        // Something happened in setting up or sending the request that triggered an Error
+      } else if (e.response!.statusCode == 401) {
+        return StateModel.error(
+            "UnAuthorized error");
       } else if (e.type.name == "connectionError") {
         return StateModel.error(
             "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-        // Something happened in setting up or sending the request that triggered an Error
+      }else if(e.response == null) {
+        return StateModel.error(
+            "The server isn't responding! Please try again later.");
       }
 
     }

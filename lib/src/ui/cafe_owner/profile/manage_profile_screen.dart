@@ -6,6 +6,7 @@ import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/login/cubit/apple_signin_cubit.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
 import 'package:dicetable/src/ui/cafe_owner/authentication/login/cubit/google_sign_in_cubit.dart';
+import 'package:dicetable/src/utils/data/sign_out.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -27,11 +28,8 @@ class ManageProfileScreen extends StatefulWidget {
 
 class _ManageProfileScreenState extends State<ManageProfileScreen> {
   late TextEditingController _venueNameController = TextEditingController();
-  late TextEditingController _venueDescriptionController =
-      TextEditingController();
+  late TextEditingController _venueDescriptionController = TextEditingController();
   late TextEditingController _emailController = TextEditingController();
-
-  // late TextEditingController _passwordController = TextEditingController();
   late TextEditingController _phoneController = TextEditingController();
   late TextEditingController _addressController = TextEditingController();
   late TextEditingController _postalCodeController = TextEditingController();
@@ -121,6 +119,40 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
       listener: (context, state) async {
         if (state is ProfileViewLoaded) {
           _initializeControllers(); // Reinitialize controllers
+        }
+        if(state is ProfileViewLoaded) {
+          if(state.profileViewResponse.status == false) {
+            if (state.errorMessage!.contains("Unauthorized") ||
+                state.errorMessage!.contains("status code of 401") ) {
+              EasyLoading.dismiss();
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                SignOut().logout(context);
+                Fluttertoast.showToast(
+                  backgroundColor: AppColors.primaryWhiteColor,
+                  textColor: AppColors.appRedColor,
+                  gravity: ToastGravity.BOTTOM,
+                  msg:
+                  "Your session has expired. Please sign in again.",
+                );
+              });
+            }
+          }
+        }
+        if(state is ProfileViewError) {
+          EasyLoading.dismiss();
+          if (state.errorMessage.contains("UnAuthorized") ||
+              state.errorMessage.contains("status code of 401") ) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              SignOut().logout(context);
+              Fluttertoast.showToast(
+                backgroundColor: AppColors.primaryWhiteColor,
+                textColor: AppColors.appRedColor,
+                gravity: ToastGravity.BOTTOM,
+                msg:
+                "Your session has expired. Please sign in again.",
+              );
+            });
+          }
         }
         _venueNameController.text = state.venueName;
         _venueDescriptionController.text = state.venueDescription;
@@ -380,17 +412,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                         const Gap(30),
                         InkWell(
                           onTap: () {
-                            context.read<GoogleSignInCubit>().signOut();
-                            context.read<AppleSignInCubit>().signOut();
-                            ObjectFactory().prefs.setIsLoggedIn(false);
-                            ObjectFactory().prefs.setAuthToken(token: "");
-                            ObjectFactory().prefs.setCafeUserName(
-                              cafeUserName: "",
-                            );
-                            ObjectFactory().prefs.setCafeId(cafeId: '');
-                            ObjectFactory().prefs.setCafeUserId(cafeUserId: '');
-                            ObjectFactory().prefs.getNavigationSource();
-                            context.go('/category');
+                            SignOut().logout(context);
                           },
                           child: ElevatedButtonWidget(
                             height: 70.h,
@@ -632,6 +654,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                                       : base64Image;
                               final decodedBytes = base64Decode(cleanBase64);
                               return Image.memory(
+                                gaplessPlayback: true,
                                 decodedBytes,
                                 fit: BoxFit.cover,
                                 width: 170.r,

@@ -154,10 +154,10 @@ class CafeListBloc extends Bloc<CafeListEvent, CafeListState> {
         } else if (result is ErrorState) {
           final errorMessage = result.error ?? "";
           if (errorMessage.toLowerCase().contains("signup") ||
-              errorMessage.contains("UnAuthorized") ||
+              errorMessage.contains("Unauthorized") ||
               errorMessage.contains("status code of 401") ||
               errorMessage.contains("Unknown error")) {
-            emit(CafeListError(errorMessage: "Please login to proceed."));
+            emit(CafeListError(errorMessage: "Exception caught for UnAuthorized access. Please login again!"));
           } else {
             emit(
               CafeListLoaded(cafeListResponse: currentState.cafeListResponse),

@@ -60,7 +60,6 @@ class _ForgotPasswordOtpScreenState extends State<ForgotPasswordOtpScreen> {
   }
 
   void _startTimer() {
-    // Cancel existing timer before starting new one
     _timer?.cancel();
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {

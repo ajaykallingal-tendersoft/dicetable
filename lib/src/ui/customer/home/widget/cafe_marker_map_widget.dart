@@ -4,6 +4,7 @@ import 'dart:ui' as ui;
 import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/ui/customer/cafe_list/bloc/cafe_list_bloc.dart';
 import 'package:dicetable/src/ui/customer/home/bloc/customer_home_bloc.dart';
+import 'package:dicetable/src/utils/data/sign_out.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -160,12 +161,12 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
                   state.message.contains("Unknown error")) {
 
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  context.go('/customer_login');
+                  SignOut().logout(context);
                   Fluttertoast.showToast(
                     backgroundColor: AppColors.primaryWhiteColor,
-                    textColor: AppColors.appGreenColor,
+                    textColor: AppColors.appRedColor,
                     gravity: ToastGravity.BOTTOM,
-                    msg: "Exception caught for UnAuthorized access. Please login again!",
+                    msg: "Your session has expired. Please sign in again.",
                   );
                 });
               }
@@ -179,6 +180,23 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
               });
             }
             if(state is CafeSearchSuccess) {
+              if(state.response.status == false) {
+                if (state.response.message!.contains("Unauthorized") ||
+                    state.response.message!.contains("status code of 401") ) {
+                  EasyLoading.dismiss();
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    Fluttertoast.showToast(
+                      backgroundColor: AppColors.primaryWhiteColor,
+                      textColor: AppColors.appRedColor,
+                      gravity: ToastGravity.BOTTOM,
+                      msg:
+                      "Your session has expired. Please sign in again.",
+                    );
+                  });
+                }
+              }
+            }
+            if(state is CafeSearchSuccess) {
               if(state.response.cafes!.isEmpty) {
                 Fluttertoast.showToast(
                   backgroundColor: AppColors.primaryWhiteColor,
@@ -188,18 +206,8 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
                 );
               }
 
-            }else if(state is CafeListError) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                context.go('/customer_login');
-                Fluttertoast.showToast(
-                  backgroundColor: AppColors.primaryWhiteColor,
-                  textColor: AppColors.appGreenColor,
-                  gravity: ToastGravity.BOTTOM,
-                  msg:
-                  "Exception caught for UnAuthorized access. Please login again!",
-                );
-              });
             }
+
           },
           builder: (context, state) {
             if (_userLocation == null &&
