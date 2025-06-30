@@ -195,53 +195,38 @@ class _HomePageState extends State<HomePage> {
                   }
                   if (state is HomeError) {
                     EasyLoading.dismiss();
-                    if (state.errorMessage.contains("UnAuthorized") ||
-                        state.errorMessage.contains("status code of 401") ||
-                        state.errorMessage.contains("Unknown error")) {
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
-                        SignOut().logout(context);
-                        Fluttertoast.showToast(
-                          backgroundColor: AppColors.primaryWhiteColor,
-                          textColor: AppColors.appGreenColor,
-                          gravity: ToastGravity.BOTTOM,
-                          msg:
-                          "Your session has expired. Please sign in again.",
-                        );
-                      });
-                    }else {
-                      return SliverFillRemaining(
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.error_outline,
-                                size: 64,
-                                color: Colors.grey[400],
+                    return SliverFillRemaining(
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              size: 64,
+                              color: Colors.grey[400],
+                            ),
+                            const Gap(16),
+                            Text(
+                              'Something went wrong!.}',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 16,
                               ),
-                              const Gap(16),
-                              Text(
-                                'Something went wrong!.}',
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 16,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const Gap(16),
-                              ElevatedButton(
-                                onPressed: () {
-                                  context.read<HomeBloc>().add(
-                                    GetHomeDataEvent(),
-                                  );
-                                },
-                                child: const Text('Retry'),
-                              ),
-                            ],
-                          ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const Gap(16),
+                            ElevatedButton(
+                              onPressed: () {
+                                context.read<HomeBloc>().add(
+                                  GetHomeDataEvent(),
+                                );
+                              },
+                              child: const Text('Retry'),
+                            ),
+                          ],
                         ),
-                      );
-                    }
+                      ),
+                    );
                   }
                   return const SliverToBoxAdapter(child: SizedBox.shrink());
                 },
