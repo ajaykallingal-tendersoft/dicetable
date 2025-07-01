@@ -223,23 +223,23 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                 } else {
                   EasyLoading.dismiss();
                 }
-                if (state is CafeSearchError) {
-                   EasyLoading.dismiss();
-                  if (state.message.contains("Unauthorized") ||
-                      state.message.contains("status code of 401") ||
-                      state.message.contains("Unknown error")) {
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      SignOut().logout(context);
-                      Fluttertoast.showToast(
-                        backgroundColor: AppColors.primaryWhiteColor,
-                        textColor: AppColors.appRedColor,
-                        gravity: ToastGravity.BOTTOM,
-                        msg:
-                        "Your session has expired. Please sign in again.",
-                      );
-                    });
-                  }
-                }
+                // if (state is CafeSearchError) {
+                //    EasyLoading.dismiss();
+                //   if (state.message.contains("Unauthorized") ||
+                //       state.message.contains("status code of 401") ||
+                //       state.message.contains("Unknown error")) {
+                //     WidgetsBinding.instance.addPostFrameCallback((_) {
+                //       SignOut().logout(context);
+                //       Fluttertoast.showToast(
+                //         backgroundColor: AppColors.primaryWhiteColor,
+                //         textColor: AppColors.appRedColor,
+                //         gravity: ToastGravity.BOTTOM,
+                //         msg:
+                //         "Your session has expired. Please sign in again.",
+                //       );
+                //     });
+                //   }
+                // }
               },
               builder: (context, state) {
                 return SliverToBoxAdapter(
