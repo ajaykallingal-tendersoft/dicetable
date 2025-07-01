@@ -249,7 +249,24 @@ class _HomePageState extends State<HomePage> {
                       context.go('/login');
                     }
                   }
-                  if (state is HomeError) {
+                  if (state is HomeLoaded) {
+                    if(state.homeResponse.status == false) {
+                      if(state.homeResponse.message!.contains("Unauthorized")) {
+                        EasyLoading.dismiss();
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          SignOut().logout(context);
+                          Fluttertoast.showToast(
+                            backgroundColor: AppColors.primaryWhiteColor,
+                            textColor: AppColors.appRedColor,
+                            gravity: ToastGravity.BOTTOM,
+                            msg:
+                            "Your session has expired. Please sign in again.",
+                          );
+                        });
+                      }
+                    }
+                  }
+                    if (state is HomeError) {
                     if (state.errorMessage.contains("Unauthorized") ||
                         state.errorMessage.contains("status code of 401") || state.errorMessage.contains("UnAuthorized")
                     ) {
@@ -264,6 +281,13 @@ class _HomePageState extends State<HomePage> {
                           "Your session has expired. Please sign in again.",
                         );
                       });
+                    }else {
+                      Fluttertoast.showToast(
+                        backgroundColor: AppColors.primaryWhiteColor,
+                        textColor: AppColors.appRedColor,
+                        gravity: ToastGravity.BOTTOM,
+                        msg: state.errorMessage,
+                      );
                     }
                   }
                 },

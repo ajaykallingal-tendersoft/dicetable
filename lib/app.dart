@@ -70,9 +70,6 @@ class App extends StatelessWidget {
           create: (context) => CustomerHomeBloc(cafeDataProvider: CafeDataProvider()),
         ),
         BlocProvider(
-          create: (context) => CustomerHomeBloc(cafeDataProvider: CafeDataProvider()),
-        ),
-        BlocProvider(
           create: (context) => ForgotPasswordBloc(authDataProvider: AuthDataProvider()),
         ),
         BlocProvider(

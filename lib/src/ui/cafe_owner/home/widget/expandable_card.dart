@@ -327,6 +327,7 @@ class _ExpandableCardState extends State<ExpandableCard> {
                           EasyLoading.show();
                         }
                         if (state is HomeLoaded) {
+
                           EasyLoading.dismiss();
                           final card = state.cards[widget.index];
                           return AvailableDaysMultiSelectField(

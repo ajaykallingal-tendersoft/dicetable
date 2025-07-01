@@ -17,26 +17,30 @@ final class HomeLoading extends HomeState {
 class HomeLoaded extends HomeState {
   final List<CardModel> cards;
   final dynamic response;
+  final VenueOwnerHomeScreenResponse homeResponse;
   final bool subscriptionStatus;// or use your specific response type
 
   const HomeLoaded({
     required this.cards,
     required this.response,
     required this.subscriptionStatus,
+    required this.homeResponse,
   });
 
   @override
-  List<Object?> get props => [cards, response];
+  List<Object?> get props => [cards, response,homeResponse];
 
   HomeLoaded copyWith({
     List<CardModel>? cards,
     dynamic response,
-    bool? subscriptionStatus
+    bool? subscriptionStatus,
+    VenueOwnerHomeScreenResponse? homeResponse,
   }) {
     return HomeLoaded(
       cards: cards ?? this.cards,
       response: response ?? this.response,
       subscriptionStatus: subscriptionStatus ?? this.subscriptionStatus,
+        homeResponse: homeResponse ?? this.homeResponse,
     );
   }
 }
