@@ -154,7 +154,7 @@ class _CafeListScreenState extends State<CafeListScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "DICE TABLE",
+                            "SOLO SEATERS",
                             style: TextTheme.of(context).labelMedium!.copyWith(
                               color: AppColors.primaryWhiteColor,
                               fontWeight: FontWeight.bold,

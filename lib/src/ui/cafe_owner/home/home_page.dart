@@ -88,7 +88,7 @@ class _HomePageState extends State<HomePage> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  "DICE TABLE",
+                                  "SOLO SEATERS",
                                   style: TextTheme.of(
                                     context,
                                   ).labelMedium!.copyWith(
@@ -193,41 +193,41 @@ class _HomePageState extends State<HomePage> {
                       ),
                     );
                   }
-                  if (state is HomeError) {
-                    EasyLoading.dismiss();
-                    return SliverFillRemaining(
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.error_outline,
-                              size: 64,
-                              color: Colors.grey[400],
-                            ),
-                            const Gap(16),
-                            Text(
-                              'Something went wrong!.}',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 16,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const Gap(16),
-                            ElevatedButton(
-                              onPressed: () {
-                                context.read<HomeBloc>().add(
-                                  GetHomeDataEvent(),
-                                );
-                              },
-                              child: const Text('Retry'),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }
+                  // if (state is HomeError) {
+                  //   EasyLoading.dismiss();
+                  //   return SliverFillRemaining(
+                  //     child: Center(
+                  //       child: Column(
+                  //         mainAxisAlignment: MainAxisAlignment.center,
+                  //         children: [
+                  //           Icon(
+                  //             Icons.error_outline,
+                  //             size: 64,
+                  //             color: Colors.grey[400],
+                  //           ),
+                  //           const Gap(16),
+                  //           Text(
+                  //             'Something went wrong!.}',
+                  //             style: TextStyle(
+                  //               color: Colors.grey[600],
+                  //               fontSize: 16,
+                  //             ),
+                  //             textAlign: TextAlign.center,
+                  //           ),
+                  //           const Gap(16),
+                  //           ElevatedButton(
+                  //             onPressed: () {
+                  //               context.read<HomeBloc>().add(
+                  //                 GetHomeDataEvent(),
+                  //               );
+                  //             },
+                  //             child: const Text('Retry'),
+                  //           ),
+                  //         ],
+                  //       ),
+                  //     ),
+                  //   );
+                  // }
                   return const SliverToBoxAdapter(child: SizedBox.shrink());
                 },
                 listener: (BuildContext context, HomeState state) {
@@ -238,6 +238,7 @@ class _HomePageState extends State<HomePage> {
                     EasyLoading.show();
                   }
                   if (state is HomeLoaded) {
+                    EasyLoading.dismiss();
                     if (state.subscriptionStatus == false) {
                       Fluttertoast.showToast(
                         backgroundColor: AppColors.primaryWhiteColor,
@@ -249,15 +250,15 @@ class _HomePageState extends State<HomePage> {
                     }
                   }
                   if (state is HomeError) {
-                    if (state.errorMessage.contains("UnAuthorized") ||
-                        state.errorMessage.contains("status code of 401") ||
-                        state.errorMessage.contains("Unknown error")) {
+                    if (state.errorMessage.contains("Unauthorized") ||
+                        state.errorMessage.contains("status code of 401") || state.errorMessage.contains("UnAuthorized")
+                    ) {
                       EasyLoading.dismiss();
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         SignOut().logout(context);
                         Fluttertoast.showToast(
                           backgroundColor: AppColors.primaryWhiteColor,
-                          textColor: AppColors.appGreenColor,
+                          textColor: AppColors.appRedColor,
                           gravity: ToastGravity.BOTTOM,
                           msg:
                           "Your session has expired. Please sign in again.",

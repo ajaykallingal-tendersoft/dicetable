@@ -18,7 +18,7 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 
     <application
-        android:label="dicetable"
+        android:label="Solo Seaters"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity
@@ -51,15 +51,6 @@
             android:name="flutterEmbedding"
             android:value="2" />
 
-<!--        <meta-data-->
-<!--            android:name="com.google.firebase.messaging.default_notification_icon"-->
-<!--            android:resource="@drawable/ic_stat_ic_notification" />-->
-<!--        <meta-data-->
-<!--            android:name="com.google.firebase.messaging.default_notification_color"-->
-<!--            android:resource="@color/colorAccent" />-->
-<!--        <meta-data-->
-<!--            android:name="com.google.firebase.messaging.default_notification_channel_id"-->
-<!--            android:value="dice_table" />-->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyC7dfhEYKfiuzmjTy5qcVdUvsYdA8FjRZ8" />

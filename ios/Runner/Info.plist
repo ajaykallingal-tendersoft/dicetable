@@ -7,7 +7,7 @@
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>CFBundleDisplayName</key>
-		<string>Dicetable</string>
+		<string>Solo Seaters</string>
 		<key>CFBundleExecutable</key>
 		<string>$(EXECUTABLE_NAME)</string>
 		<key>CFBundleIdentifier</key>
@@ -15,7 +15,7 @@
 		<key>CFBundleInfoDictionaryVersion</key>
 		<string>6.0</string>
 		<key>CFBundleName</key>
-		<string>dicetable</string>
+		<string>Solo Seaters</string>
 		<key>CFBundlePackageType</key>
 		<string>APPL</string>
 		<key>CFBundleShortVersionString</key>
@@ -41,17 +41,17 @@
 		<key>LSRequiresIPhoneOS</key>
 		<true/>
 		<key>NSCameraUsageDescription</key>
-		<string>Dice table app needs access to your camera to allow photo uploads and profile pictures.</string>
+		<string>Solo Seaters app needs access to your camera to allow photo uploads and profile pictures.</string>
 		<key>NSLocationWhenInUseUsageDescription</key>
-		<string>Dice table app need your location while updating your profile to list the venues based on your location.</string>
+		<string>Solo Seaters app need your location while updating your profile to list the venues based on your location.</string>
 		<key>NSPhotoLibraryUsageDescription</key>
-		<string>Dice table app requires access to your photo library to select images for uploading and profile photos.</string>
+		<string>Solo Seaters app requires access to your photo library to select images for uploading and profile photos.</string>
 		<key>NSLocationWhenInUseUsageDescription</key>
-		<string>Dice table app need your location to show nearby results.</string>
+		<string>Solo Seaters app need your location to show nearby results.</string>
 		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-		<string>Dice table app use your location to enhance your experience.</string>
+		<string>Solo Seaters app use your location to enhance your experience.</string>
 		<key>NSLocationAlwaysUsageDescription</key>
-		<string>Dice table app needs background location access.</string>
+		<string>Solo Seaters app needs background location access.</string>
 		<key>UIApplicationSupportsIndirectInputEvents</key>
 		<true/>
 		<key>UIBackgroundModes</key>
@@ -67,7 +67,7 @@
 			<true/>
 		</dict>
 		<key>NSUserNotificationUsageDescription</key>
-		<string>Dicetable app uses notifications to keep you updated.</string>
+		<string>Solo Seaters app uses notifications to keep you updated.</string>
 		<key>UIBackgroundModes</key>
 		<array>
 			<string>fetch</string>

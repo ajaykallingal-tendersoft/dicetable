@@ -125,7 +125,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "DICE TABLE",
+                              "SOLO SEATERS",
                               style: TextTheme.of(
                                 context,
                               ).labelMedium!.copyWith(

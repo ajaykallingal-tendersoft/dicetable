@@ -256,7 +256,7 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                             style: TextTheme.of(context).bodyMedium!.copyWith(
                               color: AppColors.primaryWhiteColor,
                               fontWeight: FontWeight.w600,
-                              fontSize: 11.sp,
+                              fontSize: 10.sp,
                             ),
                           ),
                         ),
@@ -271,7 +271,7 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                             style: TextTheme.of(context).bodyMedium!.copyWith(
                               color: AppColors.discountTextColor,
                               fontWeight: FontWeight.w600,
-                              fontSize: 11.sp,
+                              fontSize: 10.sp,
                             ),
                           ),
                         ),
