@@ -3,7 +3,6 @@ import 'package:dicetable/src/common/elevated_button_widget.dart';
 import 'package:dicetable/src/constants/app_colors.dart';
 import 'package:dicetable/src/model/cafe_owner/auth/forgot_password/resend_otp_request.dart';
 import 'package:dicetable/src/model/verification/otp_verify_request.dart';
-import 'package:dicetable/src/resources/api_providers/auth/auth_data_provider.dart';
 import 'package:dicetable/src/ui/verification/bloc/verification_bloc.dart';
 import 'package:dicetable/src/ui/verification/verify_screen_argument.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';

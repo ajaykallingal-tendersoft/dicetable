@@ -4,6 +4,7 @@ import 'package:dicetable/src/ui/cafe_owner/home/bloc/home_bloc.dart';
 import 'package:dicetable/src/ui/cafe_owner/notification/bloc/notification_bloc.dart';
 import 'package:dicetable/src/ui/cafe_owner/notification/count_controller.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
+import 'package:dicetable/src/utils/data/sign_out.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -31,7 +32,6 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     context.read<HomeBloc>().add(GetHomeDataEvent());
-    // Fetch notifications
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<NotificationBloc>().add(FetchNotifications());
     });
@@ -60,11 +60,6 @@ class _HomePageState extends State<HomePage> {
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
-            // CupertinoSliverRefreshControl(
-            //   onRefresh: () async {
-            //     context.read<HomeBloc>().add(GetHomeDataEvent());
-            //   },
-            // ),
             SliverPadding(
               padding: EdgeInsets.symmetric(horizontal: 20.h, vertical: 10.h),
               sliver: SliverAppBar(
@@ -93,7 +88,7 @@ class _HomePageState extends State<HomePage> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  "DICE TABLE",
+                                  "SOLO SEATERS",
                                   style: TextTheme.of(
                                     context,
                                   ).labelMedium!.copyWith(
@@ -180,7 +175,6 @@ class _HomePageState extends State<HomePage> {
                 builder: (context, state) {
                   if (state is HomeLoaded) {
                     EasyLoading.dismiss();
-
                     return AnimationLimiter(
                       child: SliverList(
                         delegate: SliverChildBuilderDelegate((context, index) {
@@ -198,48 +192,53 @@ class _HomePageState extends State<HomePage> {
                         }, childCount: state.cards.length),
                       ),
                     );
-                  } else if (state is HomeLoading) {
-                    EasyLoading.show();
                   }
-                  if (state is HomeError) {
-                    EasyLoading.dismiss();
-                    return SliverFillRemaining(
-                      child: Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.error_outline,
-                              size: 64,
-                              color: Colors.grey[400],
-                            ),
-                            const Gap(16),
-                            Text(
-                              'Error: ${state.errorMessage}',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 16,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            const Gap(16),
-                            ElevatedButton(
-                              onPressed: () {
-                                context.read<HomeBloc>().add(
-                                  GetHomeDataEvent(),
-                                );
-                              },
-                              child: const Text('Retry'),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }
+                  // if (state is HomeError) {
+                  //   EasyLoading.dismiss();
+                  //   return SliverFillRemaining(
+                  //     child: Center(
+                  //       child: Column(
+                  //         mainAxisAlignment: MainAxisAlignment.center,
+                  //         children: [
+                  //           Icon(
+                  //             Icons.error_outline,
+                  //             size: 64,
+                  //             color: Colors.grey[400],
+                  //           ),
+                  //           const Gap(16),
+                  //           Text(
+                  //             'Something went wrong!.}',
+                  //             style: TextStyle(
+                  //               color: Colors.grey[600],
+                  //               fontSize: 16,
+                  //             ),
+                  //             textAlign: TextAlign.center,
+                  //           ),
+                  //           const Gap(16),
+                  //           ElevatedButton(
+                  //             onPressed: () {
+                  //               context.read<HomeBloc>().add(
+                  //                 GetHomeDataEvent(),
+                  //               );
+                  //             },
+                  //             child: const Text('Retry'),
+                  //           ),
+                  //         ],
+                  //       ),
+                  //     ),
+                  //   );
+                  // }
                   return const SliverToBoxAdapter(child: SizedBox.shrink());
                 },
                 listener: (BuildContext context, HomeState state) {
+                  if (state is HomeLoading) {
+                    EasyLoading.show();
+                  }
+                  if(state is DiceTableUpdateLoading) {
+                    EasyLoading.show();
+                  }
                   if (state is HomeLoaded) {
+                    EasyLoading.dismiss();
                     if (state.subscriptionStatus == false) {
                       Fluttertoast.showToast(
                         backgroundColor: AppColors.primaryWhiteColor,
@@ -250,21 +249,45 @@ class _HomePageState extends State<HomePage> {
                       context.go('/login');
                     }
                   }
-                  if (state is HomeError) {
-                    EasyLoading.dismiss();
-                    if (state.errorMessage.contains("UnAuthorized") ||
-                        state.errorMessage.contains("status code of 401") ||
-                        state.errorMessage.contains("Unknown error")) {
+                  if (state is HomeLoaded) {
+                    if(state.homeResponse.status == false) {
+                      if(state.homeResponse.message!.contains("Unauthorized")) {
+                        EasyLoading.dismiss();
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          SignOut().logout(context);
+                          Fluttertoast.showToast(
+                            backgroundColor: AppColors.primaryWhiteColor,
+                            textColor: AppColors.appRedColor,
+                            gravity: ToastGravity.BOTTOM,
+                            msg:
+                            "Your session has expired. Please sign in again.",
+                          );
+                        });
+                      }
+                    }
+                  }
+                    if (state is HomeError) {
+                    if (state.errorMessage.contains("Unauthorized") ||
+                        state.errorMessage.contains("status code of 401") || state.errorMessage.contains("UnAuthorized")
+                    ) {
+                      EasyLoading.dismiss();
                       WidgetsBinding.instance.addPostFrameCallback((_) {
-                        context.go('/login');
+                        SignOut().logout(context);
                         Fluttertoast.showToast(
                           backgroundColor: AppColors.primaryWhiteColor,
-                          textColor: AppColors.appGreenColor,
+                          textColor: AppColors.appRedColor,
                           gravity: ToastGravity.BOTTOM,
                           msg:
-                              "Exception caught for UnAuthorized access. Please login again!",
+                          "Your session has expired. Please sign in again.",
                         );
                       });
+                    }else {
+                      Fluttertoast.showToast(
+                        backgroundColor: AppColors.primaryWhiteColor,
+                        textColor: AppColors.appRedColor,
+                        gravity: ToastGravity.BOTTOM,
+                        msg: state.errorMessage,
+                      );
                     }
                   }
                 },

@@ -5,6 +5,7 @@ import 'package:dicetable/src/ui/customer/home/widget/cafe_marker_map_widget.dar
 import 'package:dicetable/src/ui/customer/home/widget/cafe_search_bar.dart';
 import 'package:dicetable/src/ui/customer/home/widget/filter_bottom_sheet.dart';
 import 'package:dicetable/src/utils/data/object_factory.dart';
+import 'package:dicetable/src/utils/data/sign_out.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -35,17 +36,11 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
   @override
   void initState() {
     super.initState();
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   context.read<CustomerHomeBloc>().add(
-    //     FetchLocationEvent(context: context),
-    //   );
-    // });
+
     latitude = ObjectFactory().prefs.getLatitude().toString();
     longitude = ObjectFactory().prefs.getLongitude().toString();
     _performSearch();
-    // WidgetsBinding.instance.addPostFrameCallback((_) {
-    //   context.read<CustomerHomeBloc>().add(FetchLocationEvent(context: context));
-    // });
+
   }
 
   void _performSearch() {
@@ -130,7 +125,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "DICE TABLE",
+                              "SOLO SEATERS",
                               style: TextTheme.of(
                                 context,
                               ).labelMedium!.copyWith(
@@ -228,23 +223,23 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                 } else {
                   EasyLoading.dismiss();
                 }
-                if (state is CafeSearchError) {
-                   EasyLoading.dismiss();
-                  if (state.message.contains("UnAuthorized") ||
-                      state.message.contains("status code of 401") ||
-                      state.message.contains("Unknown error")) {
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      context.go('/customer_login');
-                      Fluttertoast.showToast(
-                        backgroundColor: AppColors.primaryWhiteColor,
-                        textColor: AppColors.appGreenColor,
-                        gravity: ToastGravity.BOTTOM,
-                        msg:
-                            "Exception caught for UnAuthorized access. Please login again!",
-                      );
-                    });
-                  }
-                }
+                // if (state is CafeSearchError) {
+                //    EasyLoading.dismiss();
+                //   if (state.message.contains("Unauthorized") ||
+                //       state.message.contains("status code of 401") ||
+                //       state.message.contains("Unknown error")) {
+                //     WidgetsBinding.instance.addPostFrameCallback((_) {
+                //       SignOut().logout(context);
+                //       Fluttertoast.showToast(
+                //         backgroundColor: AppColors.primaryWhiteColor,
+                //         textColor: AppColors.appRedColor,
+                //         gravity: ToastGravity.BOTTOM,
+                //         msg:
+                //         "Your session has expired. Please sign in again.",
+                //       );
+                //     });
+                //   }
+                // }
               },
               builder: (context, state) {
                 return SliverToBoxAdapter(

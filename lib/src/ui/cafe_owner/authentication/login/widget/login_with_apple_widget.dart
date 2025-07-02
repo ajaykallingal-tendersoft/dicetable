@@ -13,7 +13,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 
 class LoginWithAppleWidget extends StatelessWidget {
-  // final VoidCallback onSuccess;
 
   const LoginWithAppleWidget({super.key});
 
@@ -24,7 +23,6 @@ class LoginWithAppleWidget extends StatelessWidget {
     return BlocConsumer<AppleSignInCubit, AppleSignInState>(
       listener: (context, state) {
         if (state is AppleSignInLoaded) {
-          print("IdentityToken: ${state.identityToken}");
           if (userCategory == 'PUBLIC_USER') {
             BlocProvider.of<CustomerLoginBloc>(context).add(
               CustomerAppleLoginEvent(

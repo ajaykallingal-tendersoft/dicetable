@@ -434,9 +434,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                                                 ),
                                                                 id: null,
                                                               );
-                                                          debugPrint(
-                                                            'Passing to ProfileOpeningHoursWidget for $day: $openingHourData',
-                                                          );
                                                           return ProfileOpeningHoursWidget(
                                                             key: ValueKey(
                                                               '${day}_${openingHourData.isEnabled}_${openingHourData.from}_${openingHourData.to}_${openingHourData.id}',
@@ -625,12 +622,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 final photoChanged = prevPhoto != currPhoto;
                 final blobChanged = prevBlob != currBlob;
 
-                if (imageChanged || photoChanged || blobChanged) {
-                  debugPrint('Profile image rebuild triggered:');
-                  debugPrint('  Image changed: $imageChanged');
-                  debugPrint('  Photo changed: $photoChanged');
-                  debugPrint('  Blob changed: $blobChanged');
-                }
+                // if (imageChanged || photoChanged || blobChanged) {
+                //   debugPrint('Profile image rebuild triggered:');
+                //   debugPrint('  Image changed: $imageChanged');
+                //   debugPrint('  Photo changed: $photoChanged');
+                //   debugPrint('  Blob changed: $blobChanged');
+                // }
 
                 return imageChanged || photoChanged || blobChanged;
               },
@@ -784,7 +781,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
         );
       } catch (e) {
-        debugPrint('Invalid base64 image: $e');
+        // debugPrint('Invalid base64 image: $e');
         return Image.asset(
           'assets/png/profile-img.png',
           fit: BoxFit.cover,

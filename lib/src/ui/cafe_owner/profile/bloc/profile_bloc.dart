@@ -51,60 +51,6 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       emit(state.copyWith(openingHours: updatedHours));
     });
 
-    // on<PickImageFromGalleryEvent>((event, emit) async {
-    //   emit(ProfileImageLoadingState.fromState(state));
-    //
-    //   final permissionStatus = await Permission.photos.request();
-    //
-    //   if (permissionStatus.isDenied || permissionStatus.isPermanentlyDenied) {
-    //     emit(ProfileImagePermissionDeniedState.fromState(
-    //       state,
-    //       isPermanentlyDenied: permissionStatus.isPermanentlyDenied,
-    //       errorMessage: permissionStatus.isPermanentlyDenied
-    //           ? "Photo permission is permanently denied. Please enable it from settings to upload images."
-    //           : "Photo permission is required to upload images.",
-    //     ));
-    //     return;
-    //   }
-    //
-    //   try {
-    //     final pickedImage = await _picker.pickImage(source: ImageSource.gallery);
-    //     if (pickedImage == null) {
-    //       emit(ProfileImageErrorState.fromState(state));
-    //       return;
-    //     }
-    //
-    //     final file = File(pickedImage.path);
-    //     final fileSize = file.lengthSync();
-    //     final fileName = pickedImage.name.toLowerCase();
-    //
-    //     final isValidFormat = fileName.endsWith('.png') ||
-    //         fileName.endsWith('.jpg') ||
-    //         fileName.endsWith('.jpeg');
-    //
-    //     if (!isValidFormat) {
-    //       emit(ProfileImageErrorState.fromState(state, errorMessage: "Only JPEG or PNG images are allowed."));
-    //       return;
-    //     }
-    //
-    //     if (fileSize > 5 * 1024 * 1024) {
-    //       emit(ProfileImageErrorState.fromState(state, errorMessage: "Image size must be under 5MB."));
-    //       return;
-    //     }
-    //
-    //     final bytes = await file.readAsBytes();
-    //     final base64Image = base64Encode(bytes);
-    //     base64Encoded = "data:image/png;base64,$base64Image";
-    //     emit(ProfileImageLoadedState.fromState(
-    //       state,
-    //       image: pickedImage,
-    //       blob: base64Encoded,
-    //       originalName: pickedImage.name,
-    //     ));
-    //   } catch (e) {
-    //     emit(ProfileImageErrorState.fromState(state, errorMessage: "Failed to pick image: $e"));
-    //   }
-    // });
     on<PickImageFromGalleryEvent>((event, emit) async {
       Future<bool> isAndroid13OrHigher() async {
         if (!Platform.isAndroid) return false;

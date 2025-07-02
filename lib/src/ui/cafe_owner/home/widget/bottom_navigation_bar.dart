@@ -81,6 +81,8 @@ class BottomNavigationAppBarState extends State<BottomNavigationAppBar> {
         child: Material(
           type: MaterialType.transparency,
           child: InkWell(
+            splashFactory: NoSplash.splashFactory,
+            splashColor: Colors.transparent,
             onTap: () => onPressed(index),
             child: Column(
               mainAxisSize: MainAxisSize.min,

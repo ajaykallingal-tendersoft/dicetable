@@ -86,45 +86,31 @@ class AppleSignInCubit extends Cubit<AppleSignInState> {
             identityToken = utf8.decode(identityTokenBytes.toList());
           }
 
-          // Check if Apple provided user data (first time sign in)
           if (appleIdCredential.fullName?.givenName != null ||
               appleIdCredential.email != null) {
-            // First time sign in - Apple provides the data
             displayName = appleIdCredential.fullName?.givenName;
             userMail = appleIdCredential.email;
 
-            print('First time sign in - storing user data');
-            print('NAMEFROMAPPLE: $displayName');
-            print('MailFROMAPPLE: $userMail');
-
-            // Store the data locally for future use
             await _storeAppleUserData(
               userId: firebaseUser.uid,
               displayName: displayName,
               email: userMail,
             );
 
-            // Update Firebase user display name if provided
             if (displayName != null) {
               await firebaseUser.updateDisplayName(displayName);
             }
           } else {
-            // Subsequent sign in - Apple doesn't provide data, use stored data
-            print('Subsequent sign in - retrieving stored data');
             final storedData = await _getStoredAppleUserData();
 
             if (storedData != null) {
               displayName = storedData['displayName'];
               userMail = storedData['email'];
-              print('Retrieved stored NAMEFROMAPPLE: $displayName');
-              print('Retrieved stored MailFROMAPPLE: $userMail');
             } else {
               // Fallback to Firebase user data if available
               displayName = firebaseUser.displayName;
               userMail = firebaseUser.email;
-              print(
-                'Using Firebase user data - Name: $displayName, Email: $userMail',
-              );
+
             }
           }
 

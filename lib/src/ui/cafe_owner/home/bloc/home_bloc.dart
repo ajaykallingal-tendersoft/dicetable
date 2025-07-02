@@ -84,19 +84,27 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     emit(HomeLoading());
     try {
       final response = await homeDataProvider.getVenueOwnerHomeData();
-      if (response != null  && response.data.status == true && response.data.diceTables != null) {
+      final StateModel? stateModel = response;
+      if (response != null && response.data != null && response.data.status == true && response.data.diceTables != null) {
         final List<CardModel> cards = response.data.diceTables!
             .map<CardModel>((diceTable) => CardModel.fromDiceTable(diceTable))
             .toList();
         final bool subscriptionStatus = response.data.subscriptionStatus;
 
-        emit(HomeLoaded(cards: cards, response: response, subscriptionStatus: subscriptionStatus));
+        emit(HomeLoaded(
+          cards: cards,
+          response: response,
+          subscriptionStatus: subscriptionStatus,
+          homeResponse: response.data,
+        ));
       } else {
-        emit(HomeError(errorMessage: response?.data.message ?? 'Unknown error'));
+        if (stateModel is ErrorState) {
+          emit(HomeError(errorMessage: stateModel.msg));
+        } else {
+          emit(HomeError(errorMessage: response?.data == null ? 'Response data is null' : 'Invalid response or no data available'));
+        }
       }
     } catch (e, stackTrace) {
-      print('HomeBloc Error: $e');
-      print('StackTrace: $stackTrace');
       emit(HomeError(errorMessage: e.toString()));
     }
   }

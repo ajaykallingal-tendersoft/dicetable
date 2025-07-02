@@ -5,6 +5,7 @@ import 'package:dicetable/src/ui/cafe_owner/notification/count_controller.dart';
 import 'package:dicetable/src/ui/customer/cafe_list/bloc/cafe_list_bloc.dart';
 import 'package:dicetable/src/ui/customer/cafe_list/widget/cafe_list_container_widget.dart';
 import 'package:dicetable/src/ui/customer/cafe_list/widget/cafe_list_filter.dart';
+import 'package:dicetable/src/utils/data/sign_out.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -34,9 +35,6 @@ class _CafeListScreenState extends State<CafeListScreen> {
   @override
   void initState() {
     super.initState();
-    print("Latitude::${ObjectFactory().prefs.getLatitude().toString()}");
-    print("Latitude::${ObjectFactory().prefs.getLongitude().toString()}");
-
     latitude = ObjectFactory().prefs.getLatitude().toString();
     longitude = ObjectFactory().prefs.getLongitude().toString();
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -70,7 +68,8 @@ class _CafeListScreenState extends State<CafeListScreen> {
       context.read<CafeListBloc>().add(
         GetCafeListEvent(
           cafeListRequest: CafeListRequest(
-            latitude: 0.0, // Fallback value
+            latitude: 0.0,
+            // Fallback value
             longitude: 0.0,
             diceTableFilter: [],
             accommodationsFilter: [],
@@ -81,7 +80,6 @@ class _CafeListScreenState extends State<CafeListScreen> {
           ),
         ),
       );
-
       Fluttertoast.showToast(
         msg: "Location data unavailable. Using default location.",
         toastLength: Toast.LENGTH_LONG,
@@ -156,7 +154,7 @@ class _CafeListScreenState extends State<CafeListScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "DICE TABLE",
+                            "SOLO SEATERS",
                             style: TextTheme.of(context).labelMedium!.copyWith(
                               color: AppColors.primaryWhiteColor,
                               fontWeight: FontWeight.bold,
@@ -264,35 +262,37 @@ class _CafeListScreenState extends State<CafeListScreen> {
               sliver: SliverToBoxAdapter(
                 child: BlocConsumer<CafeListBloc, CafeListState>(
                   listener: (context, state) {
-                    // if (state is CafeListLoaded) {
-                    //   if (state.cafeListResponse.status == false ||
-                    //       state.cafeListResponse.message!.contains("signup") ||
-                    //       state.cafeListResponse.message ==
-                    //           "Please signup to proceed.") {
-                    //     Fluttertoast.showToast(
-                    //       msg: "Please signup to proceed.",
-                    //       backgroundColor: AppColors.appRedColor,
-                    //       textColor: AppColors.primaryWhiteColor,
-                    //       gravity: ToastGravity.BOTTOM,
-                    //     );
-                    //     Future.delayed(Duration.zero, () {
-                    //       context.push('/login');
-                    //     });
-                    //   }
-                    // }
+                    if (state is CafeListLoaded) {
+                      if (state.cafeListResponse.status == false) {
+                        if (state.cafeListResponse.message!.contains(
+                          "Unauthorized access",
+                        )) {
+                          EasyLoading.dismiss();
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            SignOut().logout(context);
+                            Fluttertoast.showToast(
+                              backgroundColor: AppColors.primaryWhiteColor,
+                              textColor: AppColors.appRedColor,
+                              gravity: ToastGravity.BOTTOM,
+                              msg:
+                              "Your session has expired. Please sign in again.",
+                            );
+                          });
+                        }
+                      }
+                    }
                     if (state is CafeListError) {
-                      EasyLoading.dismiss();
                       if (state.errorMessage.contains("UnAuthorized") ||
-                          state.errorMessage.contains("status code of 401") ||
-                          state.errorMessage.contains("Unknown error")) {
+                          state.errorMessage.contains("status code of 401")) {
+                        EasyLoading.dismiss();
                         WidgetsBinding.instance.addPostFrameCallback((_) {
-                          context.go('/customer_login');
+                          SignOut().logout(context);
                           Fluttertoast.showToast(
                             backgroundColor: AppColors.primaryWhiteColor,
-                            textColor: AppColors.appGreenColor,
+                            textColor: AppColors.appRedColor,
                             gravity: ToastGravity.BOTTOM,
                             msg:
-                                "Exception caught for UnAuthorized access. Please login again!",
+                            "Your session has expired. Please sign in again.",
                           );
                         });
                       }

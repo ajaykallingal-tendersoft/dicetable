@@ -25,15 +25,19 @@ class HomeDataProvider {
       if (e.response!.statusCode == 500) {
         return StateModel.error(
             "The server isn't responding! Please try again later.");
-        // return response!;
       } else if (e.response!.statusCode == 408) {
         return StateModel.error(
             "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-        // Something happened in setting up or sending the request that triggered an Error
-      } else if (e.type.name == "connectionError") {
+      } else if (e.response!.statusCode == 401) {
+        return StateModel.error(
+            "UnAuthorized error");
+      }else if(e.response == null) {
+        return StateModel.error(
+            "The server isn't responding! Please try again later.");
+      }
+      else if (e.type.name == "connectionError") {
         return StateModel.error(
             "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-        // Something happened in setting up or sending the request that triggered an Error
       }
 
     }
@@ -44,9 +48,9 @@ class HomeDataProvider {
       final response =
       await ObjectFactory().apiClient.updateDiceTableType(diceTableUpdateRequest);
       print(response.toString());
-      String jsonRequest = jsonEncode(diceTableUpdateRequest);
-      print("Request Payload:");
-      print(jsonRequest);
+      // String jsonRequest = jsonEncode(diceTableUpdateRequest);
+      // print("Request Payload:");
+      // print(jsonRequest);
       if (response.statusCode == 200) {
         return StateModel<DiceTableTypeUpdateResponse>.success(
             DiceTableTypeUpdateResponse.fromJson(response.data));
@@ -57,15 +61,18 @@ class HomeDataProvider {
       if (e.response!.statusCode == 500) {
         return StateModel.error(
             "The server isn't responding! Please try again later.");
-        // return response!;
       } else if (e.response!.statusCode == 408) {
         return StateModel.error(
             "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-        // Something happened in setting up or sending the request that triggered an Error
+      } else if (e.response!.statusCode == 401) {
+        return StateModel.error(
+            "UnAuthorized error");
       } else if (e.type.name == "connectionError") {
         return StateModel.error(
             "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-        // Something happened in setting up or sending the request that triggered an Error
+      }else if(e.response == null) {
+        return StateModel.error(
+            "The server isn't responding! Please try again later.");
       }
 
     }
