@@ -1,7 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:dicetable/src/constants/app_colors.dart';
-import 'package:dicetable/src/model/customer/cafe/cafe_list_response.dart';
-import 'package:dicetable/src/ui/customer/cafe_list/components/cafe_details_arguments.dart';
+import 'package:soloseaters/src/constants/app_colors.dart';
+import 'package:soloseaters/src/model/customer/cafe/cafe_list_response.dart';
+import 'package:soloseaters/src/ui/customer/cafe_list/components/cafe_details_arguments.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';

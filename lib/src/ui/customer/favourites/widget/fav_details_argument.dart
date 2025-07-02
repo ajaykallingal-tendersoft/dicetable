@@ -1,4 +1,4 @@
-import 'package:dicetable/src/model/customer/cafe/favourite_list_response.dart';
+import 'package:soloseaters/src/model/customer/cafe/favourite_list_response.dart';
 
 class FavDetailsArguments {
   final String from;

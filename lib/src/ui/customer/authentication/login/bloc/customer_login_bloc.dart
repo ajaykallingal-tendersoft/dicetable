@@ -1,13 +1,13 @@
 import 'package:bloc/bloc.dart';
-import 'package:dicetable/src/model/cafe_owner/auth/login/apple_login_request.dart';
-import 'package:dicetable/src/model/cafe_owner/auth/login/apple_login_request_response.dart';
-import 'package:dicetable/src/model/cafe_owner/auth/login/login_request.dart';
-import 'package:dicetable/src/model/cafe_owner/auth/login/login_request_response.dart';
-import 'package:dicetable/src/model/customer/guest/guest_signin_response.dart';
-import 'package:dicetable/src/model/customer/guest/guest_user_request.dart';
-import 'package:dicetable/src/resources/api_providers/auth/auth_data_provider.dart';
-import 'package:dicetable/src/utils/data/object_factory.dart';
-import 'package:dicetable/src/utils/extension/state_model_extension.dart';
+import 'package:soloseaters/src/model/cafe_owner/auth/login/apple_login_request.dart';
+import 'package:soloseaters/src/model/cafe_owner/auth/login/apple_login_request_response.dart';
+import 'package:soloseaters/src/model/cafe_owner/auth/login/login_request.dart';
+import 'package:soloseaters/src/model/cafe_owner/auth/login/login_request_response.dart';
+import 'package:soloseaters/src/model/customer/guest/guest_signin_response.dart';
+import 'package:soloseaters/src/model/customer/guest/guest_user_request.dart';
+import 'package:soloseaters/src/resources/api_providers/auth/auth_data_provider.dart';
+import 'package:soloseaters/src/utils/data/object_factory.dart';
+import 'package:soloseaters/src/utils/extension/state_model_extension.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../../model/cafe_owner/auth/login/google_login_request.dart';

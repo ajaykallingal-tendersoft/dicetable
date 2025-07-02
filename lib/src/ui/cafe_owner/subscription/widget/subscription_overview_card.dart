@@ -1,6 +1,6 @@
-import 'package:dicetable/src/constants/app_colors.dart';
-import 'package:dicetable/src/model/cafe_owner/subscription/subscription_overview_response.dart';
-import 'package:dicetable/src/ui/cafe_owner/authentication/sign_up/widget/custom_switch.dart';
+import 'package:soloseaters/src/constants/app_colors.dart';
+import 'package:soloseaters/src/model/cafe_owner/subscription/subscription_overview_response.dart';
+import 'package:soloseaters/src/ui/cafe_owner/authentication/sign_up/widget/custom_switch.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';

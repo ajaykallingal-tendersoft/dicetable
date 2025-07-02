@@ -1,16 +1,16 @@
 import 'dart:convert';
 
-import 'package:dicetable/src/model/customer/cafe/add_favourite_request.dart';
-import 'package:dicetable/src/model/customer/cafe/cafe_list_request.dart';
-import 'package:dicetable/src/model/customer/cafe/cafe_list_response.dart';
-import 'package:dicetable/src/model/customer/cafe/cafe_search_request.dart';
-import 'package:dicetable/src/model/customer/cafe/cafe_search_response.dart';
-import 'package:dicetable/src/model/customer/cafe/favourite_list_response.dart';
-import 'package:dicetable/src/model/customer/cafe/remove_favourite_request.dart';
-import 'package:dicetable/src/model/state_model.dart';
-import 'package:dicetable/src/utils/data/object_factory.dart';
+import 'package:soloseaters/src/model/customer/cafe/add_favourite_request.dart';
+import 'package:soloseaters/src/model/customer/cafe/cafe_list_request.dart';
+import 'package:soloseaters/src/model/customer/cafe/cafe_list_response.dart';
+import 'package:soloseaters/src/model/customer/cafe/cafe_search_request.dart';
+import 'package:soloseaters/src/model/customer/cafe/cafe_search_response.dart';
+import 'package:soloseaters/src/model/customer/cafe/favourite_list_response.dart';
+import 'package:soloseaters/src/model/customer/cafe/remove_favourite_request.dart';
+import 'package:soloseaters/src/model/state_model.dart';
+import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:dio/dio.dart';
-import 'package:dicetable/src/model/customer/cafe/get_filter_options_response.dart';
+import 'package:soloseaters/src/model/customer/cafe/get_filter_options_response.dart';
 
 import '../../../model/customer/cafe/add_favourite_response.dart';
 import '../../../model/customer/cafe/remove_favourite_respomse.dart';

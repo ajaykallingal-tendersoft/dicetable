@@ -1,8 +1,8 @@
 import 'package:bloc/bloc.dart';
-import 'package:dicetable/src/model/state_model.dart';
-import 'package:dicetable/src/resources/api_providers/venue_owner/notification_data_provider.dart';
-import 'package:dicetable/src/ui/cafe_owner/notification/notification_item.dart';
-import 'package:dicetable/src/utils/data/object_factory.dart';
+import 'package:soloseaters/src/model/state_model.dart';
+import 'package:soloseaters/src/resources/api_providers/venue_owner/notification_data_provider.dart';
+import 'package:soloseaters/src/ui/cafe_owner/notification/notification_item.dart';
+import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 

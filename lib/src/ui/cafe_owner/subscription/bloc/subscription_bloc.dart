@@ -1,11 +1,11 @@
 import 'package:bloc/bloc.dart';
-import 'package:dicetable/src/model/cafe_owner/subscription/initial_subscription_plan_response.dart';
-import 'package:dicetable/src/model/cafe_owner/subscription/subscription_overview_response.dart';
-import 'package:dicetable/src/model/cafe_owner/subscription/subscription_start_request.dart';
-import 'package:dicetable/src/model/cafe_owner/subscription/subscription_start_request_response.dart';
-import 'package:dicetable/src/model/state_model.dart';
-import 'package:dicetable/src/resources/api_providers/venue_owner/subscription_data_provider.dart';
-import 'package:dicetable/src/utils/extension/state_model_extension.dart';
+import 'package:soloseaters/src/model/cafe_owner/subscription/initial_subscription_plan_response.dart';
+import 'package:soloseaters/src/model/cafe_owner/subscription/subscription_overview_response.dart';
+import 'package:soloseaters/src/model/cafe_owner/subscription/subscription_start_request.dart';
+import 'package:soloseaters/src/model/cafe_owner/subscription/subscription_start_request_response.dart';
+import 'package:soloseaters/src/model/state_model.dart';
+import 'package:soloseaters/src/resources/api_providers/venue_owner/subscription_data_provider.dart';
+import 'package:soloseaters/src/utils/extension/state_model_extension.dart';
 import 'package:equatable/equatable.dart';
 
 part 'subscription_event.dart';

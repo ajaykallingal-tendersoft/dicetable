@@ -1,10 +1,10 @@
 import 'dart:convert';
-import 'package:dicetable/src/model/customer/booking/booking_request.dart';
-import 'package:dicetable/src/model/customer/booking/booking_request_response.dart';
-import 'package:dicetable/src/model/customer/booking/withdraw_booking_request.dart';
-import 'package:dicetable/src/model/customer/booking/withdraw_booking_response.dart';
-import 'package:dicetable/src/model/state_model.dart';
-import 'package:dicetable/src/utils/data/object_factory.dart';
+import 'package:soloseaters/src/model/customer/booking/booking_request.dart';
+import 'package:soloseaters/src/model/customer/booking/booking_request_response.dart';
+import 'package:soloseaters/src/model/customer/booking/withdraw_booking_request.dart';
+import 'package:soloseaters/src/model/customer/booking/withdraw_booking_response.dart';
+import 'package:soloseaters/src/model/state_model.dart';
+import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:dio/dio.dart';
 
 class BookingDataProvider {

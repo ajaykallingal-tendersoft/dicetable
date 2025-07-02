@@ -1,4 +1,4 @@
-import 'package:dicetable/src/constants/app_colors.dart' show AppColors;
+import 'package:soloseaters/src/constants/app_colors.dart' show AppColors;
 import 'package:flutter/material.dart';
 
 class DividerWithCenterText extends StatelessWidget {

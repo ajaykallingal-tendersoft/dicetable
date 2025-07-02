@@ -1,8 +1,8 @@
 import 'package:bloc/bloc.dart';
-import 'package:dicetable/src/model/state_model.dart';
-import 'package:dicetable/src/model/verification/otp_verification_response.dart';
-import 'package:dicetable/src/model/verification/otp_verify_request.dart';
-import 'package:dicetable/src/resources/api_providers/auth/auth_data_provider.dart';
+import 'package:soloseaters/src/model/state_model.dart';
+import 'package:soloseaters/src/model/verification/otp_verification_response.dart';
+import 'package:soloseaters/src/model/verification/otp_verify_request.dart';
+import 'package:soloseaters/src/resources/api_providers/auth/auth_data_provider.dart';
 import 'package:equatable/equatable.dart';
 
 part 'verification_event.dart';

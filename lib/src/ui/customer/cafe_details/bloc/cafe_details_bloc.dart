@@ -1,10 +1,10 @@
 import 'package:bloc/bloc.dart';
-import 'package:dicetable/src/model/customer/booking/booking_request.dart';
-import 'package:dicetable/src/model/customer/booking/booking_request_response.dart';
-import 'package:dicetable/src/model/customer/booking/withdraw_booking_request.dart';
-import 'package:dicetable/src/model/customer/booking/withdraw_booking_response.dart';
-import 'package:dicetable/src/model/state_model.dart';
-import 'package:dicetable/src/resources/api_providers/customer/booking_data_provider.dart';
+import 'package:soloseaters/src/model/customer/booking/booking_request.dart';
+import 'package:soloseaters/src/model/customer/booking/booking_request_response.dart';
+import 'package:soloseaters/src/model/customer/booking/withdraw_booking_request.dart';
+import 'package:soloseaters/src/model/customer/booking/withdraw_booking_response.dart';
+import 'package:soloseaters/src/model/state_model.dart';
+import 'package:soloseaters/src/resources/api_providers/customer/booking_data_provider.dart';
 import 'package:equatable/equatable.dart';
 
 part 'cafe_details_event.dart';

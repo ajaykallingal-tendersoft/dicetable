@@ -1,11 +1,11 @@
 import 'package:bloc/bloc.dart';
-import 'package:dicetable/src/model/cafe_owner/home/dice_table_type_update_response.dart' show DiceTableTypeUpdateResponse;
-import 'package:dicetable/src/model/cafe_owner/home/dice_table_update_request.dart' show DiceTableTypeUpdateRequest;
-import 'package:dicetable/src/model/cafe_owner/home/venue_owner_home_screen_response.dart';
-import 'package:dicetable/src/model/state_model.dart';
-import 'package:dicetable/src/resources/api_providers/venue_owner/home_data_provider.dart';
-import 'package:dicetable/src/ui/cafe_owner/home/model/card_item.dart';
-import 'package:dicetable/src/utils/extension/state_model_extension.dart';
+import 'package:soloseaters/src/model/cafe_owner/home/dice_table_type_update_response.dart' show DiceTableTypeUpdateResponse;
+import 'package:soloseaters/src/model/cafe_owner/home/dice_table_update_request.dart' show DiceTableTypeUpdateRequest;
+import 'package:soloseaters/src/model/cafe_owner/home/venue_owner_home_screen_response.dart';
+import 'package:soloseaters/src/model/state_model.dart';
+import 'package:soloseaters/src/resources/api_providers/venue_owner/home_data_provider.dart';
+import 'package:soloseaters/src/ui/cafe_owner/home/model/card_item.dart';
+import 'package:soloseaters/src/utils/extension/state_model_extension.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../model/cafe_owner/home/available_days.dart';

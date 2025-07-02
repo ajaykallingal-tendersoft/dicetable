@@ -1,7 +1,7 @@
 import 'package:bloc/bloc.dart';
-import 'package:dicetable/src/model/customer/history/history_list_response.dart';
-import 'package:dicetable/src/model/state_model.dart';
-import 'package:dicetable/src/resources/api_providers/customer/history_data_provider.dart';
+import 'package:soloseaters/src/model/customer/history/history_list_response.dart';
+import 'package:soloseaters/src/model/state_model.dart';
+import 'package:soloseaters/src/resources/api_providers/customer/history_data_provider.dart';
 import 'package:equatable/equatable.dart';
 
 part 'history_event.dart';

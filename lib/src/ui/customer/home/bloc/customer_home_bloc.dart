@@ -1,15 +1,15 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
-import 'package:dicetable/src/constants/app_colors.dart';
-import 'package:dicetable/src/model/customer/cafe/cafe_search_request.dart';
-import 'package:dicetable/src/model/customer/cafe/cafe_search_response.dart';
-import 'package:dicetable/src/model/customer/cafe/get_filter_options_response.dart';
-import 'package:dicetable/src/model/location_permission_result.dart';
-import 'package:dicetable/src/model/state_model.dart';
-import 'package:dicetable/src/resources/api_providers/customer/cafe_data_provider.dart';
-import 'package:dicetable/src/utils/data/object_factory.dart';
-import 'package:dicetable/src/utils/extension/state_model_extension.dart';
+import 'package:soloseaters/src/constants/app_colors.dart';
+import 'package:soloseaters/src/model/customer/cafe/cafe_search_request.dart';
+import 'package:soloseaters/src/model/customer/cafe/cafe_search_response.dart';
+import 'package:soloseaters/src/model/customer/cafe/get_filter_options_response.dart';
+import 'package:soloseaters/src/model/location_permission_result.dart';
+import 'package:soloseaters/src/model/state_model.dart';
+import 'package:soloseaters/src/resources/api_providers/customer/cafe_data_provider.dart';
+import 'package:soloseaters/src/utils/data/object_factory.dart';
+import 'package:soloseaters/src/utils/extension/state_model_extension.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';

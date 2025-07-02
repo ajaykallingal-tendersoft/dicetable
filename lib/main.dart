@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:isolate';
-import 'package:dicetable/src/constants/app_colors.dart';
-import 'package:dicetable/src/ui/cafe_owner/notification/count_controller.dart';
-import 'package:dicetable/src/utils/data/notification_service.dart';
-import 'package:dicetable/src/utils/data/object_factory.dart';
+import 'package:soloseaters/src/constants/app_colors.dart';
+import 'package:soloseaters/src/ui/cafe_owner/notification/count_controller.dart';
+import 'package:soloseaters/src/utils/data/notification_service.dart';
+import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';

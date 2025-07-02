@@ -1,9 +1,9 @@
-import 'package:dicetable/src/common/custom_text_field.dart';
-import 'package:dicetable/src/common/elevated_button_widget.dart';
-import 'package:dicetable/src/constants/app_colors.dart';
-import 'package:dicetable/src/model/cafe_owner/auth/forgot_password/forgot_password_request.dart';
-import 'package:dicetable/src/resources/api_providers/auth/auth_data_provider.dart';
-import 'package:dicetable/src/ui/cafe_owner/authentication/forgot_password/reset_arguments.dart';
+import 'package:soloseaters/src/common/custom_text_field.dart';
+import 'package:soloseaters/src/common/elevated_button_widget.dart';
+import 'package:soloseaters/src/constants/app_colors.dart';
+import 'package:soloseaters/src/model/cafe_owner/auth/forgot_password/forgot_password_request.dart';
+import 'package:soloseaters/src/resources/api_providers/auth/auth_data_provider.dart';
+import 'package:soloseaters/src/ui/cafe_owner/authentication/forgot_password/reset_arguments.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';

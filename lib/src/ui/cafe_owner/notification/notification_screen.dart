@@ -1,8 +1,8 @@
-import 'package:dicetable/src/constants/app_colors.dart';
-import 'package:dicetable/src/ui/cafe_owner/notification/notification_item.dart';
-import 'package:dicetable/src/ui/cafe_owner/notification/tab_button.dart';
-import 'package:dicetable/src/utils/data/object_factory.dart';
-import 'package:dicetable/src/utils/data/sign_out.dart';
+import 'package:soloseaters/src/constants/app_colors.dart';
+import 'package:soloseaters/src/ui/cafe_owner/notification/notification_item.dart';
+import 'package:soloseaters/src/ui/cafe_owner/notification/tab_button.dart';
+import 'package:soloseaters/src/utils/data/object_factory.dart';
+import 'package:soloseaters/src/utils/data/sign_out.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';

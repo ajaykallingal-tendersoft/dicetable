@@ -1,10 +1,10 @@
 import 'dart:convert';
 
-import 'package:dicetable/src/model/cafe_owner/subscription/subscription_overview_response.dart';
-import 'package:dicetable/src/model/cafe_owner/subscription/subscription_start_request.dart';
-import 'package:dicetable/src/model/cafe_owner/subscription/subscription_start_request_response.dart';
-import 'package:dicetable/src/model/state_model.dart';
-import 'package:dicetable/src/utils/data/object_factory.dart';
+import 'package:soloseaters/src/model/cafe_owner/subscription/subscription_overview_response.dart';
+import 'package:soloseaters/src/model/cafe_owner/subscription/subscription_start_request.dart';
+import 'package:soloseaters/src/model/cafe_owner/subscription/subscription_start_request_response.dart';
+import 'package:soloseaters/src/model/state_model.dart';
+import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 

@@ -1,10 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:dicetable/src/constants/app_colors.dart';
-import 'package:dicetable/src/model/customer/cafe/cafe_list_response.dart';
-import 'package:dicetable/src/model/customer/cafe/favourite_list_response.dart';
-import 'package:dicetable/src/ui/customer/cafe_list/bloc/cafe_list_bloc.dart';
-import 'package:dicetable/src/ui/customer/cafe_list/cafe_model.dart';
-import 'package:dicetable/src/ui/customer/cafe_list/components/cafe_details_arguments.dart';
+import 'package:soloseaters/src/constants/app_colors.dart';
+import 'package:soloseaters/src/model/customer/cafe/cafe_list_response.dart';
+import 'package:soloseaters/src/model/customer/cafe/favourite_list_response.dart';
+import 'package:soloseaters/src/ui/customer/cafe_list/bloc/cafe_list_bloc.dart';
+import 'package:soloseaters/src/ui/customer/cafe_list/cafe_model.dart';
+import 'package:soloseaters/src/ui/customer/cafe_list/components/cafe_details_arguments.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';

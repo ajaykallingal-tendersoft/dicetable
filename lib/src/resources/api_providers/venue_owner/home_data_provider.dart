@@ -2,11 +2,11 @@
 
 import 'dart:convert';
 
-import 'package:dicetable/src/model/cafe_owner/home/dice_table_type_update_response.dart';
-import 'package:dicetable/src/model/cafe_owner/home/dice_table_update_request.dart';
-import 'package:dicetable/src/model/cafe_owner/home/venue_owner_home_screen_response.dart';
-import 'package:dicetable/src/model/state_model.dart';
-import 'package:dicetable/src/utils/data/object_factory.dart';
+import 'package:soloseaters/src/model/cafe_owner/home/dice_table_type_update_response.dart';
+import 'package:soloseaters/src/model/cafe_owner/home/dice_table_update_request.dart';
+import 'package:soloseaters/src/model/cafe_owner/home/venue_owner_home_screen_response.dart';
+import 'package:soloseaters/src/model/state_model.dart';
+import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:dio/dio.dart';
 
 class HomeDataProvider {

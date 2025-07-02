@@ -1,4 +1,4 @@
-import 'package:dicetable/src/model/customer/cafe/cafe_list_response.dart';
+import 'package:soloseaters/src/model/customer/cafe/cafe_list_response.dart';
 
 class CafeDetailsArguments {
   final String from;

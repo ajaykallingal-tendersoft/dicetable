@@ -1,9 +1,9 @@
 import 'package:badges/badges.dart' as badges;
-import 'package:dicetable/src/constants/app_colors.dart';
-import 'package:dicetable/src/model/customer/cafe/favourite_list_response.dart';
-import 'package:dicetable/src/ui/cafe_owner/notification/count_controller.dart';
-import 'package:dicetable/src/ui/customer/cafe_list/bloc/cafe_list_bloc.dart';
-import 'package:dicetable/src/ui/customer/favourites/widget/fav_list_container.dart';
+import 'package:soloseaters/src/constants/app_colors.dart';
+import 'package:soloseaters/src/model/customer/cafe/favourite_list_response.dart';
+import 'package:soloseaters/src/ui/cafe_owner/notification/count_controller.dart';
+import 'package:soloseaters/src/ui/customer/cafe_list/bloc/cafe_list_bloc.dart';
+import 'package:soloseaters/src/ui/customer/favourites/widget/fav_list_container.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

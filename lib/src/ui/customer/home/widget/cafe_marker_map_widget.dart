@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
-import 'package:dicetable/src/constants/app_colors.dart';
-import 'package:dicetable/src/ui/customer/cafe_list/bloc/cafe_list_bloc.dart';
-import 'package:dicetable/src/ui/customer/home/bloc/customer_home_bloc.dart';
-import 'package:dicetable/src/utils/data/sign_out.dart';
+import 'package:soloseaters/src/constants/app_colors.dart';
+import 'package:soloseaters/src/ui/customer/cafe_list/bloc/cafe_list_bloc.dart';
+import 'package:soloseaters/src/ui/customer/home/bloc/customer_home_bloc.dart';
+import 'package:soloseaters/src/utils/data/sign_out.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

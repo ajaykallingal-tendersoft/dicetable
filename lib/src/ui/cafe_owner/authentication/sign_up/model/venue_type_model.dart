@@ -1,4 +1,4 @@
-import 'package:dicetable/src/model/venue_type_response.dart';
+import 'package:soloseaters/src/model/venue_type_response.dart';
 
 class VenueTypeModel {
   final int id;

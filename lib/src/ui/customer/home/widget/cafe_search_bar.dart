@@ -2,11 +2,11 @@
 
 import 'dart:async';
 
-import 'package:dicetable/src/constants/app_colors.dart';
-import 'package:dicetable/src/model/customer/cafe/cafe_search_request.dart';
-import 'package:dicetable/src/ui/customer/home/bloc/customer_home_bloc.dart';
-import 'package:dicetable/src/ui/customer/home/widget/filter_bottom_sheet.dart';
-import 'package:dicetable/src/utils/data/object_factory.dart';
+import 'package:soloseaters/src/constants/app_colors.dart';
+import 'package:soloseaters/src/model/customer/cafe/cafe_search_request.dart';
+import 'package:soloseaters/src/ui/customer/home/bloc/customer_home_bloc.dart';
+import 'package:soloseaters/src/ui/customer/home/widget/filter_bottom_sheet.dart';
+import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';

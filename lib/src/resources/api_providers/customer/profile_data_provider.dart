@@ -1,9 +1,9 @@
-import 'package:dicetable/src/model/customer/profile/customer_get_profile_response.dart';
-import 'package:dicetable/src/model/customer/profile/customer_profile_update_request.dart';
-import 'package:dicetable/src/model/customer/profile/customer_update_profile_response.dart';
-import 'package:dicetable/src/model/delete_profile_response.dart';
-import 'package:dicetable/src/model/state_model.dart';
-import 'package:dicetable/src/utils/data/object_factory.dart';
+import 'package:soloseaters/src/model/customer/profile/customer_get_profile_response.dart';
+import 'package:soloseaters/src/model/customer/profile/customer_profile_update_request.dart';
+import 'package:soloseaters/src/model/customer/profile/customer_update_profile_response.dart';
+import 'package:soloseaters/src/model/delete_profile_response.dart';
+import 'package:soloseaters/src/model/state_model.dart';
+import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:dio/dio.dart';
 
 

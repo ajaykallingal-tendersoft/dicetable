@@ -1,5 +1,5 @@
-import 'package:dicetable/src/utils/client/api_client.dart';
-import 'package:dicetable/src/utils/data/prefs.dart';
+import 'package:soloseaters/src/utils/client/api_client.dart';
+import 'package:soloseaters/src/utils/data/prefs.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class ObjectFactory {

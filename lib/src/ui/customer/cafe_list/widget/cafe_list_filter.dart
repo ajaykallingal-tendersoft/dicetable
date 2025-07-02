@@ -1,10 +1,10 @@
-import 'package:dicetable/src/constants/app_colors.dart';
-import 'package:dicetable/src/constants/assets.dart';
-import 'package:dicetable/src/model/customer/cafe/cafe_list_request.dart';
-import 'package:dicetable/src/model/customer/cafe/get_filter_options_response.dart';
-import 'package:dicetable/src/ui/customer/cafe_list/bloc/cafe_list_bloc.dart';
-import 'package:dicetable/src/ui/customer/home/widget/styled_checkbox.dart';
-import 'package:dicetable/src/utils/data/object_factory.dart';
+import 'package:soloseaters/src/constants/app_colors.dart';
+import 'package:soloseaters/src/constants/assets.dart';
+import 'package:soloseaters/src/model/customer/cafe/cafe_list_request.dart';
+import 'package:soloseaters/src/model/customer/cafe/get_filter_options_response.dart';
+import 'package:soloseaters/src/ui/customer/cafe_list/bloc/cafe_list_bloc.dart';
+import 'package:soloseaters/src/ui/customer/home/widget/styled_checkbox.dart';
+import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';

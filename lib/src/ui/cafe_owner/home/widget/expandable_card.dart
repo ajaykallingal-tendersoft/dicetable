@@ -1,11 +1,11 @@
 import 'package:collection/collection.dart';
-import 'package:dicetable/src/constants/app_colors.dart';
-import 'package:dicetable/src/model/cafe_owner/home/available_days.dart';
-import 'package:dicetable/src/model/cafe_owner/home/dice_table_update_request.dart'
+import 'package:soloseaters/src/constants/app_colors.dart';
+import 'package:soloseaters/src/model/cafe_owner/home/available_days.dart';
+import 'package:soloseaters/src/model/cafe_owner/home/dice_table_update_request.dart'
     show DiceTableTypeUpdateRequest;
-import 'package:dicetable/src/ui/cafe_owner/home/bloc/home_bloc.dart';
-import 'package:dicetable/src/ui/cafe_owner/home/model/card_item.dart';
-import 'package:dicetable/src/utils/data/object_factory.dart';
+import 'package:soloseaters/src/ui/cafe_owner/home/bloc/home_bloc.dart';
+import 'package:soloseaters/src/ui/cafe_owner/home/model/card_item.dart';
+import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';

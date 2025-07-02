@@ -1,10 +1,10 @@
-import 'package:dicetable/src/model/cafe_owner/profile/profile_edit_view_response.dart';
-import 'package:dicetable/src/model/cafe_owner/profile/profile_update_request.dart';
-import 'package:dicetable/src/model/cafe_owner/profile/profile_update_response.dart';
-import 'package:dicetable/src/model/cafe_owner/profile/profile_view_response.dart';
-import 'package:dicetable/src/model/delete_profile_response.dart';
-import 'package:dicetable/src/model/state_model.dart';
-import 'package:dicetable/src/utils/data/object_factory.dart';
+import 'package:soloseaters/src/model/cafe_owner/profile/profile_edit_view_response.dart';
+import 'package:soloseaters/src/model/cafe_owner/profile/profile_update_request.dart';
+import 'package:soloseaters/src/model/cafe_owner/profile/profile_update_response.dart';
+import 'package:soloseaters/src/model/cafe_owner/profile/profile_view_response.dart';
+import 'package:soloseaters/src/model/delete_profile_response.dart';
+import 'package:soloseaters/src/model/state_model.dart';
+import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:dio/dio.dart';
 import 'dart:convert';
 

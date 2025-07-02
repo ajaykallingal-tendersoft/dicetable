@@ -1,4 +1,4 @@
-import 'package:dicetable/src/constants/app_colors.dart';
+import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';

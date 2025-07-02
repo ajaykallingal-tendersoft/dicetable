@@ -1,4 +1,4 @@
-import 'package:dicetable/src/model/state_model.dart';
+import 'package:soloseaters/src/model/state_model.dart';
 
 extension StateModelExtension<T> on StateModel<T> {
   bool get isSuccess => this is SuccessState<T>;

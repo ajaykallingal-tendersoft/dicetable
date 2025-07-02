@@ -1,10 +1,10 @@
-import 'package:dicetable/src/constants/app_colors.dart';
-import 'package:dicetable/src/model/cafe_owner/auth/login/google_login_request.dart';
-import 'package:dicetable/src/resources/api_providers/auth/auth_data_provider.dart';
-import 'package:dicetable/src/ui/cafe_owner/authentication/login/bloc/login_bloc.dart';
-import 'package:dicetable/src/ui/cafe_owner/authentication/login/cubit/google_sign_in_cubit.dart';
-import 'package:dicetable/src/ui/customer/authentication/sign_up/bloc/customer_sign_up_bloc.dart';
-import 'package:dicetable/src/utils/data/object_factory.dart';
+import 'package:soloseaters/src/constants/app_colors.dart';
+import 'package:soloseaters/src/model/cafe_owner/auth/login/google_login_request.dart';
+import 'package:soloseaters/src/resources/api_providers/auth/auth_data_provider.dart';
+import 'package:soloseaters/src/ui/cafe_owner/authentication/login/bloc/login_bloc.dart';
+import 'package:soloseaters/src/ui/cafe_owner/authentication/login/cubit/google_sign_in_cubit.dart';
+import 'package:soloseaters/src/ui/customer/authentication/sign_up/bloc/customer_sign_up_bloc.dart';
+import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -12,7 +12,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
-import 'package:dicetable/src/utils/network_connectivity/network_connectivity_bloc.dart';
+import 'package:soloseaters/src/utils/network_connectivity/network_connectivity_bloc.dart';
 
 import '../../../../customer/authentication/login/bloc/customer_login_bloc.dart';
 
