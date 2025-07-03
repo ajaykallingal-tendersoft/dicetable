@@ -419,14 +419,14 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       Positioned(
-                        top: 0,
-                        bottom: 650.h,
+                        top: 50,
+                        bottom: 720.h,
                         left: 0,
                         right: 0,
                         child: SvgPicture.asset(
-                              'assets/svg/login-logo.svg',
-                              height: 162.h,
-                              width: 114.w,
+                              'assets/svg/solo.svg',
+                              height: 141.h,
+                              width: 230.w,
                               fit: BoxFit.scaleDown,
                             )
                             .animate()

@@ -362,13 +362,13 @@ class _ExpandableCardState extends State<ExpandableCard> {
         }
         if (state is DiceTableUpdateLoaded &&
             state.response.message ==
-                "Dice table types updated successfully." &&
+                "Solo seater types updated successfully." &&
             state.response.status == true) {
           EasyLoading.dismiss();
           WidgetsBinding.instance.addPostFrameCallback((_) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text("Dice table updated successfully!"),
+                content: Text("Solo seater types updated successfully."),
                 backgroundColor: AppColors.appGreenColor,
                 duration: Duration(seconds: 2),
               ),

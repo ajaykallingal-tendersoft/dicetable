@@ -85,7 +85,7 @@ class App extends StatelessWidget {
         builder: (context, child) {
           return MaterialApp.router(
             debugShowCheckedModeBanner: false,
-            title: 'Dice Table',
+            title: 'Solo Seaters',
             routerDelegate: AppRouter.router.routerDelegate,
             routeInformationProvider: AppRouter.router.routeInformationProvider,
             routeInformationParser: AppRouter.router.routeInformationParser,

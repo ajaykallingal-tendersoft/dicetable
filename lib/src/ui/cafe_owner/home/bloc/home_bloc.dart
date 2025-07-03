@@ -119,7 +119,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
 
       if (stateModel is SuccessState) {
         final response = stateModel.value as DiceTableTypeUpdateResponse;
-        if(response.message == "Dice table types updated successfully."&& response.status == true){
+        if(response.message == "Solo seater types updated successfully."&& response.status == true){
           add(GetHomeDataEvent());
         }
 

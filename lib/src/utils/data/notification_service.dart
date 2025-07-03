@@ -279,8 +279,8 @@ class NotificationServices {
               presentSound: true,
               sound: 'default',
               badgeNumber: 1,
-              subtitle: 'DiceTable',
-              threadIdentifier: 'dicetable_thread',
+              subtitle: 'Solo Seaters',
+              threadIdentifier: 'soloseaters_thread',
             );
 
         const NotificationDetails notificationDetails = NotificationDetails(

@@ -69,7 +69,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
           child: DecoratedBox(
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/png/landing-bg.png'),
+                image: AssetImage('assets/png/Landing.png'),
                 fit: BoxFit.cover,
               ),
             ),
@@ -131,7 +131,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
                               description: 'Connect instead of sitting Solo.',
                               subDescription: 'Solo seaters find your table?',
                             ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.2),
-                            SizedBox(height: 20.h),
+                            SizedBox(height: 40.h),
                             InkWell(
                               splashColor: AppColors.secondary,
                               splashFactory: InkRipple.splashFactory,

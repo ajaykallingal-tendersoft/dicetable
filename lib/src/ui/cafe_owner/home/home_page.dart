@@ -193,41 +193,41 @@ class _HomePageState extends State<HomePage> {
                       ),
                     );
                   }
-                  // if (state is HomeError) {
-                  //   EasyLoading.dismiss();
-                  //   return SliverFillRemaining(
-                  //     child: Center(
-                  //       child: Column(
-                  //         mainAxisAlignment: MainAxisAlignment.center,
-                  //         children: [
-                  //           Icon(
-                  //             Icons.error_outline,
-                  //             size: 64,
-                  //             color: Colors.grey[400],
-                  //           ),
-                  //           const Gap(16),
-                  //           Text(
-                  //             'Something went wrong!.}',
-                  //             style: TextStyle(
-                  //               color: Colors.grey[600],
-                  //               fontSize: 16,
-                  //             ),
-                  //             textAlign: TextAlign.center,
-                  //           ),
-                  //           const Gap(16),
-                  //           ElevatedButton(
-                  //             onPressed: () {
-                  //               context.read<HomeBloc>().add(
-                  //                 GetHomeDataEvent(),
-                  //               );
-                  //             },
-                  //             child: const Text('Retry'),
-                  //           ),
-                  //         ],
-                  //       ),
-                  //     ),
-                  //   );
-                  // }
+                  if (state is HomeError) {
+                    EasyLoading.dismiss();
+                    return SliverFillRemaining(
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              size: 64,
+                              color: Colors.grey[400],
+                            ),
+                            const Gap(16),
+                            Text(
+                              'Something went wrong!.}',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 16,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const Gap(16),
+                            ElevatedButton(
+                              onPressed: () {
+                                context.read<HomeBloc>().add(
+                                  GetHomeDataEvent(),
+                                );
+                              },
+                              child: const Text('Retry'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
                   return const SliverToBoxAdapter(child: SizedBox.shrink());
                 },
                 listener: (BuildContext context, HomeState state) {

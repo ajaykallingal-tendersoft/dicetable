@@ -1,6 +1,6 @@
 class UrlsDiceApp {
   ///base urls
-  static const String baseUrlDev = 'https://app.mydicetable.com';
+  static const String baseUrlDev = 'https://app.soloseaters.com';
   static const String baseUrlLiveStaging =
       '';
   static const String baseUrlLiveProduction = '';
