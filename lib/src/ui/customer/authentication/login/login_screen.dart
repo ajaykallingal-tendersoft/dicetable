@@ -348,8 +348,8 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                         bottom: 720.h,
                         left: 0,
                         right: 0,
-                        child: SvgPicture.asset(
-                              'assets/svg/solo.svg',
+                        child: Image.asset(
+                              'assets/png/solo.png',
                               height: 141.h,
                               width: 230.w,
                               fit: BoxFit.scaleDown,
