@@ -48,9 +48,9 @@ class _SplashScreenState extends State<SplashScreen> {
     } else if (rememberDecision && userCategory != null) {
       // User has selected a category and wants to remember it
       if (userCategory == 'PUBLIC_USER') {
-        context.go('/customer_login');
+        context.go('/category');
       } else {
-        context.go('/login');
+        context.go('/category');
       }
     } else {
       // First launch or no remembered category; show category selection
