@@ -27,7 +27,7 @@
 			<dict>
 				<key>CFBundleURLSchemes</key>
 				<array>
-					<string>com.googleusercontent.apps.1093901587661-r2ct9vmcs7c5jt29t2u7foshj4crji4n</string>
+					<string>com.googleusercontent.apps.1093901587661-kgnk7r0um5h5j4maepmdevqt2jilvu5s</string>
 				</array>
 			</dict>
 		</array>
@@ -38,7 +38,7 @@
 		<key>LSApplicationQueriesSchemes</key>
 		<array>
 			<string>google</string>
-			<string>com.googleusercontent.apps.1093901587661-r2ct9vmcs7c5jt29t2u7foshj4crji4n</string>
+			<string>com.googleusercontent.apps.1093901587661-kgnk7r0um5h5j4maepmdevqt2jilvu5s</string>
 		</array>
 		<key>LSRequiresIPhoneOS</key>
 		<true/>
