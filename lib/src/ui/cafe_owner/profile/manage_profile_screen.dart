@@ -28,7 +28,8 @@ class ManageProfileScreen extends StatefulWidget {
 
 class _ManageProfileScreenState extends State<ManageProfileScreen> {
   late TextEditingController _venueNameController = TextEditingController();
-  late TextEditingController _venueDescriptionController = TextEditingController();
+  late TextEditingController _venueDescriptionController =
+      TextEditingController();
   late TextEditingController _emailController = TextEditingController();
   late TextEditingController _phoneController = TextEditingController();
   late TextEditingController _addressController = TextEditingController();
@@ -121,10 +122,10 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
         if (state is ProfileViewLoaded) {
           _initializeControllers(); // Reinitialize controllers
         }
-        if(state is ProfileViewLoaded) {
-          if(state.profileViewResponse.status == false) {
+        if (state is ProfileViewLoaded) {
+          if (state.profileViewResponse.status == false) {
             if (state.errorMessage!.contains("Unauthorized") ||
-                state.errorMessage!.contains("status code of 401") ) {
+                state.errorMessage!.contains("status code of 401")) {
               EasyLoading.dismiss();
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 SignOut().logout(context);
@@ -132,25 +133,23 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                   backgroundColor: AppColors.primaryWhiteColor,
                   textColor: AppColors.appRedColor,
                   gravity: ToastGravity.BOTTOM,
-                  msg:
-                  "Your session has expired. Please sign in again.",
+                  msg: "Your session has expired. Please sign in again.",
                 );
               });
             }
           }
         }
-        if(state is ProfileViewError) {
+        if (state is ProfileViewError) {
           EasyLoading.dismiss();
           if (state.errorMessage.contains("UnAuthorized") ||
-              state.errorMessage.contains("status code of 401") ) {
+              state.errorMessage.contains("status code of 401")) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               SignOut().logout(context);
               Fluttertoast.showToast(
                 backgroundColor: AppColors.primaryWhiteColor,
                 textColor: AppColors.appRedColor,
                 gravity: ToastGravity.BOTTOM,
-                msg:
-                "Your session has expired. Please sign in again.",
+                msg: "Your session has expired. Please sign in again.",
               );
             });
           }
@@ -191,9 +190,9 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
         }
 
         if (state is ProfileViewLoading) {
-           EasyLoading.show();
+          EasyLoading.show();
         } else {
-           EasyLoading.dismiss();
+          EasyLoading.dismiss();
           if (state is ProfileImageErrorState) {
             ScaffoldMessenger.of(
               context,
@@ -499,7 +498,6 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                   onPressed: () {
                     context.read<ProfileBloc>().add(ProfileDeleteEvent());
                     ObjectFactory().prefs.setIsLoggedIn(false);
-                    ObjectFactory().prefs.setAuthToken(token: "");
                     ObjectFactory().prefs.setCafeUserName(cafeUserName: "");
                     context.read<GoogleSignInCubit>().signOut();
                     context.read<AppleSignInCubit>().signOut();
@@ -568,7 +566,8 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
       context,
     ).largerThan(MOBILE);
     final state = context.read<ProfileBloc>().state;
-    final subTitle = state.profileViewResponse?.data?.cafeSince?.toString() ?? "";
+    final subTitle =
+        state.profileViewResponse?.data?.cafeSince?.toString() ?? "";
     return SliverAppBar(
       expandedHeight: 380.h,
       pinned: false,

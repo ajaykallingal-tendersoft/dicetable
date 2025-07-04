@@ -485,7 +485,6 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                       CustomerProfileDeleteEvent(),
                     );
                     ObjectFactory().prefs.setIsCustomerLoggedIn(false);
-                    ObjectFactory().prefs.setAuthToken(token: "");
                     context.read<GoogleSignInCubit>().signOut();
                     context.read<AppleSignInCubit>().signOut();
                     // dialogContext.pop();

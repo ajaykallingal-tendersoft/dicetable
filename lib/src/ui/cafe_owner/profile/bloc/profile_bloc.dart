@@ -149,96 +149,6 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         );
       }
     });
-    //     on<PickImageFromGalleryEvent>((event, emit) async {
-    //       emit(ProfileImageLoadingState.fromState(state));
-
-    //       // Android 13+ (SDK 33) requires Permission.photos, below requires Permission.storage
-
-    //       PermissionStatus permissionStatus;
-
-    //       if (Platform.isAndroid) {
-    //         final is13OrHigher = await isAndroid13OrHigher();
-    //         if (is13OrHigher) {
-    //           permissionStatus = await Permission.photos.request();
-    //         } else {
-    //           permissionStatus = await Permission.storage.request();
-    //         }
-    //       } else {
-    //         // iOS and others
-    //         permissionStatus = await Permission.photos.request();
-    //       }
-
-    //       if (permissionStatus.isDenied ||
-    //           permissionStatus.isPermanentlyDenied ||
-    //           (Platform.isIOS && permissionStatus.isLimited)) {
-    //         emit(
-    //           ProfileImagePermissionDeniedState.fromState(
-    //             state,
-    //             isPermanentlyDenied: permissionStatus.isPermanentlyDenied,
-    //             errorMessage:
-    //                 permissionStatus.isPermanentlyDenied
-    //                     ? "Photo permission is permanently denied. Please enable it from settings to upload images."
-    //                     : "Photo permission is required to upload images.",
-    //           ),
-    //         );
-    //         return;
-    //       }
-    // final isGranted =
-    //           permissionStatus.isGranted ||
-    //           (Platform.isIOS && permissionStatus.isLimited);
-
-    //       if (!isGranted) {
-    //         emit(
-    //           ProfileImagePermissionDeniedState.fromState(
-    //             state,
-    //             isPermanentlyDenied: permissionStatus.isPermanentlyDenied,
-    //             errorMessage:
-    //                 permissionStatus.isPermanentlyDenied
-    //                     ? "Photo permission is permanently denied. Please enable it from settings to upload images."
-    //                     : "Photo permission is required to upload images.",
-    //           ),
-    //         );
-    //         return;
-    //       }
-
-    //       try {
-    //         final pickedImage = await _picker.pickImage(source: ImageSource.gallery);
-    //         if (pickedImage == null) {
-    //           emit(ProfileImageErrorState.fromState(state));
-    //           return;
-    //         }
-
-    //         final file = File(pickedImage.path);
-    //         final fileSize = file.lengthSync();
-    //         final fileName = pickedImage.name.toLowerCase();
-
-    //         final isValidFormat = fileName.endsWith('.png') ||
-    //             fileName.endsWith('.jpg') ||
-    //             fileName.endsWith('.jpeg');
-
-    //         if (!isValidFormat) {
-    //           emit(ProfileImageErrorState.fromState(state, errorMessage: "Only JPEG or PNG images are allowed."));
-    //           return;
-    //         }
-
-    //         if (fileSize > 5 * 1024 * 1024) {
-    //           emit(ProfileImageErrorState.fromState(state, errorMessage: "Image size must be under 5MB."));
-    //           return;
-    //         }
-
-    //         final bytes = await file.readAsBytes();
-    //         final base64Image = base64Encode(bytes);
-    //         base64Encoded = "data:image/png;base64,$base64Image";
-    //         emit(ProfileImageLoadedState.fromState(
-    //           state,
-    //           image: pickedImage,
-    //           blob: base64Encoded,
-    //           originalName: pickedImage.name,
-    //         ));
-    //       } catch (e) {
-    //         emit(ProfileImageErrorState.fromState(state, errorMessage: "Failed to pick image: $e"));
-    //       }
-    //     });
 
     on<GetProfileViewEvent>((event, emit) async {
       emit(const ProfileViewLoading());
@@ -317,9 +227,9 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
           }
         }
 
-        debugPrint(
-          'Processed Opening Hours in Bloc (Corrected): $processedOpeningHours',
-        ); // Updated debug print
+        // debugPrint(
+        //   'Processed Opening Hours in Bloc (Corrected): $processedOpeningHours',
+        // ); // Updated debug print
 
         emit(
           ProfileEditViewLoaded(
@@ -371,6 +281,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
         }
       } else if (stateModel is ErrorState) {
         emit(ProfileUpdateError(errorMessage: stateModel.msg));
+        add(GetProfileViewEvent());
       }
     });
 
