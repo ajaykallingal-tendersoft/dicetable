@@ -57,8 +57,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       text: profileState?.venueDescription ?? '',
     );
     _emailController = TextEditingController(text: profileState?.email ?? '');
-    // _passwordController =
-    //     TextEditingController(text: profileState?.password ?? '');
     _phoneController = TextEditingController(text: profileState?.phone ?? '');
     _addressController = TextEditingController(
       text: profileState?.address ?? '',

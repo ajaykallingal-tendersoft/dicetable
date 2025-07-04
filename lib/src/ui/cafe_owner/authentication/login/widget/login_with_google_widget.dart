@@ -76,8 +76,18 @@ class LoginWithGoogleWidget extends StatelessWidget {
                 content: Text("Failed to Authenticate With Google."),
               ),
             );
+        }
+          if(state is GoogleSignInError) {
+            context.read<GoogleSignInCubit>().signOut();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                backgroundColor: AppColors.appRedColor,
+                content: Text("Failed to Authenticate With Google."),
+              ),
+            );
           }
         },
+
         builder: (context, state) {
           return InkWell(
             onTap:

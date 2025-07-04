@@ -59,6 +59,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
     _phoneController = TextEditingController(text: state.phone);
     _addressController = TextEditingController(text: state.address);
     _postalCodeController = TextEditingController(text: state.postalCode);
+    ObjectFactory().prefs.setCafeUserName(cafeUserName: state.venueName);
   }
 
   @override
@@ -384,7 +385,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                         const Gap(10),
                         CustomTextField(
                           textAlign: TextAlign.left,
-                          height: 90.h,
+                          height: 110.h,
                           maxLines: 3,
                           isProfile: true,
                           readOnly: true,
@@ -497,6 +498,11 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                 ElevatedButton(
                   onPressed: () {
                     context.read<ProfileBloc>().add(ProfileDeleteEvent());
+                    ObjectFactory().prefs.setIsLoggedIn(false);
+                    ObjectFactory().prefs.setAuthToken(token: "");
+                    ObjectFactory().prefs.setCafeUserName(cafeUserName: "");
+                    context.read<GoogleSignInCubit>().signOut();
+                    context.read<AppleSignInCubit>().signOut();
                     // dialogContext.pop();
                   },
                   style: ElevatedButton.styleFrom(

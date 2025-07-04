@@ -4,6 +4,7 @@ import 'package:soloseaters/src/common/elevated_button_widget.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/count_controller.dart';
 import 'package:soloseaters/src/ui/customer/profile/bloc/customer_profile_bloc.dart';
+import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:soloseaters/src/utils/data/sign_out.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -16,6 +17,9 @@ import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:soloseaters/src/ui/cafe_owner/authentication/login/cubit/google_sign_in_cubit.dart';
+import 'package:soloseaters/src/ui/cafe_owner/authentication/login/cubit/apple_signin_cubit.dart';
+
 
 class CustomerProfileScreen extends StatefulWidget {
   const CustomerProfileScreen({super.key});
@@ -480,6 +484,10 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                     context.read<CustomerProfileBloc>().add(
                       CustomerProfileDeleteEvent(),
                     );
+                    ObjectFactory().prefs.setIsCustomerLoggedIn(false);
+                    ObjectFactory().prefs.setAuthToken(token: "");
+                    context.read<GoogleSignInCubit>().signOut();
+                    context.read<AppleSignInCubit>().signOut();
                     // dialogContext.pop();
                   },
                   style: ElevatedButton.styleFrom(

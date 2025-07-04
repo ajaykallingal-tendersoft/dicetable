@@ -32,6 +32,7 @@ class SignOut {
         ObjectFactory().prefs.setCafeUserName(cafeUserName: "");
         ObjectFactory().prefs.setCafeId(cafeId: '');
         ObjectFactory().prefs.setCafeUserId(cafeUserId: '');
+        ObjectFactory().prefs.setCafeUserMail(cafeUserMail: '');
       } else {
         ObjectFactory().prefs.setIsCustomerLoggedIn(false);
         ObjectFactory().prefs.setIsLoggedIn(false);
@@ -41,6 +42,7 @@ class SignOut {
         ObjectFactory().prefs.setCafeUserName(cafeUserName: "");
         ObjectFactory().prefs.setCafeId(cafeId: '');
         ObjectFactory().prefs.setCafeUserId(cafeUserId: '');
+        ObjectFactory().prefs.setCustomerMail(mail: '');
       }
 
       // Get navigation source (as in original code)

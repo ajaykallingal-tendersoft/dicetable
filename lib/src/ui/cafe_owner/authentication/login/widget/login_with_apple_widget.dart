@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 
 class LoginWithAppleWidget extends StatelessWidget {
 
@@ -61,6 +62,9 @@ class LoginWithAppleWidget extends StatelessWidget {
         }
       },
       builder: (context, state) {
+        final isTabletOrLarger = ResponsiveBreakpoints.of(
+          context,
+        ).largerThan(MOBILE);
         return InkWell(
           onTap:
               state is AppleSignInLoading
@@ -79,7 +83,7 @@ class LoginWithAppleWidget extends StatelessWidget {
               children: [
                 Image.asset(
                   Assets.APPLE_LOGO,
-                  fit: BoxFit.cover,
+                  fit: isTabletOrLarger ? BoxFit.contain : BoxFit.cover,
                   width: 75.w,
                   height: 75.h,
                 ),
