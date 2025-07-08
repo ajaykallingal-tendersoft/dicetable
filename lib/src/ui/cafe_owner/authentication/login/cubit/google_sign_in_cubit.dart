@@ -8,20 +8,24 @@ import 'package:meta/meta.dart';
 import 'package:http/http.dart' as http;
 part 'google_sign_in_state.dart';
 
-class
-GoogleSignInCubit extends Cubit<GoogleSignInState> {
+class GoogleSignInCubit extends Cubit<GoogleSignInState> {
   GoogleSignInCubit() : super(GoogleSignInInitial());
   Dio dioDiceApp = Dio();
 
   final GoogleSignIn googleSignIn = GoogleSignIn();
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
-  Future<void> login() async {
+  Future<void> login({bool forceAccountSelection = false}) async {
     if (isClosed) return;
 
     emit(GoogleSignInCubitLoading());
 
     try {
+      // Always sign out first to force account selection
+      if (forceAccountSelection) {
+        await _silentSignOut();
+      }
+
       final userAccount = await googleSignIn.signIn();
 
       // User dismissed the sign-in dialog
@@ -45,7 +49,6 @@ GoogleSignInCubit extends Cubit<GoogleSignInState> {
         final base64Image = await _convertPhotoUrlToBase64(user.photoURL);
         String base64Encoded = "data:image/png;base64,$base64Image";
 
-
         if (!isClosed) emit(GoogleSignInSuccess(user: user, base64Image: base64Encoded));
       } else {
         if (!isClosed) emit(GoogleSignInError());
@@ -53,6 +56,17 @@ GoogleSignInCubit extends Cubit<GoogleSignInState> {
     } catch (e, stackTrace) {
       print("Google Sign-In Error: $e\n$stackTrace");
       if (!isClosed) emit(GoogleSignInError());
+    }
+  }
+
+  // Method to silently sign out without emitting states
+  Future<void> _silentSignOut() async {
+    try {
+      await googleSignIn.signOut();
+      // Don't disconnect here as it might cause issues
+    } catch (e) {
+      print("Silent sign-out error: $e");
+      // Continue even if sign-out fails
     }
   }
 
@@ -73,7 +87,6 @@ GoogleSignInCubit extends Cubit<GoogleSignInState> {
     } catch (e) {
       print("Sign-out error: $e");
       if (!isClosed) emit(GoogleSignInError());
-
     }
   }
 
@@ -89,5 +102,4 @@ GoogleSignInCubit extends Cubit<GoogleSignInState> {
     }
     return null;
   }
-
 }

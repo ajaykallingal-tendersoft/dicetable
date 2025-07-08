@@ -102,7 +102,8 @@ class LoginWithGoogleWidget extends StatelessWidget {
                         );
                         return;
                       }
-                      context.read<GoogleSignInCubit>().login();
+                      context.read<GoogleSignInCubit>().login(forceAccountSelection: true);
+
                     },
 
             child: Container(
