@@ -294,7 +294,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                       },
                                     ),
                                     CustomTextField(
+                                      isProfile: true,
                                       isEditMode: true,
+                                      readOnly: true,
                                       controller: _emailController,
                                       hintText: 'Email',
                                       textFieldAnnotationText: 'Email',

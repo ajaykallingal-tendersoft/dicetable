@@ -283,7 +283,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                             CustomTextField(
                               textFieldAnnotationText: 'Email',
                               controller: emailController,
-                              readOnly: !state.isEditMode,
+                              readOnly: true,
                               isPassword: false,
                               isProfile: true,
                               onChanged:

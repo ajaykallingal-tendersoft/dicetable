@@ -20,13 +20,14 @@
     <application
         android:label="Solo Seaters"
         android:name="${applicationName}"
+        android:theme="@style/Theme.SoloSeaters"
         android:icon="@mipmap/launcher_icon">
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
             android:taskAffinity=""
-            android:theme="@style/LaunchTheme"
+            android:theme="@style/Theme.SoloSeaters"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode"
             android:allowBackup="false"
             android:fullBackupContent="@xml/backup_rules"

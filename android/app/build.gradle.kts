@@ -54,6 +54,7 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.android.gms:play-services-wallet:19.2.0")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    implementation ("com.google.android.material:material:1.12.0")
 }
 
 flutter {

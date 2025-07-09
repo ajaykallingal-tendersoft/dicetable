@@ -7,12 +7,13 @@ flutter_launcher_icons:
   min_sdk_android: 21
 
   # Adaptive icon configuration for Android
-#  adaptive_icon_background: "#8825A4"  # Your desired background color
+  adaptive_icon_background: "#ffffff"  # Your desired background color
   adaptive_icon_foreground: "assets/png/solo_logo.png"
 
   # iOS configuration
   ios: true
   remove_alpha_channel_ios: true
+
 
 #  web:
 #    generate: true
