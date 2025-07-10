@@ -1,5 +1,5 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <style name="Theme.SoloSeaters" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Theme.SoloSeaters" parent="@android:style/Theme.Light.NoTitleBar">
         <!-- Modern Android 12+ splash screen configuration -->
         <item name="android:windowSplashScreenBackground">@color/white</item>
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/launcher_foreground</item>
