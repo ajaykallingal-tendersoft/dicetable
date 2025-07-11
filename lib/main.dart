@@ -22,6 +22,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
 }
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   await runZonedGuarded<Future<void>>(() async {

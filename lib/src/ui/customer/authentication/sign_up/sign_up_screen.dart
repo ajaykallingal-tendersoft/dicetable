@@ -46,8 +46,10 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
     isGoogleSignUp = widget.signUpScreenArgument.isGoggleSignUp ?? false;
     isAppleSignUp = widget.signUpScreenArgument.isAppleSignUp ?? false;
     if (isAppleSignUp) {
-      if (!widget.signUpScreenArgument.email.contains('privaterelay')) {
-        appleMail = widget.signUpScreenArgument.email ?? "";
+      if (widget.signUpScreenArgument.email.contains('privaterelay')) {
+        appleMail =  "" ;
+      }else {
+        appleMail = widget.signUpScreenArgument.email;
       }
     }
 

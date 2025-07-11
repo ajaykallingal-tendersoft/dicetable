@@ -48,46 +48,111 @@ class _SignUpScreenState extends State<SignUpScreen> {
   late final bool isAppleSignUp;
   bool showValidationErrors = false;
   String? appleMail;
-
   @override
-  void initState() {
-    super.initState();
-    context.read<SignUpBloc>().add(LoadVenueTypes());
-    context.read<SignUpBloc>().add(ClearImageEvent());
-    context.read<SignUpBloc>().add(const ResetFormEvent());
-    isGoogleSignUp = widget.signUpScreenArgument.isGoggleSignUp ?? false;
-    isAppleSignUp = widget.signUpScreenArgument.isAppleSignUp ?? false;
-    if (isAppleSignUp) {
-      if (!widget.signUpScreenArgument.email.contains('privaterelay')) {
-        appleMail = widget.signUpScreenArgument.email ?? "";
-      }
-    }
+void initState() {
+  super.initState();
+  context.read<SignUpBloc>().add(LoadVenueTypes());
+  context.read<SignUpBloc>().add(ClearImageEvent());
+  context.read<SignUpBloc>().add(const ResetFormEvent());
 
-    _venueNameController = TextEditingController(
-      text:
-          isGoogleSignUp
-              ? widget.signUpScreenArgument.displayName
-              : isAppleSignUp
-              ? widget.signUpScreenArgument.displayName
-              : '',
-    );
-    _emailController = TextEditingController(
-      text:
-          isGoogleSignUp
-              ? widget.signUpScreenArgument.email
-              : isAppleSignUp
-              ? appleMail
-              : '',
-    );
-    _venueDescriptionController = TextEditingController();
-    _passwordController = TextEditingController();
-    _confirmPasswordController = TextEditingController();
-    _addressController = TextEditingController();
-    _postalCodeController = TextEditingController();
-    _countryController = TextEditingController();
-    _regionController = TextEditingController();
-    _phoneController = TextEditingController();
+  isGoogleSignUp = widget.signUpScreenArgument.isGoggleSignUp ?? false;
+  isAppleSignUp = widget.signUpScreenArgument.isAppleSignUp ?? false;
+  if (isAppleSignUp) {
+    if (widget.signUpScreenArgument.email.contains('privaterelay')) {
+      appleMail = "";
+    } else {
+      appleMail = widget.signUpScreenArgument.email;
+    }
   }
+
+  _venueNameController = TextEditingController(
+    text: isGoogleSignUp
+        ? widget.signUpScreenArgument.displayName
+        : isAppleSignUp
+            ? widget.signUpScreenArgument.displayName
+            : '',
+  );
+  _emailController = TextEditingController(
+    text: isGoogleSignUp
+        ? widget.signUpScreenArgument.email
+        : isAppleSignUp
+            ? appleMail
+            : '',
+  );
+  _venueDescriptionController = TextEditingController();
+  _passwordController = TextEditingController();
+  _confirmPasswordController = TextEditingController();
+  _addressController = TextEditingController();
+  _postalCodeController = TextEditingController();
+  _countryController = TextEditingController();
+  _regionController = TextEditingController();
+  _phoneController = TextEditingController();
+
+  // Use addPostFrameCallback to ensure the Bloc has processed the reset
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (isGoogleSignUp || isAppleSignUp) {
+      context.read<SignUpBloc>().add(
+        UpdateTextField(
+          (state) => state.copyWith(
+            venueName: _venueNameController.text,
+            email: _emailController.text,
+          ),
+        ),
+      );
+    }
+  });
+}
+
+
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   context.read<SignUpBloc>().add(LoadVenueTypes());
+  //   context.read<SignUpBloc>().add(ClearImageEvent());
+  //   context.read<SignUpBloc>().add(const ResetFormEvent());
+  //   isGoogleSignUp = widget.signUpScreenArgument.isGoggleSignUp ?? false;
+  //   isAppleSignUp = widget.signUpScreenArgument.isAppleSignUp ?? false;
+  //   if (isAppleSignUp) {
+  //     if (widget.signUpScreenArgument.email.contains('privaterelay')) {
+  //       appleMail =  "" ;
+  //     }else {
+  //       appleMail = widget.signUpScreenArgument.email;
+  //     }
+  //   }
+
+  //   _venueNameController = TextEditingController(
+  //     text:
+  //         isGoogleSignUp
+  //             ? widget.signUpScreenArgument.displayName
+  //             : isAppleSignUp
+  //             ? widget.signUpScreenArgument.displayName
+  //             : '',
+  //   );
+  //   context.read<SignUpBloc>().add(
+  //   UpdateTextField((state) => state.copyWith(venueName: _venueNameController.text)),
+  // );
+  //   _emailController = TextEditingController(
+  //     text:
+  //         isGoogleSignUp
+  //             ? widget.signUpScreenArgument.email
+  //             : isAppleSignUp
+  //             ? appleMail
+  //             : '',
+  //   );
+  //    context.read<SignUpBloc>().add(
+  //                         UpdateTextField(
+  //                           (state) => state.copyWith(email: _emailController.text),
+  //                         ),
+  //                       );
+  //   _venueDescriptionController = TextEditingController();
+  //   _passwordController = TextEditingController();
+  //   _confirmPasswordController = TextEditingController();
+  //   _addressController = TextEditingController();
+  //   _postalCodeController = TextEditingController();
+  //   _countryController = TextEditingController();
+  //   _regionController = TextEditingController();
+  //   _phoneController = TextEditingController();
+  // }
 
   @override
   void dispose() {
@@ -104,23 +169,50 @@ class _SignUpScreenState extends State<SignUpScreen> {
     super.dispose();
   }
 
-  bool _validateForm(SignUpFormState state) {
-    return state.venueName.isNotEmpty ||
-        _venueNameController.text.isNotEmpty &&
-            state.venueDescription.isNotEmpty ||
-        _emailController.text.isNotEmpty &&
-            state.email.isNotEmpty &&
-            RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(state.email) &&
-            ((state.password.isNotEmpty)) &&
-            (state.password == state.confirmPassword) &&
-            state.phone.isNotEmpty &&
-            state.address.isNotEmpty &&
-            state.postalCode.isNotEmpty &&
-            state.venueTypes.any((venue) => venue.isSelected) &&
-            state.openingHours.values.any((hour) => hour.isEnabled) &&
-            state.base64Image != null &&
-            state.base64Image!.isNotEmpty;
+  bool _isValidPhoneNumber(String number) {
+    final phoneRegex = RegExp(r'^\d{8,10}$');
+    return phoneRegex.hasMatch(number);
   }
+
+ bool _validateForm(SignUpFormState state) {
+  final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+  return state.venueName.trim().isNotEmpty &&
+      state.venueDescription.trim().isNotEmpty &&
+      state.email.trim().isNotEmpty &&
+      emailRegex.hasMatch(state.email) &&
+      state.password.trim().isNotEmpty &&
+      state.confirmPassword.trim().isNotEmpty &&
+      state.password == state.confirmPassword &&
+      state.phone.trim().isNotEmpty &&
+      _isValidPhoneNumber(state.phone.trim()) &&
+      state.postalCode.trim().isNotEmpty &&
+      state.address.trim().isNotEmpty &&
+      state.venueTypes.any((venue) => venue.isSelected) &&
+      state.openingHours.values.any((hour) => hour.isEnabled) &&
+      state.base64Image != null &&
+      state.base64Image!.isNotEmpty;
+}
+
+
+
+  // bool _validateForm(SignUpFormState state) {
+  //   return state.venueName.isNotEmpty &&
+  //       _venueNameController.text.isNotEmpty &&
+  //           state.venueDescription.isNotEmpty &&
+  //       _emailController.text.isNotEmpty &&
+  //           state.email.isNotEmpty &&
+  //           RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(state.email) &&
+  //           ((state.password.isNotEmpty)) &&
+  //           (state.password == state.confirmPassword) &&
+  //           state.phone.isNotEmpty &&
+  //           _phoneController.text.isNotEmpty &&
+  //           state.address.isNotEmpty &&
+  //           state.postalCode.isNotEmpty &&
+  //           state.venueTypes.any((venue) => venue.isSelected) &&
+  //           state.openingHours.values.any((hour) => hour.isEnabled) &&
+  //           state.base64Image != null &&
+  //           state.base64Image!.isNotEmpty;
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -435,20 +527,20 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       isPhoneNumber: true,
                       controller: _phoneController,
                       hintText: 'Phone',
-                      errorText:
-                          showValidationErrors &&
-                                  formState != null &&
-                                  _phoneController.text.isEmpty
-                              ? 'Phone number is required'
-                              : null,
+                      errorText: showValidationErrors && formState != null && _phoneController.text.isEmpty
+                          ? 'Phone number is required'
+                          : showValidationErrors && formState != null && !_isValidPhoneNumber(_phoneController.text.trim())
+                          ? "Please enter a valid phone number"
+                          : null,
                       onChanged: (value) {
                         context.read<SignUpBloc>().add(
                           UpdateTextField(
-                            (state) => state.copyWith(phone: value),
+                                (state) => state.copyWith(phone: value),
                           ),
                         );
                       },
                     ),
+
 
                     CustomTextField(
                       controller: _addressController,
@@ -607,6 +699,170 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       state: SignUpFormState(),
                     ),
                     const Gap(30),
+                    // BlocBuilder<SignUpBloc, SignUpState>(
+                    //   builder: (context, state) {
+                    //     if (isLoading) {
+                    //       return RefreshProgressIndicator(
+                    //         color: AppColors.primaryWhiteColor,
+                    //         backgroundColor: AppColors.primary,
+                    //       );
+                    //     } else if (state is SignUpFormState) {
+                    //       final isFormValid = _validateForm(state);
+                    //       return InkWell(
+                    //         splashColor:
+                    //             isFormValid
+                    //                 ? AppColors.secondary
+                    //                 : Colors.transparent,
+                    //         splashFactory:
+                    //             isFormValid
+                    //                 ? InkRipple.splashFactory
+                    //                 : NoSplash.splashFactory,
+                    //         onTap: () {
+                    //           setState(() {
+                    //             showValidationErrors = true;
+                    //           });
+                    //           if (isFormValid) {
+                    //             String formatTime(TimeOfDay time) {
+                    //               final hours = time.hour.toString().padLeft(
+                    //                 2,
+                    //                 '0',
+                    //               );
+                    //               final minutes = time.minute
+                    //                   .toString()
+                    //                   .padLeft(2, '0');
+                    //               return '$hours:$minutes:00';
+                    //             }
+                    //
+                    //             final selectedVenueTypeIds =
+                    //                 state.venueTypes
+                    //                     .where((model) => model.isSelected)
+                    //                     .map((model) => model.id.toString())
+                    //                     .toList();
+                    //
+                    //             final workingDaysMap =
+                    //                 <String, Map<String, dynamic>>{};
+                    //             state.openingHours.forEach((day, value) {
+                    //               final dayLower = day.toLowerCase();
+                    //               workingDaysMap[dayLower] = {
+                    //                 "is_open": value.isEnabled,
+                    //                 "open":
+                    //                     value.isEnabled
+                    //                         ? formatTime(value.from)
+                    //                         : "00:00:00",
+                    //                 "close":
+                    //                     value.isEnabled
+                    //                         ? formatTime(value.to)
+                    //                         : "00:00:00",
+                    //               };
+                    //             });
+                    //
+                    //             if (isGoogleSignUp && isFormValid) {
+                    //               print("Name:${_venueNameController.text}");
+                    //               final googleSignUpRequest =
+                    //                   GoogleSignUpRequest(
+                    //                     name: _venueNameController.text,
+                    //                     venueDescription:
+                    //                         state.venueDescription,
+                    //                     email: _emailController.text,
+                    //                     password: state.password,
+                    //                     passwordConfirmation:
+                    //                         state.confirmPassword,
+                    //                     address: state.address,
+                    //                     // country: state.country,
+                    //                     loginType: 3,
+                    //                     phone: state.phone,
+                    //                     postcode: state.postalCode,
+                    //                     // region: state.region,
+                    //                     accommodations: selectedVenueTypeIds,
+                    //                     workingDays: workingDaysMap,
+                    //                     blob: state.base64Image,
+                    //                     fcmToken:
+                    //                         ObjectFactory().prefs.getFcmToken(),
+                    //                   );
+                    //
+                    //               context.read<SignUpBloc>().add(
+                    //                 SubmitGoogleSignUp(
+                    //                   googleSignUpRequest: googleSignUpRequest,
+                    //                 ),
+                    //               );
+                    //             } else if (isAppleSignUp && isFormValid) {
+                    //               print("IS_APPLE${isAppleSignUp}");
+                    //               print("Name: ${_venueNameController.text}.");
+                    //               final appleAuthID =
+                    //                   ObjectFactory().prefs.getAppleAuthID();
+                    //               final appleSignUpRequest = AppleSignUpRequest(
+                    //                 name: _venueNameController.text,
+                    //                 venueDescription: state.venueDescription,
+                    //                 email: _emailController.text,
+                    //                 password: state.password,
+                    //                 passwordConfirmation: state.confirmPassword,
+                    //                 address: state.address,
+                    //                 // country: state.country,
+                    //                 loginType: 3,
+                    //                 phone: state.phone,
+                    //                 postcode: state.postalCode,
+                    //                 // region: state.region,
+                    //                 accommodations: selectedVenueTypeIds,
+                    //                 workingDays: workingDaysMap,
+                    //                 blob: state.base64Image,
+                    //                 fcmToken:
+                    //                     ObjectFactory().prefs.getFcmToken(),
+                    //                 apple_id: appleAuthID,
+                    //               );
+                    //
+                    //               context.read<SignUpBloc>().add(
+                    //                 SubmitAppleSignUp(
+                    //                   appleSignUpRequest: appleSignUpRequest,
+                    //                 ),
+                    //               );
+                    //             } else if (!isGoogleSignUp && !isAppleSignUp && isFormValid) {
+                    //               final signUpRequest = SignUpRequest(
+                    //                 name: state.venueName,
+                    //                 venueDescription: state.venueDescription,
+                    //                 email: state.email,
+                    //                 password: state.password,
+                    //                 passwordConfirmation: state.confirmPassword,
+                    //                 address: state.address,
+                    //                 // country: state.country,
+                    //                 loginType: 3,
+                    //                 phone: state.phone,
+                    //                 postcode: state.postalCode,
+                    //                 // region: state.region,
+                    //                 accommodations: selectedVenueTypeIds,
+                    //                 workingDays: workingDaysMap,
+                    //                 blob: state.base64Image,
+                    //                 fcmToken:
+                    //                     ObjectFactory().prefs.getFcmToken(),
+                    //               );
+                    //               context.read<SignUpBloc>().add(
+                    //                 SubmitSignUp(signupRequest: signUpRequest),
+                    //               );
+                    //             }
+                    //           } else {
+                    //             ScaffoldMessenger.of(context).showSnackBar(
+                    //               const SnackBar(
+                    //                 content: Text(
+                    //                   'Please fill all required fields before submitting.',
+                    //                 ),
+                    //                 backgroundColor: AppColors.appRedColor,
+                    //                 duration: Duration(seconds: 2),
+                    //               ),
+                    //             );
+                    //           }
+                    //         },
+                    //         child: ElevatedButtonWidget(
+                    //           height: 70.h,
+                    //           width: double.infinity,
+                    //           iconEnabled: false,
+                    //           iconLabel: 'SIGN UP',
+                    //           color: AppColors.primary,
+                    //           textColor: AppColors.primaryWhiteColor,
+                    //         ),
+                    //       );
+                    //     }
+                    //     return const SizedBox.shrink();
+                    //   },
+                    // ),
                     BlocBuilder<SignUpBloc, SignUpState>(
                       builder: (context, state) {
                         if (isLoading) {
@@ -617,87 +873,62 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         } else if (state is SignUpFormState) {
                           final isFormValid = _validateForm(state);
                           return InkWell(
-                            splashColor:
-                                isFormValid
-                                    ? AppColors.secondary
-                                    : Colors.transparent,
-                            splashFactory:
-                                isFormValid
-                                    ? InkRipple.splashFactory
-                                    : NoSplash.splashFactory,
+                            splashColor: isFormValid ? AppColors.secondary : Colors.transparent,
+                            splashFactory: isFormValid ? InkRipple.splashFactory : NoSplash.splashFactory,
                             onTap: () {
+                              // Always show validation errors when button is tapped
                               setState(() {
                                 showValidationErrors = true;
                               });
+
+                              // Only proceed with API call if form is valid
                               if (isFormValid) {
                                 String formatTime(TimeOfDay time) {
-                                  final hours = time.hour.toString().padLeft(
-                                    2,
-                                    '0',
-                                  );
-                                  final minutes = time.minute
-                                      .toString()
-                                      .padLeft(2, '0');
+                                  final hours = time.hour.toString().padLeft(2, '0');
+                                  final minutes = time.minute.toString().padLeft(2, '0');
                                   return '$hours:$minutes:00';
                                 }
 
-                                final selectedVenueTypeIds =
-                                    state.venueTypes
-                                        .where((model) => model.isSelected)
-                                        .map((model) => model.id.toString())
-                                        .toList();
+                                final selectedVenueTypeIds = state.venueTypes
+                                    .where((model) => model.isSelected)
+                                    .map((model) => model.id.toString())
+                                    .toList();
 
-                                final workingDaysMap =
-                                    <String, Map<String, dynamic>>{};
+                                final workingDaysMap = <String, Map<String, dynamic>>{};
                                 state.openingHours.forEach((day, value) {
                                   final dayLower = day.toLowerCase();
                                   workingDaysMap[dayLower] = {
                                     "is_open": value.isEnabled,
-                                    "open":
-                                        value.isEnabled
-                                            ? formatTime(value.from)
-                                            : "00:00:00",
-                                    "close":
-                                        value.isEnabled
-                                            ? formatTime(value.to)
-                                            : "00:00:00",
+                                    "open": value.isEnabled ? formatTime(value.from) : "00:00:00",
+                                    "close": value.isEnabled ? formatTime(value.to) : "00:00:00",
                                   };
                                 });
 
                                 if (isGoogleSignUp) {
                                   print("Name:${_venueNameController.text}");
-                                  final googleSignUpRequest =
-                                      GoogleSignUpRequest(
-                                        name: _venueNameController.text,
-                                        venueDescription:
-                                            state.venueDescription,
-                                        email: _emailController.text,
-                                        password: state.password,
-                                        passwordConfirmation:
-                                            state.confirmPassword,
-                                        address: state.address,
-                                        // country: state.country,
-                                        loginType: 3,
-                                        phone: state.phone,
-                                        postcode: state.postalCode,
-                                        // region: state.region,
-                                        accommodations: selectedVenueTypeIds,
-                                        workingDays: workingDaysMap,
-                                        blob: state.base64Image,
-                                        fcmToken:
-                                            ObjectFactory().prefs.getFcmToken(),
-                                      );
+                                  final googleSignUpRequest = GoogleSignUpRequest(
+                                    name: _venueNameController.text,
+                                    venueDescription: state.venueDescription,
+                                    email: _emailController.text,
+                                    password: state.password,
+                                    passwordConfirmation: state.confirmPassword,
+                                    address: state.address,
+                                    loginType: 3,
+                                    phone: state.phone,
+                                    postcode: state.postalCode,
+                                    accommodations: selectedVenueTypeIds,
+                                    workingDays: workingDaysMap,
+                                    blob: state.base64Image,
+                                    fcmToken: ObjectFactory().prefs.getFcmToken(),
+                                  );
 
                                   context.read<SignUpBloc>().add(
-                                    SubmitGoogleSignUp(
-                                      googleSignUpRequest: googleSignUpRequest,
-                                    ),
+                                    SubmitGoogleSignUp(googleSignUpRequest: googleSignUpRequest),
                                   );
                                 } else if (isAppleSignUp) {
                                   print("IS_APPLE${isAppleSignUp}");
                                   print("Name: ${_venueNameController.text}.");
-                                  final appleAuthID =
-                                      ObjectFactory().prefs.getAppleAuthID();
+                                  final appleAuthID = ObjectFactory().prefs.getAppleAuthID();
                                   final appleSignUpRequest = AppleSignUpRequest(
                                     name: _venueNameController.text,
                                     venueDescription: state.venueDescription,
@@ -705,25 +936,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     password: state.password,
                                     passwordConfirmation: state.confirmPassword,
                                     address: state.address,
-                                    // country: state.country,
                                     loginType: 3,
                                     phone: state.phone,
                                     postcode: state.postalCode,
-                                    // region: state.region,
                                     accommodations: selectedVenueTypeIds,
                                     workingDays: workingDaysMap,
                                     blob: state.base64Image,
-                                    fcmToken:
-                                        ObjectFactory().prefs.getFcmToken(),
+                                    fcmToken: ObjectFactory().prefs.getFcmToken(),
                                     apple_id: appleAuthID,
                                   );
 
                                   context.read<SignUpBloc>().add(
-                                    SubmitAppleSignUp(
-                                      appleSignUpRequest: appleSignUpRequest,
-                                    ),
+                                    SubmitAppleSignUp(appleSignUpRequest: appleSignUpRequest),
                                   );
-                                } else if (!isGoogleSignUp && !isAppleSignUp) {
+                                } else {
+                                  // Regular sign up (not Google or Apple)
                                   final signUpRequest = SignUpRequest(
                                     name: state.venueName,
                                     venueDescription: state.venueDescription,
@@ -731,27 +958,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     password: state.password,
                                     passwordConfirmation: state.confirmPassword,
                                     address: state.address,
-                                    // country: state.country,
                                     loginType: 3,
                                     phone: state.phone,
                                     postcode: state.postalCode,
-                                    // region: state.region,
                                     accommodations: selectedVenueTypeIds,
                                     workingDays: workingDaysMap,
                                     blob: state.base64Image,
-                                    fcmToken:
-                                        ObjectFactory().prefs.getFcmToken(),
+                                    fcmToken: ObjectFactory().prefs.getFcmToken(),
                                   );
                                   context.read<SignUpBloc>().add(
                                     SubmitSignUp(signupRequest: signUpRequest),
                                   );
                                 }
                               } else {
+                                // Show error message only if form is invalid
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
-                                    content: Text(
-                                      'Please fill all required fields before submitting.',
-                                    ),
+                                    content: Text('Please fill all required fields before submitting.'),
                                     backgroundColor: AppColors.appRedColor,
                                     duration: Duration(seconds: 2),
                                   ),
@@ -777,6 +1000,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       promptText: 'Sign in now',
                       onSignInTap: () => context.go('/login'),
                     ),
+                    const Gap(34),
                   ],
                 );
               },

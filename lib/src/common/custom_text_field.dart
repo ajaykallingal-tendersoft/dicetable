@@ -141,10 +141,8 @@ class _CustomTextFieldState extends State<CustomTextField> {
                 ),
                 decoration: InputDecoration(
                   errorText: widget.errorText,
-                  // helperText: ' ', // <-- This line reserves space for error
                   isDense: true,
                   hintText: widget.hintText,
-                  // alignLabelWithHint: true,
                   hintStyle: Theme.of(context).textTheme.bodyMedium!.copyWith(
                     color: AppColors.textPrimaryGrey,
                     fontWeight: FontWeight.w600,

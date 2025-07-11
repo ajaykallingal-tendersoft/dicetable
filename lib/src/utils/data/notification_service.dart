@@ -3,6 +3,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:go_router/go_router.dart';
+import 'package:soloseaters/main.dart';
 import 'object_factory.dart';
 
 class NotificationServices {
@@ -65,6 +67,43 @@ class NotificationServices {
     }
   }
 
+  void _handleNotificationTap(NotificationResponse response) {
+    if (kDebugMode) {
+      print('Notification tapped: ${response.payload}');
+    }
+
+    // Navigation logic based on user type and login status
+    _navigateBasedOnUserType();
+  }
+
+  void _navigateBasedOnUserType() {
+    final isLoggedIn = ObjectFactory().prefs.isLoggedIn() == true;
+    final isCustomerLoggedIn = ObjectFactory().prefs.isCustomerLoggedIn() == true;
+    final rememberDecision = ObjectFactory().prefs.getRememberDecision() ?? false;
+    final userCategory = ObjectFactory().prefs.getUserDecisionName();
+
+    ObjectFactory().prefs.setNavigationSource('notification_tap');
+
+    if (isLoggedIn || isCustomerLoggedIn) {
+      
+      _navigateToRoute('/notification');
+    } else {
+      // First launch or no remembered category; show category selection
+      _navigateToRoute('/category');
+    }
+  }
+
+  void _navigateToRoute(String route) {
+    final context = navigatorKey.currentContext;
+    if (context != null) {
+      context.go(route);
+    } else {
+      if (kDebugMode) {
+        print('Navigation context not available for route: $route');
+      }
+    }
+  }
+
   // Initialize local notifications plugin
   Future<void> _initializeLocalNotifications() async {
     const AndroidInitializationSettings initializationSettingsAndroid =
@@ -86,13 +125,14 @@ class NotificationServices {
 
     await _flutterLocalNotificationsPlugin.initialize(
       initializationSettings,
-      onDidReceiveNotificationResponse: (NotificationResponse response) {
-        // Handle notification tap
-        if (kDebugMode) {
-          print('Notification tapped: ${response.payload}');
-        }
-        // You can navigate to specific screen here based on payload
-      },
+      onDidReceiveNotificationResponse: _handleNotificationTap,
+      // (NotificationResponse response) {
+      //   // Handle notification tap
+      //   if (kDebugMode) {
+      //     print('Notification tapped: ${response.payload}');
+      //   }
+      //   // You can navigate to specific screen here based on payload
+      // },
     );
 
     // Request iOS permissions explicitly
