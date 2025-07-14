@@ -760,6 +760,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
                 onWillPop: () async {
+                  EasyLoading.dismiss();
                   if (_navigationSource == 'category_screen') {
                     context.go('/category');
                     return false; // We handle navigation ourselves

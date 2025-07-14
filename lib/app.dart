@@ -3,7 +3,6 @@ import 'package:soloseaters/src/constants/app_theme.dart';
 import 'package:soloseaters/src/resources/api_providers/auth/auth_data_provider.dart';
 import 'package:soloseaters/src/resources/api_providers/customer/booking_data_provider.dart';
 import 'package:soloseaters/src/resources/api_providers/customer/cafe_data_provider.dart';
-import 'package:soloseaters/src/resources/api_providers/customer/favourite_data_provider.dart';
 import 'package:soloseaters/src/resources/api_providers/customer/profile_data_provider.dart';
 import 'package:soloseaters/src/resources/api_providers/venue_owner/home_data_provider.dart';
 import 'package:soloseaters/src/resources/api_providers/venue_owner/notification_data_provider.dart';

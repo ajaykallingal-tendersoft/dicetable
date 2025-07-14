@@ -558,7 +558,7 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
     Emitter<SignUpState> emit,
   ) async {
     try {
-      emit(_formState.copyWith(isLoadingVenueTypes: true));
+      emit(_formState.copyWith(isLoadingVenueTypes: true, error: null,));
       final response = await authDataProvider.getVenueTypes();
 
       if (response is SuccessState) {
@@ -572,6 +572,7 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
         _formState = _formState.copyWith(
           venueTypes: types,
           isLoadingVenueTypes: false,
+           error: null,
         );
         emit(_formState);
       } else {
@@ -587,6 +588,7 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
         error: e.toString(),
       );
       emit(_formState);
+  
     }
   }
 

@@ -67,6 +67,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
+    bool _isValidPhoneNumber(String number) {
+    final phoneRegex = RegExp(r'^\d{8,10}$');
+    return phoneRegex.hasMatch(number);
+  }
+
   @override
   void dispose() {
     _venueNameController.dispose();
@@ -316,6 +321,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                       controller: _phoneController,
                                       hintText: 'Phone',
                                       textFieldAnnotationText: 'Phone',
+                                      errorText: !_isValidPhoneNumber(_phoneController.text.trim())
+                          ? "Please enter a valid phone number"
+                          : null,
                                       onChanged: (value) {
                                         context.read<ProfileBloc>().add(
                                           UpdateTextField(

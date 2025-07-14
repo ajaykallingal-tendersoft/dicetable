@@ -1,8 +1,5 @@
 part of 'sign_up_bloc.dart';
 
-
-
-
 class OpeningHour extends Equatable {
   final bool isEnabled;
   final TimeOfDay from;
