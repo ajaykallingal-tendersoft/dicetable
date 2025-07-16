@@ -526,7 +526,6 @@ void initState() {
                         );
                       },
                     ),
-
                     CustomTextField(
                       isPhoneNumber: true,
                       controller: _phoneController,
@@ -544,8 +543,6 @@ void initState() {
                         );
                       },
                     ),
-
-
                     CustomTextField(
                       controller: _addressController,
                       hintText: 'Street Address And City',

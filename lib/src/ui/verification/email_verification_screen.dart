@@ -153,6 +153,8 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
         appBar: AppBar(
           backgroundColor: AppColors.primary,
           leading: const SizedBox(),
+          centerTitle: false,
+          leadingWidth: 20,
           title: Text(
             'Email Verification',
 
@@ -172,6 +174,11 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                   if (state.otpVerificationResponse.status == true &&
                       state.otpVerificationResponse.message ==
                           "Email verified successfully.") {
+                            if(state.otpVerificationResponse.user != null) {
+                      ObjectFactory().prefs.setCafeUserName(
+                        cafeUserName: state.otpVerificationResponse.user!.name ?? "",
+                      );
+                            }
                     try {
                       if (widget.verifyScreenArguments.from == "venue_owner") {
                         ObjectFactory().prefs.setIsLoggedIn(true);

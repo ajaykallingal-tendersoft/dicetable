@@ -20,7 +20,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/login/cubit/google_sign_in_cubit.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/login/cubit/apple_signin_cubit.dart';
 
-
 class CustomerProfileScreen extends StatefulWidget {
   const CustomerProfileScreen({super.key});
 
@@ -73,6 +72,11 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
         ),
       );
     }
+  }
+
+  bool _isValidPhoneNumber(String number) {
+    final phoneRegex = RegExp(r'^\d{8,10}$');
+    return phoneRegex.hasMatch(number);
   }
 
   @override
@@ -303,6 +307,15 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                               readOnly: !state.isEditMode,
                               isPassword: false,
                               isProfile: true,
+                              errorText:
+                                  phoneController.text.trim().isEmpty
+                                      ? null
+                                      : (!_isValidPhoneNumber(
+                                            phoneController.text.trim(),
+                                          )
+                                          ? "Please enter a valid phone number"
+                                          : null),
+
                               onChanged:
                                   (val) =>
                                       context.read<CustomerProfileBloc>().add(
@@ -389,7 +402,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                           textColor: AppColors.appRedColor,
                           gravity: ToastGravity.BOTTOM,
                           msg:
-                          "Your session has expired. Please sign in again.",
+                              "Your session has expired. Please sign in again.",
                         );
                       });
                     }

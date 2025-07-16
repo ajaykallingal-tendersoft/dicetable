@@ -244,9 +244,9 @@ class _HomePageState extends State<HomePage> {
                         backgroundColor: AppColors.primaryWhiteColor,
                         textColor: AppColors.appRedColor,
                         gravity: ToastGravity.BOTTOM,
-                        msg: "Your subscription have expired!.",
+                        msg: "You dont have an active subscription. Please subscribe to access all features.",
                       );
-                      context.go('/login');
+                       SignOut().logout(context);
                     }
                   }
                   if (state is HomeLoaded) {

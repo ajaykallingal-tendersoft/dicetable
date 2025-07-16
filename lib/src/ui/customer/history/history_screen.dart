@@ -128,6 +128,22 @@ class _HistoryScreenState extends State<HistoryScreen> {
               sliver: SliverToBoxAdapter(
                 child: BlocConsumer<HistoryBloc, HistoryState>(
                   builder: (context, state) {
+                    if(state is HistoryLoaded) {
+                      if(state.historyListResponse.data!.isEmpty) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          EasyLoading.dismiss();
+                        });
+                        return Center(
+                          child: Text(
+                            "No history found",
+                            style: TextTheme.of(context).bodyMedium!.copyWith(
+                              color: AppColors.primaryWhiteColor,
+                              fontSize: 16.sp,
+                            ),
+                          ),
+                        );
+                      }
+                    }
                     if (state is HistoryLoaded) {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         EasyLoading.dismiss();

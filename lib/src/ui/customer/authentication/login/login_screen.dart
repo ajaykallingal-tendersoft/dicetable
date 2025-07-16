@@ -130,6 +130,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                 if (state.loginRequestResponse.status == true) {
                   EasyLoading.dismiss();
                   if (state.loginRequestResponse.token!.isNotEmpty &&
+                  
                       state.loginRequestResponse.user!.isEmailVerified == 1) {
                     ObjectFactory().prefs.setIsCustomerLoggedIn(true);
                     ObjectFactory().prefs.setCustomerAuthToken(

@@ -23,9 +23,10 @@ class SignOut {
       if (userDecision == "PUBLIC_USER") {
         // Clear PUBLIC_USER (Customer) specific preferences
         ObjectFactory().prefs.setIsCustomerLoggedIn(false);
-        ObjectFactory().prefs.setAuthToken(token: "");
+        ObjectFactory().prefs.setCustomerAuthToken(token: "");
         ObjectFactory().prefs.setUserId(userId: "");
         ObjectFactory().prefs.setCustomerUserName(customerUserName: "");
+        ObjectFactory().prefs.setCustomerMail(mail: '');
       } else if (userDecision == "VENUE_OWNER") {
         ObjectFactory().prefs.setIsLoggedIn(false);
         ObjectFactory().prefs.setAuthToken(token: "");
@@ -45,7 +46,6 @@ class SignOut {
         ObjectFactory().prefs.setCustomerMail(mail: '');
       }
 
-      // Get navigation source (as in original code)
       ObjectFactory().prefs.getNavigationSource();
 
       context.go('/category');

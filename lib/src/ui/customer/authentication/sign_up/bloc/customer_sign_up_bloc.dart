@@ -371,8 +371,8 @@ class CustomerSignUpBloc
 
     final digitsOnly = phone.replaceAll(RegExp(r'\D'), '');
 
-    if (digitsOnly.length < 10) {
-      return 'Phone number must be at least 10 digits';
+    if (digitsOnly.length < 8) {
+      return 'Please enter a valid phone number';
     }
     if (digitsOnly.length > 15) {
       return 'Phone number must be less than 15 digits';
