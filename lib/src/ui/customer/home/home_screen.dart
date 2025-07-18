@@ -1,3 +1,4 @@
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/bloc/notification_bloc.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/count_controller.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
@@ -46,6 +47,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         textColor: AppColors.primaryWhiteColor,
         gravity: ToastGravity.BOTTOM,
         msg: "Press again to exit",
+        fontSize: 14.sp,
       );
       return Future.value(false);
     }

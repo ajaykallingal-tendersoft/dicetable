@@ -73,9 +73,11 @@ class _CustomLoginTextFieldState extends State<CustomLoginTextField> {
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                    Gap(10),
                   Expanded(
-                    flex: 2,
+                    // flex: 2,
                     child: TextFormField(
                       focusNode: widget.focusNode,
                       controller: widget.controller,
@@ -95,7 +97,7 @@ class _CustomLoginTextFieldState extends State<CustomLoginTextField> {
                         hintStyle: TextTheme.of(context).bodyMedium!.copyWith(
                           color: AppColors.textFieldTextColor,
                           fontWeight: FontWeight.w600,
-                          fontSize: 16,
+                          fontSize: 16.sp,
                         ),
                         border: InputBorder.none,
                       ),

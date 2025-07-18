@@ -1,4 +1,6 @@
+import 'package:responsive_framework/responsive_framework.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
+import 'package:soloseaters/src/constants/assets.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/login/google_login_request.dart';
 import 'package:soloseaters/src/resources/api_providers/auth/auth_data_provider.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/login/bloc/login_bloc.dart';
@@ -89,6 +91,9 @@ class LoginWithGoogleWidget extends StatelessWidget {
         },
 
         builder: (context, state) {
+            final isTabletOrLarger = ResponsiveBreakpoints.of(
+          context,
+        ).largerThan(MOBILE);
           return InkWell(
             onTap:
                 state is GoogleSignInCubitLoading
@@ -117,29 +122,34 @@ class LoginWithGoogleWidget extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  SvgPicture.asset('assets/svg/google.svg'),
-
+                  Image.asset(
+                    Assets.GOOGLE_LOGO, // Changed from APPLE_LOGO to GOOGLE_LOGO
+                    fit: isTabletOrLarger ? BoxFit.contain : BoxFit.scaleDown,
+                    width: 35.w,
+                    height: 35.h,
+                  ),
                   state is GoogleSignInCubitLoading
                       ? Padding(
-                        padding: const EdgeInsets.only(left: 24),
-                        child: CircularProgressIndicator(
-                          backgroundColor: AppColors.primaryWhiteColor,
-                          color: AppColors.primary,
-                        ),
-                      )
+                          padding: const EdgeInsets.only(left: 24),
+                          child: CircularProgressIndicator(
+
+                            backgroundColor: AppColors.primaryWhiteColor,
+                            color: AppColors.primary,
+                          ),
+                        )
                       : Padding(
-                        padding: const EdgeInsets.only(left: 24),
-                        child: Text(
-                          'Sign in with Google',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.labelMedium!.copyWith(
-                            color: AppColors.textFieldTextColor,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 15,
+                          padding: const EdgeInsets.only(left: 24),
+                          child: Text(
+                            'Sign in with Google',
+                            style: Theme.of(
+                              context,
+                            ).textTheme.labelMedium!.copyWith(
+                              color: AppColors.textFieldTextColor,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                            ),
                           ),
                         ),
-                      ),
                 ],
               ),
             ),

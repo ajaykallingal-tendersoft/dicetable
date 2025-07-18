@@ -1,3 +1,4 @@
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -23,17 +24,7 @@ class OpeningHoursWidget extends StatefulWidget {
 class _OpeningHoursWidgetState extends State<OpeningHoursWidget> {
   bool isExpanded = false; // Track expanded/collapsed state
 
-  // Future<void> _pickTime(
-  //     BuildContext context,
-  //     TimeOfDay initialTime,
-  //     void Function(TimeOfDay) onPicked,
-  //     ) async {
-  //   final picked = await showTimePicker(context: context, initialTime: initialTime);
-  //   if (picked != null) {
-  //     onPicked(picked);
-  //   }
-  // }
-
+ 
   Future<void> _pickTime(
     BuildContext context,
     TimeOfDay initialTime,
@@ -118,7 +109,7 @@ class _OpeningHoursWidgetState extends State<OpeningHoursWidget> {
                     widget.day,
                     style: Theme.of(context).textTheme.labelLarge!.copyWith(
                       fontWeight: FontWeight.w600,
-                      fontSize: 14,
+                      fontSize: 14.sp,
                       color: AppColors.primary,
                     ),
                   ),
@@ -182,7 +173,7 @@ class _OpeningHoursWidgetState extends State<OpeningHoursWidget> {
                       widget.day,
                       style: Theme.of(context).textTheme.labelLarge!.copyWith(
                         fontWeight: FontWeight.w600,
-                        fontSize: 14,
+                        fontSize: 14.sp,
                         color: AppColors.primary,
                       ),
                     ),

@@ -301,6 +301,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                     onTap: () {
                       if (isGuest) {
                         Fluttertoast.showToast(
+                          fontSize: 14.sp,
                           msg: "Please signup to proceed.",
                           backgroundColor: AppColors.appRedColor,
                           textColor: AppColors.primaryWhiteColor,
@@ -321,7 +322,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                     },
                     child: ElevatedButtonWidget(
                       height: 70.h,
-                      width: double.infinity,
+                      width: MediaQuery.of(context).size.width,
                       iconEnabled: false,
                       iconLabel:
                           _bookingStatus

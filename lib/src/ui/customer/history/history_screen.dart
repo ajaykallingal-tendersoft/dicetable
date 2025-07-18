@@ -249,6 +249,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         WidgetsBinding.instance.addPostFrameCallback((_) {
                           SignOut().logout(context);
                           Fluttertoast.showToast(
+                            fontSize: 14.sp,
                             backgroundColor: AppColors.primaryWhiteColor,
                             textColor: AppColors.appRedColor,
                             gravity: ToastGravity.BOTTOM,
@@ -262,6 +263,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     if (state is HistoryError) {
                       EasyLoading.dismiss();
                       Fluttertoast.showToast(
+                        fontSize: 14.sp,
                         backgroundColor: AppColors.primaryWhiteColor,
                         textColor: AppColors.appRedColor,
                         gravity: ToastGravity.BOTTOM,

@@ -28,8 +28,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:responsive_framework/responsive_framework.dart';
-class App extends StatelessWidget {
 
+class App extends StatelessWidget {
   const App({super.key});
 
   @override
@@ -37,21 +37,32 @@ class App extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider<NetworkConnectivityBloc>(
-          create: (BuildContext context) => NetworkConnectivityBloc()..add(NetworkObserve()),
+          create:
+              (BuildContext context) =>
+                  NetworkConnectivityBloc()..add(NetworkObserve()),
         ),
         BlocProvider<NotificationBloc>(
-          create: (context) => NotificationBloc(notificationDataProvider: NotificationDataProvider()),
+          create:
+              (context) => NotificationBloc(
+                notificationDataProvider: NotificationDataProvider(),
+              ),
         ),
         BlocProvider<ProfileBloc>(
-          create: (context) => ProfileBloc(profileDataProvider: ProfileDataProvider()),
+          create:
+              (context) =>
+                  ProfileBloc(profileDataProvider: ProfileDataProvider()),
         ),
         BlocProvider(create: (context) => GoogleSignInCubit()),
         BlocProvider(create: (context) => AppleSignInCubit()),
         BlocProvider(
-          create: (context) => CafeListBloc(cafeDataProvider: CafeDataProvider()),
+          create:
+              (context) => CafeListBloc(cafeDataProvider: CafeDataProvider()),
         ),
         BlocProvider(
-          create: (context) => SubscriptionBloc(subscriptionDataProvider: SubscriptionDataProvider()),
+          create:
+              (context) => SubscriptionBloc(
+                subscriptionDataProvider: SubscriptionDataProvider(),
+              ),
         ),
         BlocProvider(
           create: (context) => SignUpBloc(authDataProvider: AuthDataProvider()),
@@ -60,25 +71,39 @@ class App extends StatelessWidget {
           create: (context) => HomeBloc(homeDataProvider: HomeDataProvider()),
         ),
         BlocProvider(
-          create: (context) => CafeDetailsBloc(bookingDataProvider: BookingDataProvider()),
+          create:
+              (context) =>
+                  CafeDetailsBloc(bookingDataProvider: BookingDataProvider()),
         ),
         BlocProvider(
-          create: (context) => CustomerProfileBloc(customerProfileDataProvider: CustomerProfileDataProvider()),
+          create:
+              (context) => CustomerProfileBloc(
+                customerProfileDataProvider: CustomerProfileDataProvider(),
+              ),
         ),
         BlocProvider(
-          create: (context) => CustomerHomeBloc(cafeDataProvider: CafeDataProvider()),
+          create:
+              (context) =>
+                  CustomerHomeBloc(cafeDataProvider: CafeDataProvider()),
         ),
         BlocProvider(
-          create: (context) => ForgotPasswordBloc(authDataProvider: AuthDataProvider()),
+          create:
+              (context) =>
+                  ForgotPasswordBloc(authDataProvider: AuthDataProvider()),
         ),
         BlocProvider(
-          create: (context) =>
-              VerificationBloc(authDataProvider: AuthDataProvider()),
+          create:
+              (context) =>
+                  VerificationBloc(authDataProvider: AuthDataProvider()),
         ),
-        BlocProvider(create: (context) => CustomerSignUpBloc(authDataProvider: AuthDataProvider()),)
+        BlocProvider(
+          create:
+              (context) =>
+                  CustomerSignUpBloc(authDataProvider: AuthDataProvider()),
+        ),
       ],
       child: ScreenUtilInit(
-        designSize: const Size(430, 932),
+        designSize: const Size(375, 812),
         minTextAdapt: true,
         splitScreenMode: true,
         builder: (context, child) {
@@ -99,13 +124,20 @@ class App extends StatelessWidget {
                   const Breakpoint(start: 801, end: 1920, name: DESKTOP),
                 ],
               );
-              return widget;
+              final mediaQueryData = MediaQuery.of(context);
+
+              return MediaQuery(
+                data: mediaQueryData.copyWith(
+                  textScaler: const TextScaler.linear(
+                    0.95,
+                  ),
+                ),
+                child: widget,
+              );
             },
           );
-
         },
       ),
     );
   }
 }
-

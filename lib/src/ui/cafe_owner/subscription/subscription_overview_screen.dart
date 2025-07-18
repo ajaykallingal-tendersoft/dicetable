@@ -39,6 +39,7 @@ class _SubscriptionOverviewScreenState
         if (state is SubscriptionOverviewError) {
           EasyLoading.dismiss();
           Fluttertoast.showToast(
+            fontSize: 14.sp,
             msg: "Failed to load subscription data.",
             backgroundColor: AppColors.primaryWhiteColor,
             textColor: AppColors.appRedColor,
@@ -48,6 +49,7 @@ class _SubscriptionOverviewScreenState
             WidgetsBinding.instance.addPostFrameCallback((_) {
               SignOut().logout(context);
               Fluttertoast.showToast(
+                fontSize: 14.sp,
                 backgroundColor: AppColors.primaryWhiteColor,
                 textColor: AppColors.appRedColor,
                 gravity: ToastGravity.BOTTOM,

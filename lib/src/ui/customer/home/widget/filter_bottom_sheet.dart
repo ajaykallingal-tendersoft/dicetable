@@ -147,6 +147,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
 
     if (!hasTimeFilter && !hasTableTypeFilter && !hasVenueTypeFilter) {
       Fluttertoast.showToast(
+        fontSize: 14.sp,
         msg: "Please select at least one filter",
         toastLength: Toast.LENGTH_SHORT,
         gravity: ToastGravity.BOTTOM,
@@ -236,163 +237,172 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                AppColors.primaryWhiteColor,
-                AppColors.primaryWhiteColor,
-                AppColors.filterGradient1,
-                AppColors.filterGradient2,
-              ],
-              stops: [0.0, 0.0, 0.40, 1.0],
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
+    return WillPopScope(
+      onWillPop: () async {
+        _clearAllFilters();
+        return true;
+      },
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.primaryWhiteColor,
+                  AppColors.primaryWhiteColor,
+                  AppColors.filterGradient1,
+                  AppColors.filterGradient2,
+                ],
+                stops: [0.0, 0.0, 0.40, 1.0],
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+              ),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
             ),
-            borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-          ),
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.all(26),
-            child: BlocConsumer<CustomerHomeBloc, CustomerHomeState>(
-              listener: (context, state) {
-                if (state is FilterOptionsLoading) {
-                  EasyLoading.show();
-                } else if (state is FilterOptionsLoaded ||
-                    state is FilterOptionsError) {
-                  EasyLoading.dismiss();
-                }
-                if (state is FiltersUpdated) {
-                  setState(() {
-                    selectedTableTypes = Set.from(state.selectedTableTypes);
-                    selectedVenueTypes = Set.from(state.selectedVenueTypes);
-                    openTime = state.openTime;
-                    closeTime = state.closeTime;
-                  });
-                } else if (state is FiltersCleared) {
-                  setState(() {
-                    selectedTableTypes.clear();
-                    selectedVenueTypes.clear();
-                    openTime = const TimeOfDay(hour: 00, minute: 0);
-                    closeTime = const TimeOfDay(hour: 00, minute: 0);
-                  });
-                }
-              },
-              builder: (context, state) {
-                if (state is FilterOptionsLoaded &&
-                    state.getFilterOptionsResponse.diceTables!.isNotEmpty &&
-                    state.getFilterOptionsResponse.venueTypes!.isNotEmpty) {
-                  final List<String> tableTypes =
-                      state.getFilterOptionsResponse.diceTables!
-                          .map((diceTable) => diceTable.title ?? '')
-                          .where((title) => title.isNotEmpty)
-                          .toList();
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.all(26),
+              child: BlocConsumer<CustomerHomeBloc, CustomerHomeState>(
+                listener: (context, state) {
+                  if (state is FilterOptionsLoading) {
+                    EasyLoading.show();
+                  } else if (state is FilterOptionsLoaded ||
+                      state is FilterOptionsError) {
+                    EasyLoading.dismiss();
+                  }
+                  if (state is FiltersUpdated) {
+                    setState(() {
+                      selectedTableTypes = Set.from(state.selectedTableTypes);
+                      selectedVenueTypes = Set.from(state.selectedVenueTypes);
+                      openTime = state.openTime;
+                      closeTime = state.closeTime;
+                    });
+                  } else if (state is FiltersCleared) {
+                    setState(() {
+                      selectedTableTypes.clear();
+                      selectedVenueTypes.clear();
+                      openTime = const TimeOfDay(hour: 00, minute: 0);
+                      closeTime = const TimeOfDay(hour: 00, minute: 0);
+                    });
+                  }
+                },
+                builder: (context, state) {
+                  if (state is FilterOptionsLoaded &&
+                      state.getFilterOptionsResponse.diceTables!.isNotEmpty &&
+                      state.getFilterOptionsResponse.venueTypes!.isNotEmpty) {
+                    final List<String> tableTypes =
+                        state.getFilterOptionsResponse.diceTables!
+                            .map((diceTable) => diceTable.title ?? '')
+                            .where((title) => title.isNotEmpty)
+                            .toList();
 
-                  final List<String> venueTypes =
-                      state.getFilterOptionsResponse.venueTypes!
-                          .map((venueType) => venueType.title ?? '')
-                          .where((title) => title.isNotEmpty)
-                          .toList();
+                    final List<String> venueTypes =
+                        state.getFilterOptionsResponse.venueTypes!
+                            .map((venueType) => venueType.title ?? '')
+                            .where((title) => title.isNotEmpty)
+                            .toList();
 
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "FILTERS",
+                              style: TextTheme.of(context).bodyMedium!.copyWith(
+                                color: AppColors.textPrimaryGrey,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 14.sp,
+                              ),
+                            ),
+                            IconButton(
+                              icon: SvgPicture.asset(
+                                'assets/svg/filter-close.svg',
+                              ),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          ],
+                        ),
+                        Gap(30.h),
+                        _buildSectionTitle("HOURS"),
+                        _buildHoursPicker(),
+                        Gap(20.h),
+                        _buildSectionTitle("TYPE OF TABLE"),
+                        _buildCustomCheckboxList(
+                          tableTypes,
+                          selectedTableTypes,
+                          _updateSelectedTableType,
+                        ),
+                        Gap(20.h),
+                        _buildSectionTitle("VENUE TYPE"),
+                        _buildCustomCheckboxGrid(
+                          venueTypes,
+                          selectedVenueTypes,
+                          _updateSelectedVenueType,
+                        ),
+                        Gap(30.h),
+                        _buildActionButtons(state.getFilterOptionsResponse),
+                        Gap(30.h),
+                      ],
+                    );
+                  } else if (state is FilterOptionsError) {
+                    return Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            "FILTERS",
+                            'Error loading filters: ${state.message}',
                             style: TextTheme.of(context).bodyMedium!.copyWith(
-                              color: AppColors.textPrimaryGrey,
-                              fontWeight: FontWeight.w600,
+                              color: AppColors.primary,
                               fontSize: 14.sp,
                             ),
+                            textAlign: TextAlign.center,
                           ),
-                          IconButton(
-                            icon: SvgPicture.asset(
-                              'assets/svg/filter-close.svg',
+                          SizedBox(height: 16.h),
+                          ElevatedButton(
+                            onPressed:
+                                () => context.read<CustomerHomeBloc>().add(
+                                  GetFilterOptionsEvent(),
+                                ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.primary,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 20.w,
+                                vertical: 10.h,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12.r),
+                              ),
                             ),
-                            onPressed: () => Navigator.pop(context),
+                            child: Text(
+                              'Retry',
+                              style: TextTheme.of(
+                                context,
+                              ).labelMedium!.copyWith(
+                                color: AppColors.primaryWhiteColor,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 16.sp,
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                      Gap(30.h),
-                      _buildSectionTitle("HOURS"),
-                      _buildHoursPicker(),
-                      Gap(20.h),
-                      _buildSectionTitle("TYPE OF TABLE"),
-                      _buildCustomCheckboxList(
-                        tableTypes,
-                        selectedTableTypes,
-                        _updateSelectedTableType,
-                      ),
-                      Gap(20.h),
-                      _buildSectionTitle("VENUE TYPE"),
-                      _buildCustomCheckboxGrid(
-                        venueTypes,
-                        selectedVenueTypes,
-                        _updateSelectedVenueType,
-                      ),
-                      Gap(30.h),
-                      _buildActionButtons(state.getFilterOptionsResponse),
-                    ],
-                  );
-                } else if (state is FilterOptionsError) {
+                    );
+                  }
                   return Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'Error loading filters: ${state.message}',
-                          style: TextTheme.of(context).bodyMedium!.copyWith(
-                            color: AppColors.primary,
-                            fontSize: 14.sp,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        SizedBox(height: 16.h),
-                        ElevatedButton(
-                          onPressed:
-                              () => context.read<CustomerHomeBloc>().add(
-                                GetFilterOptionsEvent(),
-                              ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 20.w,
-                              vertical: 10.h,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12.r),
-                            ),
-                          ),
-                          child: Text(
-                            'Retry',
-                            style: TextTheme.of(context).labelMedium!.copyWith(
-                              color: AppColors.primaryWhiteColor,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 16.sp,
-                            ),
-                          ),
-                        ),
-                      ],
+                    child: Lottie.asset(
+                      Assets.JUMBING_DOT,
+                      width: 40,
+                      height: 40,
                     ),
                   );
-                }
-                return Center(
-                  child: Lottie.asset(
-                    Assets.JUMBING_DOT,
-                    width: 40,
-                    height: 40,
-                  ),
-                );
-              },
+                },
+              ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 

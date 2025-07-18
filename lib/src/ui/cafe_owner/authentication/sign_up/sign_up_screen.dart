@@ -276,6 +276,7 @@ void initState() {
                     }
                   } else {
                     Fluttertoast.showToast(
+                      fontSize: 14.sp,
                       backgroundColor: AppColors.primaryWhiteColor,
                       textColor: AppColors.appGreenColor,
                       gravity: ToastGravity.BOTTOM,
@@ -329,6 +330,7 @@ void initState() {
                     }
                   } else {
                     Fluttertoast.showToast(
+                      fontSize: 14.sp,
                       backgroundColor: AppColors.primaryWhiteColor,
                       textColor: AppColors.appGreenColor,
                       gravity: ToastGravity.BOTTOM,
@@ -372,6 +374,7 @@ void initState() {
                     }
                   } else {
                     Fluttertoast.showToast(
+                      fontSize: 14.sp,
                       backgroundColor: AppColors.primaryWhiteColor,
                       textColor: AppColors.appGreenColor,
                       gravity: ToastGravity.BOTTOM,
@@ -822,7 +825,7 @@ void initState() {
                             },
                             child: ElevatedButtonWidget(
                               height: 70.h,
-                              width: double.infinity,
+                              width: MediaQuery.of(context).size.width,
                               iconEnabled: false,
                               iconLabel: 'SIGN UP',
                               color: AppColors.primary,

@@ -403,6 +403,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                           gravity: ToastGravity.BOTTOM,
                           msg:
                               "Your session has expired. Please sign in again.",
+                              fontSize: 14.sp,
                         );
                       });
                     }
@@ -445,6 +446,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
       textColor: textColor,
       gravity: ToastGravity.BOTTOM,
       msg: message,
+      fontSize: 14.sp,
     );
   }
 

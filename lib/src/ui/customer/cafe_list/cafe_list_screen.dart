@@ -81,6 +81,7 @@ class _CafeListScreenState extends State<CafeListScreen> {
         ),
       );
       Fluttertoast.showToast(
+        fontSize: 14.sp,
         msg: "Location data unavailable. Using default location.",
         toastLength: Toast.LENGTH_LONG,
         gravity: ToastGravity.BOTTOM,
@@ -139,7 +140,7 @@ class _CafeListScreenState extends State<CafeListScreen> {
             SliverAppBar(
               pinned: false,
               backgroundColor: Colors.transparent,
-              expandedHeight: isTabletOrLarger ? 110.h : 10.h,
+              expandedHeight: isTabletOrLarger ? 70.h : 10.h,
               leading: SizedBox.shrink(),
               elevation: 0,
               flexibleSpace: FlexibleSpaceBar(
@@ -155,10 +156,10 @@ class _CafeListScreenState extends State<CafeListScreen> {
                         children: [
                           Text(
                             "SOLO SEATERS",
-                            style: TextTheme.of(context).labelMedium!.copyWith(
+                            style: TextTheme.of(context).headlineMedium!.copyWith(
                               color: AppColors.primaryWhiteColor,
                               fontWeight: FontWeight.bold,
-                              fontSize: 30.sp,
+                              fontSize: isTabletOrLarger ? 28.sp : 24.sp,
                             ),
                           ),
                           isGuest
@@ -271,6 +272,7 @@ class _CafeListScreenState extends State<CafeListScreen> {
                           WidgetsBinding.instance.addPostFrameCallback((_) {
                             SignOut().logout(context);
                             Fluttertoast.showToast(
+                              fontSize: 14.sp,
                               backgroundColor: AppColors.primaryWhiteColor,
                               textColor: AppColors.appRedColor,
                               gravity: ToastGravity.BOTTOM,
@@ -288,6 +290,7 @@ class _CafeListScreenState extends State<CafeListScreen> {
                         WidgetsBinding.instance.addPostFrameCallback((_) {
                           SignOut().logout(context);
                           Fluttertoast.showToast(
+                            fontSize: 14.sp,
                             backgroundColor: AppColors.primaryWhiteColor,
                             textColor: AppColors.appRedColor,
                             gravity: ToastGravity.BOTTOM,

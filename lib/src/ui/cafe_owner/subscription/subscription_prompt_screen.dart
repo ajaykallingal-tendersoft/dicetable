@@ -39,6 +39,7 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
         now.difference(currentBackPressTime) > const Duration(seconds: 3)) {
       currentBackPressTime = now;
       Fluttertoast.showToast(
+        fontSize: 14.sp,
         backgroundColor: AppColors.secondary,
         textColor: AppColors.primaryWhiteColor,
         gravity: ToastGravity.BOTTOM,
@@ -313,7 +314,7 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                       },
                       child: ElevatedButtonWidget(
                         height: 70.h,
-                        width: double.infinity,
+                        width: MediaQuery.of(context).size.width,
                         iconEnabled: false,
                         iconLabel: "START FREE TRAIL",
                         color: AppColors.primary,
@@ -366,6 +367,7 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                   state.subscriptionStartResponse.message ==
                       "This cafe already has an active subscription.") {
                 Fluttertoast.showToast(
+                  fontSize: 14.sp,
                   backgroundColor: AppColors.primaryWhiteColor,
                   textColor: AppColors.appGreenColor,
                   gravity: ToastGravity.BOTTOM,
@@ -376,6 +378,7 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                 context.go('/home');
               } else if (state.subscriptionStartResponse.status == true) {
                 Fluttertoast.showToast(
+                  fontSize: 14.sp,
                   backgroundColor: AppColors.primaryWhiteColor,
                   textColor: AppColors.appGreenColor,
                   gravity: ToastGravity.BOTTOM,
@@ -387,6 +390,7 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
             if (state is StartSubscriptionError) {
               EasyLoading.dismiss();
               Fluttertoast.showToast(
+                fontSize: 14.sp,
                 backgroundColor: AppColors.primaryWhiteColor,
                 textColor: AppColors.appGreenColor,
                 gravity: ToastGravity.BOTTOM,

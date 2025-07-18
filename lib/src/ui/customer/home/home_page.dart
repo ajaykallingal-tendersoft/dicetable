@@ -5,14 +5,11 @@ import 'package:soloseaters/src/ui/customer/home/widget/cafe_marker_map_widget.d
 import 'package:soloseaters/src/ui/customer/home/widget/cafe_search_bar.dart';
 import 'package:soloseaters/src/ui/customer/home/widget/filter_bottom_sheet.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
-import 'package:soloseaters/src/utils/data/sign_out.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:go_router/go_router.dart';
@@ -20,6 +17,8 @@ import 'package:gap/gap.dart';
 import 'bloc/customer_home_bloc.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:badges/badges.dart' as badges;
+import 'package:auto_size_text/auto_size_text.dart';
+
 
 class CustomerHomePage extends StatefulWidget {
   const CustomerHomePage({super.key});
@@ -110,7 +109,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
               padding: EdgeInsets.symmetric(horizontal: 20.h, vertical: 0.h),
               sliver: SliverAppBar(
                 backgroundColor: Colors.transparent,
-                expandedHeight: isTabletOrLarger ? 110.h : 0,
+                expandedHeight: isTabletOrLarger ? 90.h : 0,
                 leading: const SizedBox(),
                 flexibleSpace: FlexibleSpaceBar(
                   centerTitle: false,
@@ -124,14 +123,14 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
+                            AutoSizeText(
                               "SOLO SEATERS",
                               style: TextTheme.of(
                                 context,
-                              ).labelMedium!.copyWith(
+                              ).headlineMedium!.copyWith(
                                 color: AppColors.primaryWhiteColor,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 30.sp,
+                                fontSize: isTabletOrLarger ? 28.sp : 24.sp,
                               ),
                             ),
                             isGuest
@@ -223,23 +222,7 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                 } else {
                   EasyLoading.dismiss();
                 }
-                // if (state is CafeSearchError) {
-                //    EasyLoading.dismiss();
-                //   if (state.message.contains("Unauthorized") ||
-                //       state.message.contains("status code of 401") ||
-                //       state.message.contains("Unknown error")) {
-                //     WidgetsBinding.instance.addPostFrameCallback((_) {
-                //       SignOut().logout(context);
-                //       Fluttertoast.showToast(
-                //         backgroundColor: AppColors.primaryWhiteColor,
-                //         textColor: AppColors.appRedColor,
-                //         gravity: ToastGravity.BOTTOM,
-                //         msg:
-                //         "Your session has expired. Please sign in again.",
-                //       );
-                //     });
-                //   }
-                // }
+               
               },
               builder: (context, state) {
                 return SliverToBoxAdapter(

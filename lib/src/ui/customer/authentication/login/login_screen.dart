@@ -162,11 +162,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                 if (state.loginRequestResponse.status == false &&
                     state.loginRequestResponse.message ==
                         "Please verify your email first.") {
-                  Fluttertoast.showToast(
-                    msg: state.loginRequestResponse.message!,
-                    backgroundColor: AppColors.primaryWhiteColor,
-                    textColor: AppColors.appRedColor,
-                  );
+                 
                   context.go(
                     '/verify',
                     extra: VerifyScreenArguments(
@@ -207,6 +203,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                   );
                   context.go('/customer_home');
                   Fluttertoast.showToast(
+                    fontSize: 14.sp,
                     msg: response.message!,
                     backgroundColor: AppColors.primaryWhiteColor,
                     textColor: AppColors.appGreenColor,
@@ -217,6 +214,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                 EasyLoading.dismiss();
                 print('GoogleLoginErrorState reached');
                 Fluttertoast.showToast(
+                  fontSize: 14.sp,
                   msg: state.msg,
                   backgroundColor: AppColors.primaryWhiteColor,
                   textColor: AppColors.appRedColor,
@@ -257,6 +255,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                   );
                   context.go('/customer_home');
                   Fluttertoast.showToast(
+                    fontSize: 14.sp,
                     msg: response.message!,
                     backgroundColor: AppColors.primaryWhiteColor,
                     textColor: AppColors.appGreenColor,
@@ -270,6 +269,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                 EasyLoading.dismiss();
                 print('AppleLoginErrorState reached');
                 Fluttertoast.showToast(
+                  fontSize: 14.sp,
                   msg: state.errorMsg,
                   backgroundColor: AppColors.primaryWhiteColor,
                   textColor: AppColors.appRedColor,
@@ -346,7 +346,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
 
                       Positioned(
                         top: 50,
-                        bottom: 720.h,
+                        bottom: 650.h,
                         left: 0,
                         right: 0,
                         child: Image.asset(
@@ -581,7 +581,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                                                         ElevatedButtonWidget(
                                                           height: 70.h,
                                                           width:
-                                                              double.infinity,
+                                                             MediaQuery.of(context).size.width,
                                                           iconEnabled: false,
                                                           iconLabel: "LOGIN",
                                                           color:
@@ -800,6 +800,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
     if (!_isMounted) return;
 
     Fluttertoast.showToast(
+      fontSize: 14.sp,
       backgroundColor: AppColors.primaryWhiteColor,
       textColor: textColor,
       gravity: ToastGravity.BOTTOM,

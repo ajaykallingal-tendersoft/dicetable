@@ -108,6 +108,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
     if (!_isMounted) return;
 
     Fluttertoast.showToast(
+      fontSize: 14.sp,
       backgroundColor: AppColors.primaryWhiteColor,
       textColor: textColor,
       gravity: ToastGravity.BOTTOM,
@@ -130,6 +131,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 SignOut().logout(context);
                 Fluttertoast.showToast(
+                  fontSize: 14.sp,
                   backgroundColor: AppColors.primaryWhiteColor,
                   textColor: AppColors.appRedColor,
                   gravity: ToastGravity.BOTTOM,
@@ -146,6 +148,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               SignOut().logout(context);
               Fluttertoast.showToast(
+                fontSize: 14.sp,
                 backgroundColor: AppColors.primaryWhiteColor,
                 textColor: AppColors.appRedColor,
                 gravity: ToastGravity.BOTTOM,
@@ -177,12 +180,14 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
           _postalCodeController.text = state.postalCode;
           EasyLoading.dismiss();
           Fluttertoast.showToast(
+            fontSize: 14.sp,
             msg: 'Profile updated successfully',
             backgroundColor: AppColors.primaryWhiteColor,
             textColor: AppColors.appGreenColor,
           );
         } else if (state is ProfileUpdateError) {
           Fluttertoast.showToast(
+            fontSize: 14.sp,
             msg: state.errorMessage,
             backgroundColor: AppColors.primaryWhiteColor,
             textColor: AppColors.appRedColor,
@@ -416,7 +421,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                           },
                           child: ElevatedButtonWidget(
                             height: 70.h,
-                            width: double.infinity,
+                            width: MediaQuery.of(context).size.width,
                             iconEnabled: false,
                             iconLabel: 'LOG OUT',
                             color: AppColors.primaryWhiteColor,
@@ -430,7 +435,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                           },
                           child: ElevatedButtonWidget(
                             height: 70.h,
-                            width: double.infinity,
+                            width: MediaQuery.of(context).size.width,
                             iconEnabled: false,
                             iconLabel: 'DELETE ACCOUNT',
                             color: AppColors.primaryWhiteColor,

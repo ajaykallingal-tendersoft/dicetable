@@ -84,26 +84,26 @@ class LoginWithAppleWidget extends StatelessWidget {
                 Image.asset(
                   Assets.APPLE_LOGO,
                   fit: isTabletOrLarger ? BoxFit.contain : BoxFit.cover,
-                  width: 75.w,
-                  height: 75.h,
+                  width: 35.w,
+                  height: 35.h,
                 ),
-                // Gap(10),
                 state is AppleSignInLoading
-                    ? SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        backgroundColor: AppColors.primaryWhiteColor,
-                        color: AppColors.primary,
-                      ),
-                    )
-                    : Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 4),
+                    ? Padding(
+                        padding: const EdgeInsets.only(left: 24),
+                        child: SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            backgroundColor: AppColors.primaryWhiteColor,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      )
+                    : Padding(
+                        padding: const EdgeInsets.only(left: 24),
                         child: Text(
                           'Sign in with Apple',
-                          textAlign: TextAlign.left,
                           style: Theme.of(
                             context,
                           ).textTheme.labelMedium?.copyWith(
@@ -113,7 +113,6 @@ class LoginWithAppleWidget extends StatelessWidget {
                           ),
                         ),
                       ),
-                    ),
               ],
             ),
           ),

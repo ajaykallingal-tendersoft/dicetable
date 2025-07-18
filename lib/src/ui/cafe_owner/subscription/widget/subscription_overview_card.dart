@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/model/cafe_owner/subscription/subscription_overview_response.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/sign_up/widget/custom_switch.dart';
@@ -62,10 +63,10 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
+                  AutoSizeText(
                     'Subscription Overview',
                     style: TextTheme.of(context).labelMedium!.copyWith(
-                      fontSize: 18,
+                      fontSize: 18.sp,
                       color: AppColors.primary,
                     ),
                   ),
@@ -153,7 +154,7 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                       style: TextTheme.of(context).bodyMedium!.copyWith(
                         color: AppColors.timeTextColor,
                         fontWeight: FontWeight.w500,
-                        fontSize: 12.sp, // Using .sp for responsive font size
+                        fontSize: 12.sp,
                       ),
                     ),
                     Gap(10),
@@ -169,7 +170,7 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                         dashPattern: const [6, 4],
                         child: Row(
                           children: [
-                            Text(
+                            AutoSizeText(
                               'Discount Code: ',
                               style: Theme.of(
                                 context,

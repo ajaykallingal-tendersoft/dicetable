@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/ui/customer/cafe_list/bloc/cafe_list_bloc.dart';
 import 'package:soloseaters/src/ui/customer/home/bloc/customer_home_bloc.dart';
@@ -173,6 +174,7 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     SignOut().logout(context);
                     Fluttertoast.showToast(
+                      fontSize: 14.sp,
                       backgroundColor: AppColors.primaryWhiteColor,
                       textColor: AppColors.appRedColor,
                       gravity: ToastGravity.BOTTOM,
@@ -186,6 +188,7 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
             if(state is CafeSearchSuccess) {
               if(state.response.cafes!.isEmpty) {
                 Fluttertoast.showToast(
+                  fontSize: 14.sp,
                   backgroundColor: AppColors.primaryWhiteColor,
                   textColor: AppColors.appRedColor,
                   gravity: ToastGravity.BOTTOM,

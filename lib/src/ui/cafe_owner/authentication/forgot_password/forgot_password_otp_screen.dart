@@ -111,6 +111,7 @@ class _ForgotPasswordOtpScreenState extends State<ForgotPasswordOtpScreen> {
     if (!mounted) return;
 
     Fluttertoast.showToast(
+      fontSize: 14.sp,
       backgroundColor: AppColors.primaryWhiteColor,
       textColor: textColor,
       gravity: ToastGravity.BOTTOM,

@@ -159,6 +159,7 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                 ),
               );
               Fluttertoast.showToast(
+                fontSize: 14.sp,
                 backgroundColor: AppColors.primaryWhiteColor,
                 textColor: AppColors.appGreenColor,
                 gravity: ToastGravity.BOTTOM,
@@ -174,6 +175,7 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                 final firstErrorMessage =
                     response.errors![firstErrorField]?.first;
                 Fluttertoast.showToast(
+                  fontSize: 14.sp,
                   backgroundColor: AppColors.primaryWhiteColor,
                   textColor: AppColors.appGreenColor,
                   gravity: ToastGravity.BOTTOM,
@@ -195,7 +197,7 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                 gravity: ToastGravity.BOTTOM,
                 toastLength: Toast.LENGTH_SHORT,
                 timeInSecForIosWeb: 1,
-                fontSize: 14.0,
+             fontSize: 14.sp,
                 webPosition:
                     "bottom: 80px; left: 50%; transform: translateX(-50%);",
               );
@@ -222,6 +224,7 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                 final firstErrorMessage =
                     response.errors![firstErrorField]?.first;
                 Fluttertoast.showToast(
+                  fontSize: 14.sp,
                   backgroundColor: AppColors.primaryWhiteColor,
                   textColor: AppColors.appGreenColor,
                   gravity: ToastGravity.BOTTOM,
@@ -243,7 +246,7 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                 gravity: ToastGravity.BOTTOM,
                 toastLength: Toast.LENGTH_SHORT,
                 timeInSecForIosWeb: 1,
-                fontSize: 14.0,
+                fontSize: 14.sp,
               );
 
               ObjectFactory().prefs.setCustomerAuthToken(
@@ -572,7 +575,7 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                               },
                               child: ElevatedButtonWidget(
                                 height: 70.h,
-                                width: double.infinity,
+                                width: MediaQuery.of(context).size.width,
                                 iconEnabled: false,
                                 iconLabel: 'SIGN UP',
                                 color: AppColors.primary,

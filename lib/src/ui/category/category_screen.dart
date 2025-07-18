@@ -30,6 +30,7 @@ class _CategoryScreenState extends State<CategoryScreen> {
         now.difference(currentBackPressTime!) > const Duration(seconds: 3)) {
       currentBackPressTime = now;
       Fluttertoast.showToast(
+        fontSize: 14.sp,
         backgroundColor: AppColors.secondary,
         textColor: AppColors.primaryWhiteColor,
         gravity: ToastGravity.BOTTOM,

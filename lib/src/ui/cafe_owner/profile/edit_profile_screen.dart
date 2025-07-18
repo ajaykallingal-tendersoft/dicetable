@@ -195,12 +195,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
             EasyLoading.dismiss();
             Fluttertoast.showToast(
+              fontSize: 14.sp,
               msg: 'Profile updated successfully',
               backgroundColor: AppColors.primaryWhiteColor,
               textColor: AppColors.appGreenColor,
             );
           } else if (state is ProfileUpdateError) {
             Fluttertoast.showToast(
+              fontSize: 14.sp,
               msg: state.errorMessage,
               backgroundColor: AppColors.primaryWhiteColor,
               textColor: AppColors.appGreenColor,
@@ -481,7 +483,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                       },
                                       child: ElevatedButtonWidget(
                                         height: 70.h,
-                                        width: double.infinity,
+                                        width: MediaQuery.of(context).size.width,
                                         iconEnabled: false,
                                         iconLabel: 'SAVE CHANGES',
                                         color: AppColors.primary,

@@ -151,323 +151,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 _showErrorToast(errorMessage);
               }
             },
-            // listener: (context, state) async {
-            //   if (state is LoginLoadingState) {
-            //     EasyLoading.show();
-            //   } else if (state is GoogleLoginLoading) {
-            //     EasyLoading.show();
-            //   } else if (state is LoginWithAppleLoading) {
-            //     EasyLoading.show();
-            //   } else {
-            //     EasyLoading.dismiss();
-            //   }
-            //   if (state is LoginFailureState) {
-            //     ScaffoldMessenger.of(context).showSnackBar(
-            //       SnackBar(
-            //         content: Text(state.message),
-            //         backgroundColor: AppColors.appRedColor,
-            //       ),
-            //     );
-            //   }
-            //   if (state is LoginSuccessState) {
-            //     if (state.loginRequestResponse.status == true) {
-            //       if (state.loginRequestResponse.token!.isNotEmpty &&
-            //           state.loginRequestResponse.cafeId != null &&
-            //           state.loginRequestResponse.cafeId!.isNotEmpty &&
-            //           state.loginRequestResponse.user!.isEmailVerified == 1) {
-            //         ObjectFactory().prefs.setIsLoggedIn(true);
-            //         ObjectFactory().prefs.setEmailVerified(true);
-            //         ObjectFactory().prefs.setAuthToken(
-            //           token: state.loginRequestResponse.token,
-            //         );
-            //         ObjectFactory().prefs.setCafeId(
-            //           cafeId: state.loginRequestResponse.cafeId,
-            //         );
-            //         ObjectFactory().prefs.setCafeUserId(
-            //           cafeUserId:
-            //               state.loginRequestResponse.user!.id.toString(),
-            //         );
-            //         if (state.loginRequestResponse.user != null &&
-            //             state.loginRequestResponse.user!.name != null) {
-            //           ObjectFactory().prefs.setCafeUserName(
-            //             cafeUserName: state.loginRequestResponse.user!.name,
-            //           );
-            //         }
-            //         context.go('/home');
-            //       }
-            //       if (state.loginRequestResponse.subscriptionStatus == false) {
-            //         context.go('/login');
-            //       }
-            //     } else if (state.loginRequestResponse.status == false) {
-            //       EasyLoading.dismiss();
-            //       ScaffoldMessenger.of(context).showSnackBar(
-            //         SnackBar(
-            //           content: Text(state.loginRequestResponse.message!),
-            //           backgroundColor: AppColors.appRedColor,
-            //         ),
-            //       );
-            //     }
-
-            //     if (state.loginRequestResponse.status == false &&
-            //         state.loginRequestResponse.message ==
-            //             "Please verify your email first.") {
-            //       Fluttertoast.showToast(
-            //         msg: state.loginRequestResponse.message!,
-            //         backgroundColor: AppColors.primaryWhiteColor,
-            //         textColor: AppColors.appRedColor,
-            //       );
-            //       context.go(
-            //         '/verify',
-            //         extra: VerifyScreenArguments(
-            //           email: _emailController.text,
-            //           otp: "",
-            //           type: "register",
-            //           from: 'venue_owner',
-            //         ),
-            //       );
-            //     }
-            //     if (state.loginRequestResponse.status == true) {
-            //       final token = state.loginRequestResponse.token;
-            //       final cafeId = state.loginRequestResponse.cafeId;
-
-            //       if (token != null &&
-            //           token.isNotEmpty &&
-            //           (cafeId == null || cafeId.isEmpty)) {
-            //         ScaffoldMessenger.of(context).showSnackBar(
-            //           SnackBar(
-            //             content: Text("Login failed. Your account is not linked to a cafe.Please contact support."),
-            //             backgroundColor: AppColors.appRedColor,
-            //           ),
-            //         );
-            //       }
-            //     }
-            //   }
-
-            //   if (state is GoogleLoginLoaded) {
-            //     EasyLoading.dismiss();
-            //     final response = state.googleLoginResponse;
-            //     if (response.status == true) {
-            //       if (response.subscriptionStatus == false) {
-            //         context.go('/login');
-            //       }
-            //     }
-            //     if (response.status == true && response.token != null) {
-            //       ObjectFactory().prefs.setIsLoggedIn(true);
-            //       ObjectFactory().prefs.setIsGoogle(true);
-            //       ObjectFactory().prefs.setAuthToken(
-            //         token: state.googleLoginResponse.token,
-            //       );
-            //       ObjectFactory().prefs.setCafeId(
-            //         cafeId: state.googleLoginResponse.cafeId,
-            //       );
-            //       ObjectFactory().prefs.setCafeUserId(
-            //         cafeUserId: state.googleLoginResponse.user!.id.toString(),
-            //       );
-
-            //       ObjectFactory().prefs.setCafeUserName(
-            //         cafeUserName: state.googleLoginResponse.user!.name,
-            //       );
-            //       context.go('/home');
-            //     } else {
-            //       EasyLoading.dismiss();
-
-            //       Fluttertoast.showToast(
-            //         msg: response.message ?? "Google login failed",
-            //         backgroundColor: AppColors.primaryWhiteColor,
-            //         textColor: AppColors.appRedColor,
-            //       );
-
-            //       if (response.message ==
-            //           "You are not registered in our app. Please complete the signup process!") {
-            //         context.push(
-            //           '/signup',
-            //           extra: SignUpScreenArgument(
-            //             imageBase64:
-            //                 ObjectFactory().prefs
-            //                     .getCafeUserImage()
-            //                     .toString() ??
-            //                 "",
-            //             isGoggleSignUp: true,
-            //             isAppleSignUp: false,
-            //             email:
-            //                 ObjectFactory().prefs
-            //                     .getCafeUserMail()
-            //                     .toString() ??
-            //                 "",
-            //             displayName:
-            //                 ObjectFactory().prefs
-            //                     .getCafeUserName()
-            //                     .toString() ??
-            //                 "",
-            //             phone:
-            //                 ObjectFactory().prefs
-            //                     .getCafeUserPhone()
-            //                     .toString() ??
-            //                 "",
-            //           ),
-            //         );
-            //       }
-            //     }
-            //   }
-
-            //   if (state is LoginWithAppleLoaded) {
-            //     EasyLoading.dismiss();
-
-            //     final response = state.appleLoginRequestResponse;
-            //     if (response.status == true) {
-            //       if (response.subscriptionStatus == false) {
-            //         context.go('/login');
-            //       }
-            //     }
-            //     if (response.status == true && response.token != null) {
-            //       ObjectFactory().prefs.setIsLoggedIn(true);
-            //       ObjectFactory().prefs.setIsApple(true);
-            //       ObjectFactory().prefs.setAuthToken(
-            //         token: state.appleLoginRequestResponse.token,
-            //       );
-            //       ObjectFactory().prefs.setCafeId(
-            //         cafeId: state.appleLoginRequestResponse.cafeId,
-            //       );
-            //       ObjectFactory().prefs.setCafeUserId(
-            //         cafeUserId:
-            //             state.appleLoginRequestResponse.user!.id.toString(),
-            //       );
-
-            //       ObjectFactory().prefs.setCafeUserName(
-            //         cafeUserName: state.appleLoginRequestResponse.user!.name,
-            //       );
-            //       context.go('/home');
-            //     } else {
-            //       ObjectFactory().prefs.setAppleAuthID(
-            //         appleAuthID: state.appleLoginRequestResponse.appleId,
-            //       );
-            //       EasyLoading.dismiss();
-            //       Fluttertoast.showToast(
-            //         msg: response.message ?? "Apple login failed",
-            //         backgroundColor: AppColors.primaryWhiteColor,
-            //         textColor: AppColors.appRedColor,
-            //       );
-
-            //       if (response.message ==
-            //           "You are not registered in our app. Please complete the signup process!") {
-            //         context.push(
-            //           '/signup',
-            //           extra: SignUpScreenArgument(
-            //             imageBase64:
-            //                 ObjectFactory().prefs
-            //                     .getCafeUserImage()
-            //                     .toString() ??
-            //                 "",
-            //             isAppleSignUp: true,
-            //             isGoggleSignUp: false,
-            //             email:
-            //                 ObjectFactory().prefs
-            //                     .getCafeUserMail()
-            //                     .toString() ??
-            //                 "",
-            //             displayName:
-            //                 ObjectFactory().prefs
-            //                     .getCafeUserName()
-            //                     .toString() ??
-            //                 "",
-            //             phone:
-            //                 ObjectFactory().prefs
-            //                     .getCafeUserPhone()
-            //                     .toString() ??
-            //                 "",
-            //           ),
-            //         );
-            //       }
-            //     }
-            //   }
-            //   if (state is GoogleLoginErrorState) {
-            //     EasyLoading.dismiss();
-            //     Fluttertoast.showToast(
-            //       msg: state.msg,
-            //       backgroundColor: AppColors.primaryWhiteColor,
-            //       textColor: AppColors.appRedColor,
-            //     );
-
-            //     if (state.msg ==
-            //         "You are not registered in our app. Please complete the signup process!") {
-            //       context.push(
-            //         '/signup',
-            //         extra: SignUpScreenArgument(
-            //           imageBase64:
-            //               ObjectFactory().prefs.getCafeUserImage().toString() ??
-            //               "",
-            //           isGoggleSignUp: true,
-            //           isAppleSignUp: false,
-            //           email:
-            //               ObjectFactory().prefs.getCafeUserMail().toString() ??
-            //               "",
-            //           displayName:
-            //               ObjectFactory().prefs.getCafeUserName().toString() ??
-            //               "",
-            //           phone:
-            //               ObjectFactory().prefs.getCafeUserPhone().toString() ??
-            //               "",
-            //         ),
-            //       );
-            //     }
-            //   }
-
-            //   if (state is LoginWithAppleError) {
-            //     EasyLoading.dismiss();
-            //     ObjectFactory().prefs.setAppleAuthID(
-            //       appleAuthID: state.appleId,
-            //     );
-            //     Fluttertoast.showToast(
-            //       msg: state.errorMsg,
-            //       backgroundColor: AppColors.primaryWhiteColor,
-            //       textColor: AppColors.appRedColor,
-            //     );
-
-            //     if (state.errorMsg ==
-            //         "You are not registered in our app. Please complete the signup process!") {
-            //       context.push(
-            //         '/signup',
-            //         extra: SignUpScreenArgument(
-            //           imageBase64:
-            //               ObjectFactory().prefs.getCafeUserImage().toString() ??
-            //               "",
-            //           isAppleSignUp: true,
-            //           isGoggleSignUp: false,
-            //           email:
-            //               ObjectFactory().prefs.getCafeUserMail().toString() ??
-            //               "",
-            //           displayName:
-            //               ObjectFactory().prefs.getCafeUserName().toString() ??
-            //               "",
-            //           phone:
-            //               ObjectFactory().prefs.getCafeUserPhone().toString() ??
-            //               "",
-            //         ),
-            //       );
-            //     }
-            //   }
-
-            //   // Error handling
-            //   if (state is LoginFailureState ||
-            //       state is GoogleLoginErrorState ||
-            //       state is LoginWithAppleError) {
-            //     EasyLoading.dismiss();
-            //     final errorMessage =
-            //         state is LoginFailureState
-            //             ? state.message
-            //             : state is LoginWithAppleError
-            //             ? (state).errorMsg
-            //             : state is GoogleLoginErrorState
-            //             ? state.msg
-            //             : "Something went wrong.";
-
-            //     Fluttertoast.showToast(
-            //       msg: errorMessage,
-            //       backgroundColor: AppColors.primaryWhiteColor,
-            //       textColor: AppColors.appRedColor,
-            //     );
-            //   }
-            // },
+        
+      
             builder: (context, state) {
               final emailError =
                   state is LoginFormState ? state.emailError : null;
@@ -491,7 +176,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       Positioned(
                         top: 50,
-                        bottom: 720.h,
+                        bottom: 650.h,
                         left: 0,
                         right: 0,
                         child: Image.asset(
@@ -705,6 +390,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                               if (_networkState
                                                                   is NetworkFailure) {
                                                                 Fluttertoast.showToast(
+                                                                  fontSize: 14.sp,
                                                                   msg:
                                                                       "No internet connection",
                                                                   backgroundColor:
@@ -726,7 +412,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                             },
                                                     child: ElevatedButtonWidget(
                                                       height: 70.h,
-                                                      width: double.infinity,
+                                                      width: MediaQuery.of(context).size.width,
                                                       iconEnabled: false,
                                                       iconLabel: "LOGIN",
                                                       color: AppColors.primary,
@@ -900,7 +586,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       // Handle email verification requirement
       if (response.message == "Please verify your email first.") {
-        _showEmailVerificationToast(response.message!);
+      
         _navigateToVerification(context);
       }
     }
@@ -1028,6 +714,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _showErrorToast(String message) {
     Fluttertoast.showToast(
+      fontSize: 14.sp,
       msg: message,
       backgroundColor: AppColors.primaryWhiteColor,
       textColor: AppColors.appRedColor,
@@ -1036,6 +723,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _showEmailVerificationToast(String message) {
     Fluttertoast.showToast(
+      fontSize: 14.sp,
       msg: message,
       backgroundColor: AppColors.primaryWhiteColor,
       textColor: AppColors.appRedColor,

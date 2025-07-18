@@ -13,7 +13,7 @@ class BottomNavigationAppBar extends StatefulWidget {
   BottomNavigationAppBar({
     super.key,
     required this.items,
-    this.height = 80.0,
+    this.height = 80,
     this.iconSize = 20,
     required this.backgroundColor,
     required this.color,
@@ -89,7 +89,7 @@ class BottomNavigationAppBarState extends State<BottomNavigationAppBar> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
                 Expanded(
-                  flex: 2,
+                  // flex: 2,
                   child: ColorFiltered(
                     colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
                     child: SizedBox(
@@ -101,7 +101,7 @@ class BottomNavigationAppBarState extends State<BottomNavigationAppBar> {
                 ),
 
                 Expanded(
-                  flex: 1,
+                  // flex: 1,
                   child: Text(
                     item.text,
                     style: TextTheme.of(context).labelMedium!.copyWith(

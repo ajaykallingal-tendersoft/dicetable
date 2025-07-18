@@ -111,6 +111,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       textColor: textColor,
       gravity: ToastGravity.BOTTOM,
       msg: message,
+      fontSize: 14.sp,
     );
   }
 
@@ -133,6 +134,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
         textColor: AppColors.primaryWhiteColor,
         gravity: ToastGravity.BOTTOM,
         msg: "Please verify your email before leaving this screen.",
+        fontSize: 14.sp,
       );
       return Future.value(false);
     }

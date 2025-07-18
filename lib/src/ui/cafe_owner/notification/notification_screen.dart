@@ -80,6 +80,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     SignOut().logout(context);
                     Fluttertoast.showToast(
+                      fontSize: 14.sp,
                       backgroundColor: AppColors.primaryWhiteColor,
                       textColor: AppColors.appRedColor,
                       gravity: ToastGravity.BOTTOM,

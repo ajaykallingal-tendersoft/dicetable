@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:badges/badges.dart' as badges;
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/ui/cafe_owner/home/bloc/home_bloc.dart';
@@ -64,7 +65,7 @@ class _HomePageState extends State<HomePage> {
               padding: EdgeInsets.symmetric(horizontal: 20.h, vertical: 10.h),
               sliver: SliverAppBar(
                 backgroundColor: Colors.transparent,
-                expandedHeight: isTabletOrLarger ? 150.h : 110.h,
+                expandedHeight: isTabletOrLarger ? 130.h : 90.h,
                 leading: const SizedBox(),
                 flexibleSpace: FlexibleSpaceBar(
                   centerTitle: false,
@@ -87,14 +88,14 @@ class _HomePageState extends State<HomePage> {
                             return Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
+                                AutoSizeText(
                                   "SOLO SEATERS",
                                   style: TextTheme.of(
                                     context,
-                                  ).labelMedium!.copyWith(
+                                  ).headlineMedium!.copyWith(
                                     color: AppColors.primaryWhiteColor,
                                     fontWeight: FontWeight.bold,
-                                    fontSize: 30.sp,
+                                    fontSize: isTabletOrLarger ? 28.sp : 24.sp,
                                   ),
                                 ),
                                 InkWell(
@@ -241,6 +242,7 @@ class _HomePageState extends State<HomePage> {
                     EasyLoading.dismiss();
                     if (state.subscriptionStatus == false) {
                       Fluttertoast.showToast(
+                        fontSize: 14.sp, 
                         backgroundColor: AppColors.primaryWhiteColor,
                         textColor: AppColors.appRedColor,
                         gravity: ToastGravity.BOTTOM,
@@ -256,6 +258,7 @@ class _HomePageState extends State<HomePage> {
                         WidgetsBinding.instance.addPostFrameCallback((_) {
                           SignOut().logout(context);
                           Fluttertoast.showToast(
+                            fontSize: 14.sp,
                             backgroundColor: AppColors.primaryWhiteColor,
                             textColor: AppColors.appRedColor,
                             gravity: ToastGravity.BOTTOM,
@@ -274,6 +277,7 @@ class _HomePageState extends State<HomePage> {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         SignOut().logout(context);
                         Fluttertoast.showToast(
+                          fontSize: 14.sp,
                           backgroundColor: AppColors.primaryWhiteColor,
                           textColor: AppColors.appRedColor,
                           gravity: ToastGravity.BOTTOM,
@@ -283,6 +287,7 @@ class _HomePageState extends State<HomePage> {
                       });
                     }else {
                       Fluttertoast.showToast(
+                        fontSize: 14.sp,
                         backgroundColor: AppColors.primaryWhiteColor,
                         textColor: AppColors.appRedColor,
                         gravity: ToastGravity.BOTTOM,

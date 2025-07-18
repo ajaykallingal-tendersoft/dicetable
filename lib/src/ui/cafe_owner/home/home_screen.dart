@@ -1,4 +1,6 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:badges/badges.dart' as badges;
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/bloc/notification_bloc.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/count_controller.dart';
 import 'package:flutter/services.dart';
@@ -39,6 +41,7 @@ class _HomeScreenState extends State<HomeScreen> {
         now.difference(currentBackPressTime!) > const Duration(seconds: 3)) {
       currentBackPressTime = now;
       Fluttertoast.showToast(
+        fontSize: 14.sp,
         backgroundColor: AppColors.secondary,
         textColor: AppColors.primaryWhiteColor,
         gravity: ToastGravity.BOTTOM,
@@ -145,11 +148,12 @@ PreferredSizeWidget? _buildAppBar(int index, BuildContext context, CounterContro
         titleSpacing: 28,
         centerTitle: false,
         leadingWidth: 0,
-        title: Text(
+        title: AutoSizeText(
           'Subscriptions Overview',
           style: TextTheme.of(context).labelLarge!.copyWith(
             color: AppColors.primaryWhiteColor,
             fontWeight: FontWeight.w600,
+            fontSize: 18.sp
           ),
         ),
         actions: [

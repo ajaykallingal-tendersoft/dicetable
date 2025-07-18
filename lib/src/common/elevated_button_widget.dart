@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
@@ -40,19 +41,26 @@ class ElevatedButtonWidget extends StatelessWidget {
                 : MainAxisAlignment.center,
         children: [
           iconEnabled == true
-           ? Expanded(child: Text(
+           ? Expanded(child: AutoSizeText(
             iconLabel,
             style: TextTheme.of(
               context,
-            ).labelMedium!.copyWith(color: textColor,fontSize: 18,fontWeight: FontWeight.bold),
-          ),)
+            ).labelLarge!.copyWith(color: textColor,fontSize: 18.sp,fontWeight: FontWeight.bold),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+           )
+      
+          )
           :
-          Text(
+          AutoSizeText(
             iconLabel,
             style: TextTheme.of(
               context,
-            ).labelMedium!.copyWith(color: textColor,fontSize: 18,fontWeight: FontWeight.bold),
+            ).labelLarge!.copyWith(color: textColor,fontSize: 18.sp,fontWeight: FontWeight.bold),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
+         
           iconEnabled == true ? Gap(20.w) : SizedBox(),
           iconEnabled == true ? icon! : SizedBox(),
         ],

@@ -1,5 +1,4 @@
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/constants/assets.dart';
 import 'package:flutter/material.dart';
