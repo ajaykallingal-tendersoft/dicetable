@@ -214,7 +214,7 @@ class ApiClient {
     );
   }
 
-    //Google Register
+    // Register
   Future<Response> appleRegisterUser(AppleSignUpRequest appleSignUpRequest) {
     return dioDiceApp.post(UrlsDiceApp.appleSignUp, data: appleSignUpRequest);
   }
