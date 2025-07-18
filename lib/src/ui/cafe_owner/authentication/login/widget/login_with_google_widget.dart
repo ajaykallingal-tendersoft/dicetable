@@ -69,7 +69,6 @@ class LoginWithGoogleWidget extends StatelessWidget {
                 cafeUserImage: state.base64Image,
               );
             }
-
           }
           if (state is GoogleSignInDenied) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -78,8 +77,8 @@ class LoginWithGoogleWidget extends StatelessWidget {
                 content: Text("Failed to Authenticate With Google."),
               ),
             );
-        }
-          if(state is GoogleSignInError) {
+          }
+          if (state is GoogleSignInError) {
             context.read<GoogleSignInCubit>().signOut();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -91,9 +90,9 @@ class LoginWithGoogleWidget extends StatelessWidget {
         },
 
         builder: (context, state) {
-            final isTabletOrLarger = ResponsiveBreakpoints.of(
-          context,
-        ).largerThan(MOBILE);
+          final isTabletOrLarger = ResponsiveBreakpoints.of(
+            context,
+          ).largerThan(MOBILE);
           return InkWell(
             onTap:
                 state is GoogleSignInCubitLoading
@@ -107,8 +106,9 @@ class LoginWithGoogleWidget extends StatelessWidget {
                         );
                         return;
                       }
-                      context.read<GoogleSignInCubit>().login(forceAccountSelection: true);
-
+                      context.read<GoogleSignInCubit>().login(
+                        forceAccountSelection: true,
+                      );
                     },
 
             child: Container(
@@ -123,33 +123,33 @@ class LoginWithGoogleWidget extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Image.asset(
-                    Assets.GOOGLE_LOGO, // Changed from APPLE_LOGO to GOOGLE_LOGO
+                    Assets
+                        .GOOGLE_LOGO, // Changed from APPLE_LOGO to GOOGLE_LOGO
                     fit: isTabletOrLarger ? BoxFit.contain : BoxFit.scaleDown,
-                    width: 35.w,
-                    height: 35.h,
+                    width: 25.w,
+                    height: 25.h,
                   ),
                   state is GoogleSignInCubitLoading
                       ? Padding(
-                          padding: const EdgeInsets.only(left: 24),
-                          child: CircularProgressIndicator(
-
-                            backgroundColor: AppColors.primaryWhiteColor,
-                            color: AppColors.primary,
-                          ),
-                        )
+                        padding: const EdgeInsets.only(left: 24),
+                        child: CircularProgressIndicator(
+                          backgroundColor: AppColors.primaryWhiteColor,
+                          color: AppColors.primary,
+                        ),
+                      )
                       : Padding(
-                          padding: const EdgeInsets.only(left: 24),
-                          child: Text(
-                            'Sign in with Google',
-                            style: Theme.of(
-                              context,
-                            ).textTheme.labelMedium!.copyWith(
-                              color: AppColors.textFieldTextColor,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 15,
-                            ),
+                        padding: const EdgeInsets.only(left: 24),
+                        child: Text(
+                          'Sign in with Google',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.labelMedium!.copyWith(
+                            color: AppColors.textFieldTextColor,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
                           ),
                         ),
+                      ),
                 ],
               ),
             ),

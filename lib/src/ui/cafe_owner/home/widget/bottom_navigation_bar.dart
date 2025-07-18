@@ -109,7 +109,6 @@ class BottomNavigationAppBarState extends State<BottomNavigationAppBar> {
                       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                       fontSize: 12.sp,
                     ),
-
                   ),
                 ),
               ],

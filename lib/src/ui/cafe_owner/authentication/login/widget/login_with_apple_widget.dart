@@ -14,7 +14,6 @@ import 'package:gap/gap.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 
 class LoginWithAppleWidget extends StatelessWidget {
-
   const LoginWithAppleWidget({super.key});
 
   @override
@@ -79,40 +78,35 @@ class LoginWithAppleWidget extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Image.asset(
                   Assets.APPLE_LOGO,
-                  fit: isTabletOrLarger ? BoxFit.contain : BoxFit.cover,
-                  width: 35.w,
-                  height: 35.h,
+                  fit: isTabletOrLarger ? BoxFit.contain : BoxFit.contain,
+                  width: 75.w,
+                  height: 75.h,
                 ),
                 state is AppleSignInLoading
                     ? Padding(
-                        padding: const EdgeInsets.only(left: 24),
-                        child: SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            backgroundColor: AppColors.primaryWhiteColor,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      )
-                    : Padding(
-                        padding: const EdgeInsets.only(left: 24),
-                        child: Text(
-                          'Sign in with Apple',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.labelMedium?.copyWith(
-                            color: AppColors.textFieldTextColor,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 15,
-                          ),
+                      padding: const EdgeInsets.only(left: 4),
+                      child: SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          backgroundColor: AppColors.primaryWhiteColor,
+                          color: AppColors.primary,
                         ),
                       ),
+                    )
+                    : Text(
+                      'Sign in with Apple',
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: AppColors.textFieldTextColor,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
               ],
             ),
           ),
