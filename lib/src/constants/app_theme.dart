@@ -30,6 +30,7 @@ class AppTheme {
       bodyLarge: AppTextStyles.heading2,
       labelMedium: AppTextStyles.primaryBoldText,
       labelLarge: AppTextStyles.labelLarge,
+      displayMedium: AppTextStyles.primaryBoldText,
 
 
     ),

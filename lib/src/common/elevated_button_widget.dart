@@ -45,7 +45,7 @@ class ElevatedButtonWidget extends StatelessWidget {
             iconLabel,
             style: TextTheme.of(
               context,
-            ).labelLarge!.copyWith(color: textColor,fontSize: 18.sp,fontWeight: FontWeight.bold),
+            ).displayMedium!.copyWith(color: textColor,fontSize: 18.sp,fontWeight: FontWeight.bold),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
            )
@@ -56,11 +56,10 @@ class ElevatedButtonWidget extends StatelessWidget {
             iconLabel,
             style: TextTheme.of(
               context,
-            ).labelLarge!.copyWith(color: textColor,fontSize: 18.sp,fontWeight: FontWeight.bold),
+            ).displayMedium!.copyWith(color: textColor,fontSize: 18.sp,fontWeight: FontWeight.bold),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-         
           iconEnabled == true ? Gap(20.w) : SizedBox(),
           iconEnabled == true ? icon! : SizedBox(),
         ],
