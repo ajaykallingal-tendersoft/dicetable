@@ -84,9 +84,10 @@ class ProfileDataProvider {
     print("loginUser called with: $request");
     try {
       final response = await ObjectFactory().apiClient.profileUpdateById(request);
-      String jsonRequest = jsonEncode(request);
-      // print("Request Payload:");
-      // print(jsonRequest);
+      // ignore: unused_local_variable
+      String jsonR = jsonEncode(request);
+      print("Request Payload:");
+      print(jsonR);
       // print("Response status code: ${response.statusCode}");
       print("Response data: ${response.data}");
       if (response.data != null) {

@@ -4,6 +4,7 @@ class ProfileUpdateRequest {
   final String email;
   final String? password; // Optional
   final String phone;
+  final String? country; // Optional
   final String address;
   final String postcode;
   final List<String> accommodations;
@@ -17,6 +18,7 @@ class ProfileUpdateRequest {
     required this.email,
     this.password,
     required this.phone,
+    this.country, // Optional
     required this.address,
     required this.postcode,
     required this.accommodations,
@@ -31,6 +33,7 @@ class ProfileUpdateRequest {
       'venue_description': venueDescription,
       'email': email,
       'phone': phone,
+      "country": country,
       'address': address,
       'postcode': postcode,
       'accommodations': accommodations,

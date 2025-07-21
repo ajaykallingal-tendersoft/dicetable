@@ -164,7 +164,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
             email: response.data?.email ?? '',
             phone: response.data?.phone ?? '',
             address: response.data?.address ?? '',
-            // city: response.data?.city ?? '',
+            country: response.data?.country ?? '',
             postalCode: response.data?.postcode ?? '',
             venueType: response.data?.venueType ?? '',
             openingHours:
@@ -238,8 +238,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
             venueDescription: data.data?.venueDescription ?? '',
             email: data.data?.email ?? '',
             phone: data.data?.phone ?? '',
+            country: data.data?.country ?? '',
             address: data.data?.address ?? '',
-            // city: data.data?.city ?? '',
             postalCode: data.data?.postcode ?? '',
             venueTypes: data.data?.venueType ?? [],
             selectedVenueTypeIds: selectedVenueTypeIds,

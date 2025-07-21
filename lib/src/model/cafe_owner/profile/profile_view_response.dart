@@ -44,6 +44,7 @@ class Data {
   final String? venueDescription;
   final String? email;
   final String? phone;
+  final String? country; // Added
   final String? address;
   final String? city;
   final String? postcode;
@@ -58,6 +59,7 @@ class Data {
     this.venueDescription,
     this.email,
     this.phone,
+    this.country, // Added
     this.address,
     this.city,
     this.postcode,
@@ -73,6 +75,7 @@ class Data {
     String? venueDescription,
     String? email,
     String? phone,
+    String? country, // Added
     String? address,
     String? city,
     String? postcode,
@@ -86,6 +89,7 @@ class Data {
     venueDescription: venueDescription ?? this.venueDescription,
     email: email ?? this.email,
     phone: phone ?? this.phone,
+    country: country ?? this.country, // Added
     address: address ?? this.address,
     city: city ?? this.city,
     postcode: postcode ?? this.postcode,
@@ -101,6 +105,7 @@ class Data {
     venueDescription: json["venue_description"],
     email: json["email"],
     phone: json["phone"],
+    country: json["country"], // Added
     address: json["address"],
     city: json["city"],
     postcode: json["postcode"],
@@ -122,6 +127,7 @@ class Data {
     "venue_description": venueDescription,
     "email": email,
     "phone": phone,
+    "country": country, // Added
     "address": address,
     "city": city,
     "postcode": postcode,

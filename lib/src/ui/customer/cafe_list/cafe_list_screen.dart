@@ -1,4 +1,5 @@
 import 'package:badges/badges.dart' as badges;
+import 'package:google_fonts/google_fonts.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/model/customer/cafe/cafe_list_request.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/count_controller.dart';
@@ -156,11 +157,11 @@ class _CafeListScreenState extends State<CafeListScreen> {
                         children: [
                           Text(
                             "SOLO SEATERS",
-                            style: TextTheme.of(context).headlineMedium!.copyWith(
-                              color: AppColors.primaryWhiteColor,
-                              fontWeight: FontWeight.bold,
-                              fontSize: isTabletOrLarger ? 28.sp : 24.sp,
-                            ),
+                            style: GoogleFonts.montserrat(
+                                    color: AppColors.primaryWhiteColor,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: isTabletOrLarger ? 28.sp : 24.sp,
+                                  ),
                           ),
                           isGuest
                               ? SizedBox.shrink()
@@ -184,12 +185,12 @@ class _CafeListScreenState extends State<CafeListScreen> {
                                         badgeStyle: badges.BadgeStyle(
                                           shape: badges.BadgeShape.square,
                                           borderRadius: BorderRadius.circular(
-                                            10,
+                                            10.sp,
                                           ),
                                           badgeColor: Colors.red,
                                           padding: EdgeInsets.symmetric(
-                                            horizontal: 6,
-                                            vertical: 2,
+                                            horizontal: 6.w,
+                                            vertical: 2.h,
                                           ),
                                         ),
                                         badgeContent: Text(
@@ -199,20 +200,20 @@ class _CafeListScreenState extends State<CafeListScreen> {
                                               .toString(),
                                           style: TextStyle(
                                             color: Colors.white,
-                                            fontSize: 12,
+                                            fontSize: 12.sp,
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
-                                        child: const Icon(
+                                        child:  Icon(
                                           Icons.notifications_outlined,
                                           color: AppColors.primaryWhiteColor,
-                                          size: 35,
+                                          size: 30.sp,
                                         ),
                                       )
-                                      : const Icon(
+                                      :  Icon(
                                         Icons.notifications_outlined,
                                         color: AppColors.primaryWhiteColor,
-                                        size: 35,
+                                        size: 30.sp,
                                       );
                                 }),
                               ),

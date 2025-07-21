@@ -2,6 +2,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class ElevatedButtonWidget extends StatelessWidget {
   ElevatedButtonWidget({
@@ -43,22 +44,34 @@ class ElevatedButtonWidget extends StatelessWidget {
           iconEnabled == true
            ? Expanded(child: AutoSizeText(
             iconLabel,
-            style: TextTheme.of(
-              context,
-            ).displayMedium!.copyWith(color: textColor,fontSize: 18.sp,fontWeight: FontWeight.bold),
-            maxLines: 1,
             overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.montserrat(
+              color: textColor,
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
+            ),
+            // TextTheme.of(
+            //   context,
+            // ).displayMedium!.copyWith(color: textColor,fontSize: 18.sp,fontWeight: FontWeight.bold),
+            // maxLines: 1,
+            // overflow: TextOverflow.ellipsis,
            )
       
           )
           :
           AutoSizeText(
             iconLabel,
-            style: TextTheme.of(
-              context,
-            ).displayMedium!.copyWith(color: textColor,fontSize: 18.sp,fontWeight: FontWeight.bold),
-            maxLines: 1,
             overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.montserrat(
+              color: textColor,
+              fontSize: 18.sp,
+              fontWeight: FontWeight.bold,
+            ),
+            // TextTheme.of(
+            //   context,
+            // ).displayMedium!.copyWith(color: textColor,fontSize: 18.sp,fontWeight: FontWeight.bold),
+            // maxLines: 1,
+            // overflow: TextOverflow.ellipsis,
           ),
           iconEnabled == true ? Gap(20.w) : SizedBox(),
           iconEnabled == true ? icon! : SizedBox(),

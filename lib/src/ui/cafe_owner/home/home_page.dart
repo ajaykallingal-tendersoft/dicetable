@@ -1,5 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:badges/badges.dart' as badges;
+import 'package:google_fonts/google_fonts.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/ui/cafe_owner/home/bloc/home_bloc.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/bloc/notification_bloc.dart';
@@ -65,7 +66,7 @@ class _HomePageState extends State<HomePage> {
               padding: EdgeInsets.symmetric(horizontal: 20.h, vertical: 10.h),
               sliver: SliverAppBar(
                 backgroundColor: Colors.transparent,
-                expandedHeight: isTabletOrLarger ? 130.h : 90.h,
+                expandedHeight: isTabletOrLarger ? 130.h : 110.h,
                 leading: const SizedBox(),
                 flexibleSpace: FlexibleSpaceBar(
                   centerTitle: false,
@@ -90,9 +91,7 @@ class _HomePageState extends State<HomePage> {
                               children: [
                                 AutoSizeText(
                                   "SOLO SEATERS",
-                                  style: TextTheme.of(
-                                    context,
-                                  ).headlineMedium!.copyWith(
+                                  style: GoogleFonts.montserrat(
                                     color: AppColors.primaryWhiteColor,
                                     fontWeight: FontWeight.bold,
                                     fontSize: isTabletOrLarger ? 28.sp : 24.sp,
@@ -137,16 +136,16 @@ class _HomePageState extends State<HomePage> {
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
-                                          child: const Icon(
+                                          child:  Icon(
                                             Icons.notifications_outlined,
                                             color: AppColors.primaryWhiteColor,
-                                            size: 35,
+                                            size: 30.sp,
                                           ),
                                         )
-                                        : const Icon(
+                                        :  Icon(
                                           Icons.notifications_outlined,
                                           color: AppColors.primaryWhiteColor,
-                                          size: 35,
+                                          size: 30.sp,
                                         );
                                   }),
                                 ),

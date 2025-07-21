@@ -189,12 +189,12 @@ PreferredSizeWidget? _buildAppBar(int index, BuildContext context, CounterContro
                     child: const Icon(
                       Icons.notifications_outlined,
                       color: AppColors.primaryWhiteColor,
-                      size: 35,
+                      size: 25,
                     ),
                   ) : const Icon(
                     Icons.notifications_outlined,
                     color: AppColors.primaryWhiteColor,
-                    size: 35,
+                    size: 25,
                   );
                 }),
               );

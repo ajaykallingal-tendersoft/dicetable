@@ -236,11 +236,11 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                               showBadge: true,
                               badgeStyle: badges.BadgeStyle(
                                 shape: badges.BadgeShape.square,
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(10.sp),
                                 badgeColor: Colors.red,
                                 padding: EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
+                                  horizontal: 6.w,
+                                  vertical: 2.h,
                                 ),
                               ),
                               badgeContent: Text(
@@ -248,20 +248,20 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                                     .toString(),
                                 style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 12,
+                                  fontSize: 12.sp,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              child: const Icon(
+                              child:  Icon(
                                 Icons.notifications_outlined,
                                 color: AppColors.primaryWhiteColor,
-                                size: 35,
+                                size: 30.sp,
                               ),
                             )
-                            : const Icon(
+                            :  Icon(
                               Icons.notifications_outlined,
                               color: AppColors.primaryWhiteColor,
-                              size: 35,
+                              size: 30.sp,
                             );
                       }),
             ),

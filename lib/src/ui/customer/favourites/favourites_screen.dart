@@ -124,23 +124,23 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                           showBadge: true,
                           badgeStyle: badges.BadgeStyle(
                             shape: badges.BadgeShape.square,
-                            borderRadius: BorderRadius.circular(10),
+                            borderRadius: BorderRadius.circular(10.sp),
                             badgeColor: Colors.red,
-                            padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
                           ),
                           badgeContent: Text(
                             controller.notificationBadgeAmount.value.toString(),
-                            style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                            style: TextStyle(color: Colors.white, fontSize: 12.sp, fontWeight: FontWeight.bold),
                           ),
-                          child: const Icon(
+                          child:  Icon(
                             Icons.notifications_outlined,
                             color: AppColors.primaryWhiteColor,
-                            size: 35,
+                            size: 30.sp,
                           ),
-                        ) : const Icon(
+                        ) :  Icon(
                           Icons.notifications_outlined,
                           color: AppColors.primaryWhiteColor,
-                          size: 35,
+                          size: 30.sp,
                         );
                       }),
                     ),

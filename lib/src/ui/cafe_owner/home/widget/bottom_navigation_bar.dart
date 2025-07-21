@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class FABBottomAppBarItem {
   FABBottomAppBarItem({required this.iconData, required this.text});
@@ -104,10 +105,10 @@ class BottomNavigationAppBarState extends State<BottomNavigationAppBar> {
                   // flex: 1,
                   child: Text(
                     item.text,
-                    style: TextTheme.of(context).labelMedium!.copyWith(
+                    style: GoogleFonts.montserrat(
                       color: color,
                       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                      fontSize: 12.sp,
+                      fontSize: 10.sp,
                     ),
                   ),
                 ),

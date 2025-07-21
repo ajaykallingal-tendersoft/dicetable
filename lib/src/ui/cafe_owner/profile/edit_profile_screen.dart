@@ -39,7 +39,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _cityController;
   late TextEditingController _postalCodeController;
   late TextEditingController _countryController;
-  late TextEditingController _regionController;
+ 
 
   @override
   void initState() {
@@ -65,6 +65,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _postalCodeController = TextEditingController(
       text: profileState?.postalCode ?? '',
     );
+    _countryController = TextEditingController(
+      text: profileState?.country ?? '',
+    );
   }
 
     bool _isValidPhoneNumber(String number) {
@@ -79,6 +82,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     _emailController.dispose();
     // _passwordController.dispose();
     _phoneController.dispose();
+    _countryController.dispose();
     _addressController.dispose();
     _cityController.dispose();
     _postalCodeController.dispose();
@@ -192,10 +196,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             _addressController.text = state.address;
             _postalCodeController.text = state.postalCode;
             _cityController.text = state.city;
+            _countryController.text = state.country;
 
             EasyLoading.dismiss();
             Fluttertoast.showToast(
-              fontSize: 14.sp,
+              fontSize: 14,
               msg: 'Profile updated successfully',
               backgroundColor: AppColors.primaryWhiteColor,
               textColor: AppColors.appGreenColor,
@@ -331,6 +336,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                           UpdateTextField(
                                             (state) =>
                                                 state.copyWith(phone: value),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                     CustomTextField(
+                                      isEditMode: true,
+                                      controller: _countryController,
+                                      hintText: 'Country',
+                                      textFieldAnnotationText: 'Country',
+                                      onChanged: (value) {
+                                        context.read<ProfileBloc>().add(
+                                          UpdateTextField(
+                                            (state) =>
+                                                state.copyWith(country: value),
                                           ),
                                         );
                                       },
@@ -513,7 +532,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       email: state.email.isNotEmpty ? state.email : '',
       phone: state.phone.isNotEmpty ? state.phone : '',
       address: state.address.isNotEmpty ? state.address : '',
-      // city: state.city.isNotEmpty ? state.city : '',
+      country: state.country.isNotEmpty ? state.country : '',
       postcode: state.postalCode.isNotEmpty ? state.postalCode : '',
       accommodations:
           state.selectedVenueTypeIds.map((id) => id.toString()).toList(),
@@ -647,7 +666,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   top:
                       isTabletOrLarger
                           ? (350.h / 1.5.h) - 20.h
-                          : (350.h / 1.9.h) - 60.h,
+                          : (350.h / 1.7.h) - 60.h,
                   left: 0,
                   right: 0,
                   child: Center(

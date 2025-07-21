@@ -116,23 +116,33 @@ class App extends StatelessWidget {
             theme: AppTheme.lightTheme,
             builder: (context, widget) {
               widget = EasyLoading.init()(context, widget);
+
               widget = ResponsiveBreakpoints.builder(
                 child: widget,
-                breakpoints: [
-                  const Breakpoint(start: 0, end: 450, name: MOBILE),
-                  const Breakpoint(start: 451, end: 800, name: TABLET),
-                  const Breakpoint(start: 801, end: 1920, name: DESKTOP),
+                breakpoints: const [
+                  Breakpoint(start: 0, end: 450, name: MOBILE),
+                  Breakpoint(start: 451, end: 800, name: TABLET),
+                  Breakpoint(start: 801, end: 1920, name: DESKTOP),
                 ],
               );
-              final mediaQueryData = MediaQuery.of(context);
+
+              final mediaQuery = MediaQuery.of(context);
+
+              final screenWidth = mediaQuery.size.width;
+
+              double adjustedTextScale = 0.95;
+
+              if (screenWidth < 340) {
+                adjustedTextScale = 0.85;
+              } else if (screenWidth > 600) {
+                adjustedTextScale = 1.0;
+              }
 
               return MediaQuery(
-                data: mediaQueryData.copyWith(
-                  textScaler: const TextScaler.linear(
-                    0.95,
-                  ),
+                data: mediaQuery.copyWith(
+                  textScaler: TextScaler.linear(adjustedTextScale),
                 ),
-                child: widget,
+                child: widget!,
               );
             },
           );

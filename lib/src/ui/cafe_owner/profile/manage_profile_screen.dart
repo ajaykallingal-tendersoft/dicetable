@@ -32,6 +32,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
       TextEditingController();
   late TextEditingController _emailController = TextEditingController();
   late TextEditingController _phoneController = TextEditingController();
+    late TextEditingController _countryController = TextEditingController();
   late TextEditingController _addressController = TextEditingController();
   late TextEditingController _postalCodeController = TextEditingController();
   File? _imageFile;
@@ -58,6 +59,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
     _emailController = TextEditingController(text: state.email);
     // _passwordController = TextEditingController(text: state.password);
     _phoneController = TextEditingController(text: state.phone);
+    _countryController = TextEditingController(text: state.country);
     _addressController = TextEditingController(text: state.address);
     _postalCodeController = TextEditingController(text: state.postalCode);
     ObjectFactory().prefs.setCafeUserName(cafeUserName: state.venueName);
@@ -368,6 +370,14 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                           ),
                           hintText: 'Phone',
                           textFieldAnnotationText: 'Phone',
+                          onChanged: (value) {},
+                        ),
+                         CustomTextField(
+                          isProfile: true,
+                          readOnly: true,
+                          controller: _countryController,
+                          hintText: 'Country',
+                          textFieldAnnotationText: 'Country',
                           onChanged: (value) {},
                         ),
                         CustomTextField(
