@@ -117,7 +117,7 @@ class _ExpandableCardState extends State<ExpandableCard> {
                   CircleAvatar(
                     backgroundColor: iconColor[widget.index],
                     radius: 30,
-                    child: Image.asset('assets/png/dice-type.png'),
+                    child: Image.asset('assets/png/solo_chair_3x.png'),
                   ),
                   const Gap(10),
                   Expanded(

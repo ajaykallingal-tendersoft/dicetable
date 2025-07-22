@@ -108,18 +108,27 @@ class _RequiredTextFieldState extends State<RequiredTextField> {
           fontWeight: FontWeight.w600,
           fontSize: 14.sp,
         ),
-    validator:
-            widget.errorText != null
-                ? null
-                : widget.validator ??
-                    (value) {
-                      if (widget.isRequired &&
-                          (value == null || value.trim().isEmpty)) {
-                        return widget.customRequiredMessage ??
-                            '${widget.hint} is required';
-                      }
-                      return null;
-                    },
+  validator: widget.errorText != null
+            ? null
+            : widget.validator ??
+                (value) {
+                  if (widget.isRequired &&
+                      (value == null || value.trim().isEmpty)) {
+                    return widget.customRequiredMessage ??
+                        '${widget.hint} is required';
+                  }
+                  if (widget.isEmail && value != null) {
+                    if (value.contains(' ')) {
+                      return 'Please enter a valid email address';
+                    }
+                    final emailRegex =
+                        RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                    if (!emailRegex.hasMatch(value)) {
+                      return 'Please enter a valid email address';
+                    }
+                  }
+                  return null;
+                },
         decoration: InputDecoration(
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 20,

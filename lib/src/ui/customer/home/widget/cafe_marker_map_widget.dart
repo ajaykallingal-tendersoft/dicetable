@@ -15,7 +15,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:geolocator/geolocator.dart';
 
-
 class CafeMarkerMapWidget extends StatefulWidget {
   const CafeMarkerMapWidget({super.key});
 
@@ -26,7 +25,7 @@ class CafeMarkerMapWidget extends StatefulWidget {
 class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
   final Completer<GoogleMapController> _controller = Completer();
   Uint8List? markerImageBytes;
-  final String markerImage = 'assets/png/map-pin@2x.png';
+  final String markerImage = 'assets/png/marker_3x.png';
   final List<Marker> _markers = <Marker>[];
   LatLng? _userLocation;
   bool _mapInitialized = false;
@@ -35,7 +34,7 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
     ByteData data = await rootBundle.load(path);
     ui.Codec codec = await ui.instantiateImageCodec(
       data.buffer.asUint8List(),
-      targetHeight: width,
+      targetWidth: width,
     );
     ui.FrameInfo fi = await codec.getNextFrame();
     return (await fi.image.toByteData(
@@ -45,7 +44,7 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
 
   Future<void> _loadMarkerIcon() async {
     if (markerImageBytes == null) {
-      markerImageBytes = await getImages(markerImage, 100);
+      markerImageBytes = await getImages(markerImage, 120);
     }
   }
 
@@ -70,6 +69,8 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
             title: cafe.name,
             snippet: cafe.description ?? 'Cafe Location',
           ),
+          // Added anchor to position the marker's bottom-center at the coordinates
+          anchor: const Offset(0.5, 1.0),
           onTap: () {
             _onMarkerTapped(cafe);
           },
@@ -142,7 +143,6 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
     }
   }
 
-
   @override
   void initState() {
     super.initState();
@@ -155,7 +155,7 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
       children: [
         BlocConsumer<CustomerHomeBloc, CustomerHomeState>(
           listener: (context, state) {
-            if(state is CafeSearchError) {
+            if (state is CafeSearchError) {
               EasyLoading.dismiss();
             }
             if (state is CafeSearchSuccess) {
@@ -166,10 +166,10 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
                 _markers.clear();
               });
             }
-            if(state is CafeSearchSuccess) {
-              if(state.response.status == false) {
+            if (state is CafeSearchSuccess) {
+              if (state.response.status == false) {
                 if (state.response.message!.contains("Unauthorized") ||
-                    state.response.message!.contains("status code of 401") ) {
+                    state.response.message!.contains("status code of 401")) {
                   EasyLoading.dismiss();
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     SignOut().logout(context);
@@ -178,15 +178,14 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
                       backgroundColor: AppColors.primaryWhiteColor,
                       textColor: AppColors.appRedColor,
                       gravity: ToastGravity.BOTTOM,
-                      msg:
-                      "Your session has expired. Please sign in again.",
+                      msg: "Your session has expired. Please sign in again.",
                     );
                   });
                 }
               }
             }
-            if(state is CafeSearchSuccess) {
-              if(state.response.cafes!.isEmpty) {
+            if (state is CafeSearchSuccess) {
+              if (state.response.cafes!.isEmpty) {
                 Fluttertoast.showToast(
                   fontSize: 14.sp,
                   backgroundColor: AppColors.primaryWhiteColor,
@@ -195,9 +194,7 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
                   msg: "No Cafes Found.",
                 );
               }
-
             }
-
           },
           builder: (context, state) {
             if (_userLocation == null &&
@@ -225,7 +222,6 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
             );
           },
         ),
-
       ],
     );
   }

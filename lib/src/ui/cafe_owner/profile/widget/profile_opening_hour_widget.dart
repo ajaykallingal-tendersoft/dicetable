@@ -42,6 +42,11 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
     }
   }
 
+  // Helper method to check if we need compact layout
+  bool _needsCompactLayout(double screenWidth, double textScaleFactor) {
+    return screenWidth < 400 || textScaleFactor > 1.3;
+  }
+
   @override
   Widget build(BuildContext context) {
     final fromTime = widget.data.from;
@@ -54,29 +59,38 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
         // Get screen width and text scale factor for responsive calculations
         final screenWidth = constraints.maxWidth;
         final textScaleFactor = MediaQuery.of(context).textScaleFactor;
+        final needsCompactLayout = _needsCompactLayout(screenWidth, textScaleFactor);
         
         // Calculate responsive dimensions
         final isSmallScreen = screenWidth < 350;
         final isMediumScreen = screenWidth >= 350 && screenWidth < 600;
-        final isLargeScreen = screenWidth >= 600;
         
-        // Adaptive spacing based on screen size and text scale
+        // Adaptive spacing based on screen size
         final horizontalPadding = isSmallScreen ? 8.0 : (isMediumScreen ? 12.0 : 16.0);
         final verticalPadding = isSmallScreen ? 8.0 : (isMediumScreen ? 12.0 : 16.0);
         final switchWidth = isSmallScreen ? 45.0 : (isMediumScreen ? 55.0 : 65.0);
         final switchHeight = isSmallScreen ? 25.0 : (isMediumScreen ? 35.0 : 45.0);
         
-        // Adaptive font sizes considering text scale factor
-        final dayFontSize = (isSmallScreen ? 12.0 : (isMediumScreen ? 14.0 : 16.0)) / textScaleFactor;
-        final timeFontSize = (isSmallScreen ? 11.0 : (isMediumScreen ? 13.0 : 15.0)) / textScaleFactor;
-        final timePickerFontSize = (isSmallScreen ? 12.0 : (isMediumScreen ? 14.0 : 16.0)) / textScaleFactor;
+        // More conservative font sizes that work better with text scaling
+        final dayFontSize = isSmallScreen ? 12.0 : (isMediumScreen ? 14.0 : 16.0);
+        final timeFontSize = isSmallScreen ? 11.0 : (isMediumScreen ? 13.0 : 15.0);
+        final timePickerFontSize = isSmallScreen ? 12.0 : (isMediumScreen ? 14.0 : 16.0);
         
         // Adaptive spacing between elements
         final elementSpacing = isSmallScreen ? 4.0 : (isMediumScreen ? 8.0 : 12.0);
         final timePickerSpacing = isSmallScreen ? 6.0 : (isMediumScreen ? 8.0 : 12.0);
 
-        final collapsedHeight = isSmallScreen ? 50.0 : (isMediumScreen ? 90.0 : 100.0);
-        final expandedHeight = isSmallScreen ? 90.0 : (isMediumScreen ? 190.0 : 220.0);
+        // Dynamic height calculation based on content and text scaling
+        final baseCollapsedHeight = isSmallScreen ? 50.0 : (isMediumScreen ? 90.0 : 100.0);
+        final baseExpandedHeight = isSmallScreen ? 90.0 : (isMediumScreen ? 190.0 : 220.0);
+        
+        // Adjust heights for large text scaling
+        final collapsedHeight = needsCompactLayout 
+            ? baseCollapsedHeight * (1 + (textScaleFactor - 1) * 0.3)
+            : baseCollapsedHeight;
+        final expandedHeight = needsCompactLayout 
+            ? baseExpandedHeight * (1 + (textScaleFactor - 1) * 0.2)
+            : baseExpandedHeight;
 
         return AnimatedContainer(
           duration: const Duration(milliseconds: 200),
@@ -106,150 +120,32 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
               ),
               child: Column(
                 children: [
-                  !isEnabled
-                      ? Row(
-                          children: [
-                            SizedBox(
-                              height: switchHeight,
-                              width: switchWidth,
-                              child: FittedBox(
-                                fit: BoxFit.fill,
-                                child: Switch(
-                                  activeColor: AppColors.primaryWhiteColor,
-                                  activeTrackColor: AppColors.tertiary,
-                                  inactiveThumbColor: AppColors.disabledColor,
-                                  inactiveTrackColor: AppColors.primaryWhiteColor,
-                                  value: isEnabled,
-                                  onChanged: (val) {
-                                    // Set expansion state first, then update data
-                                    if (val && !isExpanded) {
-                                      setState(() {
-                                        isExpanded = true;
-                                      });
-                                    } else if (!val && isExpanded) {
-                                      setState(() {
-                                        isExpanded = false;
-                                      });
-                                    }
-                                    
-                                    widget.onChanged(
-                                      widget.data.copyWith(isEnabled: val),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: elementSpacing),
-                            Text(
-                              widget.day,
-                              style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                                fontWeight: FontWeight.w600,
-                                fontSize: dayFontSize.sp,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                            Expanded(
-                              child: Text(
-                                'Closed',
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: timeFontSize.sp,
-                                  color: AppColors.timeTextColor,
-                                ),
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  isExpanded = !isExpanded;
-                                });
-                                // Enable the day if not enabled when expanding
-                                if (!isEnabled && isExpanded) {
-                                  widget.onChanged(
-                                    widget.data.copyWith(isEnabled: true),
-                                  );
-                                }
-                              },
-                              child: Icon(
-                                isExpanded ? Icons.expand_less : Icons.expand_more,
-                                color: AppColors.textPrimaryGrey,
-                                size: isSmallScreen ? 20 : (isMediumScreen ? 24 : 28),
-                              ),
-                            ),
-                          ],
+                  // Main row content
+                  needsCompactLayout && isEnabled
+                      ? _buildCompactEnabledLayout(
+                          switchWidth,
+                          switchHeight,
+                          elementSpacing,
+                          dayFontSize,
+                          timeFontSize,
+                          displayTime,
+                          isSmallScreen,
+                          isMediumScreen,
                         )
-                      : Row(
-                          children: [
-                            SizedBox(
-                              height: switchHeight,
-                              width: switchWidth,
-                              child: FittedBox(
-                                fit: BoxFit.fill,
-                                child: Switch(
-                                  activeColor: AppColors.primaryWhiteColor,
-                                  activeTrackColor: AppColors.tertiary,
-                                  inactiveThumbColor: AppColors.disabledColor,
-                                  inactiveTrackColor: AppColors.primaryWhiteColor,
-                                  value: isEnabled,
-                                  onChanged: (val) {
-                                    // Set expansion state first, then update data
-                                    if (val && !isExpanded) {
-                                      setState(() {
-                                        isExpanded = true;
-                                      });
-                                    } else if (!val && isExpanded) {
-                                      // Optionally collapse when switch is turned OFF
-                                      setState(() {
-                                        isExpanded = false;
-                                      });
-                                    }
-                                    
-                                    widget.onChanged(
-                                      widget.data.copyWith(isEnabled: val),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                            SizedBox(width: elementSpacing),
-                            Expanded(
-                              child: Text(
-                                widget.day,
-                                style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: dayFontSize.sp,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                            ),
-                            Flexible(
-                              child: Text(
-                                displayTime,
-                                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: timeFontSize.sp,
-                                  color: AppColors.timeTextColor,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            SizedBox(width: elementSpacing),
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  isExpanded = !isExpanded;
-                                });
-                              },
-                              child: Icon(
-                                isExpanded ? Icons.expand_less : Icons.expand_more,
-                                color: AppColors.timeTextColor,
-                                size: isSmallScreen ? 20 : (isMediumScreen ? 24 : 28),
-                              ),
-                            ),
-                          ],
+                      : _buildNormalLayout(
+                          isEnabled,
+                          switchWidth,
+                          switchHeight,
+                          elementSpacing,
+                          dayFontSize,
+                          timeFontSize,
+                          displayTime,
+                          isSmallScreen,
+                          isMediumScreen,
                         ),
-                  if (isEnabled && isExpanded) // Show time pickers only if enabled and expanded
+                  
+                  // Time pickers section
+                  if (isEnabled && isExpanded)
                     Padding(
                       padding: EdgeInsets.only(top: timePickerSpacing),
                       child: Row(
@@ -273,7 +169,7 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
                                   fromTime.format(context),
                                   style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                                     color: AppColors.pickedTimeColor,
-                                    fontSize: timePickerFontSize.sp,
+                                    fontSize: timePickerFontSize,
                                   ),
                                 ),
                               ),
@@ -286,7 +182,7 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
                               style: Theme.of(context).textTheme.bodySmall!.copyWith(
                                 color: AppColors.timeDividerColor,
                                 fontWeight: FontWeight.w600,
-                                fontSize: (isSmallScreen ? 10.0 : (isMediumScreen ? 12.0 : 14.0)).sp,
+                                fontSize: isSmallScreen ? 10.0 : (isMediumScreen ? 12.0 : 14.0),
                               ),
                             ),
                           ),
@@ -297,7 +193,6 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
                               }),
                               child: Container(
                                 padding: EdgeInsets.symmetric(
-                                  
                                   vertical: isSmallScreen ? 8 : (isMediumScreen ? 12 : 16),
                                   horizontal: isSmallScreen ? 8 : (isMediumScreen ? 12 : 16),
                                 ),
@@ -310,7 +205,7 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
                                   toTime.format(context),
                                   style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                                     color: AppColors.pickedTimeColor,
-                                    fontSize: timePickerFontSize.sp,
+                                    fontSize: timePickerFontSize,
                                   ),
                                 ),
                               ),
@@ -326,5 +221,169 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
         );
       },
     );
+  }
+
+  Widget _buildCompactEnabledLayout(
+    double switchWidth,
+    double switchHeight,
+    double elementSpacing,
+    double dayFontSize,
+    double timeFontSize,
+    String displayTime,
+    bool isSmallScreen,
+    bool isMediumScreen,
+  ) {
+    return Row(
+      children: [
+        SizedBox(
+          height: switchHeight,
+          width: switchWidth,
+          child: FittedBox(
+            fit: BoxFit.fill,
+            child: Switch(
+              activeColor: AppColors.primaryWhiteColor,
+              activeTrackColor: AppColors.tertiary,
+              inactiveThumbColor: AppColors.disabledColor,
+              inactiveTrackColor: AppColors.primaryWhiteColor,
+              value: widget.data.isEnabled,
+              onChanged: (val) {
+                widget.onChanged(widget.data.copyWith(isEnabled: val));
+                _handleSwitchChange(val); // Call to handle expansion
+              },
+            ),
+          ),
+        ),
+        SizedBox(width: elementSpacing),
+        // Day name - takes only the space it needs
+        Text(
+          widget.day,
+          style: Theme.of(context).textTheme.labelLarge!.copyWith(
+            fontWeight: FontWeight.w600,
+            fontSize: dayFontSize,
+            color: AppColors.primary,
+          ),
+        ),
+        // Expanded space for time display - centers the time in remaining space
+        Expanded(
+          child: Text(
+            displayTime,
+            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+              fontWeight: FontWeight.w600,
+              fontSize: timeFontSize,
+              color: AppColors.timeTextColor,
+            ),
+            textAlign: TextAlign.center,
+            overflow: TextOverflow.visible, // Allow text to be fully visible
+            maxLines: 1,
+          ),
+        ),
+        // Icon always stays at the right end
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              isExpanded = !isExpanded;
+            });
+          },
+          child: Icon(
+            isExpanded ? Icons.expand_less : Icons.expand_more,
+            color: AppColors.timeTextColor,
+            size: isSmallScreen ? 20 : (isMediumScreen ? 24 : 28),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNormalLayout(
+    bool isEnabled,
+    double switchWidth,
+    double switchHeight,
+    double elementSpacing,
+    double dayFontSize,
+    double timeFontSize,
+    String displayTime,
+    bool isSmallScreen,
+    bool isMediumScreen,
+  ) {
+    return Row(
+      children: [
+        SizedBox(
+          height: switchHeight,
+          width: switchWidth,
+          child: FittedBox(
+            fit: BoxFit.fill,
+            child: Switch(
+              activeColor: AppColors.primaryWhiteColor,
+              activeTrackColor: AppColors.tertiary,
+              inactiveThumbColor: AppColors.disabledColor,
+              inactiveTrackColor: AppColors.primaryWhiteColor,
+              value: isEnabled,
+              onChanged: (val) {
+                widget.onChanged(widget.data.copyWith(isEnabled: val));
+                _handleSwitchChange(val); // Call to handle expansion
+              },
+            ),
+          ),
+        ),
+        SizedBox(width: elementSpacing),
+        Text(
+          widget.day,
+          style: Theme.of(context).textTheme.labelLarge!.copyWith(
+            fontWeight: FontWeight.w600,
+            fontSize: dayFontSize,
+            color: AppColors.primary,
+          ),
+        ),
+        if (isEnabled) ...[
+          // Time display takes all remaining space and centers the text
+          Expanded(
+            child: Text(
+              displayTime,
+              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                fontWeight: FontWeight.w600,
+                fontSize: timeFontSize,
+                color: AppColors.timeTextColor,
+              ),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.visible, // Allow text to be fully visible
+              maxLines: 1,
+            ),
+          ),
+        ] else
+          Expanded(
+            child: Text(
+              'Closed',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                fontWeight: FontWeight.w600,
+                fontSize: timeFontSize,
+                color: AppColors.timeTextColor,
+              ),
+            ),
+          ),
+        SizedBox(width: elementSpacing),
+        GestureDetector(
+          onTap: () {
+            setState(() {
+              isExpanded = !isExpanded;
+            });
+            if (!isEnabled && isExpanded) {
+              widget.onChanged(widget.data.copyWith(isEnabled: true));
+            }
+          },
+          child: Icon(
+            isExpanded ? Icons.expand_less : Icons.expand_more,
+            color: isEnabled ? AppColors.timeTextColor : AppColors.textPrimaryGrey,
+            size: isSmallScreen ? 20 : (isMediumScreen ? 24 : 28),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _handleSwitchChange(bool val) {
+    setState(() {
+      isExpanded = val; // Expand when enabled, collapse when disabled
+    });
   }
 }

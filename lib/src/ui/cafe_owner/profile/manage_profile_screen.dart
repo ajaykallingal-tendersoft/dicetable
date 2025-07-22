@@ -632,7 +632,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                       state.venueName,
                       style: TextTheme.of(context).bodyLarge!.copyWith(
                         color: AppColors.primaryWhiteColor,
-                        fontSize: 22,
+                        fontSize: 22.sp,
                       ),
                     ),
                     SizedBox(height: 4),
@@ -640,7 +640,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                       subTitle,
                       style: TextTheme.of(context).bodySmall!.copyWith(
                         color: AppColors.primaryWhiteColor,
-                        fontSize: 12,
+                        fontSize: 12.sp,
                       ),
                     ),
                   ],
@@ -721,7 +721,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
           child: SvgPicture.asset('assets/svg/notify.svg'),
         ),
       ],
-      actionsPadding: EdgeInsets.only(right: 15),
+      actionsPadding: EdgeInsets.only(right: 15.w),
     );
   }
 

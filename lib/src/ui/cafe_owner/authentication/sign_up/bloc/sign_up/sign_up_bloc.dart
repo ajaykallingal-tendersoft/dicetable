@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 import 'package:bloc/bloc.dart';
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/login/google_login_request_response.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/signUp/apple_sign-up_request.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/signUp/apple_sign-up_response.dart';
@@ -44,16 +45,16 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
             ),
         },
       ),
-        _initialFormState = SignUpFormState(
-          openingHours: {
-            for (final day in ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'])
-              day: OpeningHour(
-                isEnabled: false,
-                from: const TimeOfDay(hour: 9, minute: 0),
-                to: const TimeOfDay(hour: 17, minute: 0),
-              ),
-          },
-        ),
+      _initialFormState = SignUpFormState(
+        openingHours: {
+          for (final day in ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'])
+            day: OpeningHour(
+              isEnabled: false,
+              from: const TimeOfDay(hour: 9, minute: 0),
+              to: const TimeOfDay(hour: 17, minute: 0),
+            ),
+        },
+      ),
       super(SignUpInitial()) {
     emit(_formState);
 
@@ -91,6 +92,101 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
       emit(_formState);
     });
 
+    // on<PickImageFromGalleryEvent>((event, emit) async {
+    //   emit(SignUpImageLoadingState());
+    //   try {
+    //     if (Platform.isAndroid) {
+    //       Permission permission;
+    //       if (await isAndroid13OrHigher()) {
+    //         permission = Permission.photos;
+    //       } else {
+    //         permission = Permission.storage;
+    //       }
+
+    //       final permissionStatus = await permission.request();
+    //       if (!permissionStatus.isGranted) {
+    //         emit(
+    //           SignUpImageErrorState(
+    //             errorMessage: "Photo access permission denied.",
+    //           ),
+    //         );
+    //         emit(_formState);
+    //         return;
+    //       }
+    //     }
+
+    //     // This will trigger iOS permission dialog if needed
+    //     final pickedImage = await _picker.pickImage(
+    //       source: ImageSource.gallery,
+    //       imageQuality: 80,
+    //     );
+
+    //     if (pickedImage == null) {
+    //       emit(_formState); // User cancelled or permission denied
+    //       return;
+    //     }
+
+    //     final file = File(pickedImage.path);
+    //     final fileSize = file.lengthSync();
+    //     final ext = pickedImage.name.toLowerCase();
+
+    //     if (!(ext.endsWith('.png') ||
+    //         ext.endsWith('.jpeg') ||
+    //         ext.endsWith('.jpg'))) {
+    //       emit(
+    //         SignUpImageErrorState(
+    //           errorMessage: "Only JPEG or PNG images are allowed.",
+    //         ),
+    //       );
+    //       emit(_formState);
+    //       return;
+    //     }
+
+    //     if (fileSize > 5 * 1024 * 1024) {
+    //       emit(
+    //         SignUpImageErrorState(
+    //           errorMessage: "Image size must be under 5MB.",
+    //         ),
+    //       );
+    //       emit(_formState);
+    //       return;
+    //     }
+
+    //     Uint8List bytes = await pickedImage.readAsBytes();
+    //     base64String = base64.encode(bytes);
+    //     _image = pickedImage;
+    //     base64Encoded = "data:image/png;base64,$base64String";
+
+    //     _formState = _formState.copyWith(
+    //       image: _image,
+    //       base64Image: base64Encoded,
+    //     );
+    //     ObjectFactory().prefs.setImageData(cafeUserImage: base64Encoded);
+    //     emit(_formState);
+    //   } catch (e) {
+    //     emit(SignUpImageErrorState(errorMessage: "Failed to pick image: $e"));
+    //     emit(_formState);
+    //   }
+    // });
+
+    Future<Uint8List?> _compressImage(XFile imageFile) async {
+      try {
+        Uint8List originalBytes = await imageFile.readAsBytes();
+        final compressedBytes = await FlutterImageCompress.compressWithList(
+          originalBytes,
+          minHeight: 1920,
+          minWidth: 1080,
+          quality: 85,
+          rotate: 0,
+        );
+        return compressedBytes;
+      } catch (e) {
+        print('Error compressing image: $e');
+        return null;
+      }
+    }
+
+    ///New Functionality for picking image from gallery
     on<PickImageFromGalleryEvent>((event, emit) async {
       emit(SignUpImageLoadingState());
       try {
@@ -117,7 +213,7 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
         // This will trigger iOS permission dialog if needed
         final pickedImage = await _picker.pickImage(
           source: ImageSource.gallery,
-          imageQuality: 80,
+          imageQuality: 80, // Initial compression by image_picker
         );
 
         if (pickedImage == null) {
@@ -125,10 +221,7 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
           return;
         }
 
-        final file = File(pickedImage.path);
-        final fileSize = file.lengthSync();
         final ext = pickedImage.name.toLowerCase();
-
         if (!(ext.endsWith('.png') ||
             ext.endsWith('.jpeg') ||
             ext.endsWith('.jpg'))) {
@@ -141,20 +234,37 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
           return;
         }
 
-        if (fileSize > 5 * 1024 * 1024) {
+        // Debug print: Original image size
+        final originalBytes = await pickedImage.readAsBytes();
+        debugPrint('📸 Original image size: ${originalBytes.length} bytes');
+
+        // Compress the image
+        Uint8List? compressedBytes = await _compressImage(pickedImage);
+
+        if (compressedBytes == null) {
+          emit(SignUpImageErrorState(errorMessage: "Failed to process image."));
+          emit(_formState);
+          return;
+        }
+
+        // Debug print: Compressed image size
+        debugPrint('📏 Compressed image size: ${compressedBytes.length} bytes');
+
+        // Check compressed size (optional - you can remove this check if you want)
+        if (compressedBytes.length > 5 * 1024 * 1024) {
           emit(
             SignUpImageErrorState(
-              errorMessage: "Image size must be under 5MB.",
+              errorMessage: "Image is too large even after compression.",
             ),
           );
           emit(_formState);
           return;
         }
 
-        Uint8List bytes = await pickedImage.readAsBytes();
-        base64String = base64.encode(bytes);
+        base64String = base64.encode(compressedBytes);
         _image = pickedImage;
-        base64Encoded = "data:image/png;base64,$base64String";
+        base64Encoded =
+            "data:image/jpeg;base64,$base64String"; // Use jpeg for compressed images
 
         _formState = _formState.copyWith(
           image: _image,
@@ -167,6 +277,29 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
         emit(_formState);
       }
     });
+
+    ///New Functionality for capturing image with camera
+    ///
+    Future<Uint8List?> _compressCameraImage(XFile imageFile) async {
+      try {
+        Uint8List originalBytes = await imageFile.readAsBytes();
+
+        // Camera images are often larger,
+        final compressedBytes = await FlutterImageCompress.compressWithList(
+          originalBytes,
+          minHeight: 1920,
+          minWidth: 1080,
+          quality: 80,
+          rotate: 0,
+          format: CompressFormat.jpeg,
+          keepExif: false,
+        );
+        return compressedBytes;
+      } catch (e) {
+        print('Error compressing camera image: $e');
+        return null;
+      }
+    }
 
     on<CaptureImageWithCameraEvent>((event, emit) async {
       emit(SignUpImageLoadingState());
@@ -188,19 +321,15 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
 
         final pickedImage = await _picker.pickImage(
           source: ImageSource.camera,
-          imageQuality: 80,
+          imageQuality: 80, // Initial compression by image_picker
         );
 
         if (pickedImage == null) {
-          // emit(SignUpImageErrorState(errorMessage: "No image captured."));
           emit(_formState);
           return;
         }
 
-        final file = File(pickedImage.path);
-        final fileSize = file.lengthSync();
         final ext = pickedImage.name.toLowerCase();
-
         if (!(ext.endsWith('.png') ||
             ext.endsWith('.jpeg') ||
             ext.endsWith('.jpg'))) {
@@ -213,20 +342,46 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
           return;
         }
 
-        if (fileSize > 5 * 1024 * 1024) {
+        // Debug print: Original image size from camera
+        final originalCameraBytes = await pickedImage.readAsBytes();
+        debugPrint(
+          '📸 Camera - Original image size: ${originalCameraBytes.length} bytes',
+        );
+
+        // Compress the captured image
+        Uint8List? compressedBytes = await _compressCameraImage(pickedImage);
+
+        if (compressedBytes == null) {
           emit(
             SignUpImageErrorState(
-              errorMessage: "Image size must be under 5MB.",
+              errorMessage: "Failed to process captured image.",
             ),
           );
           emit(_formState);
           return;
         }
 
-        Uint8List bytes = await pickedImage.readAsBytes();
-        base64String = base64.encode(bytes);
+        // Debug print: Compressed image size from camera
+        debugPrint(
+          '📏 Camera - Compressed image size: ${compressedBytes.length} bytes',
+        );
+
+        // Optional: Check compressed size (you can remove this if you want to allow any size after compression)
+        if (compressedBytes.length > 5 * 1024 * 1024) {
+          emit(
+            SignUpImageErrorState(
+              errorMessage:
+                  "Captured image is too large even after compression.",
+            ),
+          );
+          emit(_formState);
+          return;
+        }
+
+        base64String = base64.encode(compressedBytes);
         _image = pickedImage;
-        base64Encoded = "data:image/png;base64,$base64String";
+        base64Encoded =
+            "data:image/jpeg;base64,$base64String"; // Use jpeg for compressed images
 
         _formState = _formState.copyWith(
           image: _image,
@@ -242,6 +397,79 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
       }
     });
 
+    // on<CaptureImageWithCameraEvent>((event, emit) async {
+    //   emit(SignUpImageLoadingState());
+    //   try {
+    //     if (Platform.isAndroid) {
+    //       Permission permission = Permission.camera;
+    //       final permissionStatus = await permission.request();
+
+    //       if (!permissionStatus.isGranted) {
+    //         emit(
+    //           SignUpImageErrorState(
+    //             errorMessage: "Camera access permission denied.",
+    //           ),
+    //         );
+    //         emit(_formState);
+    //         return;
+    //       }
+    //     }
+
+    //     final pickedImage = await _picker.pickImage(
+    //       source: ImageSource.camera,
+    //       imageQuality: 80,
+    //     );
+
+    //     if (pickedImage == null) {
+    //       // emit(SignUpImageErrorState(errorMessage: "No image captured."));
+    //       emit(_formState);
+    //       return;
+    //     }
+
+    //     final file = File(pickedImage.path);
+    //     final fileSize = file.lengthSync();
+    //     final ext = pickedImage.name.toLowerCase();
+
+    //     if (!(ext.endsWith('.png') ||
+    //         ext.endsWith('.jpeg') ||
+    //         ext.endsWith('.jpg'))) {
+    //       emit(
+    //         SignUpImageErrorState(
+    //           errorMessage: "Only JPEG or PNG images are allowed.",
+    //         ),
+    //       );
+    //       emit(_formState);
+    //       return;
+    //     }
+
+    //     if (fileSize > 5 * 1024 * 1024) {
+    //       emit(
+    //         SignUpImageErrorState(
+    //           errorMessage: "Image size must be under 5MB.",
+    //         ),
+    //       );
+    //       emit(_formState);
+    //       return;
+    //     }
+
+    //     Uint8List bytes = await pickedImage.readAsBytes();
+    //     base64String = base64.encode(bytes);
+    //     _image = pickedImage;
+    //     base64Encoded = "data:image/png;base64,$base64String";
+
+    //     _formState = _formState.copyWith(
+    //       image: _image,
+    //       base64Image: base64Encoded,
+    //     );
+    //     ObjectFactory().prefs.setImageData(cafeUserImage: base64Encoded);
+    //     emit(_formState);
+    //   } catch (e) {
+    //     emit(
+    //       SignUpImageErrorState(errorMessage: "Failed to capture image: $e"),
+    //     );
+    //     emit(_formState);
+    //   }
+    // });
 
     on<ClearImageEvent>((event, emit) async {
       emit(SignUpImageLoadingState());
@@ -410,7 +638,7 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
     Emitter<SignUpState> emit,
   ) async {
     try {
-      emit(_formState.copyWith(isLoadingVenueTypes: true, error: null,));
+      emit(_formState.copyWith(isLoadingVenueTypes: true, error: null));
       final response = await authDataProvider.getVenueTypes();
 
       if (response is SuccessState) {
@@ -424,7 +652,7 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
         _formState = _formState.copyWith(
           venueTypes: types,
           isLoadingVenueTypes: false,
-           error: null,
+          error: null,
         );
         emit(_formState);
       } else {
@@ -440,7 +668,6 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
         error: e.toString(),
       );
       emit(_formState);
-  
     }
   }
 

@@ -19,7 +19,7 @@ import FirebaseMessaging
          completionHandler: { _, _ in }
        )
        application.registerForRemoteNotifications()
-    GMSServices.provideAPIKey("AIzaSyC7dfhEYKfiuzmjTy5qcVdUvsYdA8FjRZ8")
+    GMSServices.provideAPIKey("AIzaSyA1ykJA5q4OYpvR1h7Bx5BaicxgKuKhqVg")
     GeneratedPluginRegistrant.register(with: self)
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   

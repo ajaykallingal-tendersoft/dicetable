@@ -2,24 +2,19 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:soloseaters/src/common/custom_text_field.dart';
 import 'package:soloseaters/src/common/elevated_button_widget.dart';
 import 'package:soloseaters/src/common/login_or_signup_prompt.dart';
-import 'package:soloseaters/src/common/modal_barrier_with_progress_indicator_widget.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/signUp/apple_sign-up_request.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/signUp/google_sign-up_request.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/signUp/sign_up_request.dart';
-import 'package:soloseaters/src/model/verification/otp_verify_request.dart';
-import 'package:soloseaters/src/resources/api_providers/auth/auth_data_provider.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/sign_up/sign_up_screen_argument.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/sign_up/widget/image_upload_widget.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/sign_up/widget/opening_hours_widget.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/sign_up/widget/venue_type_checkboxes.dart';
-import 'package:soloseaters/src/ui/verification/bloc/verification_bloc.dart';
 import 'package:soloseaters/src/ui/verification/verify_screen_argument.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
@@ -140,6 +135,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   void dispose() {
+    _emailController.removeListener(() {});
     _venueNameController.dispose();
     _venueDescriptionController.dispose();
     _emailController.dispose();
@@ -698,10 +694,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     BlocBuilder<SignUpBloc, SignUpState>(
                       builder: (context, state) {
                         if (isLoading) {
-                          return RefreshProgressIndicator(
-                            color: AppColors.primaryWhiteColor,
-                            backgroundColor: AppColors.primary,
-                          );
+                          EasyLoading.show();
+                          // return RefreshProgressIndicator(
+                          //   color: AppColors.primaryWhiteColor,
+                          //   backgroundColor: AppColors.primary,
+                          // );
                         } else if (state is SignUpFormState) {
                           final isFormValid = _validateForm(state);
 

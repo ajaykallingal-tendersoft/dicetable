@@ -49,17 +49,17 @@ class _CustomLoginTextFieldState extends State<CustomLoginTextField> {
   Widget build(BuildContext context) {
     return Container(
       height: 70.h,
-      margin: const EdgeInsets.symmetric(vertical: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      margin:  EdgeInsets.symmetric(vertical: 10.h),
+      padding:  EdgeInsets.symmetric(horizontal: 16.w, vertical: 4.h),
       decoration: BoxDecoration(
         color: AppColors.primaryWhiteColor,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         children: [
-          Gap(20),
+          Gap(20.w),
           widget.icon,
-          Gap(20),
+          Gap(20.w),
           const VerticalDivider(
             color: AppColors.verticalDividerColor,
             thickness: 1,
@@ -67,15 +67,15 @@ class _CustomLoginTextFieldState extends State<CustomLoginTextField> {
             indent: 8,
             endIndent: 8,
           ),
-          Gap(20),
+          Gap(20.w),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
+              padding:  EdgeInsets.symmetric(vertical: 8.h),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                    Gap(10),
+                    Gap(8.h),
                   Expanded(
                     // flex: 2,
                     child: TextFormField(

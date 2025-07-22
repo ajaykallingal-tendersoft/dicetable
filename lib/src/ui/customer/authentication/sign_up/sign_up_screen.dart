@@ -1,3 +1,4 @@
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:soloseaters/src/common/elevated_button_widget.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/signUp/apple_sign-up_request.dart';
@@ -75,6 +76,26 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
     _countryController = TextEditingController();
     _regionController = TextEditingController();
 
+
+_emailController.addListener(() {
+      final text = _emailController.text;
+      if (text.contains(' ')) {
+        context.read<CustomerSignUpBloc>().add(
+              EmailChanged(email: text), 
+            );
+        context.read<CustomerSignUpBloc>().add(ValidateForm());
+        final newText = text.replaceAll(' ', '');
+        _emailController.text = newText;
+        _emailController.selection = TextSelection.fromPosition(
+          TextPosition(offset: newText.length),
+        );
+        context.read<CustomerSignUpBloc>().add(
+              EmailChanged(email: newText),
+            );
+      }
+    });;
+
+
     if (isGoogleSignUp) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final bloc = context.read<CustomerSignUpBloc>();
@@ -105,6 +126,7 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
 
   @override
   void dispose() {
+    _emailController.removeListener(() {});
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
@@ -429,13 +451,16 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                         BlocBuilder<CustomerSignUpBloc, CustomerSignUpState>(
                           builder: (context, state) {
                             if (state is CustomerSignUpLoadingState ||
-                                state is GoogleSignUpLoadingState) {
-                              return const Center(
-                                child: RefreshProgressIndicator(
-                                  color: AppColors.primaryWhiteColor,
-                                  backgroundColor: AppColors.primary,
-                                ),
-                              );
+                                state is GoogleSignUpLoadingState ||
+                                state is AppleSignUpLoadingState
+                                ) {
+                                  EasyLoading.show();
+                              // return const Center(
+                              //   child: RefreshProgressIndicator(
+                              //     color: AppColors.primaryWhiteColor,
+                              //     backgroundColor: AppColors.primary,
+                              //   ),
+                              // );
                             }
 
                             return InkWell(
@@ -480,7 +505,6 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                                             .read<CustomerSignUpBloc>()
                                             .state;
 
-                                    // Check if current state is valid before submitting
                                     if (currentState is SignUpFormState &&
                                         _formKey.currentState!.validate()) {
                                       if (isGoogleSignUp) {
