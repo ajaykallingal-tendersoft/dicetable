@@ -50,13 +50,7 @@ class ElevatedButtonWidget extends StatelessWidget {
               fontSize: 18.sp,
               fontWeight: FontWeight.bold,
             ),
-            // TextTheme.of(
-            //   context,
-            // ).displayMedium!.copyWith(color: textColor,fontSize: 18.sp,fontWeight: FontWeight.bold),
-            // maxLines: 1,
-            // overflow: TextOverflow.ellipsis,
            )
-      
           )
           :
           AutoSizeText(
@@ -67,11 +61,6 @@ class ElevatedButtonWidget extends StatelessWidget {
               fontSize: 18.sp,
               fontWeight: FontWeight.bold,
             ),
-            // TextTheme.of(
-            //   context,
-            // ).displayMedium!.copyWith(color: textColor,fontSize: 18.sp,fontWeight: FontWeight.bold),
-            // maxLines: 1,
-            // overflow: TextOverflow.ellipsis,
           ),
           iconEnabled == true ? Gap(20.w) : SizedBox(),
           iconEnabled == true ? icon! : SizedBox(),

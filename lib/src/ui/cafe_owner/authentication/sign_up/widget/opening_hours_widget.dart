@@ -104,7 +104,7 @@ class _OpeningHoursWidgetState extends State<OpeningHoursWidget> {
         final baseCollapsedHeight =
             isSmallScreen ? 50.0 : (isMediumScreen ? 60.0 : 80.0);
         final baseExpandedHeight =
-            isSmallScreen ? 90.0 : (isMediumScreen ? 110.0 : 130.0);
+            isSmallScreen ? 90.0 : (isMediumScreen ? 110.0 : 160.0);
 
         // Adjust heights for large text scaling
         final collapsedHeight =

@@ -1,4 +1,5 @@
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/model/cafe_owner/subscription/subscription_overview_response.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/sign_up/widget/custom_switch.dart';
@@ -83,12 +84,12 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                     children: [
                       AutoSizeText(
                         'Subscription Overview',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.labelMedium!.copyWith(
-                          fontSize: (18 * fontScale).sp,
+                        style: GoogleFonts.montserrat(
+                        fontSize: 18.sp,
                           color: AppColors.primary,
-                        ),
+                          fontWeight: FontWeight.w700
+                        )
+                      
                       ),
                       _isExpanded
                           ? SvgPicture.asset('assets/svg/tab-arw-1.svg')

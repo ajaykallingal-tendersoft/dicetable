@@ -194,6 +194,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
+          flexibleSpace: SizedBox(height: 70),
           elevation: 0,
           backgroundColor: AppColors.primary,
           leading: IconButton(
@@ -287,6 +288,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
               padding: const EdgeInsets.all(26.0),
               child: Column(
                 children: [
+                   const Gap(30),
                   CafeDetailsCard(
                     name: _name,
                     tableType: _tableType,

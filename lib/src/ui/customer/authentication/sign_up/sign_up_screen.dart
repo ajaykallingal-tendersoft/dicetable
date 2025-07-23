@@ -521,13 +521,13 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                             if (state is CustomerSignUpLoadingState ||
                                 state is GoogleSignUpLoadingState ||
                                 state is AppleSignUpLoadingState) {
-                              EasyLoading.show();
-                              // return const Center(
-                              //   child: RefreshProgressIndicator(
-                              //     color: AppColors.primaryWhiteColor,
-                              //     backgroundColor: AppColors.primary,
-                              //   ),
-                              // );
+                          
+                              return const Center(
+                                child: RefreshProgressIndicator(
+                                  color: AppColors.primaryWhiteColor,
+                                  backgroundColor: AppColors.primary,
+                                ),
+                              );
                             }
 
                             return InkWell(

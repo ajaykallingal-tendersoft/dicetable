@@ -715,11 +715,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     BlocBuilder<SignUpBloc, SignUpState>(
                       builder: (context, state) {
                         if (isLoading) {
-                          EasyLoading.show();
-                          // return RefreshProgressIndicator(
-                          //   color: AppColors.primaryWhiteColor,
-                          //   backgroundColor: AppColors.primary,
-                          // );
+                          // EasyLoading.show();
+                          return RefreshProgressIndicator(
+                            color: AppColors.primaryWhiteColor,
+                            backgroundColor: AppColors.primary,
+                          );
                         } else if (state is SignUpFormState) {
                           final isFormValid = _validateForm(state);
 
