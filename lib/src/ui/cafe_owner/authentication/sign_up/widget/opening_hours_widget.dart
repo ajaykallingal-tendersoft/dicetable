@@ -93,7 +93,7 @@ class _OpeningHoursWidgetState extends State<OpeningHoursWidget> {
 
         return AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          height: isExpanded ? expandedHeight : collapsedHeight,
+          height: isExpanded ? expandedHeight.h : collapsedHeight.h,
           margin: EdgeInsets.symmetric(vertical: isSmallScreen ? 4 : 6),
           padding: EdgeInsets.all(horizontalPadding),
           decoration: BoxDecoration(

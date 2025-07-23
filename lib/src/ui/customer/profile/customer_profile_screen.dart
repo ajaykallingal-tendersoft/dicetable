@@ -128,7 +128,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                             showBadge: true,
                             badgeStyle: badges.BadgeStyle(
                               shape: badges.BadgeShape.square,
-                              borderRadius: BorderRadius.circular(10.sp),
+                              borderRadius: BorderRadius.circular(10.r),
                               badgeColor: Colors.red,
                               padding: EdgeInsets.symmetric(
                                 horizontal: 6.w,

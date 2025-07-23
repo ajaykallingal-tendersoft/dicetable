@@ -185,7 +185,7 @@ class _CafeListScreenState extends State<CafeListScreen> {
                                         badgeStyle: badges.BadgeStyle(
                                           shape: badges.BadgeShape.square,
                                           borderRadius: BorderRadius.circular(
-                                            10.sp,
+                                            10.r,
                                           ),
                                           badgeColor: Colors.red,
                                           padding: EdgeInsets.symmetric(

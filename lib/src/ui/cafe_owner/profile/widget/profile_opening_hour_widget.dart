@@ -94,7 +94,7 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
 
         return AnimatedContainer(
           duration: const Duration(milliseconds: 200),
-          height: isExpanded ? expandedHeight : collapsedHeight,
+          height: isExpanded ? expandedHeight.h : collapsedHeight.h,
           margin: EdgeInsets.symmetric(vertical: isSmallScreen ? 4 : 6),
           padding: EdgeInsets.all(horizontalPadding),
           decoration: BoxDecoration(
@@ -236,8 +236,8 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
     return Row(
       children: [
         SizedBox(
-          height: switchHeight,
-          width: switchWidth,
+          height: switchHeight.h,
+          width: switchWidth.w,
           child: FittedBox(
             fit: BoxFit.fill,
             child: Switch(
@@ -254,7 +254,7 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
           ),
         ),
         SizedBox(width: elementSpacing),
-        // Day name - takes only the space it needs
+    
         Text(
           widget.day,
           style: Theme.of(context).textTheme.labelLarge!.copyWith(
@@ -263,7 +263,6 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
             color: AppColors.primary,
           ),
         ),
-        // Expanded space for time display - centers the time in remaining space
         Expanded(
           child: Text(
             displayTime,
@@ -273,11 +272,10 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
               color: AppColors.timeTextColor,
             ),
             textAlign: TextAlign.center,
-            overflow: TextOverflow.visible, // Allow text to be fully visible
+            overflow: TextOverflow.visible,
             maxLines: 1,
           ),
         ),
-        // Icon always stays at the right end
         GestureDetector(
           onTap: () {
             setState(() {
@@ -308,8 +306,8 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
     return Row(
       children: [
         SizedBox(
-          height: switchHeight,
-          width: switchWidth,
+          height: switchHeight.h,
+          width: switchWidth.w,
           child: FittedBox(
             fit: BoxFit.fill,
             child: Switch(
@@ -335,7 +333,6 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
           ),
         ),
         if (isEnabled) ...[
-          // Time display takes all remaining space and centers the text
           Expanded(
             child: Text(
               displayTime,
@@ -345,7 +342,7 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
                 color: AppColors.timeTextColor,
               ),
               textAlign: TextAlign.center,
-              overflow: TextOverflow.visible, // Allow text to be fully visible
+              overflow: TextOverflow.visible,
               maxLines: 1,
             ),
           ),
@@ -383,7 +380,7 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
 
   void _handleSwitchChange(bool val) {
     setState(() {
-      isExpanded = val; // Expand when enabled, collapse when disabled
+      isExpanded = val;
     });
   }
 }

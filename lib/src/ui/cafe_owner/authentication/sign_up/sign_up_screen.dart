@@ -53,30 +53,48 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     isGoogleSignUp = widget.signUpScreenArgument.isGoggleSignUp ?? false;
     isAppleSignUp = widget.signUpScreenArgument.isAppleSignUp ?? false;
-    if (isAppleSignUp) {
-      if (widget.signUpScreenArgument.email.contains('privaterelay')) {
-        appleMail = "";
-      } else {
-        appleMail = widget.signUpScreenArgument.email;
-      }
-    }
+      final args       = widget.signUpScreenArgument;
+  final rawApple   = args.email?.trim() ?? '';
+  final isRelay    = rawApple.toLowerCase().endsWith('@privaterelay.appleid.com');
+  final isGoogle   = args.isGoggleSignUp ?? false;
+  final isApple    = args.isAppleSignUp  ?? false;
 
-    _venueNameController = TextEditingController(
-      text:
-          isGoogleSignUp
-              ? widget.signUpScreenArgument.displayName
-              : isAppleSignUp
-              ? widget.signUpScreenArgument.displayName
-              : '',
-    );
-    _emailController = TextEditingController(
-      text:
-          isGoogleSignUp
-              ? widget.signUpScreenArgument.email
-              : isAppleSignUp
-              ? appleMail
-              : '',
-    );
+  final appleMail  = (isApple && !isRelay) ? rawApple : '';
+
+  _venueNameController = TextEditingController(
+    text: isGoogle
+        ? args.displayName
+        : (isApple ? args.displayName : ''),
+  );
+  _emailController = TextEditingController(
+    text: isGoogle
+        ? args.email
+        : appleMail,
+  );
+    // if (isAppleSignUp) {
+    //   if (widget.signUpScreenArgument.email.contains('privaterelay')) {
+    //     appleMail = "";
+    //   } else {
+    //     appleMail = widget.signUpScreenArgument.email;
+    //   }
+    // }
+
+    // _venueNameController = TextEditingController(
+    //   text:
+    //       isGoogleSignUp
+    //           ? widget.signUpScreenArgument.displayName
+    //           : isAppleSignUp
+    //           ? widget.signUpScreenArgument.displayName
+    //           : '',
+    // );
+    // _emailController = TextEditingController(
+    //   text:
+    //       isGoogleSignUp
+    //           ? widget.signUpScreenArgument.email
+    //           : isAppleSignUp
+    //           ? appleMail
+    //           : '',
+    // );
     _venueDescriptionController = TextEditingController();
     _passwordController = TextEditingController();
     _confirmPasswordController = TextEditingController();

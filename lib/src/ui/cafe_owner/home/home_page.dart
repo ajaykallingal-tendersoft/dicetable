@@ -117,7 +117,7 @@ class _HomePageState extends State<HomePage> {
                                           badgeStyle: badges.BadgeStyle(
                                             shape: badges.BadgeShape.square,
                                             borderRadius: BorderRadius.circular(
-                                              10,
+                                              10.r,
                                             ),
                                             badgeColor: Colors.red,
                                             padding: EdgeInsets.symmetric(

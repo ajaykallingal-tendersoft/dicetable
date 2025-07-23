@@ -34,7 +34,7 @@ class LoginWithAppleWidget extends StatelessWidget {
               ),
             );
             ObjectFactory().prefs.setCustomerUserName(
-              customerUserName: state.user.displayName,
+              customerUserName: state.displayName,
             );
             ObjectFactory().prefs.setCustomerUserMail(
               customerUserMail: state.user.email,
