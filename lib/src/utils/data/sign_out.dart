@@ -12,6 +12,7 @@ class SignOut {
   static final SignOut _instance = SignOut._();
 
   factory SignOut() => _instance;
+
   /// Handles both PUBLIC_USER and VENUE_OWNER logout scenarios
   Future<void> logout(BuildContext context) async {
     try {
@@ -49,7 +50,6 @@ class SignOut {
       ObjectFactory().prefs.getNavigationSource();
 
       context.go('/category');
-
     } catch (e) {
       if (kDebugMode) {
         print('Error during logout: $e');

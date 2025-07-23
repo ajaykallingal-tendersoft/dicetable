@@ -46,50 +46,75 @@ class _OpeningHoursWidgetState extends State<OpeningHoursWidget> {
   bool _needsCompactLayout(double screenWidth, double textScaleFactor) {
     return screenWidth < 400 || textScaleFactor > 1.3;
   }
+  String formatTimeWithAmPm(TimeOfDay time) {
+    final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
+    final minute = time.minute.toString().padLeft(2, '0');
+    final period = time.period == DayPeriod.am ? 'AM' : 'PM';
+    return '$hour:$minute $period';
+  }
+
 
   @override
   Widget build(BuildContext context) {
     final fromTime = widget.data.from;
     final toTime = widget.data.to;
     final isEnabled = widget.data.isEnabled;
-    final displayTime = '${fromTime.format(context)} - ${toTime.format(context)}';
+  final displayTime =
+        '${formatTimeWithAmPm(fromTime)} - ${formatTimeWithAmPm(toTime)}';
+
 
     return LayoutBuilder(
       builder: (context, constraints) {
         final screenWidth = constraints.maxWidth;
         final textScaleFactor = MediaQuery.of(context).textScaleFactor;
-        final needsCompactLayout = _needsCompactLayout(screenWidth, textScaleFactor);
+        final needsCompactLayout = _needsCompactLayout(
+          screenWidth,
+          textScaleFactor,
+        );
 
         // Calculate responsive dimensions
         final isSmallScreen = screenWidth < 350;
         final isMediumScreen = screenWidth >= 350 && screenWidth < 600;
 
         // Adaptive spacing based on screen size and text scale
-        final horizontalPadding = isSmallScreen ? 8.0 : (isMediumScreen ? 12.0 : 16.0);
-        final verticalPadding = isSmallScreen ? 8.0 : (isMediumScreen ? 12.0 : 16.0);
-        final switchWidth = isSmallScreen ? 45.0 : (isMediumScreen ? 55.0 : 65.0);
-        final switchHeight = isSmallScreen ? 25.0 : (isMediumScreen ? 35.0 : 45.0);
+        final horizontalPadding =
+            isSmallScreen ? 8.0 : (isMediumScreen ? 12.0 : 16.0);
+        final verticalPadding =
+            isSmallScreen ? 8.0 : (isMediumScreen ? 12.0 : 16.0);
+        final switchWidth =
+            isSmallScreen ? 45.0 : (isMediumScreen ? 55.0 : 65.0);
+        final switchHeight =
+            isSmallScreen ? 25.0 : (isMediumScreen ? 35.0 : 45.0);
 
         // More conservative font sizes that work better with text scaling
-        final dayFontSize = isSmallScreen ? 12.0 : (isMediumScreen ? 14.0 : 16.0);
-        final timeFontSize = isSmallScreen ? 11.0 : (isMediumScreen ? 13.0 : 15.0);
-        final timePickerFontSize = isSmallScreen ? 12.0 : (isMediumScreen ? 14.0 : 16.0);
+        final dayFontSize =
+            isSmallScreen ? 12.0 : (isMediumScreen ? 14.0 : 16.0);
+        final timeFontSize =
+            isSmallScreen ? 11.0 : (isMediumScreen ? 13.0 : 15.0);
+        final timePickerFontSize =
+            isSmallScreen ? 12.0 : (isMediumScreen ? 14.0 : 16.0);
 
         // Adaptive spacing between elements
-        final elementSpacing = isSmallScreen ? 4.0 : (isMediumScreen ? 8.0 : 12.0);
-        final timePickerSpacing = isSmallScreen ? 6.0 : (isMediumScreen ? 8.0 : 12.0);
+        final elementSpacing =
+            isSmallScreen ? 4.0 : (isMediumScreen ? 8.0 : 12.0);
+        final timePickerSpacing =
+            isSmallScreen ? 6.0 : (isMediumScreen ? 8.0 : 12.0);
 
-        // Dynamic height calculation based on content and text scaling
-        final baseCollapsedHeight = isSmallScreen ? 50.0 : (isMediumScreen ? 90.0 : 100.0);
-        final baseExpandedHeight = isSmallScreen ? 90.0 : (isMediumScreen ? 190.0 : 220.0);
-        
-        // Adjust heights for large text scaling - no need for extra height since we're keeping single row
-        final collapsedHeight = needsCompactLayout 
-            ? baseCollapsedHeight * (1 + (textScaleFactor - 1) * 0.3)
-            : baseCollapsedHeight;
-        final expandedHeight = needsCompactLayout 
-            ? baseExpandedHeight * (1 + (textScaleFactor - 1) * 0.2)
-            : baseExpandedHeight;
+        // height calculation based on content and text scaling
+        final baseCollapsedHeight =
+            isSmallScreen ? 50.0 : (isMediumScreen ? 60.0 : 80.0);
+        final baseExpandedHeight =
+            isSmallScreen ? 90.0 : (isMediumScreen ? 110.0 : 130.0);
+
+        // Adjust heights for large text scaling
+        final collapsedHeight =
+            needsCompactLayout
+                ? baseCollapsedHeight * (1 + (textScaleFactor - 1) * 0.3)
+                : baseCollapsedHeight;
+        final expandedHeight =
+            needsCompactLayout
+                ? baseExpandedHeight * (1 + (textScaleFactor - 1) * 0.2)
+                : baseExpandedHeight;
 
         return AnimatedContainer(
           duration: const Duration(milliseconds: 200),
@@ -99,9 +124,10 @@ class _OpeningHoursWidgetState extends State<OpeningHoursWidget> {
           decoration: BoxDecoration(
             color: AppColors.primaryWhiteColor,
             borderRadius: BorderRadius.circular(15),
-            border: isEnabled
-                ? Border.all(color: AppColors.activeBorderColor)
-                : Border.all(color: Colors.transparent),
+            border:
+                isEnabled
+                    ? Border.all(color: AppColors.activeBorderColor)
+                    : Border.all(color: Colors.transparent),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.04),
@@ -122,27 +148,27 @@ class _OpeningHoursWidgetState extends State<OpeningHoursWidget> {
                   // Main row content
                   needsCompactLayout && isEnabled
                       ? _buildCompactEnabledLayout(
-                          switchWidth,
-                          switchHeight,
-                          elementSpacing,
-                          dayFontSize,
-                          timeFontSize,
-                          displayTime,
-                          isSmallScreen,
-                          isMediumScreen,
-                        )
+                        switchWidth,
+                        switchHeight,
+                        elementSpacing,
+                        dayFontSize,
+                        timeFontSize,
+                        displayTime,
+                        isSmallScreen,
+                        isMediumScreen,
+                      )
                       : _buildNormalLayout(
-                          isEnabled,
-                          switchWidth,
-                          switchHeight,
-                          elementSpacing,
-                          dayFontSize,
-                          timeFontSize,
-                          displayTime,
-                          isSmallScreen,
-                          isMediumScreen,
-                        ),
-                  
+                        isEnabled,
+                        switchWidth,
+                        switchHeight,
+                        elementSpacing,
+                        dayFontSize,
+                        timeFontSize,
+                        displayTime,
+                        isSmallScreen,
+                        isMediumScreen,
+                      ),
+
                   // Time pickers section
                   if (isEnabled && isExpanded)
                     Padding(
@@ -151,13 +177,22 @@ class _OpeningHoursWidgetState extends State<OpeningHoursWidget> {
                         children: [
                           Expanded(
                             child: GestureDetector(
-                              onTap: () => _pickTime(context, fromTime, (picked) {
-                                widget.onChanged(widget.data.copyWith(from: picked));
-                              }),
+                              onTap:
+                                  () => _pickTime(context, fromTime, (picked) {
+                                    widget.onChanged(
+                                      widget.data.copyWith(from: picked),
+                                    );
+                                  }),
                               child: Container(
                                 padding: EdgeInsets.symmetric(
-                                  vertical: isSmallScreen ? 8 : (isMediumScreen ? 12 : 16),
-                                  horizontal: isSmallScreen ? 8 : (isMediumScreen ? 12 : 16),
+                                  vertical:
+                                      isSmallScreen
+                                          ? 8
+                                          : (isMediumScreen ? 12 : 16),
+                                  horizontal:
+                                      isSmallScreen
+                                          ? 8
+                                          : (isMediumScreen ? 12 : 16),
                                 ),
                                 decoration: BoxDecoration(
                                   color: AppColors.timePickerBoxColor,
@@ -166,7 +201,9 @@ class _OpeningHoursWidgetState extends State<OpeningHoursWidget> {
                                 alignment: Alignment.center,
                                 child: Text(
                                   fromTime.format(context),
-                                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.bodyMedium!.copyWith(
                                     color: AppColors.pickedTimeColor,
                                     fontSize: timePickerFontSize.sp,
                                   ),
@@ -175,25 +212,42 @@ class _OpeningHoursWidgetState extends State<OpeningHoursWidget> {
                             ),
                           ),
                           Padding(
-                            padding: EdgeInsets.symmetric(horizontal: timePickerSpacing),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: timePickerSpacing,
+                            ),
                             child: Text(
                               'to',
-                              style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                              style: Theme.of(
+                                context,
+                              ).textTheme.bodySmall!.copyWith(
                                 color: AppColors.timeDividerColor,
                                 fontWeight: FontWeight.w600,
-                                fontSize: (isSmallScreen ? 10.0 : (isMediumScreen ? 12.0 : 14.0)).sp,
+                                fontSize:
+                                    (isSmallScreen
+                                            ? 10.0
+                                            : (isMediumScreen ? 12.0 : 14.0))
+                                        .sp,
                               ),
                             ),
                           ),
                           Expanded(
                             child: GestureDetector(
-                              onTap: () => _pickTime(context, toTime, (picked) {
-                                widget.onChanged(widget.data.copyWith(to: picked));
-                              }),
+                              onTap:
+                                  () => _pickTime(context, toTime, (picked) {
+                                    widget.onChanged(
+                                      widget.data.copyWith(to: picked),
+                                    );
+                                  }),
                               child: Container(
                                 padding: EdgeInsets.symmetric(
-                                  vertical: isSmallScreen ? 8 : (isMediumScreen ? 12 : 16),
-                                  horizontal: isSmallScreen ? 8 : (isMediumScreen ? 12 : 16),
+                                  vertical:
+                                      isSmallScreen
+                                          ? 8
+                                          : (isMediumScreen ? 12 : 16),
+                                  horizontal:
+                                      isSmallScreen
+                                          ? 8
+                                          : (isMediumScreen ? 12 : 16),
                                 ),
                                 decoration: BoxDecoration(
                                   color: AppColors.timePickerBoxColor,
@@ -202,7 +256,9 @@ class _OpeningHoursWidgetState extends State<OpeningHoursWidget> {
                                 alignment: Alignment.center,
                                 child: Text(
                                   toTime.format(context),
-                                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.bodyMedium!.copyWith(
                                     color: AppColors.pickedTimeColor,
                                     fontSize: timePickerFontSize.sp,
                                   ),
@@ -327,21 +383,21 @@ class _OpeningHoursWidgetState extends State<OpeningHoursWidget> {
         SizedBox(width: elementSpacing),
         isEnabled
             ? Text(
-                widget.day,
-                style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                  fontWeight: FontWeight.w600,
-                  fontSize: dayFontSize.sp,
-                  color: AppColors.primary,
-                ),
-              )
-            : Text(
-                widget.day,
-                style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                  fontWeight: FontWeight.w600,
-                  fontSize: dayFontSize.sp,
-                  color: AppColors.primary,
-                ),
+              widget.day,
+              style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                fontWeight: FontWeight.w600,
+                fontSize: dayFontSize.sp,
+                color: AppColors.primary,
               ),
+            )
+            : Text(
+              widget.day,
+              style: Theme.of(context).textTheme.labelLarge!.copyWith(
+                fontWeight: FontWeight.w600,
+                fontSize: dayFontSize.sp,
+                color: AppColors.primary,
+              ),
+            ),
         if (isEnabled) ...[
           // Time display takes all remaining space and centers the text
           Expanded(
@@ -381,7 +437,8 @@ class _OpeningHoursWidgetState extends State<OpeningHoursWidget> {
           },
           child: Icon(
             isExpanded ? Icons.expand_less : Icons.expand_more,
-            color: isEnabled ? AppColors.timeTextColor : AppColors.textPrimaryGrey,
+            color:
+                isEnabled ? AppColors.timeTextColor : AppColors.textPrimaryGrey,
             size: isSmallScreen ? 20 : (isMediumScreen ? 24 : 28),
           ),
         ),

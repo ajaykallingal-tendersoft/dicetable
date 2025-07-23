@@ -41,87 +41,151 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
   final _formKey = GlobalKey<FormState>();
   AutovalidateMode autovalidateMode = AutovalidateMode.disabled;
 
+  // @override
+  // void initState() {
+  //   super.initState();
+  //   isGoogleSignUp = widget.signUpScreenArgument.isGoggleSignUp ?? false;
+  //   isAppleSignUp = widget.signUpScreenArgument.isAppleSignUp ?? false;
+  //   if (isAppleSignUp) {
+  //     if (widget.signUpScreenArgument.email.contains('privaterelay')) {
+  //       appleMail = "";
+  //     } else {
+  //       appleMail = widget.signUpScreenArgument.email;
+  //     }
+  //   }
+
+  //   _nameController = TextEditingController(
+  //     text:
+  //         isGoogleSignUp
+  //             ? widget.signUpScreenArgument.displayName
+  //             : isAppleSignUp
+  //             ? widget.signUpScreenArgument.displayName
+  //             : '',
+  //   );
+  //   _emailController = TextEditingController(
+  //     text:
+  //         isGoogleSignUp
+  //             ? widget.signUpScreenArgument.email
+  //             : isAppleSignUp
+  //             ? appleMail
+  //             : '',
+  //   );
+  //   _passwordController = TextEditingController();
+  //   _confirmPasswordController = TextEditingController();
+  //   _phoneController = TextEditingController();
+  //   _countryController = TextEditingController();
+  //   _regionController = TextEditingController();
+
+  //   _emailController.addListener(() {
+  //     final text = _emailController.text;
+  //     if (text.contains(' ')) {
+  //       context.read<CustomerSignUpBloc>().add(EmailChanged(email: text));
+  //       context.read<CustomerSignUpBloc>().add(ValidateForm());
+  //       final newText = text.replaceAll(' ', '');
+  //       _emailController.text = newText;
+  //       _emailController.selection = TextSelection.fromPosition(
+  //         TextPosition(offset: newText.length),
+  //       );
+  //       context.read<CustomerSignUpBloc>().add(EmailChanged(email: newText));
+  //     }
+  //   });
+  //   ;
+
+  //   if (isGoogleSignUp) {
+  //     WidgetsBinding.instance.addPostFrameCallback((_) {
+  //       final bloc = context.read<CustomerSignUpBloc>();
+  //       bloc.add(
+  //         UpdateTextField(
+  //           (state) => state.copyWith(
+  //             name: widget.signUpScreenArgument.displayName ?? '',
+  //             email: widget.signUpScreenArgument.email ?? '',
+  //           ),
+  //         ),
+  //       );
+  //     });
+  //   }
+  //   if (isAppleSignUp) {
+  //     WidgetsBinding.instance.addPostFrameCallback((_) {
+  //       final bloc = context.read<CustomerSignUpBloc>();
+  //       bloc.add(
+  //         UpdateTextField(
+  //           (state) => state.copyWith(
+  //             name: widget.signUpScreenArgument.displayName ?? '',
+  //             email: appleMail,
+  //           ),
+  //         ),
+  //       );
+  //     });
+  //   }
+  // }
+
   @override
   void initState() {
     super.initState();
-    isGoogleSignUp = widget.signUpScreenArgument.isGoggleSignUp ?? false;
-    isAppleSignUp = widget.signUpScreenArgument.isAppleSignUp ?? false;
-    if (isAppleSignUp) {
-      if (widget.signUpScreenArgument.email.contains('privaterelay')) {
-        appleMail =  "" ;
-      }else {
-        appleMail = widget.signUpScreenArgument.email;
-      }
-    }
+
+    final args = widget.signUpScreenArgument;
+
+    isGoogleSignUp = args.isGoggleSignUp ?? false;
+    isAppleSignUp = args.isAppleSignUp ?? false;
+
+    final rawAppleEmail = args.email?.trim() ?? '';
+    final isPrivateRelay = rawAppleEmail.toLowerCase().endsWith(
+      '@privaterelay.appleid.com',
+    );
+    appleMail = (isAppleSignUp && !isPrivateRelay) ? rawAppleEmail : '';
 
     _nameController = TextEditingController(
       text:
           isGoogleSignUp
-              ? widget.signUpScreenArgument.displayName
-              : isAppleSignUp
-              ? widget.signUpScreenArgument.displayName
-              : '',
+              ? args.displayName
+              : (isAppleSignUp ? args.displayName : ''),
     );
+
     _emailController = TextEditingController(
-      text:
-          isGoogleSignUp
-              ? widget.signUpScreenArgument.email
-              : isAppleSignUp
-              ? appleMail
-              : '',
+      text: isGoogleSignUp ? args.email : (isAppleSignUp ? appleMail : ''),
     );
+
     _passwordController = TextEditingController();
     _confirmPasswordController = TextEditingController();
     _phoneController = TextEditingController();
     _countryController = TextEditingController();
     _regionController = TextEditingController();
 
-
-_emailController.addListener(() {
+    _emailController.addListener(() {
       final text = _emailController.text;
       if (text.contains(' ')) {
-        context.read<CustomerSignUpBloc>().add(
-              EmailChanged(email: text), 
-            );
-        context.read<CustomerSignUpBloc>().add(ValidateForm());
         final newText = text.replaceAll(' ', '');
         _emailController.text = newText;
         _emailController.selection = TextSelection.fromPosition(
           TextPosition(offset: newText.length),
         );
-        context.read<CustomerSignUpBloc>().add(
-              EmailChanged(email: newText),
-            );
+
+        final bloc = context.read<CustomerSignUpBloc>();
+        bloc.add(EmailChanged(email: newText));
+        bloc.add(ValidateForm());
       }
-    });;
+    });
 
-
-    if (isGoogleSignUp) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final bloc = context.read<CustomerSignUpBloc>();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final bloc = context.read<CustomerSignUpBloc>();
+      if (isGoogleSignUp) {
         bloc.add(
           UpdateTextField(
             (state) => state.copyWith(
-              name: widget.signUpScreenArgument.displayName ?? '',
-              email: widget.signUpScreenArgument.email ?? '',
+              name: args.displayName ?? '',
+              email: args.email ?? '',
             ),
           ),
         );
-      });
-    }
-    if (isAppleSignUp) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        final bloc = context.read<CustomerSignUpBloc>();
+      } else if (isAppleSignUp) {
         bloc.add(
           UpdateTextField(
-            (state) => state.copyWith(
-              name: widget.signUpScreenArgument.displayName ?? '',
-              email: appleMail,
-            ),
+            (state) =>
+                state.copyWith(name: args.displayName ?? '', email: appleMail),
           ),
         );
-      });
-    }
+      }
+    });
   }
 
   @override
@@ -219,7 +283,7 @@ _emailController.addListener(() {
                 gravity: ToastGravity.BOTTOM,
                 toastLength: Toast.LENGTH_SHORT,
                 timeInSecForIosWeb: 1,
-             fontSize: 14.sp,
+                fontSize: 14.sp,
                 webPosition:
                     "bottom: 80px; left: 50%; transform: translateX(-50%);",
               );
@@ -374,7 +438,11 @@ _emailController.addListener(() {
                           },
                         ),
                         RequiredTextField(
-                          readOnly: isGoogleSignUp,
+                          readOnly:
+                              isGoogleSignUp ||
+                              (isAppleSignUp &&
+                                  _emailController.text.isNotEmpty),
+
                           hint: isAppleSignUp ? 'Email is Required' : 'Email',
                           customRequiredMessage:
                               isAppleSignUp ? 'Email is Required' : null,
@@ -452,9 +520,8 @@ _emailController.addListener(() {
                           builder: (context, state) {
                             if (state is CustomerSignUpLoadingState ||
                                 state is GoogleSignUpLoadingState ||
-                                state is AppleSignUpLoadingState
-                                ) {
-                                  EasyLoading.show();
+                                state is AppleSignUpLoadingState) {
+                              EasyLoading.show();
                               // return const Center(
                               //   child: RefreshProgressIndicator(
                               //     color: AppColors.primaryWhiteColor,

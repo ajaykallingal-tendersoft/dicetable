@@ -16,17 +16,18 @@ class ProfileOpeningHoursWidget extends StatefulWidget {
   });
 
   @override
-  State<ProfileOpeningHoursWidget> createState() => _ProfileOpeningHoursWidgetState();
+  State<ProfileOpeningHoursWidget> createState() =>
+      _ProfileOpeningHoursWidgetState();
 }
 
 class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
   bool isExpanded = false; // Track expanded/collapsed state
 
   Future<void> _pickTime(
-      BuildContext context,
-      TimeOfDay initialTime,
-      void Function(TimeOfDay) onPicked,
-      ) async {
+    BuildContext context,
+    TimeOfDay initialTime,
+    void Function(TimeOfDay) onPicked,
+  ) async {
     final picked = await showTimePicker(
       context: context,
       initialTime: initialTime,
@@ -47,50 +48,73 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
     return screenWidth < 400 || textScaleFactor > 1.3;
   }
 
+  String formatTimeWithAmPm(TimeOfDay time) {
+    final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
+    final minute = time.minute.toString().padLeft(2, '0');
+    final period = time.period == DayPeriod.am ? 'AM' : 'PM';
+    return '$hour:$minute $period';
+  }
+
   @override
   Widget build(BuildContext context) {
     final fromTime = widget.data.from;
     final toTime = widget.data.to;
     final isEnabled = widget.data.isEnabled;
-    final displayTime = '${fromTime.format(context)} - ${toTime.format(context)}';
+    final displayTime =
+        '${formatTimeWithAmPm(fromTime)} - ${formatTimeWithAmPm(toTime)}';
 
     return LayoutBuilder(
       builder: (context, constraints) {
         // Get screen width and text scale factor for responsive calculations
         final screenWidth = constraints.maxWidth;
         final textScaleFactor = MediaQuery.of(context).textScaleFactor;
-        final needsCompactLayout = _needsCompactLayout(screenWidth, textScaleFactor);
-        
+        final needsCompactLayout = _needsCompactLayout(
+          screenWidth,
+          textScaleFactor,
+        );
+
         // Calculate responsive dimensions
         final isSmallScreen = screenWidth < 350;
         final isMediumScreen = screenWidth >= 350 && screenWidth < 600;
-        
-        // Adaptive spacing based on screen size
-        final horizontalPadding = isSmallScreen ? 8.0 : (isMediumScreen ? 12.0 : 16.0);
-        final verticalPadding = isSmallScreen ? 8.0 : (isMediumScreen ? 12.0 : 16.0);
-        final switchWidth = isSmallScreen ? 45.0 : (isMediumScreen ? 55.0 : 65.0);
-        final switchHeight = isSmallScreen ? 25.0 : (isMediumScreen ? 35.0 : 45.0);
-        
-        // More conservative font sizes that work better with text scaling
-        final dayFontSize = isSmallScreen ? 12.0 : (isMediumScreen ? 14.0 : 16.0);
-        final timeFontSize = isSmallScreen ? 11.0 : (isMediumScreen ? 13.0 : 15.0);
-        final timePickerFontSize = isSmallScreen ? 12.0 : (isMediumScreen ? 14.0 : 16.0);
-        
-        // Adaptive spacing between elements
-        final elementSpacing = isSmallScreen ? 4.0 : (isMediumScreen ? 8.0 : 12.0);
-        final timePickerSpacing = isSmallScreen ? 6.0 : (isMediumScreen ? 8.0 : 12.0);
 
-        // Dynamic height calculation based on content and text scaling
-        final baseCollapsedHeight = isSmallScreen ? 50.0 : (isMediumScreen ? 90.0 : 100.0);
-        final baseExpandedHeight = isSmallScreen ? 90.0 : (isMediumScreen ? 190.0 : 220.0);
-        
+        // Adaptive spacing based on screen size
+        final horizontalPadding =
+            isSmallScreen ? 8.0 : (isMediumScreen ? 12.0 : 16.0);
+        final verticalPadding =
+            isSmallScreen ? 8.0 : (isMediumScreen ? 12.0 : 16.0);
+        final switchWidth =
+            isSmallScreen ? 45.0 : (isMediumScreen ? 55.0 : 65.0);
+        final switchHeight =
+            isSmallScreen ? 25.0 : (isMediumScreen ? 35.0 : 45.0);
+
+        // More conservative font sizes that work better with text scaling
+        final dayFontSize =
+            isSmallScreen ? 12.0 : (isMediumScreen ? 14.0 : 16.0);
+        final timeFontSize =
+            isSmallScreen ? 11.0 : (isMediumScreen ? 13.0 : 15.0);
+        final timePickerFontSize =
+            isSmallScreen ? 12.0 : (isMediumScreen ? 14.0 : 16.0);
+
+        // Adaptive spacing between elements
+        final elementSpacing =
+            isSmallScreen ? 4.0 : (isMediumScreen ? 8.0 : 12.0);
+        final timePickerSpacing =
+            isSmallScreen ? 6.0 : (isMediumScreen ? 8.0 : 12.0);
+
+        final baseCollapsedHeight =
+            isSmallScreen ? 50.0 : (isMediumScreen ? 60.0 : 80.0);
+        final baseExpandedHeight =
+            isSmallScreen ? 90.0 : (isMediumScreen ? 110.0 : 130.0);
+
         // Adjust heights for large text scaling
-        final collapsedHeight = needsCompactLayout 
-            ? baseCollapsedHeight * (1 + (textScaleFactor - 1) * 0.3)
-            : baseCollapsedHeight;
-        final expandedHeight = needsCompactLayout 
-            ? baseExpandedHeight * (1 + (textScaleFactor - 1) * 0.2)
-            : baseExpandedHeight;
+        final collapsedHeight =
+            needsCompactLayout
+                ? baseCollapsedHeight * (1 + (textScaleFactor - 1) * 0.3)
+                : baseCollapsedHeight;
+        final expandedHeight =
+            needsCompactLayout
+                ? baseExpandedHeight * (1 + (textScaleFactor - 1) * 0.2)
+                : baseExpandedHeight;
 
         return AnimatedContainer(
           duration: const Duration(milliseconds: 200),
@@ -100,9 +124,10 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
           decoration: BoxDecoration(
             color: AppColors.primaryWhiteColor,
             borderRadius: BorderRadius.circular(15),
-            border: isEnabled
-                ? Border.all(color: AppColors.activeBorderColor)
-                : Border.all(color: Colors.transparent),
+            border:
+                isEnabled
+                    ? Border.all(color: AppColors.activeBorderColor)
+                    : Border.all(color: Colors.transparent),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withOpacity(0.04),
@@ -123,27 +148,27 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
                   // Main row content
                   needsCompactLayout && isEnabled
                       ? _buildCompactEnabledLayout(
-                          switchWidth,
-                          switchHeight,
-                          elementSpacing,
-                          dayFontSize,
-                          timeFontSize,
-                          displayTime,
-                          isSmallScreen,
-                          isMediumScreen,
-                        )
+                        switchWidth,
+                        switchHeight,
+                        elementSpacing,
+                        dayFontSize,
+                        timeFontSize,
+                        displayTime,
+                        isSmallScreen,
+                        isMediumScreen,
+                      )
                       : _buildNormalLayout(
-                          isEnabled,
-                          switchWidth,
-                          switchHeight,
-                          elementSpacing,
-                          dayFontSize,
-                          timeFontSize,
-                          displayTime,
-                          isSmallScreen,
-                          isMediumScreen,
-                        ),
-                  
+                        isEnabled,
+                        switchWidth,
+                        switchHeight,
+                        elementSpacing,
+                        dayFontSize,
+                        timeFontSize,
+                        displayTime,
+                        isSmallScreen,
+                        isMediumScreen,
+                      ),
+
                   // Time pickers section
                   if (isEnabled && isExpanded)
                     Padding(
@@ -152,13 +177,22 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
                         children: [
                           Expanded(
                             child: GestureDetector(
-                              onTap: () => _pickTime(context, fromTime, (picked) {
-                                widget.onChanged(widget.data.copyWith(from: picked));
-                              }),
+                              onTap:
+                                  () => _pickTime(context, fromTime, (picked) {
+                                    widget.onChanged(
+                                      widget.data.copyWith(from: picked),
+                                    );
+                                  }),
                               child: Container(
                                 padding: EdgeInsets.symmetric(
-                                  vertical: isSmallScreen ? 8 : (isMediumScreen ? 12 : 16),
-                                  horizontal: isSmallScreen ? 8 : (isMediumScreen ? 12 : 16),
+                                  vertical:
+                                      isSmallScreen
+                                          ? 8
+                                          : (isMediumScreen ? 12 : 16),
+                                  horizontal:
+                                      isSmallScreen
+                                          ? 8
+                                          : (isMediumScreen ? 12 : 16),
                                 ),
                                 decoration: BoxDecoration(
                                   color: AppColors.timePickerBoxColor,
@@ -167,7 +201,9 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
                                 alignment: Alignment.center,
                                 child: Text(
                                   fromTime.format(context),
-                                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.bodyMedium!.copyWith(
                                     color: AppColors.pickedTimeColor,
                                     fontSize: timePickerFontSize,
                                   ),
@@ -176,25 +212,41 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
                             ),
                           ),
                           Padding(
-                            padding: EdgeInsets.symmetric(horizontal: timePickerSpacing),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: timePickerSpacing,
+                            ),
                             child: Text(
                               'to',
-                              style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                              style: Theme.of(
+                                context,
+                              ).textTheme.bodySmall!.copyWith(
                                 color: AppColors.timeDividerColor,
                                 fontWeight: FontWeight.w600,
-                                fontSize: isSmallScreen ? 10.0 : (isMediumScreen ? 12.0 : 14.0),
+                                fontSize:
+                                    isSmallScreen
+                                        ? 10.0
+                                        : (isMediumScreen ? 12.0 : 14.0),
                               ),
                             ),
                           ),
                           Expanded(
                             child: GestureDetector(
-                              onTap: () => _pickTime(context, toTime, (picked) {
-                                widget.onChanged(widget.data.copyWith(to: picked));
-                              }),
+                              onTap:
+                                  () => _pickTime(context, toTime, (picked) {
+                                    widget.onChanged(
+                                      widget.data.copyWith(to: picked),
+                                    );
+                                  }),
                               child: Container(
                                 padding: EdgeInsets.symmetric(
-                                  vertical: isSmallScreen ? 8 : (isMediumScreen ? 12 : 16),
-                                  horizontal: isSmallScreen ? 8 : (isMediumScreen ? 12 : 16),
+                                  vertical:
+                                      isSmallScreen
+                                          ? 8
+                                          : (isMediumScreen ? 12 : 16),
+                                  horizontal:
+                                      isSmallScreen
+                                          ? 8
+                                          : (isMediumScreen ? 12 : 16),
                                 ),
                                 decoration: BoxDecoration(
                                   color: AppColors.timePickerBoxColor,
@@ -203,7 +255,9 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
                                 alignment: Alignment.center,
                                 child: Text(
                                   toTime.format(context),
-                                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.bodyMedium!.copyWith(
                                     color: AppColors.pickedTimeColor,
                                     fontSize: timePickerFontSize,
                                   ),
@@ -236,8 +290,8 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
     return Row(
       children: [
         SizedBox(
-          height: switchHeight.h,
-          width: switchWidth.w,
+          height: switchHeight,
+          width: switchWidth,
           child: FittedBox(
             fit: BoxFit.fill,
             child: Switch(
@@ -254,7 +308,7 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
           ),
         ),
         SizedBox(width: elementSpacing),
-    
+
         Text(
           widget.day,
           style: Theme.of(context).textTheme.labelLarge!.copyWith(
@@ -306,8 +360,8 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
     return Row(
       children: [
         SizedBox(
-          height: switchHeight.h,
-          width: switchWidth.w,
+          height: switchHeight,
+          width: switchWidth,
           child: FittedBox(
             fit: BoxFit.fill,
             child: Switch(
@@ -370,7 +424,8 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
           },
           child: Icon(
             isExpanded ? Icons.expand_less : Icons.expand_more,
-            color: isEnabled ? AppColors.timeTextColor : AppColors.textPrimaryGrey,
+            color:
+                isEnabled ? AppColors.timeTextColor : AppColors.textPrimaryGrey,
             size: isSmallScreen ? 20 : (isMediumScreen ? 24 : 28),
           ),
         ),

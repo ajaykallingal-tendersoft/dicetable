@@ -90,6 +90,7 @@ class AppleSignInCubit extends Cubit<AppleSignInState> {
               appleIdCredential.email != null) {
             displayName = appleIdCredential.fullName?.givenName;
             userMail = appleIdCredential.email;
+            print("Usermail before storing: $userMail");
 
             await _storeAppleUserData(
               userId: firebaseUser.uid,
@@ -106,11 +107,11 @@ class AppleSignInCubit extends Cubit<AppleSignInState> {
             if (storedData != null) {
               displayName = storedData['displayName'];
               userMail = storedData['email'];
+              print("Usermail after storing: $userMail");
             } else {
               // Fallback to Firebase user data if available
               displayName = firebaseUser.displayName;
               userMail = firebaseUser.email;
-
             }
           }
 

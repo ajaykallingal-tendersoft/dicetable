@@ -23,6 +23,7 @@ class LoginWithAppleWidget extends StatelessWidget {
     return BlocConsumer<AppleSignInCubit, AppleSignInState>(
       listener: (context, state) {
         if (state is AppleSignInLoaded) {
+          print("AppleCubitLoaded Usermail:${state.userMail}");
           if (userCategory == 'PUBLIC_USER') {
             BlocProvider.of<CustomerLoginBloc>(context).add(
               CustomerAppleLoginEvent(
@@ -37,9 +38,10 @@ class LoginWithAppleWidget extends StatelessWidget {
               customerUserName: state.displayName,
             );
             ObjectFactory().prefs.setCustomerUserMail(
-              customerUserMail: state.user.email,
+              customerUserMail: state.userMail,
             );
           } else {
+            print("AppleCubitLoaded Usermail:${state.userMail}");
             BlocProvider.of<LoginBloc>(context).add(
               GetAppleLoginEvent(
                 appleLoginRequest: AppleLoginRequest(
@@ -52,9 +54,7 @@ class LoginWithAppleWidget extends StatelessWidget {
             ObjectFactory().prefs.setCafeUserName(
               cafeUserName: state.displayName,
             );
-            ObjectFactory().prefs.setCafeUserMail(
-              cafeUserMail: state.user.email,
-            );
+            ObjectFactory().prefs.setCafeUserMail(cafeUserMail: state.userMail);
           }
         } else if (state is AppleSignInDenied) {
           _showErrorSnackBar(context, "The request cannot be completed.");
@@ -79,6 +79,7 @@ class LoginWithAppleWidget extends StatelessWidget {
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Image.asset(
                   Assets.APPLE_LOGO,
@@ -88,7 +89,7 @@ class LoginWithAppleWidget extends StatelessWidget {
                 ),
                 state is AppleSignInLoading
                     ? Padding(
-                      padding: const EdgeInsets.only(left: 4),
+                      padding: EdgeInsets.only(left: 24.w),
                       child: SizedBox(
                         height: 24,
                         width: 24,

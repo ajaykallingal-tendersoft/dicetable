@@ -53,24 +53,24 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     isGoogleSignUp = widget.signUpScreenArgument.isGoggleSignUp ?? false;
     isAppleSignUp = widget.signUpScreenArgument.isAppleSignUp ?? false;
-      final args       = widget.signUpScreenArgument;
-  final rawApple   = args.email?.trim() ?? '';
-  final isRelay    = rawApple.toLowerCase().endsWith('@privaterelay.appleid.com');
-  final isGoogle   = args.isGoggleSignUp ?? false;
-  final isApple    = args.isAppleSignUp  ?? false;
+    final args = widget.signUpScreenArgument;
+    final rawApple = args.email?.trim() ?? '';
+    final isRelay = rawApple.toLowerCase().endsWith(
+      '@privaterelay.appleid.com',
+    );
+    final isGoogle = args.isGoggleSignUp ?? false;
+    final isApple = args.isAppleSignUp ?? false;
 
-  final appleMail  = (isApple && !isRelay) ? rawApple : '';
+    final appleMail = (isApple && !isRelay) ? rawApple : '';
 
-  _venueNameController = TextEditingController(
-    text: isGoogle
-        ? args.displayName
-        : (isApple ? args.displayName : ''),
-  );
-  _emailController = TextEditingController(
-    text: isGoogle
-        ? args.email
-        : appleMail,
-  );
+    _venueNameController = TextEditingController(
+      text: isGoogle ? args.displayName : (isApple ? args.displayName : ''),
+    );
+    _emailController = TextEditingController(
+      text: isGoogle ? args.email : appleMail,
+    );
+    print("AppleMail: $appleMail");
+    print("AppleMail: ${ObjectFactory().prefs.getCafeUserMail()}");
     // if (isAppleSignUp) {
     //   if (widget.signUpScreenArgument.email.contains('privaterelay')) {
     //     appleMail = "";
@@ -447,7 +447,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     CustomTextField(
                       controller: _emailController,
                       hintText: isAppleSignUp ? 'Email is required' : 'Email',
-                      readOnly: isGoogleSignUp,
+                      readOnly:
+                          isGoogleSignUp ||
+                          (isAppleSignUp && _emailController.text.isNotEmpty),
+
                       errorText:
                           showValidationErrors && formState != null
                               ? (_emailController.text.isEmpty
