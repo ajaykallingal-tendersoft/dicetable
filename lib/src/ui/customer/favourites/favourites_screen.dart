@@ -123,10 +123,10 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                           badgeAnimation: badges.BadgeAnimation.slide(),
                           showBadge: true,
                           badgeStyle: badges.BadgeStyle(
-                            shape: badges.BadgeShape.square,
+                            shape: badges.BadgeShape.circle,
                             borderRadius: BorderRadius.circular(10.r),
                             badgeColor: Colors.red,
-                            padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                            padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
                           ),
                           badgeContent: Text(
                             controller.notificationBadgeAmount.value.toString(),
@@ -135,12 +135,12 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                           child:  Icon(
                             Icons.notifications_outlined,
                             color: AppColors.primaryWhiteColor,
-                            size: 30.sp,
+                            size: 27.sp,
                           ),
                         ) :  Icon(
                           Icons.notifications_outlined,
                           color: AppColors.primaryWhiteColor,
-                          size: 30.sp,
+                          size: 27.sp,
                         );
                       }),
                     ),

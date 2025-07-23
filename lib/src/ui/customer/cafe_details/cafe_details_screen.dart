@@ -256,13 +256,13 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                               child:  Icon(
                                 Icons.notifications_outlined,
                                 color: AppColors.primaryWhiteColor,
-                                size: 30.sp,
+                                size: 27.sp,
                               ),
                             )
                             :  Icon(
                               Icons.notifications_outlined,
                               color: AppColors.primaryWhiteColor,
-                              size: 30.sp,
+                              size: 27.sp,
                             );
                       }),
             ),
@@ -285,7 +285,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
           ),
           child: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.all(26.0),
+              padding:  EdgeInsets.only(left: 26,right:26),
               child: Column(
                 children: [
                    const Gap(30),
@@ -334,6 +334,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                       textColor: AppColors.primaryWhiteColor,
                     ),
                   ),
+                    const Gap(40),
                 ],
               ),
             ),

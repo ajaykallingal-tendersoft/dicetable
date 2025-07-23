@@ -152,13 +152,13 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                                               badges.BadgeAnimation.slide(),
                                           showBadge: true,
                                           badgeStyle: badges.BadgeStyle(
-                                            shape: badges.BadgeShape.square,
+                                            shape: badges.BadgeShape.circle,
                                             borderRadius: BorderRadius.circular(
                                               10.r,
                                             ),
                                             badgeColor: Colors.red,
                                             padding: EdgeInsets.symmetric(
-                                              horizontal: 6.w,
+                                              horizontal: 4.w,
                                               vertical: 2.h,
                                             ),
                                           ),
@@ -176,13 +176,13 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                                           child:  Icon(
                                             Icons.notifications_outlined,
                                             color: AppColors.primaryWhiteColor,
-                                            size: 30.sp,
+                                            size: 27.sp,
                                           ),
                                         )
                                         :  Icon(
                                           Icons.notifications_outlined,
                                           color: AppColors.primaryWhiteColor,
-                                          size: 35.sp,
+                                          size: 27.sp,
                                         );
                                   }),
                                 ),
