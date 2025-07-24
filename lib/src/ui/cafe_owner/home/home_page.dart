@@ -66,7 +66,7 @@ class _HomePageState extends State<HomePage> {
               padding: EdgeInsets.symmetric(horizontal: 20.h, vertical: 10.h),
               sliver: SliverAppBar(
                 backgroundColor: Colors.transparent,
-                expandedHeight: isTabletOrLarger ? 130.h : 110.h,
+                expandedHeight: isTabletOrLarger ? 130.h : 90.h,
                 leading: const SizedBox(),
                 flexibleSpace: FlexibleSpaceBar(
                   centerTitle: false,
@@ -153,7 +153,7 @@ class _HomePageState extends State<HomePage> {
                             );
                           },
                         ),
-                        const Gap(30),
+                        const Gap(25),
                         Text(
                           "Hi, ${ObjectFactory().prefs.getCafeUserName()}" ??
                               "Hi",

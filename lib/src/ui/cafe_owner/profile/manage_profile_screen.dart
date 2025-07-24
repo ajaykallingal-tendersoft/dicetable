@@ -598,7 +598,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
               top: 0,
               left: 0,
               right: 0,
-              height: isTabletOrLarger ? 460.h / 1.8.h : 380.h / 1.8.h,
+              height: isTabletOrLarger ? 510.h / 1.8.h : 380.h / 1.8.h,
               child: Container(
                 decoration: BoxDecoration(
                   borderRadius: const BorderRadius.only(
@@ -650,7 +650,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
             Positioned(
               top:
                   isTabletOrLarger
-                      ? (350.h / 1.9.h) - 20.h
+                      ? (350.h / 1.7.h) - 20.h
                       : (350.h / 1.9.h) - 60.h,
               left: 0,
               right: 0,

@@ -236,7 +236,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                               badgeAnimation: badges.BadgeAnimation.slide(),
                               showBadge: true,
                               badgeStyle: badges.BadgeStyle(
-                                shape: badges.BadgeShape.square,
+                                shape: badges.BadgeShape.circle,
                                 borderRadius: BorderRadius.circular(10.r),
                                 badgeColor: Colors.red,
                                 padding: EdgeInsets.symmetric(
@@ -249,7 +249,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                                     .toString(),
                                 style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 12.sp,
+                                  fontSize: 10.sp,
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
