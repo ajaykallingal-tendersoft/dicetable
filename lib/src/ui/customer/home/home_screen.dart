@@ -107,6 +107,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
           ),
           color: AppColors.primaryWhiteColor,
           child: BottomNavigationAppBar(
+            iconSize: 20.h,
             items: [
               FABBottomAppBarItem(
                 iconData: SvgPicture.asset(

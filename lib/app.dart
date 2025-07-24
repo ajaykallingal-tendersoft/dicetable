@@ -131,11 +131,8 @@ class App extends StatelessWidget {
               final screenWidth = mediaQuery.size.width;
 
               double adjustedTextScale = 0.95;
-
               if (screenWidth < 340) {
                 adjustedTextScale = 0.85;
-              } else if (screenWidth > 600) {
-                adjustedTextScale = 1.0;
               }
 
               return MediaQuery(

@@ -177,24 +177,24 @@ PreferredSizeWidget? _buildAppBar(int index, BuildContext context, CounterContro
                     badgeAnimation: badges.BadgeAnimation.slide(),
                     showBadge: true,
                     badgeStyle: badges.BadgeStyle(
-                      shape: badges.BadgeShape.square,
-                      borderRadius: BorderRadius.circular(10),
+                      shape: badges.BadgeShape.circle,
+                      borderRadius: BorderRadius.circular(10.r),
                       badgeColor: Colors.red,
-                      padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
                     ),
                     badgeContent: Text(
                       controller.notificationBadgeAmount.value.toString(),
                       style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.notifications_outlined,
                       color: AppColors.primaryWhiteColor,
-                      size: 25,
+                      size: 28.w,
                     ),
-                  ) : const Icon(
+                  ) :  Icon(
                     Icons.notifications_outlined,
                     color: AppColors.primaryWhiteColor,
-                    size: 25,
+                    size: 28.w,
                   );
                 }),
               );

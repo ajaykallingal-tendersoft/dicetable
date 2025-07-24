@@ -169,11 +169,11 @@ class _VenueTypeCheckbox extends StatelessWidget {
             children: [
               Container(
                 margin: EdgeInsets.all(6.r),
-                width: 24.w,
-                height: 24.h,
+                width: 24,
+                height: 24,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(6.r),
-                  border: Border.all(color: AppColors.primary, width: 1.5.w),
+                  border: Border.all(color: AppColors.primary, width: 1.5),
                   color: AppColors.primaryWhiteColor,
                 ),
                 child: AnimatedSwitcher(

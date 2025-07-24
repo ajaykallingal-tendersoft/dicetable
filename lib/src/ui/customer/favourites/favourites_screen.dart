@@ -135,12 +135,12 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                           child:  Icon(
                             Icons.notifications_outlined,
                             color: AppColors.primaryWhiteColor,
-                            size: 27.sp,
+                            size: 28.w,
                           ),
                         ) :  Icon(
                           Icons.notifications_outlined,
                           color: AppColors.primaryWhiteColor,
-                          size: 27.sp,
+                          size: 28.w,
                         );
                       }),
                     ),

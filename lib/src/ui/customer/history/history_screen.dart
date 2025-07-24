@@ -105,13 +105,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           child:  Icon(
                             Icons.notifications_outlined,
                             color: AppColors.primaryWhiteColor,
-                            size: 27.sp,
+                            size: 27.w,
                           ),
                         )
                         :  Icon(
                           Icons.notifications_outlined,
                           color: AppColors.primaryWhiteColor,
-                          size: 27.sp,
+                          size: 27.w,
                         );
                   }),
                 ),

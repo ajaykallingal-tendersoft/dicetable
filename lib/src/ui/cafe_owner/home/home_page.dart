@@ -115,14 +115,14 @@ class _HomePageState extends State<HomePage> {
                                               badges.BadgeAnimation.slide(),
                                           showBadge: true,
                                           badgeStyle: badges.BadgeStyle(
-                                            shape: badges.BadgeShape.square,
+                                            shape: badges.BadgeShape.circle,
                                             borderRadius: BorderRadius.circular(
                                               10.r,
                                             ),
                                             badgeColor: Colors.red,
                                             padding: EdgeInsets.symmetric(
-                                              horizontal: 6,
-                                              vertical: 2,
+                                              horizontal: 6.w,
+                                              vertical: 2.h,
                                             ),
                                           ),
                                           badgeContent: Text(
@@ -139,13 +139,13 @@ class _HomePageState extends State<HomePage> {
                                           child:  Icon(
                                             Icons.notifications_outlined,
                                             color: AppColors.primaryWhiteColor,
-                                            size: 30.sp,
+                                            size: 28.w,
                                           ),
                                         )
                                         :  Icon(
                                           Icons.notifications_outlined,
                                           color: AppColors.primaryWhiteColor,
-                                          size: 30.sp,
+                                          size: 28.w,
                                         );
                                   }),
                                 ),

@@ -31,19 +31,28 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        // Calculate responsive dimensions based on available width
-        final double cardPadding = constraints.maxWidth * 0.04; // 4% of width
-        final double headerHeight =
-            constraints.maxHeight * 0.1; // 10% of height
-        final double buttonWidth = constraints.maxWidth * 0.4; // 30% of width
-        final double buttonHeight =
-            constraints.maxHeight * 0.05; // 5% of height
-        final double containerWidth =
-            constraints.maxWidth * 0.6; // 60% of width
-        final double containerHeight =
-            constraints.maxHeight * 0.06; // 6% of height
-        final double fontScale =
-            constraints.maxWidth / 360; // Base width for scaling
+        // Get actual available space and device pixel ratio
+        final availableWidth = constraints.maxWidth;
+        final mediaQuery = MediaQuery.of(context);
+        final screenWidth = mediaQuery.size.width;
+        final screenHeight = mediaQuery.size.height;
+        final devicePixelRatio = mediaQuery.devicePixelRatio;
+        final textScaleFactor = mediaQuery.textScaler.scale(1.0);
+        
+        // Truly responsive calculations based on available space
+        final basePadding = availableWidth * 0.04; // 4% of available width
+        final headerHeight = (screenHeight * 0.08).clamp(60.0, 100.0); // 8% of screen height
+        final buttonWidth = (availableWidth * 0.35).clamp(100.0, 180.0); // 35% of available width
+        final buttonHeight = (screenHeight * 0.05).clamp(35.0, 60.0); // 5% of screen height
+        final containerWidth = (availableWidth * 0.65).clamp(180.0, 300.0); // 65% of available width
+        final containerHeight = (screenHeight * 0.06).clamp(40.0, 70.0); // 6% of screen height
+        
+        // Font sizes that scale with both screen size and text scale factor
+        final baseFontScale = (screenWidth / 375.0).clamp(0.8, 1.5); // Base scaling from iPhone 8 size
+        
+        double getScaledFontSize(double baseSize) {
+          return (baseSize * baseFontScale * textScaleFactor).clamp(baseSize * 0.7, baseSize * 2.0);
+        }
 
         return AnimatedContainer(
           duration: const Duration(milliseconds: 300),
@@ -60,73 +69,78 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
               GestureDetector(
                 onTap: () => setState(() => _isExpanded = !_isExpanded),
                 child: Container(
-                  height: headerHeight.clamp(60, 80.h),
+                  height: headerHeight,
                   width: double.infinity,
                   padding: EdgeInsets.symmetric(
-                    horizontal: cardPadding,
-                    vertical: cardPadding * 0.5,
+                    horizontal: basePadding,
+                    vertical: basePadding * 0.5,
                   ),
                   decoration: BoxDecoration(
-                    color:
-                        _isExpanded
-                            ? AppColors.subscriptionExpandHeaderColor
-                            : AppColors.primaryWhiteColor,
-                    borderRadius:
-                        _isExpanded
-                            ? BorderRadius.only(
-                              topLeft: Radius.circular(15),
-                              topRight: Radius.circular(15),
-                            )
-                            : BorderRadius.circular(15),
+                    color: _isExpanded
+                        ? AppColors.subscriptionExpandHeaderColor
+                        : AppColors.primaryWhiteColor,
+                    borderRadius: _isExpanded
+                        ? BorderRadius.only(
+                            topLeft: Radius.circular(15),
+                            topRight: Radius.circular(15),
+                          )
+                        : BorderRadius.circular(15),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      AutoSizeText(
-                        'Subscription Overview',
-                        style: GoogleFonts.montserrat(
-                        fontSize: 18.sp,
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w700
-                        )
-                      
+                      Expanded(
+                        child: AutoSizeText(
+                          'Subscription Overview',
+                          style: GoogleFonts.montserrat(
+                            fontSize: getScaledFontSize(18),
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w700,
+                          ),
+                          maxLines: 2,
+                          minFontSize: 12,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      _isExpanded
-                          ? SvgPicture.asset('assets/svg/tab-arw-1.svg')
-                          : SvgPicture.asset('assets/svg/tab-arw-2.svg'),
+                      SizedBox(width: basePadding * 0.5),
+                      Icon(
+                        _isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                        color: AppColors.primary,
+                        size: getScaledFontSize(24),
+                      ),
                     ],
                   ),
                 ),
               ),
-              if (_isExpanded) Gap(cardPadding * 0.5),
+              if (_isExpanded) SizedBox(height: basePadding * 0.5),
               if (_isExpanded)
                 SingleChildScrollView(
                   child: Padding(
                     padding: EdgeInsets.symmetric(
-                      horizontal: cardPadding,
+                      horizontal: basePadding,
                       vertical: 0,
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Gap(cardPadding * 1.5),
-                        Text(
-                          'Status: ${widget.subsriptionOverview?.status}',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodySmall!.copyWith(
+                        SizedBox(height: basePadding * 1.5),
+                        AutoSizeText(
+                          'Status: ${widget.subsriptionOverview?.status ?? 'Unknown'}',
+                          style: Theme.of(context).textTheme.bodySmall!.copyWith(
                             color: AppColors.appGreenColor,
-                            fontSize: (14 * fontScale).sp,
+                            fontSize: getScaledFontSize(14),
                           ),
+                          maxLines: 1,
+                          minFontSize: 10,
                         ),
-                        Gap(cardPadding * 0.75),
+                        SizedBox(height: basePadding * 0.75),
                         Container(
                           padding: EdgeInsets.symmetric(
-                            horizontal: cardPadding,
-                            vertical: cardPadding * 0.3,
+                            horizontal: basePadding * 0.8,
+                            vertical: basePadding * 0.5,
                           ),
-                          height: containerHeight.clamp(36, 42.h),
-                          width: containerWidth.clamp(200, 237.w),
+                          height: containerHeight,
+                          width: containerWidth,
                           decoration: BoxDecoration(
                             color: AppColors.premiumPlanColor,
                             borderRadius: BorderRadius.circular(20),
@@ -134,103 +148,113 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Image.asset(
-                                'assets/png/premium-plan.png',
-                                fit: BoxFit.scaleDown,
+                              Flexible(
+                                flex: 1,
+                                child: Image.asset(
+                                  'assets/png/premium-plan.png',
+                                  fit: BoxFit.contain,
+                                  height: containerHeight * 0.6,
+                                ),
                               ),
-                              Gap(cardPadding * 0.5),
-                              Text(
-                                widget.subsriptionOverview!.planName!,
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.bodyMedium!.copyWith(
-                                  color: AppColors.premiumPlanTextColor,
-                                  fontSize: (16 * fontScale).sp,
-                                  fontWeight: FontWeight.w600,
+                              SizedBox(width: basePadding * 0.3),
+                              Flexible(
+                                flex: 3,
+                                child: AutoSizeText(
+                                  widget.subsriptionOverview?.planName ?? 'Premium Plan',
+                                  style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                    color: AppColors.premiumPlanTextColor,
+                                    fontSize: getScaledFontSize(16),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  maxLines: 2,
+                                  minFontSize: 10,
+                                  textAlign: TextAlign.center,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                        Gap(cardPadding * 0.75),
-                        Text.rich(
+                        SizedBox(height: basePadding * 0.75),
+                        AutoSizeText.rich(
                           TextSpan(
                             children: [
                               TextSpan(
-                                text: '\$${widget.subsriptionOverview?.amount}',
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.bodyLarge!.copyWith(
+                                text: '\$${widget.subsriptionOverview?.amount ?? '0'}',
+                                style: Theme.of(context).textTheme.bodyLarge!.copyWith(
                                   color: AppColors.primary,
-                                  fontSize: (24 * fontScale).sp,
+                                  fontSize: getScaledFontSize(24),
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
                               TextSpan(
-                                text:
-                                    ' / ${widget.subsriptionOverview?.duration}',
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.bodyMedium!.copyWith(
+                                text: ' / ${widget.subsriptionOverview?.duration ?? 'month'}',
+                                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                                   color: AppColors.subscriptionPriceSubColor,
                                   fontWeight: FontWeight.w600,
-                                  fontSize: (14 * fontScale).sp,
+                                  fontSize: getScaledFontSize(14),
                                 ),
                               ),
                             ],
                           ),
+                          maxLines: 1,
+                          minFontSize: 12,
                         ),
-                        Gap(cardPadding * 0.5),
-                        Text(
-                          'Expires On ${widget.subsriptionOverview?.expiryDate}',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodyMedium!.copyWith(
+                        SizedBox(height: basePadding * 0.5),
+                        AutoSizeText(
+                          'Expires On ${widget.subsriptionOverview?.expiryDate ?? 'N/A'}',
+                          style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                             color: AppColors.timeTextColor,
                             fontWeight: FontWeight.w500,
-                            fontSize: (12 * fontScale).sp,
+                            fontSize: getScaledFontSize(12),
                           ),
+                          maxLines: 1,
+                          minFontSize: 8,
                         ),
-                        Gap(cardPadding * 0.5),
-                        Padding(
+                        SizedBox(height: basePadding * 0.5),
+                        Container(
+                          width: double.infinity,
                           padding: EdgeInsets.symmetric(
-                            horizontal: cardPadding * 3.5,
+                            horizontal: basePadding * 2,
                           ),
                           child: DottedBorder(
                             borderType: BorderType.RRect,
                             radius: const Radius.circular(8),
                             padding: EdgeInsets.symmetric(
-                              horizontal: cardPadding * 0.9,
-                              vertical: cardPadding * 0.4,
+                              horizontal: basePadding * 0.6,
+                              vertical: basePadding * 0.4,
                             ),
                             dashPattern: const [6, 4],
                             child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                AutoSizeText(
+                                Text(
                                   'Discount Code: ',
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.bodyMedium?.copyWith(
+                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                     color: AppColors.discountTextColor,
                                     fontWeight: FontWeight.w700,
-                                    fontSize: (14 * fontScale).sp,
+                                    fontSize: getScaledFontSize(14),
                                   ),
                                 ),
-                                SizedBox(width: cardPadding * 0.1),
+                                SizedBox(width: basePadding * 0.2),
                                 Expanded(
                                   child: TextFormField(
                                     controller: _discountController,
-                                    decoration: const InputDecoration(
+                                    decoration: InputDecoration(
                                       isDense: true,
-                                      contentPadding: EdgeInsets.zero,
+                                      contentPadding: EdgeInsets.symmetric(
+                                        vertical: basePadding * 0.2,
+                                        horizontal: basePadding * 0.1,
+                                      ),
                                       border: InputBorder.none,
                                       hintText: 'Enter code',
-                                      hintStyle: TextStyle(color: Colors.grey),
+                                      hintStyle: TextStyle(
+                                        color: Colors.grey,
+                                        fontSize: getScaledFontSize(14),
+                                      ),
                                     ),
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodyMedium?.copyWith(
+                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                       fontWeight: FontWeight.normal,
-                                      fontSize: (14 * fontScale).sp,
+                                      fontSize: getScaledFontSize(14),
                                       color: AppColors.textPrimaryGrey,
                                     ),
                                     keyboardType: TextInputType.text,
@@ -244,53 +268,71 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                             ),
                           ),
                         ),
-                        Gap(cardPadding),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            ElevatedButton(
-                              onPressed: () {},
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: AppColors.primary,
-                                fixedSize: Size(
-                                  buttonWidth,
-                                  buttonHeight.clamp(30, 37.h),
+                        SizedBox(height: basePadding * 1.2),
+                        LayoutBuilder(
+                          builder: (context, buttonConstraints) {
+                            final availableButtonWidth = (buttonConstraints.maxWidth - basePadding) / 2;
+                            final finalButtonWidth = availableButtonWidth.clamp(80.0, 150.0);
+                            
+                            return Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                SizedBox(
+                                  width: finalButtonWidth,
+                                  height: buttonHeight,
+                                  child: ElevatedButton(
+                                    onPressed: () {},
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.primary,
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: basePadding * 0.3,
+                                        horizontal: basePadding * 0.2,
+                                      ),
+                                    ),
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        'RENEW NOW',
+                                        textAlign: TextAlign.center,
+                                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                          color: AppColors.primaryWhiteColor,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: getScaledFontSize(12),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                              ),
-                              child: Text(
-                                'RENEW NOW',
-                                textAlign: TextAlign.left,
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.bodyMedium!.copyWith(
-                                  color: AppColors.primaryWhiteColor,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: (12 * fontScale).sp,
+                                SizedBox(width: basePadding * 0.5),
+                                SizedBox(
+                                  width: finalButtonWidth,
+                                  height: buttonHeight,
+                                  child: OutlinedButton(
+                                    onPressed: () {},
+                                    style: OutlinedButton.styleFrom(
+                                      padding: EdgeInsets.symmetric(
+                                        vertical: basePadding * 0.3,
+                                        horizontal: basePadding * 0.2,
+                                      ),
+                                    ),
+                                    child: FittedBox(
+                                      fit: BoxFit.scaleDown,
+                                      child: Text(
+                                        'CANCEL',
+                                        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                                          color: AppColors.discountTextColor,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: getScaledFontSize(12),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                            OutlinedButton(
-                              style: OutlinedButton.styleFrom(
-                                fixedSize: Size(
-                                  buttonWidth,
-                                  buttonHeight.clamp(30, 37.h),
-                                ),
-                              ),
-                              onPressed: () {},
-                              child: Text(
-                                'CANCEL',
-                                style: Theme.of(
-                                  context,
-                                ).textTheme.bodyMedium!.copyWith(
-                                  color: AppColors.discountTextColor,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: (12 * fontScale).sp,
-                                ),
-                              ),
-                            ),
-                          ],
+                              ],
+                            );
+                          },
                         ),
-                        Gap(cardPadding),
+                        SizedBox(height: basePadding),
                       ],
                     ),
                   ),
