@@ -207,13 +207,13 @@ class _CafeListScreenState extends State<CafeListScreen> {
                                         child:  Icon(
                                           Icons.notifications_outlined,
                                           color: AppColors.primaryWhiteColor,
-                                          size: 30.sp,
+                                          size: 28.w,
                                         ),
                                       )
                                       :  Icon(
                                         Icons.notifications_outlined,
                                         color: AppColors.primaryWhiteColor,
-                                        size: 30.sp,
+                                        size: 28.w,
                                       );
                                 }),
                               ),

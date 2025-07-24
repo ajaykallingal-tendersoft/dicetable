@@ -31,7 +31,9 @@ class FavListCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Log cafe data for debugging
-    print('Rendering FavListCard: id=${cafes.id}, name=${cafes.name}, photo=${cafes.photo}');
+    print(
+      'Rendering FavListCard: id=${cafes.id}, name=${cafes.name}, photo=${cafes.photo}',
+    );
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -65,34 +67,38 @@ class FavListCard extends StatelessWidget {
                 ),
                 // Updated favorite button with loading state
                 IconButton(
-                  icon: isLoading
-                      ? SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        AppColors.primary,
-                      ),
-                    ),
-                  )
-                      : cafes.favourites == true
-                      ? SvgPicture.asset(
-                    'assets/svg/favourite1-active.svg',
-                    fit: BoxFit.scaleDown,
-                  )
-                      : SvgPicture.asset(
-                    'assets/svg/favourite1.svg',
-                    fit: BoxFit.scaleDown,
-                  ),
-                  onPressed: isLoading
-                      ? null // Disable when loading
-                      : () {
-                    context.read<CafeListBloc>().add(
-                      ToggleFavoriteEvent(index,context),
-                    );
-                    print('Favorite button pressed for cafe: ${cafes.id}');
-                  },
+                  icon:
+                      isLoading
+                          ? SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                AppColors.primary,
+                              ),
+                            ),
+                          )
+                          : cafes.favourites == true
+                          ? SvgPicture.asset(
+                            'assets/svg/favourite1-active.svg',
+                            fit: BoxFit.scaleDown,
+                          )
+                          : SvgPicture.asset(
+                            'assets/svg/favourite1.svg',
+                            fit: BoxFit.scaleDown,
+                          ),
+                  onPressed:
+                      isLoading
+                          ? null // Disable when loading
+                          : () {
+                            context.read<CafeListBloc>().add(
+                              ToggleFavoriteEvent(index, context),
+                            );
+                            print(
+                              'Favorite button pressed for cafe: ${cafes.id}',
+                            );
+                          },
                 ),
               ],
             ),
@@ -104,19 +110,50 @@ class FavListCard extends StatelessWidget {
                     tag: cafes.id ?? 'unknown',
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(15),
-                      child: CachedNetworkImage(
-                        imageUrl: cafes.photo ?? '',
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Center(
-                          child: Lottie.asset(
-                            Assets.JUMBING_DOT,
-                            height: 20,
-                            width: 20,
-                          ),
-                        ),
-                        errorWidget: (context, url, error) => SvgPicture.asset(
-                          'assets/svg/cafe-list.svg',
-
+                      child: SizedBox(
+                        height:
+                            MediaQuery.of(context).size.height *
+                            0.15, // 15% of screen height for better responsiveness
+                        width:
+                            double
+                                .infinity, // Takes full width of the Expanded widget
+                        child: CachedNetworkImage(
+                          imageUrl: cafes.photo ?? '',
+                          fit: BoxFit.cover,
+                          placeholder:
+                              (context, url) => Container(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.15,
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                child: Center(
+                                  child: Lottie.asset(
+                                    Assets.JUMBING_DOT,
+                                    height: 20,
+                                    width: 20,
+                                  ),
+                                ),
+                              ),
+                          errorWidget:
+                              (context, url, error) => Container(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.15,
+                                width: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[100],
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                child: Center(
+                                  child: SvgPicture.asset(
+                                    'assets/svg/cafe-list.svg',
+                                    height: 60,
+                                    width: 60,
+                                  ),
+                                ),
+                              ),
                         ),
                       ),
                     ),
@@ -132,7 +169,9 @@ class FavListCard extends StatelessWidget {
                     children: [
                       RichText(
                         text: TextSpan(
-                          style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodySmall!.copyWith(
                             fontSize: 10.sp,
                             color: AppColors.shadowColor,
                           ),
@@ -149,9 +188,11 @@ class FavListCard extends StatelessWidget {
                               child: SizedBox(height: 15), // vertical spacing
                             ),
                             TextSpan(
-                              text: cafes.tableTypes != null && cafes.tableTypes!.isNotEmpty
-                                  ? cafes.tableTypes!.join(', ')
-                                  : 'No table types available',
+                              text:
+                                  cafes.tableTypes != null &&
+                                          cafes.tableTypes!.isNotEmpty
+                                      ? cafes.tableTypes!.join(', ')
+                                      : 'No table types available',
                               style: TextTheme.of(context).bodySmall!.copyWith(
                                 color: AppColors.textPrimary,
                                 fontWeight: FontWeight.w600,
@@ -183,7 +224,8 @@ class FavListCard extends StatelessWidget {
                                 from: "FavList",
                                 name: cafes.name ?? "Unknown Cafe",
                                 tableType: cafes.tableTypes ?? [],
-                                description: cafes.venueDescription ?? "No description",
+                                description:
+                                    cafes.venueDescription ?? "No description",
                                 image: cafes.photo ?? '',
                                 openingHours: cafes.workingHours,
                                 id: cafes.id.toString(),
@@ -208,6 +250,118 @@ class FavListCard extends StatelessWidget {
                 ),
               ],
             ),
+            // Row(
+            //   children: [
+            //     Expanded(
+            //       flex: 1,
+            //       child: Hero(
+            //         tag: cafes.id ?? 'unknown',
+            //         child: ClipRRect(
+            //           borderRadius: BorderRadius.circular(15),
+            //           child: CachedNetworkImage(
+            //             imageUrl: cafes.photo ?? '',
+            //             fit: BoxFit.cover,
+            //             placeholder: (context, url) => Center(
+            //               child: Lottie.asset(
+            //                 Assets.JUMBING_DOT,
+            //                 height: 20,
+            //                 width: 20,
+            //               ),
+            //             ),
+            //             errorWidget: (context, url, error) => SvgPicture.asset(
+            //               'assets/svg/cafe-list.svg',
+
+            //             ),
+            //           ),
+            //         ),
+            //       ),
+            //     ),
+            //     Gap(10),
+            //     Expanded(
+            //       flex: 2,
+            //       child: Column(
+            //         crossAxisAlignment: CrossAxisAlignment.start,
+            //         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            //         mainAxisSize: MainAxisSize.max,
+            //         children: [
+            //           RichText(
+            //             text: TextSpan(
+            //               style: Theme.of(context).textTheme.bodySmall!.copyWith(
+            //                 fontSize: 10.sp,
+            //                 color: AppColors.shadowColor,
+            //               ),
+            //               children: [
+            //                 TextSpan(
+            //                   text: 'Table Type:\n',
+            //                   style: TextTheme.of(context).bodySmall!.copyWith(
+            //                     color: AppColors.textPrimary,
+            //                     fontWeight: FontWeight.w600,
+            //                     fontSize: 10.sp,
+            //                   ),
+            //                 ),
+            //                 WidgetSpan(
+            //                   child: SizedBox(height: 15), // vertical spacing
+            //                 ),
+            //                 TextSpan(
+            //                   text: cafes.tableTypes != null && cafes.tableTypes!.isNotEmpty
+            //                       ? cafes.tableTypes!.join(', ')
+            //                       : 'No table types available',
+            //                   style: TextTheme.of(context).bodySmall!.copyWith(
+            //                     color: AppColors.textPrimary,
+            //                     fontWeight: FontWeight.w600,
+            //                     fontSize: 12.sp,
+            //                   ),
+            //                 ),
+            //               ],
+            //             ),
+            //           ),
+            //           Gap(8),
+            //           Text(
+            //             cafes.venueDescription ?? "No description available",
+            //             maxLines: 5,
+            //             textAlign: TextAlign.left,
+            //             style: TextTheme.of(context).bodySmall!.copyWith(
+            //               color: AppColors.shadowColor,
+            //               fontWeight: FontWeight.w600,
+            //               fontSize: 10.sp,
+            //             ),
+            //           ),
+            //           Gap(10),
+            //           Align(
+            //             alignment: Alignment.bottomRight,
+            //             child: TextButton(
+            //               onPressed: () {
+            //                 context.push(
+            //                   '/cafe_details',
+            //                   extra: FavDetailsArguments(
+            //                     from: "FavList",
+            //                     name: cafes.name ?? "Unknown Cafe",
+            //                     tableType: cafes.tableTypes ?? [],
+            //                     description: cafes.venueDescription ?? "No description",
+            //                     image: cafes.photo ?? '',
+            //                     openingHours: cafes.workingHours,
+            //                     id: cafes.id.toString(),
+            //                     bookingStatus: cafes.bookingStatus ?? false,
+            //                   ),
+            //                 );
+            //               },
+            //               child: Text(
+            //                 "VIEW MORE",
+            //                 style: TextTheme.of(context).bodyLarge!.copyWith(
+            //                   color: AppColors.primary,
+            //                   fontWeight: FontWeight.bold,
+            //                   fontSize: 11.sp,
+            //                   decoration: TextDecoration.underline,
+            //                   decorationColor: AppColors.primary,
+            //                 ),
+            //               ),
+            //             ),
+            //           ),
+            //         ],
+            //       ),
+            //     ),
+            //   ],
+            // ),
           ],
         ),
       ),
