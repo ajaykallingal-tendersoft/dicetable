@@ -199,27 +199,21 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     context.pop();
   }
 
- Future<void> pickTime(bool isOpen) async {
-  final picked = await showTimePicker(
-    context: context,
-    initialTime: isOpen ? openTime : closeTime,
-    builder: (BuildContext context, Widget? child) {
-      return MediaQuery(
-        data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
-        child: child!,
-      );
-    },
-  );
-  if (picked != null) {
-    setState(() {
-      if (isOpen) {
-        openTime = picked;
-      } else {
-        closeTime = picked;
-      }
-    });
+  Future<void> pickTime(bool isOpen) async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: isOpen ? openTime : closeTime,
+    );
+    if (picked != null) {
+      setState(() {
+        if (isOpen) {
+          openTime = picked;
+        } else {
+          closeTime = picked;
+        }
+      });
+    }
   }
-}
 
   void _updateSelectedTableType(String type, bool isSelected) {
     setState(() {

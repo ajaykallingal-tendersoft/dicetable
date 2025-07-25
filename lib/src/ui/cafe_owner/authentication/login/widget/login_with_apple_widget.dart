@@ -77,38 +77,48 @@ class LoginWithAppleWidget extends StatelessWidget {
               color: AppColors.primaryWhiteColor,
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Image.asset(
-                  Assets.APPLE_LOGO,
-                  fit: isTabletOrLarger ? BoxFit.contain : BoxFit.contain,
-                  width: 75.w,
-                  height: 75.h,
-                ),
-                state is AppleSignInLoading
-                    ? Padding(
-                      padding: EdgeInsets.only(left: 24.w),
-                      child: SizedBox(
-                        height: 24,
-                        width: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          backgroundColor: AppColors.primaryWhiteColor,
-                          color: AppColors.primary,
+            child: Padding(
+              padding:
+                  isTabletOrLarger
+                      ? EdgeInsets.zero
+                      : EdgeInsets.only(right: 30.0),
+
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  isTabletOrLarger ? Gap(10) : Gap(0),
+                  Image.asset(
+                    Assets.APPLE_LOGO,
+                    fit: isTabletOrLarger ? BoxFit.contain : BoxFit.cover,
+                    width: 60.w,
+                    height: 60.h,
+                  ),
+                  state is AppleSignInLoading
+                      ? Padding(
+                        padding: EdgeInsets.only(left: 24.w),
+                        child: SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            backgroundColor: AppColors.primaryWhiteColor,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      )
+                      : Text(
+                        'Sign in with Apple',
+                        style: Theme.of(
+                          context,
+                        ).textTheme.labelMedium?.copyWith(
+                          color: AppColors.textFieldTextColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
                         ),
                       ),
-                    )
-                    : Text(
-                      'Sign in with Apple',
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: AppColors.textFieldTextColor,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 15,
-                      ),
-                    ),
-              ],
+                ],
+              ),
             ),
           ),
         );
