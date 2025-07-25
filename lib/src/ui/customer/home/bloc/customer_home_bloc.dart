@@ -26,8 +26,8 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
   final CafeDataProvider cafeDataProvider;
   Set<String> _selectedTableTypes = {};
   Set<String> _selectedVenueTypes = {};
-  TimeOfDay _openTime = const TimeOfDay(hour: 00, minute: 0);
-  TimeOfDay _closeTime = const TimeOfDay(hour: 00, minute: 0);
+  TimeOfDay _openTime = const TimeOfDay(hour: 0, minute: 0);
+  TimeOfDay _closeTime = const TimeOfDay(hour: 0, minute: 0);
   GetFilterOptionsResponse? _cachedFilterOptions; // Cache for filter options
 
   Set<String> get selectedTableTypes => Set.from(_selectedTableTypes);
@@ -199,7 +199,7 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
     }
   }
 
-Future<void> _onFetchLocation(
+  Future<void> _onFetchLocation(
     FetchLocationEvent event,
     Emitter<CustomerHomeState> emit,
   ) async {
@@ -243,7 +243,6 @@ Future<void> _onFetchLocation(
 
       await _saveLocationToPreferences(position);
 
-  
       // Emit the location loaded state with the fetched coordinates
       await Future.delayed(const Duration(milliseconds: 500));
 
@@ -266,69 +265,59 @@ Future<void> _onFetchLocation(
     }
   }
 
-Future<LocationPermissionResult> _handleLocationPermission(
-  BuildContext context,
-) async {
-  // Check current permission status
-  PermissionStatus status = await Permission.location.status;
+  Future<LocationPermissionResult> _handleLocationPermission(
+    BuildContext context,
+  ) async {
+    LocationPermission permission = await Geolocator.checkPermission();
 
-  switch (status) {
-    case PermissionStatus.granted:
-      return LocationPermissionResult(
-        isGranted: true,
-        message: 'Location permission granted',
-        errorType: LocationErrorType.none,
-      );
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
 
-    case PermissionStatus.denied:
-      // First time asking or user previously denied
-      status = await Permission.location.request();
-      return _handlePermissionResponse(context, status);
-
-    case PermissionStatus.permanentlyDenied:
-      // User permanently denied permission
+    if (permission == LocationPermission.denied) {
       await _showLocationSettingsDialog(
         context,
-        'Location Permission Required',
-        'Location access is permanently denied. Please enable it in app settings to use this feature.',
+        'Location Permission Denied',
+        'Location access is required to fetch your current location.',
+        showSettings: false,
+      );
+      return LocationPermissionResult(
+        isGranted: false,
+        message: 'Location permission denied by user',
+        errorType: LocationErrorType.permissionDenied,
+      );
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      await _showLocationSettingsDialog(
+        context,
+        'Location Permission Permanently Denied',
+        'Location access is permanently denied. Please open app settings to enable it.',
         showSettings: true,
       );
       return LocationPermissionResult(
         isGranted: false,
-        message: 'Location permission permanently denied. Enable in app settings.',
+        message: 'Location permission permanently denied.',
         errorType: LocationErrorType.permissionDeniedForever,
       );
+    }
 
-    case PermissionStatus.restricted:
-      // iOS: Permission restricted (e.g., parental controls)
+    // For iOS: check if location is restricted
+    if (permission == LocationPermission.unableToDetermine) {
       return LocationPermissionResult(
         isGranted: false,
-        message: 'Location access is restricted on this device.',
+        message: 'Location access is restricted or not available.',
         errorType: LocationErrorType.permissionRestricted,
       );
+    }
 
-    case PermissionStatus.limited:
-      // iOS 14+: Limited location access
-      await _showLocationSettingsDialog(
-        context,
-        'Limited Location Access',
-        'You have granted limited location access. For better accuracy, please allow precise location in app settings.',
-        showSettings: true,
-      );
-      return LocationPermissionResult(
-        isGranted: true, // Still usable but limited
-        message: 'Limited location access granted',
-        errorType: LocationErrorType.permissionLimited,
-      );
-
-    default:
-      return LocationPermissionResult(
-        isGranted: false,
-        message: 'Unknown permission status',
-        errorType: LocationErrorType.unknown,
-      );
+    // Granted (WhileInUse or Always)
+    return LocationPermissionResult(
+      isGranted: true,
+      message: 'Location permission granted.',
+      errorType: LocationErrorType.none,
+    );
   }
-}
 
   // Future<LocationPermissionResult> _handleLocationPermission(BuildContext context) async {
   //   // Check current permission status

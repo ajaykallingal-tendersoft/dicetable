@@ -66,7 +66,6 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
           icon: BitmapDescriptor.fromBytes(markerImageBytes!),
           position: LatLng(cafe.latitude, cafe.longitude),
           infoWindow: InfoWindow(
-            
             title: cafe.name,
             snippet: cafe.description ?? 'Cafe Location',
           ),
@@ -89,7 +88,9 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
     print('Cafe tapped: ${cafe.name}');
   }
 
-  Future<void> _updateCameraToShowAllMarkers(List<CafeLocation> cafeLocations) async {
+  Future<void> _updateCameraToShowAllMarkers(
+    List<CafeLocation> cafeLocations,
+  ) async {
     final GoogleMapController controller = await _controller.future;
 
     if (cafeLocations.length == 1) {
@@ -127,10 +128,7 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
       final centerLat = (minLat + maxLat) / 2;
       final centerLng = (minLng + maxLng) / 2;
       controller.animateCamera(
-        CameraUpdate.newLatLngZoom(
-          LatLng(centerLat, centerLng),
-          16,
-        ),
+        CameraUpdate.newLatLngZoom(LatLng(centerLat, centerLng), 16),
       );
     } else {
       final bounds = LatLngBounds(
@@ -147,7 +145,22 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
   @override
   void initState() {
     super.initState();
+    _checkLocationPermission(); 
     _loadMarkerIcon();
+  }
+void _checkLocationPermission() async {
+    final isServiceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!isServiceEnabled) return;
+
+    var permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.deniedForever ||
+        permission == LocationPermission.denied) {
+      return;
+    }
   }
 
   @override

@@ -130,7 +130,6 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                 if (state.loginRequestResponse.status == true) {
                   EasyLoading.dismiss();
                   if (state.loginRequestResponse.token!.isNotEmpty &&
-                  
                       state.loginRequestResponse.user!.isEmailVerified == 1) {
                     ObjectFactory().prefs.setIsCustomerLoggedIn(true);
                     ObjectFactory().prefs.setCustomerAuthToken(
@@ -162,7 +161,6 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                 if (state.loginRequestResponse.status == false &&
                     state.loginRequestResponse.message ==
                         "Please verify your email first.") {
-                 
                   context.go(
                     '/verify',
                     extra: VerifyScreenArguments(
@@ -382,6 +380,9 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                               ),
                             ),
                             child: SafeArea(
+                              top: false,
+                              left: false,
+                              right: false,
                               child: LayoutBuilder(
                                 builder: (context, constraints) {
                                   return NotificationListener<
@@ -581,7 +582,9 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                                                         ElevatedButtonWidget(
                                                           height: 70.h,
                                                           width:
-                                                             MediaQuery.of(context).size.width,
+                                                              MediaQuery.of(
+                                                                context,
+                                                              ).size.width,
                                                           iconEnabled: false,
                                                           iconLabel: "LOGIN",
                                                           color:
