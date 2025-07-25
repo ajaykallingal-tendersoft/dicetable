@@ -66,6 +66,7 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
           icon: BitmapDescriptor.fromBytes(markerImageBytes!),
           position: LatLng(cafe.latitude, cafe.longitude),
           infoWindow: InfoWindow(
+            
             title: cafe.name,
             snippet: cafe.description ?? 'Cafe Location',
           ),

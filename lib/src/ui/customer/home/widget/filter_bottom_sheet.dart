@@ -140,8 +140,8 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
   void _applyFilters(GetFilterOptionsResponse filterResponse) {
     // Check if no filters are selected
     final bool hasTimeFilter =
-        openTime != const TimeOfDay(hour: 00, minute: 0) ||
-        closeTime != const TimeOfDay(hour: 00, minute: 0);
+        openTime != const TimeOfDay(hour: 0, minute: 0) ||
+        closeTime != const TimeOfDay(hour: 0, minute: 0);
     final bool hasTableTypeFilter = selectedTableTypes.isNotEmpty;
     final bool hasVenueTypeFilter = selectedVenueTypes.isNotEmpty;
 

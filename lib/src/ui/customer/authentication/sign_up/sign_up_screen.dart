@@ -681,6 +681,7 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                           promptText: 'Sign in now',
                           onSignInTap: () => context.go('/customer_login'),
                         ),
+                        const Gap(40),
                       ],
                     ),
                   ),
