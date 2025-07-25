@@ -121,7 +121,7 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              'Start With A Free 3-Month Trial,\nThen \$ ${data.data!.amount} Per Year!',
+                              'Start With A Free 1-Month Trial,\nThen \$ ${data.data!.amount} Per Year!',
                               textAlign: TextAlign.center,
                               style: TextTheme.of(
                                 context,

@@ -1,3 +1,4 @@
+import 'package:google_fonts/google_fonts.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -20,19 +21,21 @@ class LoginOrSignupPrompt extends StatelessWidget {
       child: RichText(
         text: TextSpan(
           text: '$spanText? ',
-          style: TextTheme.of(context).bodyMedium!.copyWith(
+          style: GoogleFonts.montserrat(
             color: AppColors.primaryWhiteColor,
+            fontSize: 14,
             fontWeight: FontWeight.w500,
           ),
           children: [
             TextSpan(
               text: promptText,
-              style: TextTheme.of(context).bodyMedium!.copyWith(
+              style: GoogleFonts.montserrat(
                 color: AppColors.primaryWhiteColor,
-                fontWeight: FontWeight.w500,
                 decoration: TextDecoration.underline,
-                decorationColor: AppColors.primaryWhiteColor,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
               ),
+
               recognizer: TapGestureRecognizer()..onTap = onSignInTap,
             ),
           ],

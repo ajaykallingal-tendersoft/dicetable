@@ -281,7 +281,52 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                                   width: finalButtonWidth,
                                   height: buttonHeight,
                                   child: ElevatedButton(
-                                    onPressed: () {},
+                                    onPressed: () {
+                                         showDialog(
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return AlertDialog(
+                                      title: Text(
+                                        'Feature Unavailable',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .titleMedium!
+                                            .copyWith(
+                                              color: AppColors.primary,
+                                              fontSize: 16.sp,
+                                            ),
+                                      ),
+                                      content: Text(
+                                        'This feature is coming in a future update.',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodyMedium!
+                                            .copyWith(
+                                              color: AppColors.textPrimaryGrey,
+                                              fontSize: 14.sp,
+                                            ),
+                                      ),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: Text(
+                                            'OK',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium!
+                                                .copyWith(
+                                                  color: AppColors.primary,
+                                                  fontSize: 14.sp,
+                                                ),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                                    },
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: AppColors.primary,
                                       padding: EdgeInsets.symmetric(
