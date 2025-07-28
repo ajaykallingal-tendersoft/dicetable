@@ -78,14 +78,15 @@ class NotificationServices {
 
   void _navigateBasedOnUserType() {
     final isLoggedIn = ObjectFactory().prefs.isLoggedIn() == true;
-    final isCustomerLoggedIn = ObjectFactory().prefs.isCustomerLoggedIn() == true;
-    final rememberDecision = ObjectFactory().prefs.getRememberDecision() ?? false;
+    final isCustomerLoggedIn =
+        ObjectFactory().prefs.isCustomerLoggedIn() == true;
+    final rememberDecision =
+        ObjectFactory().prefs.getRememberDecision() ?? false;
     final userCategory = ObjectFactory().prefs.getUserDecisionName();
 
     ObjectFactory().prefs.setNavigationSource('notification_tap');
 
     if (isLoggedIn || isCustomerLoggedIn) {
-      
       _navigateToRoute('/notification');
     } else {
       // First launch or no remembered category; show category selection
@@ -112,7 +113,6 @@ class NotificationServices {
     const DarwinInitializationSettings initializationSettingsIOS =
         DarwinInitializationSettings(
           requestAlertPermission: true,
-          requestBadgePermission: true,
           requestSoundPermission: true,
           requestCriticalPermission: false,
         );
@@ -143,7 +143,7 @@ class NotificationServices {
           >()
           ?.requestPermissions(
             alert: true,
-            badge: true,
+            badge: false,
             sound: true,
             critical: false,
           );
@@ -315,10 +315,9 @@ class NotificationServices {
         const DarwinNotificationDetails iOSNotificationDetails =
             DarwinNotificationDetails(
               presentAlert: true,
-              presentBadge: true,
+              presentBadge: false,
               presentSound: true,
               sound: 'default',
-              badgeNumber: 1,
               subtitle: 'Solo Seaters',
               threadIdentifier: 'soloseaters_thread',
             );
@@ -370,7 +369,7 @@ class NotificationServices {
         await FirebaseMessaging.instance
             .setForegroundNotificationPresentationOptions(
               alert: false, // Disable automatic alert
-              badge: true,
+              badge: false,
               sound: false, // Disable automatic sound
             );
       }
@@ -405,7 +404,7 @@ class NotificationServices {
           .resolvePlatformSpecificImplementation<
             IOSFlutterLocalNotificationsPlugin
           >()
-          ?.requestPermissions(alert: true, badge: true, sound: true);
+          ?.requestPermissions(alert: true, badge: false, sound: true);
 
       print('iOS notification permissions granted: $result');
 
