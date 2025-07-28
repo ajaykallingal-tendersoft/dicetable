@@ -269,7 +269,7 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
     BuildContext context,
   ) async {
     LocationPermission permission = await Geolocator.checkPermission();
-
+print('Initial permission: $permission');
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
     }

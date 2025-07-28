@@ -3,14 +3,12 @@ import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
-import 'package:soloseaters/src/ui/customer/cafe_list/bloc/cafe_list_bloc.dart';
 import 'package:soloseaters/src/ui/customer/home/bloc/customer_home_bloc.dart';
 import 'package:soloseaters/src/utils/data/sign_out.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:geolocator/geolocator.dart';
@@ -29,6 +27,7 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
   final List<Marker> _markers = <Marker>[];
   LatLng? _userLocation;
   bool _mapInitialized = false;
+  bool _hasLocationPermission = false; 
 
   Future<Uint8List> getImages(String path, int width) async {
     ByteData data = await rootBundle.load(path);
@@ -211,6 +210,18 @@ void _checkLocationPermission() async {
             }
           },
           builder: (context, state) {
+             if (state is LocationLoaded) {
+              setState(() {
+                _hasLocationPermission = true;
+                _userLocation = LatLng(state.latitude, state.longitude);
+              });
+            }
+            
+            if (state is LocationError) {
+              setState(() {
+                _hasLocationPermission = false;
+              });
+            }
             if (_userLocation == null &&
                 (state is LocationLoading || state is CustomerHomeInitial)) {
               EasyLoading.show();
@@ -223,7 +234,7 @@ void _checkLocationPermission() async {
               markers: Set<Marker>.of(_markers),
               mapType: MapType.normal,
               myLocationEnabled: true,
-              myLocationButtonEnabled: true,
+              myLocationButtonEnabled: _hasLocationPermission,
               compassEnabled: true,
               zoomGesturesEnabled: true,
               scrollGesturesEnabled: true,
