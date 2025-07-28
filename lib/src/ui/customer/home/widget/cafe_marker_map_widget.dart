@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -27,7 +28,7 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
   final List<Marker> _markers = <Marker>[];
   LatLng? _userLocation;
   bool _mapInitialized = false;
-  bool _hasLocationPermission = false; 
+  bool _hasLocationPermission = false;
 
   Future<Uint8List> getImages(String path, int width) async {
     ByteData data = await rootBundle.load(path);
@@ -43,7 +44,7 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
 
   Future<void> _loadMarkerIcon() async {
     if (markerImageBytes == null) {
-      markerImageBytes = await getImages(markerImage, 120);
+      markerImageBytes = await getImages(markerImage, 100);
     }
   }
 
@@ -141,25 +142,35 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
     }
   }
 
+  void _handleLocationState(CustomerHomeState state) {
+    if (state is LocationLoaded) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          _hasLocationPermission = true;
+          _userLocation = LatLng(state.latitude, state.longitude);
+        });
+      });
+    }
+
+    if (state is LocationError) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        setState(() {
+          _hasLocationPermission = false;
+        });
+      });
+    }
+  }
+
   @override
   void initState() {
     super.initState();
-    _checkLocationPermission(); 
+    // _checkLocationPermission();
     _loadMarkerIcon();
-  }
-void _checkLocationPermission() async {
-    final isServiceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!isServiceEnabled) return;
-
-    var permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-
-    if (permission == LocationPermission.deniedForever ||
-        permission == LocationPermission.denied) {
-      return;
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CustomerHomeBloc>().add(
+        FetchLocationEvent(context: context),
+      );
+    });
   }
 
   @override
@@ -208,34 +219,33 @@ void _checkLocationPermission() async {
                 );
               }
             }
+
+            // Handle location state changes in the listener
+            _handleLocationState(state);
           },
           builder: (context, state) {
-             if (state is LocationLoaded) {
-              setState(() {
-                _hasLocationPermission = true;
-                _userLocation = LatLng(state.latitude, state.longitude);
-              });
-            }
-            
-            if (state is LocationError) {
-              setState(() {
-                _hasLocationPermission = false;
-              });
-            }
             if (_userLocation == null &&
                 (state is LocationLoading || state is CustomerHomeInitial)) {
               EasyLoading.show();
             }
 
             return GoogleMap(
+              padding: EdgeInsets.only(
+                bottom:
+                    Platform.isIOS
+                        ? MediaQuery.of(context).padding.bottom +
+                            kBottomNavigationBarHeight +
+                            244.0.h
+                        : 0.0,
+              ),
               mapToolbarEnabled: true,
               zoomControlsEnabled: true,
               initialCameraPosition: _kDefaultPosition,
               markers: Set<Marker>.of(_markers),
               mapType: MapType.normal,
               myLocationEnabled: true,
-              myLocationButtonEnabled: _hasLocationPermission,
-              compassEnabled: true,
+              myLocationButtonEnabled: true,
+              // compassEnabled: true,
               zoomGesturesEnabled: true,
               scrollGesturesEnabled: true,
               onMapCreated: (GoogleMapController controller) {

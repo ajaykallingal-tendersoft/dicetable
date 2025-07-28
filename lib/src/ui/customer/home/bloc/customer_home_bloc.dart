@@ -199,14 +199,14 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
     }
   }
 
-  Future<void> _onFetchLocation(
+   Future<void> _onFetchLocation(
     FetchLocationEvent event,
     Emitter<CustomerHomeState> emit,
   ) async {
     emit(LocationLoading());
 
     try {
-      // Check if location services are enabled
+      // Step 1: Check if location services are enabled
       bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         emit(
@@ -216,15 +216,19 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
             errorType: LocationErrorType.serviceDisabled,
           ),
         );
-        await _showLocationSettingsDialog(
-          event.context,
-          'Location Services Disabled',
-          'Please enable location services in your device settings to use this feature.',
-          showSettings: true,
-        );
+
+        if (event.context.mounted) {
+          await _showLocationSettingsDialog(
+            event.context,
+            'Location Services Disabled',
+            'Please enable location services in your device settings to use this feature.',
+            showSettings: true,
+          );
+        }
         return;
       }
 
+      // Step 2: Handle location permissions
       final locationPermissionResult = await _handleLocationPermission(
         event.context,
       );
@@ -239,18 +243,25 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
         return;
       }
 
+      // Step 3: Get current position with retry mechanism
       Position position = await _getCurrentPositionWithRetry();
 
+      // Step 4: Save location to preferences
       await _saveLocationToPreferences(position);
 
-      // Emit the location loaded state with the fetched coordinates
+      // Step 5: Add small delay to ensure UI stability
       await Future.delayed(const Duration(milliseconds: 500));
 
+      // Step 6: Emit success state
       emit(
         LocationLoaded(
           latitude: position.latitude,
           longitude: position.longitude,
         ),
+      );
+
+      debugPrint(
+        'Location loaded successfully: ${position.latitude}, ${position.longitude}',
       );
     } catch (e, stackTrace) {
       debugPrint('Location fetch error: $e');
@@ -265,22 +276,28 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
     }
   }
 
-  Future<LocationPermissionResult> _handleLocationPermission(
+   Future<LocationPermissionResult> _handleLocationPermission(
     BuildContext context,
   ) async {
     LocationPermission permission = await Geolocator.checkPermission();
-print('Initial permission: $permission');
+    debugPrint('Initial permission status: $permission');
+
+    // Handle denied permission - request it
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
+      debugPrint('Permission after request: $permission');
     }
 
+    // Still denied after request
     if (permission == LocationPermission.denied) {
-      await _showLocationSettingsDialog(
-        context,
-        'Location Permission Denied',
-        'Location access is required to fetch your current location.',
-        showSettings: false,
-      );
+      if (context.mounted) {
+        await _showLocationSettingsDialog(
+          context,
+          'Location Permission Denied',
+          'Location access is required to show your position on the map. Please grant permission to continue.',
+          showSettings: false,
+        );
+      }
       return LocationPermissionResult(
         isGranted: false,
         message: 'Location permission denied by user',
@@ -288,36 +305,172 @@ print('Initial permission: $permission');
       );
     }
 
+    // Permanently denied
     if (permission == LocationPermission.deniedForever) {
-      await _showLocationSettingsDialog(
-        context,
-        'Location Permission Permanently Denied',
-        'Location access is permanently denied. Please open app settings to enable it.',
-        showSettings: true,
-      );
+      if (context.mounted) {
+        await _showLocationSettingsDialog(
+          context,
+          'Location Permission Required',
+          'Location access is permanently denied. Please enable it in app settings to use location features.',
+          showSettings: true,
+        );
+      }
       return LocationPermissionResult(
         isGranted: false,
-        message: 'Location permission permanently denied.',
+        message:
+            'Location permission permanently denied. Enable in app settings.',
         errorType: LocationErrorType.permissionDeniedForever,
       );
     }
 
-    // For iOS: check if location is restricted
+    // Unable to determine (iOS specific case)
     if (permission == LocationPermission.unableToDetermine) {
       return LocationPermissionResult(
         isGranted: false,
-        message: 'Location access is restricted or not available.',
+        message: 'Location access is restricted or unavailable on this device.',
         errorType: LocationErrorType.permissionRestricted,
       );
     }
 
-    // Granted (WhileInUse or Always)
+    // Success cases: whileInUse or always
+    if (permission == LocationPermission.whileInUse ||
+        permission == LocationPermission.always) {
+      debugPrint('Location permission granted: $permission');
+      return LocationPermissionResult(
+        isGranted: true,
+        message: 'Location permission granted.',
+        errorType: LocationErrorType.none,
+      );
+    }
+
+    // Fallback for any other unexpected states
     return LocationPermissionResult(
-      isGranted: true,
-      message: 'Location permission granted.',
-      errorType: LocationErrorType.none,
+      isGranted: false,
+      message: 'Unknown permission status: $permission',
+      errorType: LocationErrorType.unknown,
     );
   }
+
+
+  // Future<void> _onFetchLocation(
+  //   FetchLocationEvent event,
+  //   Emitter<CustomerHomeState> emit,
+  // ) async {
+  //   emit(LocationLoading());
+
+  //   try {
+  //     // Check if location services are enabled
+  //     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  //     if (!serviceEnabled) {
+  //       emit(
+  //         const LocationError(
+  //           errorMessage:
+  //               'Location services disabled. Enable in device settings.',
+  //           errorType: LocationErrorType.serviceDisabled,
+  //         ),
+  //       );
+  //       await _showLocationSettingsDialog(
+  //         event.context,
+  //         'Location Services Disabled',
+  //         'Please enable location services in your device settings to use this feature.',
+  //         showSettings: true,
+  //       );
+  //       return;
+  //     }
+
+  //     final locationPermissionResult = await _handleLocationPermission(
+  //       event.context,
+  //     );
+
+  //     if (!locationPermissionResult.isGranted) {
+  //       emit(
+  //         LocationError(
+  //           errorMessage: locationPermissionResult.message,
+  //           errorType: locationPermissionResult.errorType,
+  //         ),
+  //       );
+  //       return;
+  //     }
+
+  //     Position position = await _getCurrentPositionWithRetry();
+
+  //     await _saveLocationToPreferences(position);
+
+  //     // Emit the location loaded state with the fetched coordinates
+  //     await Future.delayed(const Duration(milliseconds: 500));
+
+  //     emit(
+  //       LocationLoaded(
+  //         latitude: position.latitude,
+  //         longitude: position.longitude,
+  //       ),
+  //     );
+  //   } catch (e, stackTrace) {
+  //     debugPrint('Location fetch error: $e');
+  //     debugPrint('Stack trace: $stackTrace');
+
+  //     emit(
+  //       LocationError(
+  //         errorMessage: _getErrorMessage(e),
+  //         errorType: LocationErrorType.unknown,
+  //       ),
+  //     );
+  //   }
+  // }
+
+//   Future<LocationPermissionResult> _handleLocationPermission(
+//     BuildContext context,
+//   ) async {
+//     LocationPermission permission = await Geolocator.checkPermission();
+// print('Initial permission: $permission');
+//     if (permission == LocationPermission.denied) {
+//       permission = await Geolocator.requestPermission();
+//     }
+
+//     if (permission == LocationPermission.denied) {
+//       await _showLocationSettingsDialog(
+//         context,
+//         'Location Permission Denied',
+//         'Location access is required to fetch your current location.',
+//         showSettings: false,
+//       );
+//       return LocationPermissionResult(
+//         isGranted: false,
+//         message: 'Location permission denied by user',
+//         errorType: LocationErrorType.permissionDenied,
+//       );
+//     }
+
+//     if (permission == LocationPermission.deniedForever) {
+//       await _showLocationSettingsDialog(
+//         context,
+//         'Location Permission Permanently Denied',
+//         'Location access is permanently denied. Please open app settings to enable it.',
+//         showSettings: true,
+//       );
+//       return LocationPermissionResult(
+//         isGranted: false,
+//         message: 'Location permission permanently denied.',
+//         errorType: LocationErrorType.permissionDeniedForever,
+//       );
+//     }
+
+//     // For iOS: check if location is restricted
+//     if (permission == LocationPermission.unableToDetermine) {
+//       return LocationPermissionResult(
+//         isGranted: false,
+//         message: 'Location access is restricted or not available.',
+//         errorType: LocationErrorType.permissionRestricted,
+//       );
+//     }
+
+//     // Granted (WhileInUse or Always)
+//     return LocationPermissionResult(
+//       isGranted: true,
+//       message: 'Location permission granted.',
+//       errorType: LocationErrorType.none,
+//     );
+//   }
 
   // Future<LocationPermissionResult> _handleLocationPermission(BuildContext context) async {
   //   // Check current permission status
