@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:isolate';
+import 'package:flutter_app_badger/flutter_app_badger.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/count_controller.dart';
 import 'package:soloseaters/src/utils/data/notification_service.dart';
@@ -17,11 +18,11 @@ import 'app_bloc_observer.dart';
 import 'package:get/get.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
 }
+
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
@@ -47,11 +48,10 @@ Future<void> main() async {
     await _initializeApp();
 
     ///setting device orientation as portrait, then calling the runApp method
-    SystemChrome.setPreferredOrientations(
-        <DeviceOrientation>[
-          DeviceOrientation.portraitUp,
-          DeviceOrientation.portraitDown
-        ]).then((_) {
+    SystemChrome.setPreferredOrientations(<DeviceOrientation>[
+      DeviceOrientation.portraitUp,
+      DeviceOrientation.portraitDown,
+    ]).then((_) {
       runApp(App());
     });
   }, _handleUncaughtError);
@@ -70,6 +70,7 @@ Future<void> _initializeApp() async {
 
     // Initialize notifications after dependencies are set up
     await _initializeNotifications();
+    await clearBadgeWithFlutterAppBadger();
 
     // Loading configuration
     configLoading();
@@ -92,6 +93,12 @@ Future<void> handleAutoBackupOnFreshInstall() async {
     // This means it's a fresh install or first time launch
     await prefs.clear(); // clear auto-restored values
     await prefs.setBool(installKey, true); // set flag
+  }
+}
+
+Future<void> clearBadgeWithFlutterAppBadger() async {
+  if (await FlutterAppBadger.isAppBadgeSupported()) {
+    FlutterAppBadger.removeBadge();
   }
 }
 
@@ -122,12 +129,14 @@ Future<void> _setupErrorHandlers() async {
     return true;
   };
 
-  Isolate.current.addErrorListener(RawReceivePort((pair) {
-    final List<dynamic> errorAndStacktrace = pair;
-    final error = errorAndStacktrace[0];
-    final stackTrace = errorAndStacktrace[1];
-    _logError(error, stackTrace);
-  }).sendPort);
+  Isolate.current.addErrorListener(
+    RawReceivePort((pair) {
+      final List<dynamic> errorAndStacktrace = pair;
+      final error = errorAndStacktrace[0];
+      final stackTrace = errorAndStacktrace[1];
+      _logError(error, stackTrace);
+    }).sendPort,
+  );
 }
 
 Future<void> _initializeAppDependencies() async {
@@ -155,7 +164,6 @@ Future<void> _initializeAppDependencies() async {
     ),
   );
 }
-
 
 void _handleUncaughtError(Object error, StackTrace stackTrace) {
   _logError(error, stackTrace);

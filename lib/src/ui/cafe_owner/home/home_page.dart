@@ -273,8 +273,8 @@ class _HomePageState extends State<HomePage> {
                         state.errorMessage.contains("status code of 401") || state.errorMessage.contains("UnAuthorized")
                     ) {
                       EasyLoading.dismiss();
+                      SignOut().logout(context);
                       WidgetsBinding.instance.addPostFrameCallback((_) {
-                        SignOut().logout(context);
                         Fluttertoast.showToast(
                           fontSize: 14.sp,
                           backgroundColor: AppColors.primaryWhiteColor,
