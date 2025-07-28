@@ -207,6 +207,7 @@ class NotificationServices {
         description: 'This channel is used for important notifications.',
         importance: Importance.high,
         playSound: true,
+        showBadge: false, 
       );
 
       _flutterLocalNotificationsPlugin
