@@ -343,7 +343,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                         ),
                         Gap(30.h),
                         _buildActionButtons(state.getFilterOptionsResponse),
-                        Gap(30.h),
+                        Gap(40.h),
                       ],
                     );
                   } else if (state is FilterOptionsError) {

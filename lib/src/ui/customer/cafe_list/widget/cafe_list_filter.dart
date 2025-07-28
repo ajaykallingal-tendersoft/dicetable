@@ -416,7 +416,7 @@ class _CafeListFilterState extends State<CafeListFilter> {
                         ),
                         Gap(30.h),
                         _buildActionButtons(state.getFilterOptionsResponse),
-                        Gap(30.h),
+                        Gap(40.h),
                       ],
                     );
                   } else if (state is FilterError) {

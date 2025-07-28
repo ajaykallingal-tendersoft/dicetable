@@ -421,6 +421,7 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                     bottom: 30,
                   ),
                   child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [

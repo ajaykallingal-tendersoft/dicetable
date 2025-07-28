@@ -106,7 +106,7 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                 SliverAppBar(
                   leading: SizedBox.shrink(),
                   backgroundColor: AppColors.primary,
-                  expandedHeight: isTabletOrLarger ? 70.h : 10.h,
+                  expandedHeight: isTabletOrLarger ? 70.h : 0.h,
                   floating: false,
                   pinned: true,
                   flexibleSpace: FlexibleSpaceBar(
