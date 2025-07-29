@@ -1,10 +1,7 @@
 import 'dart:async';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-
-import '../customer/home/bloc/customer_home_bloc.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
