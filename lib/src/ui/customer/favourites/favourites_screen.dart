@@ -97,9 +97,6 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
             final isTabletOrLarger = ResponsiveBreakpoints.of(
               context,
             ).largerThan(MOBILE);
-            if (state is FavListLoading) {
-              return const SizedBox.expand();
-            }
             return CustomScrollView(
               physics: const BouncingScrollPhysics(),
               slivers: [
@@ -316,6 +313,10 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                             ),
                           ),
                         );
+                      } else if (state is FavListLoading) {
+                        // When in FavListLoading state, show a loading indicator below the AppBar
+                        EasyLoading.show();
+                        return SizedBox.shrink();
                       }
 
                       return const SizedBox(); // Fallback for unhandled states

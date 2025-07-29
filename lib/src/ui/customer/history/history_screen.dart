@@ -56,11 +56,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 // context.read<CardCubit>().fetchCards();
               },
             ),
-            SliverAppBar(
-              backgroundColor: Colors.transparent,
+           SliverAppBar(
+              backgroundColor: AppColors.primary,
               expandedHeight: 80.h,
               centerTitle: false,
               titleSpacing: 20,
+              pinned: true,
               leadingWidth: 0,
               title: Text(
                 "History",
@@ -151,7 +152,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       return ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        padding: const EdgeInsets.all(16),
+                        padding: const EdgeInsets.only(top: 16, left: 16, right: 16,bottom: 30),
                         itemCount: state.historyListResponse.data!.length,
                         itemBuilder: (context, index) {
                           final entry = state.historyListResponse.data![index];
