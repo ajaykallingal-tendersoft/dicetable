@@ -14,8 +14,10 @@ class NotificationServices {
   factory NotificationServices() => _instance;
   NotificationServices._internal();
 
+  // Initialize Firebase Messaging plugin
   final FirebaseMessaging messaging = FirebaseMessaging.instance;
 
+  // Initialize Flutter local notifications plugin
   final FlutterLocalNotificationsPlugin _flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
@@ -113,7 +115,7 @@ class NotificationServices {
           requestAlertPermission: true,
           requestSoundPermission: true,
           requestCriticalPermission: false,
-          requestBadgePermission: false, // Disabled badge permission
+          requestBadgePermission: false
         );
 
     const InitializationSettings initializationSettings =
@@ -142,7 +144,7 @@ class NotificationServices {
           >()
           ?.requestPermissions(
             alert: true,
-            badge: false, // Disabled badge permission
+            badge: false,
             sound: true,
             critical: false,
           );
@@ -206,7 +208,7 @@ class NotificationServices {
         description: 'This channel is used for important notifications.',
         importance: Importance.high,
         playSound: true,
-        showBadge: false, // Disabled badge for Android
+        showBadge: false, 
       );
 
       _flutterLocalNotificationsPlugin
@@ -223,7 +225,7 @@ class NotificationServices {
       NotificationSettings settings = await messaging.requestPermission(
         alert: true,
         announcement: false,
-        badge: false, // Disabled badge permission for Firebase
+        badge: false,
         carPlay: false,
         criticalAlert: false,
         provisional: false,
@@ -297,7 +299,6 @@ class NotificationServices {
               ticker: 'ticker',
               icon: '@mipmap/launcher_icon',
               styleInformation: BigTextStyleInformation(''),
-              channelShowBadge: false, // Disabled badge for Android notifications
             );
 
         NotificationDetails notificationDetails = NotificationDetails(
@@ -316,7 +317,7 @@ class NotificationServices {
         const DarwinNotificationDetails iOSNotificationDetails =
             DarwinNotificationDetails(
               presentAlert: true,
-              presentBadge: false, // Disabled badge for iOS notifications
+              presentBadge: false,
               presentSound: true,
               sound: 'default',
               subtitle: 'Solo Seaters',
@@ -369,9 +370,9 @@ class NotificationServices {
         // iOS: Disable automatic presentation to prevent duplicates
         await FirebaseMessaging.instance
             .setForegroundNotificationPresentationOptions(
-              alert: true, // Disable automatic alert
-              badge: false, // Disabled badge for foreground notifications
-              sound: true, // Disable automatic sound
+              alert: false, // Disable automatic alert
+              badge: false,
+              sound: false, // Disable automatic sound
             );
       }
     } catch (e) {
@@ -405,11 +406,7 @@ class NotificationServices {
           .resolvePlatformSpecificImplementation<
             IOSFlutterLocalNotificationsPlugin
           >()
-          ?.requestPermissions(
-            alert: true, 
-            badge: false, // Disabled badge permission
-            sound: true
-          );
+          ?.requestPermissions(alert: true, badge: false, sound: true);
 
       print('iOS notification permissions granted: $result');
 

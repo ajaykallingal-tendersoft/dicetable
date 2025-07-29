@@ -62,6 +62,7 @@ Future<void> _initializeApp() async {
     await Firebase.initializeApp();
 
     // Error handlers (Flutter, PlatformDispatcher, Isolate)
+    
     await _setupErrorHandlers();
 
     // App dependencies (prefs, system UI)
