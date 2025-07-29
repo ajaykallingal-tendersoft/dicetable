@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:isolate';
-import 'package:flutter_app_badger/flutter_app_badger.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/count_controller.dart';
 import 'package:soloseaters/src/utils/data/notification_service.dart';
@@ -70,7 +69,7 @@ Future<void> _initializeApp() async {
 
     // Initialize notifications after dependencies are set up
     await _initializeNotifications();
-    await clearBadgeWithFlutterAppBadger();
+    // await clearBadgeWithFlutterAppBadger();
 
     // Loading configuration
     configLoading();
@@ -96,11 +95,11 @@ Future<void> handleAutoBackupOnFreshInstall() async {
   }
 }
 
-Future<void> clearBadgeWithFlutterAppBadger() async {
-  if (await FlutterAppBadger.isAppBadgeSupported()) {
-    FlutterAppBadger.removeBadge();
-  }
-}
+// Future<void> clearBadgeWithFlutterAppBadger() async {
+//   if (await FlutterAppBadger.isAppBadgeSupported()) {
+//     FlutterAppBadger.removeBadge();
+//   }
+// }
 
 Future<void> _initializeNotifications() async {
   try {
