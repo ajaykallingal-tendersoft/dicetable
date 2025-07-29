@@ -98,6 +98,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
           actionsPadding: EdgeInsets.only(right: 15),
         ),
         body: SafeArea(
+          bottom: false,
           child: BlocConsumer<NotificationBloc, NotificationState>(
             listener: (context, state) async {
               if (state is NotificationLoaded) {
@@ -181,11 +182,11 @@ class _NotificationScreenState extends State<NotificationScreen> {
             builder: (context, state) {
               if (state is NotificationLoaded) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                   EasyLoading.dismiss();
+                  EasyLoading.dismiss();
                   controller.notificationBadgeAmount.value =
                       state.notificationItems.data.unread.length;
                 });
-               
+
                 return Container(
                   width: double.infinity,
                   decoration: const BoxDecoration(
@@ -249,7 +250,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
                         selectedTab == 'ALL'
                             ? Expanded(
                               child: ListView.builder(
-                                
                                 padding: const EdgeInsets.all(12),
                                 itemCount:
                                     state.notificationItems.data.all.length,
