@@ -183,7 +183,7 @@ class _CafeListScreenState extends State<CafeListScreen> {
                                             badges.BadgeAnimation.slide(),
                                         showBadge: true,
                                         badgeStyle: badges.BadgeStyle(
-                                          shape: badges.BadgeShape.square,
+                                          shape: badges.BadgeShape.circle,
                                           borderRadius: BorderRadius.circular(
                                             10.r,
                                           ),

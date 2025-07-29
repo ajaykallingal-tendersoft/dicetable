@@ -232,20 +232,19 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
             return GoogleMap(
               padding: EdgeInsets.only(
                 bottom:
-                    Platform.isIOS
+                    Platform.isIOS || Platform.isAndroid
                         ? MediaQuery.of(context).padding.bottom +
                             kBottomNavigationBarHeight +
                             244.0.h
                         : 0.0,
               ),
               mapToolbarEnabled: true,
-              zoomControlsEnabled: true,
+              zoomControlsEnabled: false,
               initialCameraPosition: _kDefaultPosition,
               markers: Set<Marker>.of(_markers),
               mapType: MapType.normal,
               myLocationEnabled: _hasLocationPermission,
               myLocationButtonEnabled: _hasLocationPermission,
-              // compassEnabled: true,
               zoomGesturesEnabled: true,
               scrollGesturesEnabled: true,
               onMapCreated: (GoogleMapController controller) {

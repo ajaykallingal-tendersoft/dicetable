@@ -30,6 +30,7 @@ class CafeDetailsBloc extends Bloc<CafeDetailsEvent, CafeDetailsState> {
 
       if (stateModel is SuccessState) {
         final response = stateModel.value as BookingRequestResponse;
+        
         emit(CafeBookingLoaded(bookingRequestResponse: response));
       } else if (stateModel is ErrorState) {
         emit(CafeBookingError(errorMessage: stateModel.msg));

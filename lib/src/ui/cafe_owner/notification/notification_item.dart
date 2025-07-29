@@ -1,11 +1,13 @@
 class NotificationItems {
   bool status;
   String message;
+  bool notificationStatus;
   Data data;
 
   NotificationItems({
     required this.status,
     required this.message,
+    required this.notificationStatus,
     required this.data,
   });
 
@@ -13,6 +15,7 @@ class NotificationItems {
     return NotificationItems(
       status: json['status'] ?? false,
       message: json['message'] ?? '',
+      notificationStatus: json['notification_status'] ?? false,
       data: Data.fromJson(json['data'] ?? {}),
     );
   }
@@ -21,6 +24,7 @@ class NotificationItems {
     return {
       'status': status,
       'message': message,
+      'notification_status': notificationStatus,
       'data': data.toJson(),
     };
   }
@@ -134,7 +138,7 @@ class NotificationReadResponse {
 
 class NotificationStatusRequest {
   final String fcmToken;
-  final bool notificationStatus;
+  final int notificationStatus;
 
   NotificationStatusRequest({
     required this.fcmToken,
@@ -152,7 +156,7 @@ class NotificationStatusRequest {
 class NotificationStatusResponse {
   final bool status;
   final String? message;
-  final bool? notificationStatus;
+  final int? notificationStatus;
 
   NotificationStatusResponse({
     required this.status,

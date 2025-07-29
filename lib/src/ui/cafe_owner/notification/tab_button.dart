@@ -35,41 +35,18 @@ class NotificationTabBar extends StatelessWidget {
 
   Widget _buildTab(String title, BuildContext context, {required bool isSelected}) {
     return Expanded(
-      child: InkWell(
-        onTap: () => onTabSelected(title),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 10),
-
-            if(title == "ALL" || unreadCount < 1)
-              Center(
-                child: Text(
-                  title,
-                  style: TextTheme.of(context).bodyMedium!.copyWith(
-                      color: AppColors.primaryWhiteColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14.sp
-                  ),
-                ),
-              ),
-
-            if(title == "UNREAD" && unreadCount > 0)
-              badges.Badge(
-                position: badges.BadgePosition.topEnd(top: -12, end: 50),
-                badgeAnimation: badges.BadgeAnimation.slide(),
-                showBadge: true,
-                badgeStyle: badges.BadgeStyle(
-                  shape: badges.BadgeShape.square,
-                  borderRadius: BorderRadius.circular(10),
-                  badgeColor: Colors.red,
-                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                ),
-                badgeContent: Text(
-                  unreadCount.toString(),
-                  style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                ),
-                child: Center(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+            splashColor: Colors.white24,
+          onTap: () => onTabSelected(title),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 10),
+        
+              if(title == "ALL" || unreadCount < 1)
+                Center(
                   child: Text(
                     title,
                     style: TextTheme.of(context).bodyMedium!.copyWith(
@@ -79,14 +56,41 @@ class NotificationTabBar extends StatelessWidget {
                     ),
                   ),
                 ),
+        
+              if(title == "UNREAD" && unreadCount > 0)
+                badges.Badge(
+                  position: badges.BadgePosition.topEnd(top: -12, end: 50),
+                  badgeAnimation: badges.BadgeAnimation.slide(),
+                  showBadge: true,
+                  badgeStyle: badges.BadgeStyle(
+                    shape: badges.BadgeShape.square,
+                    borderRadius: BorderRadius.circular(10),
+                    badgeColor: Colors.red,
+                    padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  ),
+                  badgeContent: Text(
+                    unreadCount.toString(),
+                    style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+                  ),
+                  child: Center(
+                    child: Text(
+                      title,
+                      style: TextTheme.of(context).bodyMedium!.copyWith(
+                          color: AppColors.primaryWhiteColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14.sp
+                      ),
+                    ),
+                  ),
+                ),
+              const SizedBox(height: 8),
+              Container(
+                height: 2,
+                color: AppColors.profileTextFiledBorderColor,
+                width: double.infinity,
               ),
-            const SizedBox(height: 8),
-            Container(
-              height: 2,
-              color: AppColors.profileTextFiledBorderColor,
-              width: double.infinity,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

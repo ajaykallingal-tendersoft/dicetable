@@ -13,47 +13,44 @@ class SignOut {
 
   factory SignOut() => _instance;
 
-  /// Handles both PUBLIC_USER and VENUE_OWNER logout scenarios
   Future<void> logout(BuildContext context) async {
-    try {
-      final userDecision = ObjectFactory().prefs.getUserDecisionName();
+try {
+  final prefs = ObjectFactory().prefs;
 
-      context.read<GoogleSignInCubit>().signOut();
-      context.read<AppleSignInCubit>().signOut();
+  // Sign out from providers
+  context.read<GoogleSignInCubit>().signOut();
+  context.read<AppleSignInCubit>().signOut();
 
-      if (userDecision == "PUBLIC_USER") {
-        // Clear PUBLIC_USER (Customer) specific preferences
-        ObjectFactory().prefs.setIsCustomerLoggedIn(false);
-        ObjectFactory().prefs.setCustomerAuthToken(token: "");
-        ObjectFactory().prefs.setUserId(userId: "");
-        ObjectFactory().prefs.setCustomerUserName(customerUserName: "");
-        ObjectFactory().prefs.setCustomerMail(mail: '');
-      } else if (userDecision == "VENUE_OWNER") {
-        ObjectFactory().prefs.setIsLoggedIn(false);
-        ObjectFactory().prefs.setAuthToken(token: "");
-        ObjectFactory().prefs.setCafeUserName(cafeUserName: "");
-        ObjectFactory().prefs.setCafeId(cafeId: '');
-        ObjectFactory().prefs.setCafeUserId(cafeUserId: '');
-        ObjectFactory().prefs.setCafeUserMail(cafeUserMail: '');
-      } else {
-        ObjectFactory().prefs.setIsCustomerLoggedIn(false);
-        ObjectFactory().prefs.setIsLoggedIn(false);
-        ObjectFactory().prefs.setAuthToken(token: "");
-        ObjectFactory().prefs.setUserId(userId: "");
-        ObjectFactory().prefs.setCustomerUserName(customerUserName: "");
-        ObjectFactory().prefs.setCafeUserName(cafeUserName: "");
-        ObjectFactory().prefs.setCafeId(cafeId: '');
-        ObjectFactory().prefs.setCafeUserId(cafeUserId: '');
-        ObjectFactory().prefs.setCustomerMail(mail: '');
-      }
+  // Clear all shared prefs (unified)
+  prefs.setIsLoggedIn(false);
+  prefs.setIsCustomerLoggedIn(false);
 
-      ObjectFactory().prefs.getNavigationSource();
+  prefs.setAuthToken(token: "");
+  prefs.setCustomerAuthToken(token: "");
 
-      context.go('/category');
-    } catch (e) {
-      if (kDebugMode) {
-        print('Error during logout: $e');
-      }
-    }
+  prefs.setUserId(userId: "");
+  prefs.setCafeId(cafeId: "");
+
+  prefs.setCustomerUserName(customerUserName: "");
+  prefs.setCustomerMail(mail: "");
+
+  prefs.setCafeUserName(cafeUserName: "");
+
+  prefs.setCafeUserId(cafeUserId: "");
+  prefs.setCafeUserMail(cafeUserMail: "");
+
+  // Optional: reset user decision if needed
+  // prefs.setUserDecisionName('');
+
+  // Optional: clear navigation source if used
+  // prefs.setNavigationSource('');
+
+  context.go('/category');
+} catch (e) {
+  if (kDebugMode) {
+    print('Error during logout: $e');
+  }
+}
+
   }
 }

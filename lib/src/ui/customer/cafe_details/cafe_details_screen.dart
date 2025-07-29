@@ -6,6 +6,7 @@ import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/model/customer/booking/withdraw_booking_request.dart';
 import 'package:soloseaters/src/model/customer/cafe/cafe_list_response.dart';
 import 'package:soloseaters/src/model/customer/cafe/favourite_list_response.dart';
+import 'package:soloseaters/src/ui/cafe_owner/notification/bloc/notification_bloc.dart';
 import 'package:soloseaters/src/ui/customer/cafe_details/widget/cafe_details_card.dart';
 import 'package:soloseaters/src/ui/customer/cafe_list/bloc/cafe_list_bloc.dart';
 import 'package:soloseaters/src/ui/customer/cafe_list/components/cafe_details_arguments.dart';
@@ -96,11 +97,16 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
             _isLoadingDialogShown = true;
           }
         } else if (state is CafeBookingLoaded) {
+          if(state.bookingRequestResponse.message != null) {
+          if(state.bookingRequestResponse.status == true) {
+            context.read<NotificationBloc>().add(FetchNotifications());
+          }
+          }
           if (_isLoadingDialogShown) {
             Navigator.of(
               context,
               rootNavigator: true,
-            ).pop(); // Dismiss the loading dialog
+            ).pop();
             _isLoadingDialogShown = false;
           }
           if (state.bookingRequestResponse.status == true) {
@@ -135,7 +141,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
           }
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.errorMessage),
+              content: Text("Something went wrong! Please try again later."),
               backgroundColor: AppColors.appRedColor,
               duration: const Duration(seconds: 3),
             ),
@@ -205,16 +211,6 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
             ),
             onPressed: () {
               context.pop();
-
-              // if( _isFromFavorites == false) {
-              //   WidgetsBinding.instance.addPostFrameCallback((_) {
-              //     // context.read<CafeListBloc>().add(GetCafeListEvent(cafeListRequest: null));
-              //   });
-              // }else {
-              //   WidgetsBinding.instance.addPostFrameCallback((_) {
-              //     // context.read<CafeListBloc>().add(GetFavListEvent());
-              //   });
-              // }
             },
           ),
           actionsPadding: EdgeInsets.only(right: 10),
@@ -284,9 +280,9 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
             ),
           ),
           child: SingleChildScrollView(
+            physics: BouncingScrollPhysics(),
             child: Padding(
-              
-              padding:  EdgeInsets.only(left: 26,right:26),
+              padding:  EdgeInsets.only(left: 26,right:26,bottom: 30.h),
               child: Column(
                 children: [
                    const Gap(30),
