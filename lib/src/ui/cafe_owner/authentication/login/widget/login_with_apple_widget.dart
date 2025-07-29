@@ -81,7 +81,7 @@ class LoginWithAppleWidget extends StatelessWidget {
               padding:
                   isTabletOrLarger
                       ? EdgeInsets.zero
-                      : EdgeInsets.only(right: 30.0),
+                      : EdgeInsets.only(right: 27.0),
 
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
