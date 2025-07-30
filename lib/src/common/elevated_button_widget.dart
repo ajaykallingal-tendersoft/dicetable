@@ -34,6 +34,13 @@ class ElevatedButtonWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1), // subtle shadow color
+            blurRadius: 8,
+            offset: Offset(0, 4), // vertical shadow
+          ),
+        ],
       ),
       child: Row(
         mainAxisAlignment:
@@ -42,26 +49,26 @@ class ElevatedButtonWidget extends StatelessWidget {
                 : MainAxisAlignment.center,
         children: [
           iconEnabled == true
-           ? Expanded(child: AutoSizeText(
-            iconLabel,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.montserrat(
-              color: textColor,
-              fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
-            ),
-           )
-          )
-          :
-          AutoSizeText(
-            iconLabel,
-            overflow: TextOverflow.ellipsis,
-            style: GoogleFonts.montserrat(
-              color: textColor,
-              fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
+              ? Expanded(
+                child: AutoSizeText(
+                  iconLabel,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.montserrat(
+                    color: textColor,
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              )
+              : AutoSizeText(
+                iconLabel,
+                overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.montserrat(
+                  color: textColor,
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
           iconEnabled == true ? Gap(20.w) : SizedBox(),
           iconEnabled == true ? icon! : SizedBox(),
         ],
