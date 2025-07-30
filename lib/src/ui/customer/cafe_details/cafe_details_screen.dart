@@ -124,7 +124,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  state.bookingRequestResponse.message ?? 'Booking failed',
+                  'Booking failed. Please try again later.',
                 ),
                 backgroundColor: AppColors.appRedColor,
                 duration: const Duration(seconds: 3),
@@ -174,7 +174,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  state.withdrawBookingResponse.message ?? 'Withdrawal failed',
+                  'Withdrawal failed.Please try again later.',
                 ),
                 backgroundColor: AppColors.appRedColor,
                 duration: const Duration(seconds: 3),
@@ -191,7 +191,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
           }
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.errorMessage),
+              content: Text('Withdrawal failed.Please try again later.'),
               backgroundColor: AppColors.appRedColor,
               duration: const Duration(seconds: 3),
             ),
@@ -782,7 +782,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error creating booking request: ${e.toString()}'),
+            content: Text('Failed to create request. Please try again later.'),
             backgroundColor: AppColors.appRedColor,
             duration: const Duration(seconds: 3),
           ),
@@ -824,7 +824,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Error creating booking request: ${e.toString()}'),
+            content: Text('Failed to create request. Please try again later.'),
             backgroundColor: AppColors.appRedColor,
             duration: const Duration(seconds: 3),
           ),

@@ -1,3 +1,4 @@
+import 'package:gap/gap.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/notification_item.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/tab_button.dart';
@@ -334,8 +335,6 @@ class _NotificationScreenState extends State<NotificationScreen> {
                             )
                             : Expanded(
                               child: ListView.builder(
-                                physics: const NeverScrollableScrollPhysics(),
-                                shrinkWrap: true,
                                 padding: const EdgeInsets.all(12),
                                 itemCount:
                                     state.notificationItems.data.unread.length,
@@ -435,6 +434,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                                 },
                               ),
                             ),
+                        Gap(40.h),
                       ],
                     ),
                   ),
