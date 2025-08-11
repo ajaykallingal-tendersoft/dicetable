@@ -2,6 +2,7 @@ import 'package:soloseaters/src/common/elevated_button_widget.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/model/cafe_owner/subscription/subscription_start_request.dart';
 import 'package:soloseaters/src/ui/cafe_owner/subscription/bloc/subscription_bloc.dart';
+import 'package:soloseaters/src/ui/cafe_owner/subscription/widget/gradient.dart';
 import 'package:soloseaters/src/ui/cafe_owner/subscription/widget/subscription_prompt_promo_code_widget.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:flutter/material.dart';
@@ -401,7 +402,7 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
           builder: (context, state) {
             if (state is InitialSubscriptionLoading ||
                 state is StartSubscriptionLoading) {
-              return const SizedBox(); // Empty widget, as EasyLoading handles the overlay
+             return GradientBackGround();
             }
             if (state is InitialSubscriptionLoaded &&
                 state.initialSubscriptionPlanResponse.message ==
@@ -416,10 +417,11 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
             if (state is StartSubscriptionError && initialData != null) {
               return _buildSubscriptionContent(context, initialData!);
             }
-            return const SizedBox(); // Fallback for unhandled states, EasyLoading may still be active
+            return GradientBackGround();
           },
         ),
       ),
     );
   }
 }
+

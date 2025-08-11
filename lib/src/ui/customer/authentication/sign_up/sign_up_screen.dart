@@ -122,7 +122,7 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
   Widget build(BuildContext context) {
     return BlocProvider(
       create:
-          (context) => CustomerSignUpBloc(authDataProvider: AuthDataProvider()),
+          (context) => CustomerSignUpBloc(authDataProvider: AuthDataProvider(),isAppleSignUp: isAppleSignUp,isGoogleSignUp: isGoogleSignUp),
       child: BlocConsumer<CustomerSignUpBloc, CustomerSignUpState>(
         listener: (context, state) {
           if (state is CustomerSignUpSuccessState) {
@@ -373,7 +373,7 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                             );
                           },
                         ),
-                         (!isAppleSignUp)
+                         (!isAppleSignUp && !isGoogleSignUp)
                          ? RequiredTextField(
                           hint: 'Password',
                           isRequired: true,
@@ -386,7 +386,7 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                             );
                           },
                         ): SizedBox.shrink(),
-                        (!isAppleSignUp)
+                        (!isAppleSignUp && !isGoogleSignUp)
                        ? RequiredTextField(
                           hint: 'Confirm Password',
                           isRequired: true,

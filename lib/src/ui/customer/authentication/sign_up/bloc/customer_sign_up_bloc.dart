@@ -14,10 +14,12 @@ part 'customer_sign_up_state.dart';
 
 class CustomerSignUpBloc
     extends Bloc<CustomerSignUpEvent, CustomerSignUpState> {
+        final bool isGoogleSignUp;
+  final bool isAppleSignUp;
   final AuthDataProvider authDataProvider;
   SignUpFormState _formState;
 
-  CustomerSignUpBloc({required this.authDataProvider})
+  CustomerSignUpBloc({required this.authDataProvider,this.isGoogleSignUp = false, this.isAppleSignUp = false})
     : _formState = SignUpFormState(),
       super(SignUpFormState()) {
     on<UpdateTextField>((event, emit) {
@@ -432,30 +434,45 @@ class CustomerSignUpBloc
   }
 
   SignUpFormState _validateAllFields(SignUpFormState state) {
-    return state.copyWith(
-      nameError: _validateName(state.name),
-      emailError: _validateEmail(state.email),
-      passwordError: _validatePassword(state.password),
-      confirmPasswordError: _validateConfirmPassword(
-        state.confirmPassword,
-        state.password,
-      ),
-      phoneError: _validatePhone(state.phone),
-      countryError: _validateCountry(state.country),
-      regionError: _validateRegion(state.region),
-      passwordStrength: _calculatePasswordStrength(state.password),
-      isFormValid: _isFormValid(state),
-    );
-  }
-
-  bool _isFormValid(SignUpFormState state) {
-    return _validateName(state.name) == null &&
-        _validateEmail(state.email) == null &&
-        _validatePassword(state.password) == null &&
-        _validateConfirmPassword(state.confirmPassword, state.password) ==
-            null &&
-        _validatePhone(state.phone) == null &&
-        _validateCountry(state.country) == null &&
-        _validateRegion(state.region) == null;
-  }
+      final bool isPasswordRequired = !isGoogleSignUp && !isAppleSignUp;
+      
+      return state.copyWith(
+        nameError: _validateName(state.name),
+        emailError: _validateEmail(state.email),
+        // Only validate passwords if it's not a social sign-up
+        passwordError: isPasswordRequired ? _validatePassword(state.password) : null,
+        confirmPasswordError: isPasswordRequired 
+            ? _validateConfirmPassword(state.confirmPassword, state.password) 
+            : null,
+        phoneError: _validatePhone(state.phone),
+        countryError: _validateCountry(state.country),
+        regionError: _validateRegion(state.region),
+        passwordStrength: isPasswordRequired 
+            ? _calculatePasswordStrength(state.password) 
+            : PasswordStrength.none,
+        isFormValid: _isFormValid(state),
+      );
+    }
+    bool _isFormValid(SignUpFormState state) {
+      final bool isPasswordRequired = !isGoogleSignUp && !isAppleSignUp;
+      
+      return _validateName(state.name) == null &&
+          _validateEmail(state.email) == null &&
+          // Only validate passwords if it's not a social sign-up
+          (!isPasswordRequired || _validatePassword(state.password) == null) &&
+          (!isPasswordRequired || _validateConfirmPassword(state.confirmPassword, state.password) == null) &&
+          _validatePhone(state.phone) == null &&
+          _validateCountry(state.country) == null &&
+          _validateRegion(state.region) == null;
+    }
+  // bool _isFormValid(SignUpFormState state) {
+  //   return _validateName(state.name) == null &&
+  //       _validateEmail(state.email) == null &&
+  //       _validatePassword(state.password) == null &&
+  //       _validateConfirmPassword(state.confirmPassword, state.password) ==
+  //           null &&
+  //       _validatePhone(state.phone) == null &&
+  //       _validateCountry(state.country) == null &&
+  //       _validateRegion(state.region) == null;
+  // }
 }

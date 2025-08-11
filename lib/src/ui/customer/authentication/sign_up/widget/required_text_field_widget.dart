@@ -83,7 +83,7 @@ class _RequiredTextFieldState extends State<RequiredTextField> {
     );
 
     return Container(
-      height: 70.h,
+      height: 70,
       margin: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: AppColors.primaryWhiteColor,
@@ -131,8 +131,8 @@ class _RequiredTextFieldState extends State<RequiredTextField> {
                 },
         decoration: InputDecoration(
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 20,
+            horizontal: 18,
+            vertical: 23,
           ),
           isDense: true,
           filled: true,

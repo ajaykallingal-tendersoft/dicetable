@@ -27,6 +27,8 @@ part 'sign_up_state.dart';
 
 class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
   final AuthDataProvider authDataProvider;
+   bool isGoogleSignUp;
+   bool isAppleSignUp;
   final ImagePicker _picker = ImagePicker();
   XFile? _image;
   String base64String = '';
@@ -34,7 +36,7 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
   SignUpFormState _formState;
   final SignUpFormState _initialFormState;
 
-  SignUpBloc({required this.authDataProvider})
+  SignUpBloc({required this.authDataProvider, this.isGoogleSignUp = false, this.isAppleSignUp = false})
     : _formState = SignUpFormState(
         openingHours: {
           for (final day in ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'])
@@ -58,6 +60,12 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
       super(SignUpInitial()) {
     emit(_formState);
 
+
+  on<SetSignUpType>((event, emit) {
+      isGoogleSignUp = event.isGoogleSignUp;
+      isAppleSignUp = event.isAppleSignUp;
+    });
+  
     on<UpdateTextField>((event, emit) {
       _formState = event.update(_formState);
       emit(_formState);
@@ -91,83 +99,6 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
       _formState = _formState.copyWith(openingHours: updatedHours);
       emit(_formState);
     });
-
-    // on<PickImageFromGalleryEvent>((event, emit) async {
-    //   emit(SignUpImageLoadingState());
-    //   try {
-    //     if (Platform.isAndroid) {
-    //       Permission permission;
-    //       if (await isAndroid13OrHigher()) {
-    //         permission = Permission.photos;
-    //       } else {
-    //         permission = Permission.storage;
-    //       }
-
-    //       final permissionStatus = await permission.request();
-    //       if (!permissionStatus.isGranted) {
-    //         emit(
-    //           SignUpImageErrorState(
-    //             errorMessage: "Photo access permission denied.",
-    //           ),
-    //         );
-    //         emit(_formState);
-    //         return;
-    //       }
-    //     }
-
-    //     // This will trigger iOS permission dialog if needed
-    //     final pickedImage = await _picker.pickImage(
-    //       source: ImageSource.gallery,
-    //       imageQuality: 80,
-    //     );
-
-    //     if (pickedImage == null) {
-    //       emit(_formState); // User cancelled or permission denied
-    //       return;
-    //     }
-
-    //     final file = File(pickedImage.path);
-    //     final fileSize = file.lengthSync();
-    //     final ext = pickedImage.name.toLowerCase();
-
-    //     if (!(ext.endsWith('.png') ||
-    //         ext.endsWith('.jpeg') ||
-    //         ext.endsWith('.jpg'))) {
-    //       emit(
-    //         SignUpImageErrorState(
-    //           errorMessage: "Only JPEG or PNG images are allowed.",
-    //         ),
-    //       );
-    //       emit(_formState);
-    //       return;
-    //     }
-
-    //     if (fileSize > 5 * 1024 * 1024) {
-    //       emit(
-    //         SignUpImageErrorState(
-    //           errorMessage: "Image size must be under 5MB.",
-    //         ),
-    //       );
-    //       emit(_formState);
-    //       return;
-    //     }
-
-    //     Uint8List bytes = await pickedImage.readAsBytes();
-    //     base64String = base64.encode(bytes);
-    //     _image = pickedImage;
-    //     base64Encoded = "data:image/png;base64,$base64String";
-
-    //     _formState = _formState.copyWith(
-    //       image: _image,
-    //       base64Image: base64Encoded,
-    //     );
-    //     ObjectFactory().prefs.setImageData(cafeUserImage: base64Encoded);
-    //     emit(_formState);
-    //   } catch (e) {
-    //     emit(SignUpImageErrorState(errorMessage: "Failed to pick image: $e"));
-    //     emit(_formState);
-    //   }
-    // });
 
     Future<Uint8List?> _compressImage(XFile imageFile) async {
       try {
