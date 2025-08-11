@@ -6,6 +6,7 @@ import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/signUp/apple_sign-up_request.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/signUp/google_sign-up_request.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/signUp/sign_up_request.dart';
+import 'package:soloseaters/src/resources/api_providers/auth/auth_data_provider.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/sign_up/sign_up_screen_argument.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/sign_up/widget/image_upload_widget.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/sign_up/widget/opening_hours_widget.dart';
@@ -47,12 +48,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
   @override
   void initState() {
     super.initState();
+    isGoogleSignUp = widget.signUpScreenArgument.isGoggleSignUp ?? false;
+    isAppleSignUp = widget.signUpScreenArgument.isAppleSignUp ?? false;
+    context.read<SignUpBloc>().add(
+      SetSignUpType(
+        isGoogleSignUp: isGoogleSignUp,
+        isAppleSignUp: isAppleSignUp,
+      ),
+    );
     context.read<SignUpBloc>().add(LoadVenueTypes());
     context.read<SignUpBloc>().add(ClearImageEvent());
     context.read<SignUpBloc>().add(const ResetFormEvent());
 
-    isGoogleSignUp = widget.signUpScreenArgument.isGoggleSignUp ?? false;
-    isAppleSignUp = widget.signUpScreenArgument.isAppleSignUp ?? false;
     final args = widget.signUpScreenArgument;
     final rawApple = args.email.trim() ?? '';
     final isGoogle = args.isGoggleSignUp ?? false;
@@ -145,19 +152,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   bool _validateForm(SignUpFormState state) {
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    final hasPasswords = !isAppleSignUp || !isGoogleSignUp;
+    final isPasswordRequired = !isGoogleSignUp && !isAppleSignUp;
+
     return state.venueName.trim().isNotEmpty &&
         state.venueDescription.trim().isNotEmpty &&
         state.email.trim().isNotEmpty &&
         emailRegex.hasMatch(state.email) &&
-        (hasPasswords
-            ? state.password.trim().isNotEmpty &&
+        // Only validate passwords if not social sign-up
+        (!isPasswordRequired ||
+            (state.password.trim().isNotEmpty &&
                 state.confirmPassword.trim().isNotEmpty &&
-                state.password == state.confirmPassword
-            : true) &&
-        // state.password.trim().isNotEmpty &&
-        // state.confirmPassword.trim().isNotEmpty &&
-        state.password == state.confirmPassword &&
+                state.password == state.confirmPassword)) &&
         state.phone.trim().isNotEmpty &&
         _isValidPhoneNumber(state.phone.trim()) &&
         state.postalCode.trim().isNotEmpty &&
@@ -168,6 +173,32 @@ class _SignUpScreenState extends State<SignUpScreen> {
         state.country.trim().isNotEmpty &&
         state.base64Image!.isNotEmpty;
   }
+
+  // bool _validateForm(SignUpFormState state) {
+  //   final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+  //   final hasPasswords = !isAppleSignUp || !isGoogleSignUp;
+  //   return state.venueName.trim().isNotEmpty &&
+  //       state.venueDescription.trim().isNotEmpty &&
+  //       state.email.trim().isNotEmpty &&
+  //       emailRegex.hasMatch(state.email) &&
+  //       (hasPasswords
+  //           ? state.password.trim().isNotEmpty &&
+  //               state.confirmPassword.trim().isNotEmpty &&
+  //               state.password == state.confirmPassword
+  //           : true) &&
+  //       // state.password.trim().isNotEmpty &&
+  //       // state.confirmPassword.trim().isNotEmpty &&
+  //       state.password == state.confirmPassword &&
+  //       state.phone.trim().isNotEmpty &&
+  //       _isValidPhoneNumber(state.phone.trim()) &&
+  //       state.postalCode.trim().isNotEmpty &&
+  //       state.address.trim().isNotEmpty &&
+  //       state.venueTypes.any((venue) => venue.isSelected) &&
+  //       state.openingHours.values.any((hour) => hour.isEnabled) &&
+  //       state.base64Image != null &&
+  //       state.country.trim().isNotEmpty &&
+  //       state.base64Image!.isNotEmpty;
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -448,7 +479,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         );
                       },
                     ),
-                    (!isAppleSignUp&& !isGoogleSignUp)
+                    (!isAppleSignUp && !isGoogleSignUp)
                         ? CustomTextField(
                           controller: _passwordController,
                           hintText: 'Password',
@@ -470,7 +501,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           },
                         )
                         : SizedBox.shrink(),
-                    (!isAppleSignUp&&!isGoogleSignUp)
+                    (!isAppleSignUp && !isGoogleSignUp)
                         ? CustomTextField(
                           controller: _confirmPasswordController,
                           hintText: 'Confirm Password',
@@ -765,7 +796,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         email: _emailController.text.trim(),
                                         // password: state.password,
                                         // passwordConfirmation:
-                                            // state.confirmPassword,
+                                        // state.confirmPassword,
                                         country: state.country,
                                         address: state.address,
                                         loginType: 3,

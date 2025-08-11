@@ -73,3 +73,16 @@ class SubmitAppleSignUp extends SignUpEvent {
 }
 
 class LoadVenueTypes extends SignUpEvent {}
+
+class SetSignUpType extends SignUpEvent {
+  final bool isGoogleSignUp;
+  final bool isAppleSignUp;
+
+  const SetSignUpType({
+    required this.isGoogleSignUp,
+    required this.isAppleSignUp,
+  });
+
+  @override
+  List<Object> get props => [isGoogleSignUp, isAppleSignUp];
+}
