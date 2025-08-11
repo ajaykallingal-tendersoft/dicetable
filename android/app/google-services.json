@@ -14,11 +14,27 @@
       },
       "oauth_client": [
         {
+          "client_id": "1093901587661-l856pruse7851og7ilb4os62h4q54g0q.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mydicetable.app",
+            "certificate_hash": "4e1f286c391741692fa4132a7596741f08227a16"
+          }
+        },
+        {
           "client_id": "1093901587661-mv63151dfadit63gh4qmc8uu3cn4pihi.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.mydicetable.app",
             "certificate_hash": "91bcfe62f418f71cb2957f6324bcf81a29c39402"
+          }
+        },
+        {
+          "client_id": "1093901587661-vfdar0j90mvhingngs6efic2f678kknt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.mydicetable.app",
+            "certificate_hash": "ca95def1c369140315e07452a402fb55df2d1679"
           }
         },
         {
@@ -35,14 +51,15 @@
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "1093901587661-kbcqnk8jsrsb1fl0llekkqae2c0jmbsc.apps.googleusercontent.com",
+              "client_id": "1093901587661-9jpqtg8njs9istlg3oqu2s1efpf3nl6r.apps.googleusercontent.com",
               "client_type": 3
             },
             {
-              "client_id": "1093901587661-r2ct9vmcs7c5jt29t2u7foshj4crji4n.apps.googleusercontent.com",
+              "client_id": "1093901587661-kgnk7r0um5h5j4maepmdevqt2jilvu5s.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.mydicetable.app"
+                "bundle_id": "com.soloseaters.app",
+                "app_store_id": "6747877501"
               }
             }
           ]

@@ -144,11 +144,11 @@ class NotificationDataProvider {
     try {
       final response = await ObjectFactory().apiClient.notificationStatus(request);
 
-      final String jsonRequest = jsonEncode(request.toJson());
+      // final String jsonRequest = jsonEncode(request.toJson());
       // print("Request Payload:");
       // print(jsonRequest);
-      print("Response status code: ${response.statusCode}");
-      print("Response data: ${response.data}");
+      // print("Response status code: ${response.statusCode}");
+      // print("Response data: ${response.data}");
 
       if (response.data != null) {
         if (response.statusCode == 200) {

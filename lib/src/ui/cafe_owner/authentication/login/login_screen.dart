@@ -447,7 +447,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 duration: 500.ms,
                                                 delay: 800.ms,
                                               ),
-                                              Gap(10),
+                                              Gap(20),
                                               LoginWithGoogleWidget()
                                                   .animate()
                                                   .fadeIn(
@@ -464,6 +464,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                     curve: Curves.elasticOut,
                                                     delay: 900.ms,
                                                   ),
+                                                   Gap(20),
                                               LoginWithAppleWidget()
                                                   .animate()
                                                   .fadeIn(

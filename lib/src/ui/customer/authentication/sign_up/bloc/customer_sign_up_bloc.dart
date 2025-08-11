@@ -198,8 +198,8 @@ class CustomerSignUpBloc
         _formState.copyWith(
           name: event.signupRequest.name ?? '',
           email: event.signupRequest.email ?? '',
-          password: event.signupRequest.password ?? '',
-          confirmPassword: event.signupRequest.passwordConfirmation ?? '',
+          // password: event.signupRequest.password ?? '',
+          // confirmPassword: event.signupRequest.passwordConfirmation ?? '',
           phone: event.signupRequest.phone ?? '',
           country: event.signupRequest.country ?? '',
           region: event.signupRequest.region ?? '',
@@ -253,8 +253,6 @@ class CustomerSignUpBloc
         _formState.copyWith(
           name: event.appleSignUpRequest.name ?? '',
           email: event.appleSignUpRequest.email ?? '',
-          password: event.appleSignUpRequest.password ?? '',
-          confirmPassword: event.appleSignUpRequest.passwordConfirmation ?? '',
           phone: event.appleSignUpRequest.phone ?? '',
           country: event.appleSignUpRequest.country ?? '',
           region: event.appleSignUpRequest.region ?? '',

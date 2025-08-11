@@ -54,14 +54,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
     isGoogleSignUp = widget.signUpScreenArgument.isGoggleSignUp ?? false;
     isAppleSignUp = widget.signUpScreenArgument.isAppleSignUp ?? false;
     final args = widget.signUpScreenArgument;
-    final rawApple = args.email?.trim() ?? '';
-    final isRelay = rawApple.toLowerCase().endsWith(
-      '@privaterelay.appleid.com',
-    );
+    final rawApple = args.email.trim() ?? '';
     final isGoogle = args.isGoggleSignUp ?? false;
     final isApple = args.isAppleSignUp ?? false;
 
-    final appleMail = (isApple && !isRelay) ? rawApple : '';
+    final appleMail = isAppleSignUp ? rawApple : '';
 
     _venueNameController = TextEditingController(
       text: isGoogle ? args.displayName : (isApple ? args.displayName : ''),
@@ -71,30 +68,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
     print("AppleMail: $appleMail");
     print("AppleMail: ${ObjectFactory().prefs.getCafeUserMail()}");
-    // if (isAppleSignUp) {
-    //   if (widget.signUpScreenArgument.email.contains('privaterelay')) {
-    //     appleMail = "";
-    //   } else {
-    //     appleMail = widget.signUpScreenArgument.email;
-    //   }
-    // }
 
-    // _venueNameController = TextEditingController(
-    //   text:
-    //       isGoogleSignUp
-    //           ? widget.signUpScreenArgument.displayName
-    //           : isAppleSignUp
-    //           ? widget.signUpScreenArgument.displayName
-    //           : '',
-    // );
-    // _emailController = TextEditingController(
-    //   text:
-    //       isGoogleSignUp
-    //           ? widget.signUpScreenArgument.email
-    //           : isAppleSignUp
-    //           ? appleMail
-    //           : '',
-    // );
     _venueDescriptionController = TextEditingController();
     _passwordController = TextEditingController();
     _confirmPasswordController = TextEditingController();
@@ -115,14 +89,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
         _emailController.selection = TextSelection.fromPosition(
           TextPosition(offset: newText.length),
         );
-        // Update bloc state with the trimmed email
         context.read<SignUpBloc>().add(
           UpdateTextField((state) => state.copyWith(email: newText)),
         );
       }
     });
 
-    // Use addPostFrameCallback to ensure the Bloc has processed the reset
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (isGoogleSignUp || isAppleSignUp) {
         context.read<SignUpBloc>().add(
@@ -136,7 +108,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
       }
     });
 
-    // Use addPostFrameCallback to ensure the Bloc has processed the reset
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (isGoogleSignUp || isAppleSignUp) {
         context.read<SignUpBloc>().add(
@@ -174,12 +145,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   bool _validateForm(SignUpFormState state) {
     final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    final hasPasswords = !isAppleSignUp || !isGoogleSignUp;
     return state.venueName.trim().isNotEmpty &&
         state.venueDescription.trim().isNotEmpty &&
         state.email.trim().isNotEmpty &&
         emailRegex.hasMatch(state.email) &&
-        state.password.trim().isNotEmpty &&
-        state.confirmPassword.trim().isNotEmpty &&
+        (hasPasswords
+            ? state.password.trim().isNotEmpty &&
+                state.confirmPassword.trim().isNotEmpty &&
+                state.password == state.confirmPassword
+            : true) &&
+        // state.password.trim().isNotEmpty &&
+        // state.confirmPassword.trim().isNotEmpty &&
         state.password == state.confirmPassword &&
         state.phone.trim().isNotEmpty &&
         _isValidPhoneNumber(state.phone.trim()) &&
@@ -446,7 +423,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                     CustomTextField(
                       controller: _emailController,
-                      hintText: isAppleSignUp ? 'Email is required' : 'Email',
+                      hintText: 'Email',
                       readOnly:
                           isGoogleSignUp ||
                           (isAppleSignUp && _emailController.text.isNotEmpty),
@@ -471,48 +448,52 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         );
                       },
                     ),
-
-                    CustomTextField(
-                      controller: _passwordController,
-                      hintText: 'Password',
-                      isPassword: true,
-                      errorText:
-                          showValidationErrors && formState != null
-                              ? (_passwordController.text.isEmpty
-                                  ? 'Password is required'
-                                  : _passwordController.text.length < 6
-                                  ? 'Password must be at least 6 characters'
-                                  : null)
-                              : null,
-                      onChanged: (value) {
-                        context.read<SignUpBloc>().add(
-                          UpdateTextField(
-                            (state) => state.copyWith(password: value),
-                          ),
-                        );
-                      },
-                    ),
-                    CustomTextField(
-                      controller: _confirmPasswordController,
-                      hintText: 'Confirm Password',
-                      isPassword: true,
-                      errorText:
-                          showValidationErrors && formState != null
-                              ? (_confirmPasswordController.text.isEmpty
-                                  ? 'Confirm password is required'
-                                  : _confirmPasswordController.text !=
-                                      _passwordController.text
-                                  ? 'Passwords do not match'
-                                  : null)
-                              : null,
-                      onChanged: (value) {
-                        context.read<SignUpBloc>().add(
-                          UpdateTextField(
-                            (state) => state.copyWith(confirmPassword: value),
-                          ),
-                        );
-                      },
-                    ),
+                    (!isAppleSignUp&& !isGoogleSignUp)
+                        ? CustomTextField(
+                          controller: _passwordController,
+                          hintText: 'Password',
+                          isPassword: true,
+                          errorText:
+                              showValidationErrors && formState != null
+                                  ? (_passwordController.text.isEmpty
+                                      ? 'Password is required'
+                                      : _passwordController.text.length < 6
+                                      ? 'Password must be at least 6 characters'
+                                      : null)
+                                  : null,
+                          onChanged: (value) {
+                            context.read<SignUpBloc>().add(
+                              UpdateTextField(
+                                (state) => state.copyWith(password: value),
+                              ),
+                            );
+                          },
+                        )
+                        : SizedBox.shrink(),
+                    (!isAppleSignUp&&!isGoogleSignUp)
+                        ? CustomTextField(
+                          controller: _confirmPasswordController,
+                          hintText: 'Confirm Password',
+                          isPassword: true,
+                          errorText:
+                              showValidationErrors && formState != null
+                                  ? (_confirmPasswordController.text.isEmpty
+                                      ? 'Confirm password is required'
+                                      : _confirmPasswordController.text !=
+                                          _passwordController.text
+                                      ? 'Passwords do not match'
+                                      : null)
+                                  : null,
+                          onChanged: (value) {
+                            context.read<SignUpBloc>().add(
+                              UpdateTextField(
+                                (state) =>
+                                    state.copyWith(confirmPassword: value),
+                              ),
+                            );
+                          },
+                        )
+                        : SizedBox.shrink(),
                     CustomTextField(
                       isPhoneNumber: true,
                       controller: _phoneController,
@@ -782,9 +763,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                         venueDescription:
                                             state.venueDescription,
                                         email: _emailController.text.trim(),
-                                        password: state.password,
-                                        passwordConfirmation:
-                                            state.confirmPassword,
+                                        // password: state.password,
+                                        // passwordConfirmation:
+                                            // state.confirmPassword,
                                         country: state.country,
                                         address: state.address,
                                         loginType: 3,
@@ -811,8 +792,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     name: _venueNameController.text,
                                     venueDescription: state.venueDescription,
                                     email: _emailController.text.trim(),
-                                    password: state.password,
-                                    passwordConfirmation: state.confirmPassword,
                                     country: state.country,
                                     address: state.address,
                                     loginType: 3,

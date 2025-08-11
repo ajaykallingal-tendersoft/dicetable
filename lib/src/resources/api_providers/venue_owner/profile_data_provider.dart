@@ -85,11 +85,11 @@ class ProfileDataProvider {
     try {
       final response = await ObjectFactory().apiClient.profileUpdateById(request);
       // ignore: unused_local_variable
-      String jsonR = jsonEncode(request);
-      print("Request Payload:");
-      print(jsonR);
+      // String jsonR = jsonEncode(request);
+      // print("Request Payload:");
+      // print(jsonR);
       // print("Response status code: ${response.statusCode}");
-      print("Response data: ${response.data}");
+      // print("Response data: ${response.data}");
       if (response.data != null) {
 
         if (response.statusCode == 200) {

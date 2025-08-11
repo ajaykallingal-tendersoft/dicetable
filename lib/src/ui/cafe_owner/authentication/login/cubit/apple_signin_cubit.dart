@@ -144,7 +144,7 @@ class AppleSignInCubit extends Cubit<AppleSignInState> {
           throw UnimplementedError();
       }
     } catch (e) {
-      emit(AppleSignInError(message: e.toString()));
+      emit(AppleSignInError(message: "ERROR_AUTHORIZATION_DENIED"));
       rethrow;
     }
   }

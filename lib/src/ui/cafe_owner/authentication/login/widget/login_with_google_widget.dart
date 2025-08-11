@@ -1,3 +1,5 @@
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/constants/assets.dart';
@@ -18,21 +20,35 @@ import 'package:soloseaters/src/utils/network_connectivity/network_connectivity_
 
 import '../../../../customer/authentication/login/bloc/customer_login_bloc.dart';
 
+const _googleIconSizeScale = 28 / 44;
+
 class LoginWithGoogleWidget extends StatelessWidget {
-  LoginWithGoogleWidget({super.key});
+  LoginWithGoogleWidget({
+    super.key,
+    this.height = 44,
+    this.borderRadius = const BorderRadius.all(Radius.circular(8.0)),
+  });
+  final double height;
+
+  final BorderRadius borderRadius;
 
   NetworkConnectivityState? _networkState;
 
   @override
   Widget build(BuildContext context) {
     final userCategory = ObjectFactory().prefs.getUserDecisionName();
+
     return BlocListener<NetworkConnectivityBloc, NetworkConnectivityState>(
       listener: (context, state) {
         _networkState = state;
       },
       child: BlocConsumer<GoogleSignInCubit, GoogleSignInState>(
         listener: (context, state) {
+          if (state is GoogleSignInCubitLoading) {
+            EasyLoading.show();
+          }
           if (state is GoogleSignInSuccess) {
+            EasyLoading.dismiss();
             if (userCategory == 'PUBLIC_USER') {
               BlocProvider.of<CustomerLoginBloc>(context).add(
                 CustomerGoogleLoginEvent(
@@ -71,6 +87,7 @@ class LoginWithGoogleWidget extends StatelessWidget {
             }
           }
           if (state is GoogleSignInDenied) {
+             EasyLoading.dismiss();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 backgroundColor: AppColors.appRedColor,
@@ -79,6 +96,7 @@ class LoginWithGoogleWidget extends StatelessWidget {
             );
           }
           if (state is GoogleSignInError) {
+              EasyLoading.dismiss();
             context.read<GoogleSignInCubit>().signOut();
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -88,69 +106,69 @@ class LoginWithGoogleWidget extends StatelessWidget {
             );
           }
         },
-
         builder: (context, state) {
-          final isTabletOrLarger = ResponsiveBreakpoints.of(
-            context,
-          ).largerThan(MOBILE);
-          return InkWell(
-            onTap:
-                state is GoogleSignInCubitLoading
-                    ? null
-                    : () {
-                      if (_networkState is NetworkFailure) {
-                        Fluttertoast.showToast(
-                          msg: "No internet connection",
-                          backgroundColor: AppColors.primaryWhiteColor,
-                          textColor: AppColors.appRedColor,
-                        );
-                        return;
-                      }
-                      context.read<GoogleSignInCubit>().login(
-                        forceAccountSelection: true,
-                      );
-                    },
-
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-              margin: EdgeInsets.all(16),
-              height: 70.h,
-              decoration: BoxDecoration(
-                color: AppColors.primaryWhiteColor,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset(
-                    Assets
-                        .GOOGLE_LOGO, // Changed from APPLE_LOGO to GOOGLE_LOGO
-                    fit: isTabletOrLarger ? BoxFit.contain : BoxFit.scaleDown,
-                    width: 25.w,
-                    height: 25.h,
+          // Calculate font size based on height (same as Apple button)
+          final fontSize = height * 0.43;
+          return SizedBox(
+            height: height,
+            child: SizedBox.expand(
+              child: InkWell(
+                onTap:
+                    state is GoogleSignInCubitLoading
+                        ? null
+                        : () {
+                          if (_networkState is NetworkFailure) {
+                            Fluttertoast.showToast(
+                              msg: "No internet connection",
+                              backgroundColor: AppColors.primaryWhiteColor,
+                              textColor: AppColors.appRedColor,
+                            );
+                            return;
+                          }
+                          context.read<GoogleSignInCubit>().login(
+                            forceAccountSelection: true,
+                          );
+                        },
+                borderRadius: borderRadius,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryWhiteColor,
+                    borderRadius: borderRadius,
                   ),
-                  state is GoogleSignInCubitLoading
-                      ? Padding(
-                        padding: const EdgeInsets.only(left: 24),
-                        child: CircularProgressIndicator(
-                          backgroundColor: AppColors.primaryWhiteColor,
-                          color: AppColors.primary,
-                        ),
-                      )
-                      : Padding(
-                        padding: const EdgeInsets.only(left: 24),
-                        child: Text(
-                          'Sign in with Google',
-                          style: Theme.of(
-                            context,
-                          ).textTheme.labelMedium!.copyWith(
-                            color: AppColors.textFieldTextColor,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 15,
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  height: height,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        width: _googleIconSizeScale * height,
+                        height: _googleIconSizeScale * height,
+                        child: Center(
+                          child: Image.asset(
+                            Assets.GOOGLE_LOGO,
+                            fit: BoxFit.contain,
+                            width: 25,
+                            height: 25,
                           ),
                         ),
                       ),
-                ],
+                      Flexible(
+                        child: Padding(
+                          padding: const EdgeInsets.only(left: 5),
+                          child: Text(
+                            'Sign in with Google',
+                            style: TextStyle(
+                              fontFamily: '.SF Pro Text',
+                              letterSpacing: -0.41,
+                              fontSize: fontSize,
+                              color: AppColors.primaryBlackColor,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           );

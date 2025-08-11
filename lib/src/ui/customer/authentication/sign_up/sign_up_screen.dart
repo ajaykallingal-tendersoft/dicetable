@@ -41,98 +41,15 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
   final _formKey = GlobalKey<FormState>();
   AutovalidateMode autovalidateMode = AutovalidateMode.disabled;
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   isGoogleSignUp = widget.signUpScreenArgument.isGoggleSignUp ?? false;
-  //   isAppleSignUp = widget.signUpScreenArgument.isAppleSignUp ?? false;
-  //   if (isAppleSignUp) {
-  //     if (widget.signUpScreenArgument.email.contains('privaterelay')) {
-  //       appleMail = "";
-  //     } else {
-  //       appleMail = widget.signUpScreenArgument.email;
-  //     }
-  //   }
-
-  //   _nameController = TextEditingController(
-  //     text:
-  //         isGoogleSignUp
-  //             ? widget.signUpScreenArgument.displayName
-  //             : isAppleSignUp
-  //             ? widget.signUpScreenArgument.displayName
-  //             : '',
-  //   );
-  //   _emailController = TextEditingController(
-  //     text:
-  //         isGoogleSignUp
-  //             ? widget.signUpScreenArgument.email
-  //             : isAppleSignUp
-  //             ? appleMail
-  //             : '',
-  //   );
-  //   _passwordController = TextEditingController();
-  //   _confirmPasswordController = TextEditingController();
-  //   _phoneController = TextEditingController();
-  //   _countryController = TextEditingController();
-  //   _regionController = TextEditingController();
-
-  //   _emailController.addListener(() {
-  //     final text = _emailController.text;
-  //     if (text.contains(' ')) {
-  //       context.read<CustomerSignUpBloc>().add(EmailChanged(email: text));
-  //       context.read<CustomerSignUpBloc>().add(ValidateForm());
-  //       final newText = text.replaceAll(' ', '');
-  //       _emailController.text = newText;
-  //       _emailController.selection = TextSelection.fromPosition(
-  //         TextPosition(offset: newText.length),
-  //       );
-  //       context.read<CustomerSignUpBloc>().add(EmailChanged(email: newText));
-  //     }
-  //   });
-  //   ;
-
-  //   if (isGoogleSignUp) {
-  //     WidgetsBinding.instance.addPostFrameCallback((_) {
-  //       final bloc = context.read<CustomerSignUpBloc>();
-  //       bloc.add(
-  //         UpdateTextField(
-  //           (state) => state.copyWith(
-  //             name: widget.signUpScreenArgument.displayName ?? '',
-  //             email: widget.signUpScreenArgument.email ?? '',
-  //           ),
-  //         ),
-  //       );
-  //     });
-  //   }
-  //   if (isAppleSignUp) {
-  //     WidgetsBinding.instance.addPostFrameCallback((_) {
-  //       final bloc = context.read<CustomerSignUpBloc>();
-  //       bloc.add(
-  //         UpdateTextField(
-  //           (state) => state.copyWith(
-  //             name: widget.signUpScreenArgument.displayName ?? '',
-  //             email: appleMail,
-  //           ),
-  //         ),
-  //       );
-  //     });
-  //   }
-  // }
-
   @override
   void initState() {
     super.initState();
 
     final args = widget.signUpScreenArgument;
-
     isGoogleSignUp = args.isGoggleSignUp ?? false;
     isAppleSignUp = args.isAppleSignUp ?? false;
-
     final rawAppleEmail = args.email?.trim() ?? '';
-    final isPrivateRelay = rawAppleEmail.toLowerCase().endsWith(
-      '@privaterelay.appleid.com',
-    );
-    appleMail = (isAppleSignUp && !isPrivateRelay) ? rawAppleEmail : '';
+    appleMail = isAppleSignUp ? rawAppleEmail : '';
 
     _nameController = TextEditingController(
       text:
@@ -444,9 +361,7 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                               (isAppleSignUp &&
                                   _emailController.text.isNotEmpty),
 
-                          hint: isAppleSignUp ? 'Email is Required' : 'Email',
-                          customRequiredMessage:
-                              isAppleSignUp ? 'Email is Required' : null,
+                          hint: 'Email',
                           isRequired: true,
                           isEmail: true,
                           controller: _emailController,
@@ -458,7 +373,8 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                             );
                           },
                         ),
-                        RequiredTextField(
+                         (!isAppleSignUp)
+                         ? RequiredTextField(
                           hint: 'Password',
                           isRequired: true,
                           obscureText: true,
@@ -469,8 +385,9 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                               PasswordChanged(password: value),
                             );
                           },
-                        ),
-                        RequiredTextField(
+                        ): SizedBox.shrink(),
+                        (!isAppleSignUp)
+                       ? RequiredTextField(
                           hint: 'Confirm Password',
                           isRequired: true,
                           obscureText: true,
@@ -481,7 +398,7 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                               ConfirmPasswordChanged(confirmPassword: value),
                             );
                           },
-                        ),
+                        ) : SizedBox.shrink(),
                         RequiredTextField(
                           isPhoneNumber: true,
                           hint: 'Phone number',
@@ -580,9 +497,9 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                                             GoogleSignUpRequest(
                                               name: name,
                                               email: email,
-                                              password: password,
-                                              passwordConfirmation:
-                                                  confirmPassword,
+                                              // password: password,
+                                              // passwordConfirmation:
+                                              //     confirmPassword,
                                               country: country,
                                               loginType: 5,
                                               phone: phone,
@@ -609,9 +526,6 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                                             AppleSignUpRequest(
                                               name: name,
                                               email: email,
-                                              password: password,
-                                              passwordConfirmation:
-                                                  confirmPassword,
                                               country: country,
                                               loginType: 5,
                                               phone: phone,

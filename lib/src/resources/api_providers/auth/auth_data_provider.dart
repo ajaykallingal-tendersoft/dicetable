@@ -33,10 +33,10 @@ class AuthDataProvider {
       final response = await ObjectFactory().apiClient.registerUser(
         signUpRequest,
       );
-      print(response.toString());
-      String jsonRequest = jsonEncode(signUpRequest);
-      print("Request Payload:");
-      print(jsonRequest);
+      // print(response.toString());
+      // String jsonRequest = jsonEncode(signUpRequest);
+      // print("Request Payload:");
+      // print(jsonRequest);
       if (response.statusCode == 200) {
         return StateModel<SignUpRequestResponse>.success(
           SignUpRequestResponse.fromJson(response.data),
@@ -74,7 +74,7 @@ class AuthDataProvider {
       // print("Response data: ${response.data}");
       if (response.data != null) {
         if (response.statusCode == 200) {
-          print(response);
+          // print(response);
           final loginResponse = LoginRequestResponse.fromJson(response.data);
           return StateModel.success(loginResponse);
         } else {
@@ -155,7 +155,7 @@ class AuthDataProvider {
       final response = await ObjectFactory().apiClient.forgotPassword(
         forgotPasswordRequest,
       );
-      print(response.toString());
+      // print(response.toString());
 
       final responseData =
           response.data is Map<String, dynamic>
@@ -267,7 +267,7 @@ class AuthDataProvider {
       final response = await ObjectFactory().apiClient.passwordReset(
         passwordReset,
       );
-      print(response.toString());
+      // print(response.toString());
 
       final responseData =
           response.data is Map<String, dynamic>
@@ -320,7 +320,7 @@ class AuthDataProvider {
       final response = await ObjectFactory().apiClient.googleLogin(
         googleLoginRequest,
       );
-      print(response.toString());
+      // print(response.toString());
       if (response.statusCode == 200) {
         return StateModel<GoogleLoginRequestResponse>.success(
           GoogleLoginRequestResponse.fromJson(response.data),
@@ -354,7 +354,7 @@ class AuthDataProvider {
       final response = await ObjectFactory().apiClient.googleRegisterUser(
         googleSignUpRequest,
       );
-      print(response.toString());
+      // print(response.toString());
       
       if (response.statusCode == 200) {
         return StateModel<GoogleSignUpRequestResponse>.success(
@@ -429,7 +429,7 @@ class AuthDataProvider {
       final response = await ObjectFactory().apiClient.verifyOTP(
         otpVerifyRequest,
       );
-      print(response.toString());
+      // print(response.toString());
       if (response.statusCode == 200) {
         return StateModel<OtpVerificationResponse>.success(
           OtpVerificationResponse.fromJson(response.data),
@@ -462,7 +462,7 @@ class AuthDataProvider {
   Future<StateModel?> getVenueTypes() async {
     try {
       final response = await ObjectFactory().apiClient.getVenueTypes();
-      print(response.toString());
+      // print(response.toString());
       if (response.statusCode == 200) {
         return StateModel<VenueTypeResponse>.success(
           VenueTypeResponse.fromJson(response.data),
@@ -491,7 +491,7 @@ class AuthDataProvider {
   Future<StateModel?> guestUserSignIn(GuestUserRequest request) async {
     try {
       final response = await ObjectFactory().apiClient.guestUserSignIn(request);
-      print(response.toString());
+      // print(response.toString());
 
       if (response.statusCode == 200) {
         final data = GuestSignInResponse.fromJson(response.data);
@@ -547,7 +547,7 @@ class AuthDataProvider {
       final response = await ObjectFactory().apiClient.appleLogin(
         appleLoginRequest,
       );
-      print(response.toString());
+      // print(response.toString());
       if (response.statusCode == 200) {
         return StateModel<AppleLoginRequestResponse>.success(
           AppleLoginRequestResponse.fromJson(response.data),

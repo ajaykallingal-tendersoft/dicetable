@@ -1,4 +1,7 @@
 import 'dart:io';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/constants/assets.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/login/apple_login_request.dart';
@@ -9,120 +12,91 @@ import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:gap/gap.dart';
-import 'package:responsive_framework/responsive_framework.dart';
+import 'package:soloseaters/src/utils/network_connectivity/network_connectivity_bloc.dart';
 
 class LoginWithAppleWidget extends StatelessWidget {
-  const LoginWithAppleWidget({super.key});
-
+  LoginWithAppleWidget({super.key});
+  NetworkConnectivityState? _networkState;
   @override
   Widget build(BuildContext context) {
     if (!Platform.isIOS) return const SizedBox();
     final userCategory = ObjectFactory().prefs.getUserDecisionName();
-    return BlocConsumer<AppleSignInCubit, AppleSignInState>(
+    return BlocListener<NetworkConnectivityBloc, NetworkConnectivityState>(
       listener: (context, state) {
-        if (state is AppleSignInLoaded) {
-          print("AppleCubitLoaded Usermail:${state.userMail}");
-          if (userCategory == 'PUBLIC_USER') {
-            BlocProvider.of<CustomerLoginBloc>(context).add(
-              CustomerAppleLoginEvent(
-                appleLoginRequest: AppleLoginRequest(
-                  identityToken: state.identityToken,
-                  loginType: 5,
-                  fcmToken: ObjectFactory().prefs.getFcmToken().toString(),
-                ),
-              ),
-            );
-            ObjectFactory().prefs.setCustomerUserName(
-              customerUserName: state.displayName,
-            );
-            ObjectFactory().prefs.setCustomerUserMail(
-              customerUserMail: state.userMail,
-            );
-          } else {
-            print("AppleCubitLoaded Usermail:${state.userMail}");
-            BlocProvider.of<LoginBloc>(context).add(
-              GetAppleLoginEvent(
-                appleLoginRequest: AppleLoginRequest(
-                  identityToken: state.identityToken,
-                  loginType: 3,
-                  fcmToken: ObjectFactory().prefs.getFcmToken().toString(),
-                ),
-              ),
-            );
-            ObjectFactory().prefs.setCafeUserName(
-              cafeUserName: state.displayName,
-            );
-            ObjectFactory().prefs.setCafeUserMail(cafeUserMail: state.userMail);
+        _networkState = state;
+      },
+      child: BlocConsumer<AppleSignInCubit, AppleSignInState>(
+        listener: (context, state) {
+          if (state is AppleSignInLoading) {
+            EasyLoading.show();
           }
-        } else if (state is AppleSignInDenied) {
-          _showErrorSnackBar(context, "The request cannot be completed.");
-        }
-      },
-      builder: (context, state) {
-        final isTabletOrLarger = ResponsiveBreakpoints.of(
-          context,
-        ).largerThan(MOBILE);
-        return InkWell(
-          onTap:
-              state is AppleSignInLoading
-                  ? null
-                  : () => _signInWithApple(context),
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
-            margin: EdgeInsets.all(16),
-            height: 70.h,
-            decoration: BoxDecoration(
-              color: AppColors.primaryWhiteColor,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Padding(
-              padding:
-                  isTabletOrLarger
-                      ? EdgeInsets.zero
-                      : EdgeInsets.only(right: 27.0),
-
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  isTabletOrLarger ? Gap(10) : Gap(0),
-                  Image.asset(
-                    Assets.APPLE_LOGO,
-                    fit: isTabletOrLarger ? BoxFit.contain : BoxFit.cover,
-                    width: 60.w,
-                    height: 60.h,
+          if (state is AppleSignInLoaded) {
+            EasyLoading.dismiss();
+            print("AppleCubitLoaded Usermail:${state.userMail}");
+            if (userCategory == 'PUBLIC_USER') {
+              BlocProvider.of<CustomerLoginBloc>(context).add(
+                CustomerAppleLoginEvent(
+                  appleLoginRequest: AppleLoginRequest(
+                    identityToken: state.identityToken,
+                    loginType: 5,
+                    fcmToken: ObjectFactory().prefs.getFcmToken().toString(),
                   ),
-                  state is AppleSignInLoading
-                      ? Padding(
-                        padding: EdgeInsets.only(left: 24.w),
-                        child: SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            backgroundColor: AppColors.primaryWhiteColor,
-                            color: AppColors.primary,
-                          ),
-                        ),
-                      )
-                      : Text(
-                        'Sign in with Apple',
-                        style: Theme.of(
-                          context,
-                        ).textTheme.labelMedium?.copyWith(
-                          color: AppColors.textFieldTextColor,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                        ),
-                      ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
+                ),
+              );
+              ObjectFactory().prefs.setCustomerUserName(
+                customerUserName: state.displayName,
+              );
+              ObjectFactory().prefs.setCustomerUserMail(
+                customerUserMail: state.userMail,
+              );
+            } else {
+              print("AppleCubitLoaded Usermail:${state.userMail}");
+              BlocProvider.of<LoginBloc>(context).add(
+                GetAppleLoginEvent(
+                  appleLoginRequest: AppleLoginRequest(
+                    identityToken: state.identityToken,
+                    loginType: 3,
+                    fcmToken: ObjectFactory().prefs.getFcmToken().toString(),
+                  ),
+                ),
+              );
+              ObjectFactory().prefs.setCafeUserName(
+                cafeUserName: state.displayName,
+              );
+              ObjectFactory().prefs.setCafeUserMail(
+                cafeUserMail: state.userMail,
+              );
+            }
+          }
+          if (state is AppleSignInDenied) {
+            EasyLoading.dismiss();
+            _showErrorSnackBar(context, "The request cannot be completed.");
+          }
+          if (state is AppleSignInError) {
+            EasyLoading.dismiss();
+            _showErrorSnackBar(context, "The request cannot be completed.");
+          }
+        },
+        builder: (context, state) {
+          return SignInWithAppleButton(
+            onPressed:
+                state is AppleSignInLoading
+                    ? null
+                    : () {
+                      if (_networkState is NetworkFailure) {
+                        Fluttertoast.showToast(
+                          msg: "No internet connection",
+                          backgroundColor: AppColors.primaryWhiteColor,
+                          textColor: AppColors.appRedColor,
+                        );
+                        return;
+                      }
+                      _signInWithApple(context);
+                    },
+            style: SignInWithAppleButtonStyle.white,
+          );
+        },
+      ),
     );
   }
 

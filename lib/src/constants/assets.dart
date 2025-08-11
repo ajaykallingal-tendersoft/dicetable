@@ -6,7 +6,7 @@ class Assets {
   static const String NO_IMAGE =
       "https://www.freeiconspng.com/thumbs/no-image-icon/no-image-icon-15.png";
 
-  static const String APPLE_LOGO = 'assets/png/apple_logo3x.png';
+  static const String APPLE_LOGO = 'assets/png/apple-button.png';
   static const String GOOGLE_LOGO = 'assets/png/google.png';
 
   ///Lottie

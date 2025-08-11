@@ -78,7 +78,7 @@ class SubscriptionDataProvider {
     try {
       final response =
       await ObjectFactory().apiClient.subscriptionStart(subscriptionStart);
-      print(response.toString());
+      // print(response.toString());
       // String jsonRequest = jsonEncode(subscriptionStart);
       // print("Request Payload:");
       // print(jsonRequest);

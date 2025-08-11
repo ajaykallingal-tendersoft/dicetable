@@ -47,10 +47,10 @@ class BookingDataProvider {
     try {
       final response =
       await ObjectFactory().apiClient.withdrawBooking(request);
-      print(response.toString());
-      String jsonRequest = jsonEncode(request);
-      print("Request Payload:");
-      print(jsonRequest);
+      // print(response.toString());
+      // String jsonRequest = jsonEncode(request);
+      // print("Request Payload:");
+      // print(jsonRequest);
       if (response.statusCode == 200) {
         return StateModel<WithdrawBookingResponse>.success(
             WithdrawBookingResponse.fromJson(response.data));

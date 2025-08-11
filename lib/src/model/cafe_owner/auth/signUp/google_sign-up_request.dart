@@ -2,8 +2,6 @@ class GoogleSignUpRequest {
   final String? name;
   final String? venueDescription;
   final String? email;
-  final String? password;
-  final String? passwordConfirmation;
   final String? phone;
   final int? loginType;
   final String? country;
@@ -21,8 +19,6 @@ class GoogleSignUpRequest {
     this.name,
     this.venueDescription,
     this.email,
-    this.password,
-    this.passwordConfirmation,
     this.phone,
     this.loginType,
     this.country,
@@ -46,12 +42,6 @@ class GoogleSignUpRequest {
     }
     if (email != null) {
       json['email'] = email;
-    }
-    if (password != null) {
-      json['password'] = password;
-    }
-    if (passwordConfirmation != null) {
-      json['password_confirmation'] = passwordConfirmation;
     }
     if (phone != null) {
       json['phone'] = phone;
