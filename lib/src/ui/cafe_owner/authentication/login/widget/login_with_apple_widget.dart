@@ -37,6 +37,7 @@ class LoginWithAppleWidget extends StatelessWidget {
               BlocProvider.of<CustomerLoginBloc>(context).add(
                 CustomerAppleLoginEvent(
                   appleLoginRequest: AppleLoginRequest(
+                    email: state.userMail,
                     identityToken: state.identityToken,
                     loginType: 5,
                     fcmToken: ObjectFactory().prefs.getFcmToken().toString(),
@@ -54,6 +55,7 @@ class LoginWithAppleWidget extends StatelessWidget {
               BlocProvider.of<LoginBloc>(context).add(
                 GetAppleLoginEvent(
                   appleLoginRequest: AppleLoginRequest(
+                    email: state.userMail,
                     identityToken: state.identityToken,
                     loginType: 3,
                     fcmToken: ObjectFactory().prefs.getFcmToken().toString(),
