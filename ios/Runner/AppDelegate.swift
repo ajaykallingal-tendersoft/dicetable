@@ -25,4 +25,15 @@ import FirebaseMessaging
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
   
   }
+    override func applicationDidBecomeActive(_ application: UIApplication) {
+    application.applicationIconBadgeNumber = 0
+    UNUserNotificationCenter.current().removeAllDeliveredNotifications()
+    
+    if #available(iOS 16.0, *) {
+        UNUserNotificationCenter.current().setBadgeCount(0)
+    }
+  }
+   override func applicationDidEnterBackground(_ application: UIApplication) {
+    application.applicationIconBadgeNumber = 0
+  }
 }

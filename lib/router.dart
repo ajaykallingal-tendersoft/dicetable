@@ -10,7 +10,6 @@ import 'package:soloseaters/src/ui/cafe_owner/notification/notification_screen.d
 import 'package:soloseaters/src/ui/cafe_owner/profile/bloc/profile_bloc.dart';
 import 'package:soloseaters/src/ui/cafe_owner/profile/edit_profile_screen.dart';
 import 'package:soloseaters/src/ui/cafe_owner/profile/manage_profile_screen.dart';
-import 'package:soloseaters/src/ui/cafe_owner/subscription/payment/payment.dart';
 import 'package:soloseaters/src/ui/cafe_owner/subscription/subscription_overview_screen.dart';
 import 'package:soloseaters/src/ui/cafe_owner/subscription/subscription_prompt_screen.dart';
 import 'package:soloseaters/src/ui/category/category_screen.dart';
@@ -22,7 +21,6 @@ import 'package:soloseaters/src/ui/customer/cafe_list/components/cafe_details_ar
 import 'package:soloseaters/src/ui/customer/favourites/favourites_screen.dart';
 import 'package:soloseaters/src/ui/customer/favourites/widget/fav_details_argument.dart';
 import 'package:soloseaters/src/ui/customer/history/history_screen.dart';
-import 'package:soloseaters/src/ui/customer/home/home_page.dart';
 import 'package:soloseaters/src/ui/customer/home/home_screen.dart';
 import 'package:soloseaters/src/ui/customer/profile/customer_profile_screen.dart';
 import 'package:soloseaters/src/ui/splash/splash_screen.dart';
