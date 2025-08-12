@@ -225,7 +225,7 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
           }
           if (state is AppleSignUpSuccessState) {
             final response = state.appleSignUpRequestResponse;
-            if (response.status == true) {
+            if (response.status == false) {
               if (response.errors != null && response.errors!.isNotEmpty) {
                 final firstErrorField = response.errors!.keys.first;
                 final firstErrorMessage =
