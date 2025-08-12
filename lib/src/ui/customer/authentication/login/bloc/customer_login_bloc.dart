@@ -56,8 +56,6 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
 
       String email = formState.email.trim();
       String password = formState.password;
-      print("Email: $email");
-      print("Password: $password");
 
       String? emailError;
       String? passwordError;
@@ -98,8 +96,7 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
           loginType: 5,
         );
         final stateModel = await authDataProvider.loginUser(loginRequest);
-        print("EmailAfter: $email");
-        print("PasswordAfter: $password");
+    
 
         if (stateModel.isSuccess) {
           emit(
@@ -136,14 +133,20 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
       );
       if (response!.data.status == true) {
         emit(GoogleLoginLoaded(googleLoginResponse: response.data));
-        emit(formState);
+        emit(
+          LoginFormState(email: formState.email, password: formState.password),
+        );
       } else {
         emit(GoogleLoginErrorState(msg: response.data.message));
-        emit(formState);
+        emit(
+          LoginFormState(email: formState.email, password: formState.password),
+        );
       }
     } catch (e) {
       emit(GoogleLoginErrorState(msg: e.toString()));
-      emit(formState);
+      emit(
+        LoginFormState(email: formState.email, password: formState.password),
+      );
     }
   }
 
@@ -182,9 +185,11 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
 
       if (response!.data.status == true) {
         emit(LoginWithAppleLoaded(appleLoginRequestResponse: response.data));
-        emit(formState);
+        emit(
+          LoginFormState(email: formState.email, password: formState.password),
+        );
       } else {
-        // Pass appleId from response
+        
         emit(
           LoginWithAppleError(
             response.data.message,
@@ -192,15 +197,21 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
             response.data.appleId,
           ),
         );
-        emit(formState);
+        emit(
+          LoginFormState(email: formState.email, password: formState.password),
+        );
       }
     } catch (e) {
       if (e is PlatformException && e.code == 'ERROR_ABORTED_BY_USER') {
-        emit(formState);
+        emit(
+          LoginFormState(email: formState.email, password: formState.password),
+        );
         return;
       }
       emit(LoginWithAppleError(e.toString(), null, null));
-      emit(formState);
+      emit(
+        LoginFormState(email: formState.email, password: formState.password),
+      );
     }
   }
 }
