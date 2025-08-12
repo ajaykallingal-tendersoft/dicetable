@@ -174,31 +174,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
         state.base64Image!.isNotEmpty;
   }
 
-  // bool _validateForm(SignUpFormState state) {
-  //   final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-  //   final hasPasswords = !isAppleSignUp || !isGoogleSignUp;
-  //   return state.venueName.trim().isNotEmpty &&
-  //       state.venueDescription.trim().isNotEmpty &&
-  //       state.email.trim().isNotEmpty &&
-  //       emailRegex.hasMatch(state.email) &&
-  //       (hasPasswords
-  //           ? state.password.trim().isNotEmpty &&
-  //               state.confirmPassword.trim().isNotEmpty &&
-  //               state.password == state.confirmPassword
-  //           : true) &&
-  //       // state.password.trim().isNotEmpty &&
-  //       // state.confirmPassword.trim().isNotEmpty &&
-  //       state.password == state.confirmPassword &&
-  //       state.phone.trim().isNotEmpty &&
-  //       _isValidPhoneNumber(state.phone.trim()) &&
-  //       state.postalCode.trim().isNotEmpty &&
-  //       state.address.trim().isNotEmpty &&
-  //       state.venueTypes.any((venue) => venue.isSelected) &&
-  //       state.openingHours.values.any((hour) => hour.isEnabled) &&
-  //       state.base64Image != null &&
-  //       state.country.trim().isNotEmpty &&
-  //       state.base64Image!.isNotEmpty;
-  // }
 
   @override
   Widget build(BuildContext context) {

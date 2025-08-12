@@ -650,6 +650,14 @@ class AuthDataProvider {
             "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!",
           );
         } else if (e.response!.statusCode == 422) {
+          final errorResponse = AppleSignUpRequestResponse.fromJson(
+            e.response!.data,
+          );
+          if (errorResponse.hasValidationErrors &&
+              errorResponse.errors != null) {
+            final firstError = (errorResponse.errors!.values.first).first;
+            return StateModel.error(firstError);
+          }
           return StateModel.error(
             "Validation failed. Please check your inputs.",
           );

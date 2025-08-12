@@ -122,7 +122,11 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
   Widget build(BuildContext context) {
     return BlocProvider(
       create:
-          (context) => CustomerSignUpBloc(authDataProvider: AuthDataProvider(),isAppleSignUp: isAppleSignUp,isGoogleSignUp: isGoogleSignUp),
+          (context) => CustomerSignUpBloc(
+            authDataProvider: AuthDataProvider(),
+            isAppleSignUp: isAppleSignUp,
+            isGoogleSignUp: isGoogleSignUp,
+          ),
       child: BlocConsumer<CustomerSignUpBloc, CustomerSignUpState>(
         listener: (context, state) {
           if (state is CustomerSignUpSuccessState) {
@@ -221,7 +225,7 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
           }
           if (state is AppleSignUpSuccessState) {
             final response = state.appleSignUpRequestResponse;
-            if (response.status == false) {
+            if (response.status == true) {
               if (response.errors != null && response.errors!.isNotEmpty) {
                 final firstErrorField = response.errors!.keys.first;
                 final firstErrorMessage =
@@ -265,6 +269,15 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
               ObjectFactory().prefs.setIsCustomerLoggedIn(true);
               context.go('/customer_home');
             }
+          }
+          if (state is AppleSignUpErrorState) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.errorMessage ?? 'Something went wrong'),
+                backgroundColor: AppColors.appRedColor,
+                duration: const Duration(seconds: 3),
+              ),
+            );
           }
 
           if (state is CustomerSignUpErrorState ||
@@ -373,32 +386,36 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                             );
                           },
                         ),
-                         (!isAppleSignUp && !isGoogleSignUp)
-                         ? RequiredTextField(
-                          hint: 'Password',
-                          isRequired: true,
-                          obscureText: true,
-                          controller: _passwordController,
-                          errorText: formState.passwordError,
-                          onChanged: (value) {
-                            context.read<CustomerSignUpBloc>().add(
-                              PasswordChanged(password: value),
-                            );
-                          },
-                        ): SizedBox.shrink(),
                         (!isAppleSignUp && !isGoogleSignUp)
-                       ? RequiredTextField(
-                          hint: 'Confirm Password',
-                          isRequired: true,
-                          obscureText: true,
-                          controller: _confirmPasswordController,
-                          errorText: formState.confirmPasswordError,
-                          onChanged: (value) {
-                            context.read<CustomerSignUpBloc>().add(
-                              ConfirmPasswordChanged(confirmPassword: value),
-                            );
-                          },
-                        ) : SizedBox.shrink(),
+                            ? RequiredTextField(
+                              hint: 'Password',
+                              isRequired: true,
+                              obscureText: true,
+                              controller: _passwordController,
+                              errorText: formState.passwordError,
+                              onChanged: (value) {
+                                context.read<CustomerSignUpBloc>().add(
+                                  PasswordChanged(password: value),
+                                );
+                              },
+                            )
+                            : SizedBox.shrink(),
+                        (!isAppleSignUp && !isGoogleSignUp)
+                            ? RequiredTextField(
+                              hint: 'Confirm Password',
+                              isRequired: true,
+                              obscureText: true,
+                              controller: _confirmPasswordController,
+                              errorText: formState.confirmPasswordError,
+                              onChanged: (value) {
+                                context.read<CustomerSignUpBloc>().add(
+                                  ConfirmPasswordChanged(
+                                    confirmPassword: value,
+                                  ),
+                                );
+                              },
+                            )
+                            : SizedBox.shrink(),
                         RequiredTextField(
                           isPhoneNumber: true,
                           hint: 'Phone number',
@@ -439,7 +456,6 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                             if (state is CustomerSignUpLoadingState ||
                                 state is GoogleSignUpLoadingState ||
                                 state is AppleSignUpLoadingState) {
-                          
                               return const Center(
                                 child: RefreshProgressIndicator(
                                   color: AppColors.primaryWhiteColor,

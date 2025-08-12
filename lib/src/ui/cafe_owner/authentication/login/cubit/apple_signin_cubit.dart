@@ -134,7 +134,8 @@ class AppleSignInCubit extends Cubit<AppleSignInState> {
           );
 
         case AuthorizationStatus.cancelled:
-          emit(AppleSignInInitial()); 
+          emit(AppleSignInDenied());
+          emit(AppleSignInInitial());
           return Future.error('Sign in aborted by user');
 
         default:

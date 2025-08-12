@@ -81,6 +81,7 @@ class LoginWithAppleWidget extends StatelessWidget {
         },
         builder: (context, state) {
           return SignInWithAppleButton(
+            
             onPressed:
                 state is AppleSignInLoading
                     ? null

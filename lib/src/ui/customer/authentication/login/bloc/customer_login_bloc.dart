@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:flutter/services.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/login/apple_login_request.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/login/apple_login_request_response.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/login/login_request.dart';
@@ -90,7 +91,12 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
       emit(CustomerLoginLoadingState());
 
       try {
-        final loginRequest = LoginRequest(login: email, password: password, fcmToken: ObjectFactory().prefs.getFcmToken().toString(), loginType: 5);
+        final loginRequest = LoginRequest(
+          login: email,
+          password: password,
+          fcmToken: ObjectFactory().prefs.getFcmToken().toString(),
+          loginType: 5,
+        );
         final stateModel = await authDataProvider.loginUser(loginRequest);
         print("EmailAfter: $email");
         print("PasswordAfter: $password");
@@ -120,6 +126,7 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
     CustomerGoogleLoginEvent event,
     Emitter<CustomerLoginState> emit,
   ) async {
+    final formState = state as LoginFormState;
     try {
       emit(GoogleLoginLoading());
       await Future.delayed(Duration(seconds: 1));
@@ -129,11 +136,14 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
       );
       if (response!.data.status == true) {
         emit(GoogleLoginLoaded(googleLoginResponse: response.data));
+        emit(formState);
       } else {
         emit(GoogleLoginErrorState(msg: response.data.message));
+        emit(formState);
       }
     } catch (e) {
       emit(GoogleLoginErrorState(msg: e.toString()));
+      emit(formState);
     }
   }
 
@@ -161,6 +171,7 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
     CustomerAppleLoginEvent event,
     Emitter<CustomerLoginState> emit,
   ) async {
+    final formState = state as LoginFormState;
     try {
       emit(LoginWithAppleLoading());
       await Future.delayed(Duration(seconds: 1));
@@ -171,6 +182,7 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
 
       if (response!.data.status == true) {
         emit(LoginWithAppleLoaded(appleLoginRequestResponse: response.data));
+        emit(formState);
       } else {
         // Pass appleId from response
         emit(
@@ -180,10 +192,15 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
             response.data.appleId,
           ),
         );
+        emit(formState);
       }
     } catch (e) {
-      // Optional: Pass appleId from event if available
+      if (e is PlatformException && e.code == 'ERROR_ABORTED_BY_USER') {
+        emit(formState);
+        return;
+      }
       emit(LoginWithAppleError(e.toString(), null, null));
+      emit(formState);
     }
   }
 }
