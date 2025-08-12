@@ -59,6 +59,15 @@ class AuthDataProvider {
           "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!",
         );
         // Something happened in setting up or sending the request that triggered an Error
+      } else if (e.response?.statusCode == 422) {
+        final errors = e.response?.data['errors'] as Map<String, dynamic>?;
+        String firstError = '';
+        if (errors != null && errors.isNotEmpty) {
+          firstError = (errors.values.first as List).first;
+        }
+        return StateModel.error(
+          firstError.isNotEmpty ? firstError : "Validation failed.",
+        );
       }
     }
     return null;
@@ -74,7 +83,6 @@ class AuthDataProvider {
       // print("Response data: ${response.data}");
       if (response.data != null) {
         if (response.statusCode == 200) {
-          
           // print(response);
           final loginResponse = LoginRequestResponse.fromJson(response.data);
           return StateModel.success(loginResponse);
@@ -356,15 +364,17 @@ class AuthDataProvider {
         googleSignUpRequest,
       );
       // print(response.toString());
-      
+
       if (response.statusCode == 200) {
         return StateModel<GoogleSignUpRequestResponse>.success(
           GoogleSignUpRequestResponse.fromJson(response.data),
         );
       } else {
         // Handle non-200 status codes
-        final errorResponse = GoogleSignUpRequestResponse.fromJson(response.data);
-        
+        final errorResponse = GoogleSignUpRequestResponse.fromJson(
+          response.data,
+        );
+
         if (errorResponse.hasValidationErrors) {
           String errorMessage = "Validation failed: ";
           errorResponse.errors!.forEach((key, value) {
@@ -381,8 +391,10 @@ class AuthDataProvider {
       if (e.response != null) {
         // Try to parse the error response
         try {
-          final errorResponse = GoogleSignUpRequestResponse.fromJson(e.response!.data);
-          
+          final errorResponse = GoogleSignUpRequestResponse.fromJson(
+            e.response!.data,
+          );
+
           if (errorResponse.hasValidationErrors) {
             String errorMessage = "Validation failed: ";
             errorResponse.errors!.forEach((key, value) {
@@ -395,7 +407,7 @@ class AuthDataProvider {
         } catch (_) {
           // If parsing fails, fall back to status code handling
         }
-        
+
         // Status code based error handling
         if (e.response!.statusCode == 500) {
           return StateModel.error(
@@ -417,8 +429,10 @@ class AuthDataProvider {
           "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!",
         );
       }
-      
-      return StateModel.error("An unexpected error occurred: ${e.message ?? e.toString()}");
+
+      return StateModel.error(
+        "An unexpected error occurred: ${e.message ?? e.toString()}",
+      );
     } catch (e) {
       return StateModel.error("An unexpected error occurred: ${e.toString()}");
     }
@@ -582,15 +596,17 @@ class AuthDataProvider {
       final response = await ObjectFactory().apiClient.appleRegisterUser(
         appleSignUpRequest,
       );
-      
+
       if (response.statusCode == 200) {
         return StateModel<AppleSignUpRequestResponse>.success(
           AppleSignUpRequestResponse.fromJson(response.data),
         );
       } else {
         // Handle non-200 status codes
-        final errorResponse = AppleSignUpRequestResponse.fromJson(response.data);
-        
+        final errorResponse = AppleSignUpRequestResponse.fromJson(
+          response.data,
+        );
+
         if (errorResponse.hasValidationErrors) {
           String errorMessage = "Validation failed: ";
           errorResponse.errors!.forEach((key, value) {
@@ -607,8 +623,10 @@ class AuthDataProvider {
       if (e.response != null) {
         // Try to parse the error response
         try {
-          final errorResponse = AppleSignUpRequestResponse.fromJson(e.response!.data);
-          
+          final errorResponse = AppleSignUpRequestResponse.fromJson(
+            e.response!.data,
+          );
+
           if (errorResponse.hasValidationErrors) {
             String errorMessage = "Validation failed: ";
             errorResponse.errors!.forEach((key, value) {
@@ -621,7 +639,7 @@ class AuthDataProvider {
         } catch (_) {
           // If parsing fails, fall back to status code handling
         }
-        
+
         // Status code based error handling
         if (e.response!.statusCode == 500) {
           return StateModel.error(
@@ -643,8 +661,10 @@ class AuthDataProvider {
           "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!",
         );
       }
-      
-      return StateModel.error("An unexpected error occurred: ${e.message ?? e.toString()}");
+
+      return StateModel.error(
+        "An unexpected error occurred: ${e.message ?? e.toString()}",
+      );
     } catch (e) {
       return StateModel.error("An unexpected error occurred: ${e.toString()}");
     }

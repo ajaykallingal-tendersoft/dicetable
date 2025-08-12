@@ -1,4 +1,5 @@
 import 'package:bloc/bloc.dart';
+import 'package:flutter/services.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/login/apple_login_request.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/login/apple_login_request_response.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/login/google_login_request.dart';
@@ -155,7 +156,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         emit(LoginWithAppleLoaded(appleLoginRequestResponse: response.data));
         emit(formState);
       } else {
-        // Pass appleId from response
+     
         emit(
           LoginWithAppleError(
             response.data.message,
@@ -165,9 +166,13 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         );
         emit(formState);
       }
-    } catch (e) {
-      emit(LoginWithAppleError(e.toString(), null, null));
-      emit(formState);
-    }
+    }  catch (e) {
+  if (e is PlatformException && e.code == 'ERROR_ABORTED_BY_USER') {
+    emit(formState);
+    return;
+  }
+  emit(LoginWithAppleError(e.toString(), null, null));
+  emit(formState);
+}
   }
 }

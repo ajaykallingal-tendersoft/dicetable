@@ -8,7 +8,6 @@ import 'package:soloseaters/main.dart';
 import 'object_factory.dart';
 
 class NotificationServices {
-  // Singleton pattern
   static final NotificationServices _instance =
       NotificationServices._internal();
   factory NotificationServices() => _instance;
