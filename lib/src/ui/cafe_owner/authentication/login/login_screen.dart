@@ -6,6 +6,7 @@ import 'package:soloseaters/src/model/cafe_owner/auth/login/login_request_respon
 import 'package:soloseaters/src/ui/cafe_owner/authentication/sign_up/bloc/sign_up/sign_up_bloc.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/sign_up/sign_up_screen_argument.dart';
 import 'package:soloseaters/src/ui/verification/verify_screen_argument.dart';
+import 'package:soloseaters/src/utils/data/privacy_terms.dart';
 import 'package:soloseaters/src/utils/network_connectivity/network_connectivity_bloc.dart';
 import 'package:soloseaters/src/utils/network_connectivity/network_toast_manager.dart';
 import 'package:flutter/foundation.dart';
@@ -502,6 +503,13 @@ class _LoginScreenState extends State<LoginScreen> {
                                                 duration: 500.ms,
                                                 delay: 1000.ms,
                                               ),
+                                              Gap(20),
+                                              PrivacyAndTermsText()
+                                                  .animate()
+                                                  .fadeIn(
+                                                    duration: 600.ms,
+                                                    delay: 1100.ms,
+                                                  ),
                                             ],
                                           ),
                                         ),
@@ -722,7 +730,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _showEmailVerificationToast(String message) {
+  void _showEmailVerificationToast(String message) { 
     Fluttertoast.showToast(
       fontSize: 14.sp,
       msg: message,

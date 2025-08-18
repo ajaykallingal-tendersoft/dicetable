@@ -12,6 +12,7 @@ import 'package:soloseaters/src/ui/cafe_owner/authentication/login/widget/login_
 import 'package:soloseaters/src/ui/customer/authentication/login/bloc/customer_login_bloc.dart';
 import 'package:soloseaters/src/ui/verification/verify_screen_argument.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
+import 'package:soloseaters/src/utils/data/privacy_terms.dart';
 import 'package:soloseaters/src/utils/network_connectivity/network_connectivity_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -275,9 +276,9 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
 
                 if (state.errorMsg ==
                     "You are not registered in our app. Please complete the signup process!") {
-                  print('Navigating to /signup');
-                  print(ObjectFactory().prefs.getCustomerUserName()!);
-                  print(ObjectFactory().prefs.getCustomerUserMail()!);
+                  // print('Navigating to /signup');
+                  // print(ObjectFactory().prefs.getCustomerUserName()!);
+                  // print(ObjectFactory().prefs.getCustomerUserMail()!);
                   context.push(
                     '/customer_signUp',
                     extra: SignUpScreenArgument(
@@ -775,6 +776,13 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                                                   ),
                                                 ),
                                               ),
+                                              Gap(20),
+                                              PrivacyAndTermsText()
+                                                  .animate()
+                                                  .fadeIn(
+                                                    duration: 600.ms,
+                                                    delay: 1100.ms,
+                                                  ),
                                             ],
                                           ),
                                         ),
