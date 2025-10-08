@@ -217,54 +217,59 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                             horizontal: basePadding * 2,
                           ),
                           child: DottedBorder(
-                            borderType: BorderType.RRect,
-                            radius: const Radius.circular(8),
-                            padding: EdgeInsets.symmetric(
-                              horizontal: basePadding * 0.6,
-                              vertical: basePadding * 0.4,
+                            options: RoundedRectDottedBorderOptions(
+                              radius: Radius.circular(8),
+                              dashPattern: const [6, 4],
+                              strokeWidth: 1.5,
+                              color: AppColors.discountTextColor,
                             ),
-                            dashPattern: const [6, 4],
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Discount Code: ',
-                                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: AppColors.discountTextColor,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: getScaledFontSize(14),
-                                  ),
-                                ),
-                                SizedBox(width: basePadding * 0.2),
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: _discountController,
-                                    decoration: InputDecoration(
-                                      isDense: true,
-                                      contentPadding: EdgeInsets.symmetric(
-                                        vertical: basePadding * 0.2,
-                                        horizontal: basePadding * 0.1,
-                                      ),
-                                      border: InputBorder.none,
-                                      hintText: 'Enter code',
-                                      hintStyle: TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: getScaledFontSize(14),
-                                      ),
-                                    ),
+                            child: Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: basePadding * 0.6,
+                                vertical: basePadding * 0.4,
+                              ),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Discount Code: ',
                                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                      fontWeight: FontWeight.normal,
+                                      color: AppColors.discountTextColor,
+                                      fontWeight: FontWeight.w700,
                                       fontSize: getScaledFontSize(14),
-                                      color: AppColors.textPrimaryGrey,
                                     ),
-                                    keyboardType: TextInputType.text,
-                                    textInputAction: TextInputAction.done,
-                                    onFieldSubmitted: (value) {
-                                      // Handle submission if needed
-                                    },
                                   ),
-                                ),
-                              ],
+                                  SizedBox(width: basePadding * 0.2),
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: _discountController,
+                                      decoration: InputDecoration(
+                                        isDense: true,
+                                        contentPadding: EdgeInsets.symmetric(
+                                          vertical: basePadding * 0.2,
+                                          horizontal: basePadding * 0.1,
+                                        ),
+                                        border: InputBorder.none,
+                                        hintText: 'Enter code',
+                                        hintStyle: TextStyle(
+                                          color: Colors.grey,
+                                          fontSize: getScaledFontSize(14),
+                                        ),
+                                      ),
+                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        fontWeight: FontWeight.normal,
+                                        fontSize: getScaledFontSize(14),
+                                        color: AppColors.textPrimaryGrey,
+                                      ),
+                                      keyboardType: TextInputType.text,
+                                      textInputAction: TextInputAction.done,
+                                      onFieldSubmitted: (value) {
+                                        // Handle submission if needed
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
