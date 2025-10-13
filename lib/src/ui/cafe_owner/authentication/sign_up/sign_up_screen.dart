@@ -9,6 +9,7 @@ import 'package:soloseaters/src/model/cafe_owner/auth/signUp/sign_up_request.dar
 import 'package:soloseaters/src/resources/api_providers/auth/auth_data_provider.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/sign_up/sign_up_screen_argument.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/sign_up/widget/image_upload_widget.dart';
+import 'package:soloseaters/src/ui/cafe_owner/authentication/sign_up/widget/multiple_image_upload_widget.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/sign_up/widget/opening_hours_widget.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/sign_up/widget/venue_type_checkboxes.dart';
 import 'package:soloseaters/src/ui/verification/verify_screen_argument.dart';
@@ -698,7 +699,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       state: SignUpFormState(),
                     ),
                     const Gap(30),
-
+                    MultipleImageUploadWidget(
+                      showValidationErrors: showValidationErrors,
+                      state: SignUpFormState(),
+                    ),
+                    const Gap(30),
                     BlocBuilder<SignUpBloc, SignUpState>(
                       builder: (context, state) {
                         if (isLoading) {

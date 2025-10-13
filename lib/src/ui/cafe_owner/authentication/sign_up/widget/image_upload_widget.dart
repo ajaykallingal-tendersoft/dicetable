@@ -50,7 +50,7 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Upload Cafe/Eatery Photos',
+                  'Upload Cafe Profile Photo',
                   style: Theme.of(context).textTheme.labelMedium!.copyWith(
                     fontSize: 16,
                     color: AppColors.primary,
@@ -59,26 +59,47 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
                 const Gap(15),
 
                 if (image != null) ...[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Container(
-                        height: 54.18,
-                        width: 54.18,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: Image.file(File(image.path), fit: BoxFit.cover),
-                      ),
-                      IconButton(
-                        onPressed: () {
-                          context.read<SignUpBloc>().add(ClearImageEvent());
-                        },
-                        icon: Icon(Icons.close, size: 15, color: AppColors.textPrimaryGrey),
-                      ),
-                    ],
-                  ),
+                  GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 3,
+                      crossAxisSpacing: 8,
+                      mainAxisSpacing: 8,
+                    ),
+                    itemCount: 1,
+                    itemBuilder: (context, index) {
+                      return Stack(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.file(
+                              File(image.path),
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                            ),
+                          ),
+                          Positioned(
+                            top: 4,
+                            right: 4,
+                            child: GestureDetector(
+                              onTap: () {
+                                context.read<SignUpBloc>().add(ClearImageEvent());
+                              },
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.black54,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: const Icon(Icons.close, color: Colors.white, size: 18),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  )
                 ] else ...[
                   InkWell(
                     onTap: () {

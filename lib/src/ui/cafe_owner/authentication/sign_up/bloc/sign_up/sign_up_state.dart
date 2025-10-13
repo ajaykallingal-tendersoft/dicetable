@@ -141,6 +141,8 @@ class SignUpFormState extends SignUpState {
   final Map<String, OpeningHour> openingHours;
   final XFile? image;
   final String? base64Image;
+  final List<XFile> multipleImages;
+  final List<String> multipleBase64Images;
   final bool isLoadingVenueTypes;
   final String? error;
 
@@ -159,6 +161,8 @@ class SignUpFormState extends SignUpState {
     this.openingHours = const {},
     this.image,
     this.base64Image,
+    this.multipleImages = const [],
+    this.multipleBase64Images = const [],
     this.isLoadingVenueTypes = false,
     this.error,
   });
@@ -179,9 +183,10 @@ class SignUpFormState extends SignUpState {
     XFile? image,
     bool clearImage = false,
     String? base64Image,
+    List<XFile>? multipleImages,
+    List<String>? multipleBase64Images,
     bool? isLoadingVenueTypes,
-    final String? error,
-
+    String? error,
   }) {
     return SignUpFormState(
       venueName: venueName ?? this.venueName,
@@ -198,6 +203,8 @@ class SignUpFormState extends SignUpState {
       openingHours: openingHours ?? this.openingHours,
       image: clearImage ? null : (image ?? this.image),
       base64Image: base64Image ?? this.base64Image,
+      multipleImages: multipleImages ?? this.multipleImages,
+      multipleBase64Images: multipleBase64Images ?? this.multipleBase64Images,
       isLoadingVenueTypes: isLoadingVenueTypes ?? this.isLoadingVenueTypes,
       error: error ?? this.error,
     );
@@ -219,6 +226,8 @@ class SignUpFormState extends SignUpState {
     openingHours,
     image,
     base64Image,
+    multipleImages,
+    multipleBase64Images,
     isLoadingVenueTypes,
     error,
   ];

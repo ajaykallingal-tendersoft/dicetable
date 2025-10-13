@@ -35,6 +35,17 @@ class UpdateOpeningHour extends SignUpEvent {
 
 class PickImageFromGalleryEvent extends SignUpEvent {}
 
+class PickMultipleImagesFromGalleryEvent extends SignUpEvent {}
+
+class ClearAllImagesEvent extends SignUpEvent {}
+
+class RemoveSingleImageEvent extends SignUpEvent {
+  final int index;
+  RemoveSingleImageEvent(this.index);
+}
+
+class TakeMultiplePicturesEvent extends SignUpEvent {}
+
 class ClearImageEvent extends SignUpEvent {
   @override
   List<Object?> get props => [];

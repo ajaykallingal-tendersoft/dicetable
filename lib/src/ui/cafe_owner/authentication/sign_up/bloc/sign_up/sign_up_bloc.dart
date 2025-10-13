@@ -209,6 +209,166 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
       }
     });
 
+    List<XFile> _multipleImages = [];
+    List<String> base64ImageList = [];
+
+    on<PickMultipleImagesFromGalleryEvent>((event, emit) async {
+      emit(SignUpImageLoadingState());
+      try {
+        if (Platform.isAndroid) {
+          Permission permission;
+          if (await isAndroid13OrHigher()) {
+            permission = Permission.photos;
+          } else {
+            permission = Permission.storage;
+          }
+          final permissionStatus = await permission.request();
+          if (!permissionStatus.isGranted) {
+            emit(SignUpImageErrorState(errorMessage: "Photo access permission denied."));
+            emit(_formState);
+            return;
+          }
+        }
+
+        // Pick new images
+        final pickedImages = await _picker.pickMultiImage(imageQuality: 80);
+
+        // If user cancels or picks none, just keep existing state
+        if (pickedImages.isEmpty) {
+          emit(_formState);
+          return;
+        }
+
+        // ✅ Keep existing images if already present
+        List<XFile> existingImages = List<XFile>.from(_multipleImages);
+        List<String> existingBase64 = List<String>.from(base64ImageList);
+
+        for (final pickedImage in pickedImages) {
+          final ext = pickedImage.name.toLowerCase();
+          if (!(ext.endsWith('.png') || ext.endsWith('.jpeg') || ext.endsWith('.jpg'))) {
+            emit(SignUpImageErrorState(errorMessage: "Only JPEG or PNG images are allowed."));
+            emit(_formState);
+            return;
+          }
+
+          final compressedBytes = await FlutterImageCompress.compressWithList(
+            await pickedImage.readAsBytes(),
+            minHeight: 1920,
+            minWidth: 1080,
+            quality: 85,
+            rotate: 0,
+          );
+
+          if (compressedBytes == null) continue;
+          if (compressedBytes.length > 5 * 1024 * 1024) {
+            emit(SignUpImageErrorState(errorMessage: "Image too large after compression."));
+            emit(_formState);
+            return;
+          }
+
+          final base64String = base64.encode(compressedBytes);
+          existingBase64.add("data:image/jpeg;base64,$base64String");
+          existingImages.add(pickedImage);
+        }
+
+        // ✅ Update the stored image lists (append instead of replacing)
+        _multipleImages = existingImages;
+        base64ImageList = existingBase64;
+
+        _formState = _formState.copyWith(
+          multipleImages: _multipleImages,
+          multipleBase64Images: base64ImageList,
+        );
+        emit(_formState);
+      } catch (e) {
+        emit(SignUpImageErrorState(errorMessage: "Failed to pick images: $e"));
+        emit(_formState);
+      }
+    });
+
+    on<ClearAllImagesEvent>((event, emit) async {
+      emit(SignUpImageLoadingState());
+      _multipleImages.clear();
+      base64ImageList.clear();
+      _formState = _formState.copyWith(multipleImages: [], multipleBase64Images: []);
+      emit(_formState);
+    });
+
+    on<RemoveSingleImageEvent>((event, emit) async {
+      emit(SignUpImageLoadingState());
+      if (event.index < _multipleImages.length) {
+        _multipleImages.removeAt(event.index);
+        base64ImageList.removeAt(event.index);
+        _formState = _formState.copyWith(multipleImages: _multipleImages, multipleBase64Images: base64ImageList);
+      }
+      emit(_formState);
+    });
+
+    on<TakeMultiplePicturesEvent>((event, emit) async {
+      emit(SignUpImageLoadingState());
+      try {
+        if (Platform.isAndroid) {
+          Permission permission = await isAndroid13OrHigher()
+              ? Permission.camera
+              : Permission.storage;
+          final permissionStatus = await permission.request();
+          if (!permissionStatus.isGranted) {
+            emit(SignUpImageErrorState(errorMessage: "Camera permission denied."));
+            emit(_formState);
+            return;
+          }
+        }
+
+        // Capture an image from camera
+        final XFile? capturedImage = await _picker.pickImage(
+          source: ImageSource.camera,
+          imageQuality: 80,
+        );
+
+        if (capturedImage == null) {
+          emit(_formState); // user cancelled
+          return;
+        }
+
+        // Validate extension
+        final ext = capturedImage.name.toLowerCase();
+        if (!(ext.endsWith('.png') || ext.endsWith('.jpeg') || ext.endsWith('.jpg'))) {
+          emit(SignUpImageErrorState(errorMessage: "Only JPEG or PNG images are allowed."));
+          emit(_formState);
+          return;
+        }
+
+        // Compress image
+        final compressedBytes = await FlutterImageCompress.compressWithList(
+          await capturedImage.readAsBytes(),
+          minHeight: 1920,
+          minWidth: 1080,
+          quality: 85,
+        );
+
+        if (compressedBytes.isEmpty) {
+          emit(SignUpImageErrorState(errorMessage: "Failed to compress image."));
+          emit(_formState);
+          return;
+        }
+
+        // Convert to base64
+        final base64String = base64.encode(compressedBytes);
+        base64ImageList.add("data:image/jpeg;base64,$base64String");
+        _multipleImages.add(capturedImage);
+
+        // ✅ Update form state with appended images
+        _formState = _formState.copyWith(
+          multipleImages: _multipleImages,
+          multipleBase64Images: base64ImageList,
+        );
+        emit(_formState);
+      } catch (e) {
+        emit(SignUpImageErrorState(errorMessage: "Failed to capture image: $e"));
+        emit(_formState);
+      }
+    });
+
     ///New Functionality for capturing image with camera
     ///
     Future<Uint8List?> _compressCameraImage(XFile imageFile) async {
