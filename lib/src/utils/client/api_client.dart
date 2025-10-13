@@ -115,9 +115,6 @@ class ApiClient {
       headers: {
         HttpHeaders.contentTypeHeader: 'application/json',
         HttpHeaders.acceptHeader: 'application/json',
-
-
-
       },
       responseType: ResponseType.json,
       receiveDataWhenStatusError: true,

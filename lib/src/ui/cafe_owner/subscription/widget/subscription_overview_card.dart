@@ -217,12 +217,11 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                             horizontal: basePadding * 2,
                           ),
                           child: DottedBorder(
-                            options: RoundedRectDottedBorderOptions(
-                              radius: Radius.circular(8),
-                              dashPattern: const [6, 4],
-                              strokeWidth: 1.5,
-                              color: AppColors.discountTextColor,
-                            ),
+                            // borderType: BorderType.RRect,
+                            // radius: Radius.circular(8),
+                            // dashPattern: const [6, 4],
+                            // strokeWidth: 1.5,
+                            // color: AppColors.discountTextColor,
                             child: Padding(
                               padding: EdgeInsets.symmetric(
                                 horizontal: basePadding * 0.6,

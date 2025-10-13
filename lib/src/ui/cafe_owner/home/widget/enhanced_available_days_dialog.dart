@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/constants/assets.dart';
 import 'package:soloseaters/src/model/cafe_owner/home/available_days.dart';
@@ -46,21 +47,22 @@ class _EnhancedAvailableDaysDialogState
         isExpanded: false,
         cafeOpenTime: day.openTime ?? "10:00",
         cafeCloseTime: day.closeTime ?? "22:00",
-        timeSlots: initialDay?.day != null
-            ? [
-                TimeSlot(
-                  from: initialDay!.openTime ?? day.openTime ?? "10:00",
-                  to: initialDay.closeTime ?? day.closeTime ?? "22:00",
-                  isDefault: true,
-                )
-              ]
-            : [
-                TimeSlot(
-                  from: day.openTime ?? "10:00",
-                  to: day.closeTime ?? "22:00",
-                  isDefault: true,
-                )
-              ],
+        timeSlots:
+            initialDay?.day != null
+                ? [
+                  TimeSlot(
+                    from: initialDay!.openTime ?? day.openTime ?? "10:00",
+                    to: initialDay.closeTime ?? day.closeTime ?? "22:00",
+                    isDefault: true,
+                  ),
+                ]
+                : [
+                  TimeSlot(
+                    from: day.openTime ?? "10:00",
+                    to: day.closeTime ?? "22:00",
+                    isDefault: true,
+                  ),
+                ],
       );
     }
   }
@@ -72,17 +74,18 @@ class _EnhancedAvailableDaysDialogState
 
   void _toggleAlwaysAvailable(bool value) {
     print('_toggleAlwaysAvailable called with value: $value');
-    
+
     setState(() {
       alwaysAvailable = value;
       print('alwaysAvailable set to: $alwaysAvailable');
-      
+
       // Create a completely new map based on toggle state
       Map<String, DaySelection> newSelections = {};
-      
+
       for (var entry in daySelections.entries) {
         newSelections[entry.key] = DaySelection(
-          isSelected: value, // Set based on toggle - true to check all, false to uncheck all
+          isSelected:
+              value, // Set based on toggle - true to check all, false to uncheck all
           isExpanded: false,
           cafeOpenTime: entry.value.cafeOpenTime,
           cafeCloseTime: entry.value.cafeCloseTime,
@@ -91,13 +94,13 @@ class _EnhancedAvailableDaysDialogState
               from: entry.value.cafeOpenTime,
               to: entry.value.cafeCloseTime,
               isDefault: true,
-            )
+            ),
           ],
         );
       }
-      
+
       daySelections = newSelections;
-      
+
       // Debug: Print state after update
       if (value) {
         print('Always Available toggled ON - All days selected');
@@ -105,7 +108,9 @@ class _EnhancedAvailableDaysDialogState
         print('Always Available toggled OFF - All days unselected');
       }
       daySelections.forEach((day, selection) {
-        print('$day: isSelected=${selection.isSelected}, from=${selection.timeSlots.first.from}, to=${selection.timeSlots.first.to}');
+        print(
+          '$day: isSelected=${selection.isSelected}, from=${selection.timeSlots.first.from}, to=${selection.timeSlots.first.to}',
+        );
       });
     });
   }
@@ -123,10 +128,10 @@ class _EnhancedAvailableDaysDialogState
             from: daySelections[day]!.cafeOpenTime,
             to: daySelections[day]!.cafeCloseTime,
             isDefault: true,
-          )
+          ),
         ];
       }
-      
+
       // If a day is manually unchecked, turn off "Always Available"
       if (!daySelections[day]!.isSelected && alwaysAvailable) {
         alwaysAvailable = false;
@@ -145,12 +150,12 @@ class _EnhancedAvailableDaysDialogState
   void _addTimeSlot(String day) {
     setState(() {
       daySelections[day]!.timeSlots.add(
-            TimeSlot(
-              from: daySelections[day]!.cafeOpenTime,
-              to: daySelections[day]!.cafeCloseTime,
-              isDefault: false,
-            ),
-          );
+        TimeSlot(
+          from: daySelections[day]!.cafeOpenTime,
+          to: daySelections[day]!.cafeCloseTime,
+          isDefault: false,
+        ),
+      );
     });
   }
 
@@ -185,9 +190,7 @@ class _EnhancedAvailableDaysDialogState
       if (selectedMinutes < minMinutes || selectedMinutes > maxMinutes) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              'Time must be between $minTime and $maxTime',
-            ),
+            content: Text('Time must be between $minTime and $maxTime'),
             backgroundColor: AppColors.appRedColor,
           ),
         );
@@ -236,7 +239,7 @@ class _EnhancedAvailableDaysDialogState
     final screenWidth = MediaQuery.of(context).size.width;
     final screenHeight = MediaQuery.of(context).size.height;
     final isSmallScreen = screenWidth < 360;
-    
+
     return Dialog(
       backgroundColor: Colors.white,
       insetPadding: EdgeInsets.symmetric(
@@ -295,6 +298,7 @@ class _EnhancedAvailableDaysDialogState
             // Content
             Flexible(
               child: SingleChildScrollView(
+                physics: BouncingScrollPhysics(),
                 child: Padding(
                   padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
                   child: Column(
@@ -325,9 +329,9 @@ class _EnhancedAvailableDaysDialogState
                               child: Text(
                                 widget.tableTypeName,
                                 style: GoogleFonts.montserrat(
-                                  fontSize: isSmallScreen ? 11 : 12,
+                                  fontSize: isSmallScreen ? 12 : 16,
                                   color: AppColors.primary,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.w700,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -335,18 +339,34 @@ class _EnhancedAvailableDaysDialogState
                           ],
                         ),
                       ),
-                      const SizedBox(height: 16),
 
                       // Always Available Toggle
                       Container(
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         child: Row(
                           children: [
-                            Switch(
-                              value: alwaysAvailable,
-                              onChanged: _toggleAlwaysAvailable,
-                              activeColor: AppColors.primaryWhiteColor,
-                              activeTrackColor: AppColors.secondary,
+                            SizedBox(
+                              width: 50.0,
+                              height: 36.0,
+                              child: FittedBox(
+                                fit: BoxFit.fill,
+                                child: Switch(
+                                  value: alwaysAvailable,
+                                  onChanged: _toggleAlwaysAvailable,
+
+                                  activeColor: AppColors.primaryWhiteColor,
+                                  activeTrackColor: AppColors.secondary,
+
+                                  inactiveThumbColor: Colors.white,
+                                  inactiveTrackColor: Colors.grey.shade400,
+                                  trackOutlineColor: MaterialStateProperty.all(
+                                    Colors.transparent,
+                                  ),
+                                  trackOutlineWidth: MaterialStateProperty.all(
+                                    0.0,
+                                  ),
+                                ),
+                              ),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
@@ -362,11 +382,12 @@ class _EnhancedAvailableDaysDialogState
                           ],
                         ),
                       ),
-                      const SizedBox(height: 16),
 
-                      // Days List
                       ...widget.availableDays.map((day) {
-                        return _buildDayTile(day.day!.toLowerCase(), isSmallScreen);
+                        return _buildDayTile(
+                          day.day!.toLowerCase(),
+                          isSmallScreen,
+                        );
                       }).toList(),
                     ],
                   ),
@@ -378,21 +399,21 @@ class _EnhancedAvailableDaysDialogState
             Padding(
               padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
               child: SizedBox(
-                width: double.infinity,
+                width: MediaQuery.of(context).size.width / 2.7,
                 height: isSmallScreen ? 44 : 48,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.pop(context, _getSelectedDays());
+                    context.pop(_getSelectedDays());
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF004B87),
+                    backgroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(20),
                     ),
                   ),
                   child: Text(
                     'DONE',
-                    style: GoogleFonts.roboto(
+                    style: GoogleFonts.montserrat(
                       fontSize: isSmallScreen ? 14 : 16,
                       fontWeight: FontWeight.w600,
                       color: Colors.white,
@@ -410,11 +431,13 @@ class _EnhancedAvailableDaysDialogState
   Widget _buildDayTile(String day, bool isSmallScreen) {
     final selection = daySelections[day];
     if (selection == null) return SizedBox.shrink();
-    
+
     final isSelected = selection.isSelected;
     final isExpanded = selection.isExpanded;
 
-    print('Building tile for $day: isSelected=$isSelected, isExpanded=$isExpanded');
+    print(
+      'Building tile for $day: isSelected=$isSelected, isExpanded=$isExpanded',
+    );
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -426,15 +449,15 @@ class _EnhancedAvailableDaysDialogState
         //       : const Color(0xFFE0E0E0),
         //   width: isSelected ? 2 : 1,
         // ),
-         boxShadow: [
-      BoxShadow(
-        color: AppColors.subscriptionPromptSubColor.withOpacity(0.1),
-        // Colors.grey.withOpacity(0.1),
-        spreadRadius: 1, 
-        blurRadius: 2,
-        offset: Offset(0, 3),
-      ),
-    ],
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.subscriptionPromptSubColor.withOpacity(0.1),
+            // Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 2,
+            offset: Offset(0, 3),
+          ),
+        ],
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(
@@ -454,19 +477,22 @@ class _EnhancedAvailableDaysDialogState
                       height: 24,
                       decoration: BoxDecoration(
                         color: AppColors.primaryWhiteColor,
-                        border: Border.all(
-                          color: AppColors.primary,
-                          width: 2,
-                        ),
+                        border: Border.all(color: AppColors.primary, width: 2),
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: isSelected
-                          ? const Icon(
-                              Icons.check,
-                              size: 16,
-                              color: AppColors.primary,
-                            )
-                          : null,
+                      child:
+                          isSelected
+                              ? SvgPicture.asset(
+                                Assets.CHECK,
+                                fit: BoxFit.scaleDown,
+                                height: 10,
+                              )
+                              // const Icon(
+                              //     Icons.check,
+                              //     size: 16,
+                              //     color: AppColors.primary,
+                              //   )
+                              : null,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -485,18 +511,18 @@ class _EnhancedAvailableDaysDialogState
 
                   // Expand Icon
                   if (isSelected)
-                  SvgPicture.asset(
-                    height: 10,
-                    fit: BoxFit.scaleDown,
-                    isExpanded ? Assets.TAB_ARROW_UP : Assets.TAB_ARROW_DOWN,
-                  )
-                    // Icon(
-                    //   isExpanded
-                    //       ? Icons.keyboard_arrow_up
-                    //       : Icons.keyboard_arrow_down,
-                    //   color: AppColors.primary,
-                    //   size: 24,
-                    // ),
+                    SvgPicture.asset(
+                      height: 10,
+                      fit: BoxFit.scaleDown,
+                      isExpanded ? Assets.TAB_ARROW_UP : Assets.TAB_ARROW_DOWN,
+                    ),
+                  // Icon(
+                  //   isExpanded
+                  //       ? Icons.keyboard_arrow_up
+                  //       : Icons.keyboard_arrow_down,
+                  //   color: AppColors.primary,
+                  //   size: 24,
+                  // ),
                 ],
               ),
             ),
@@ -504,7 +530,6 @@ class _EnhancedAvailableDaysDialogState
 
           // Expanded Content
           if (isSelected && isExpanded) ...[
-           
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -525,21 +550,21 @@ class _EnhancedAvailableDaysDialogState
                           child: ElevatedButton.icon(
                             onPressed: () => _addTimeSlot(day),
                             style: ElevatedButton.styleFrom(
-                            fixedSize: Size(90.w, 20.h),
+                              fixedSize: Size(90.w, 20.h),
                               backgroundColor: AppColors.primary,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
+                                borderRadius: BorderRadius.circular(20),
                               ),
-                              padding: const EdgeInsets.symmetric(vertical: 6,horizontal: 6),
+                              padding: EdgeInsets.zero,
                             ),
                             icon: const Icon(
                               Icons.add,
                               color: AppColors.primaryWhiteColor,
-                              size: 10,
+                              size: 13,
                             ),
                             label: Text(
                               'ADD NEW',
-                              style: GoogleFonts.roboto(
+                              style: GoogleFonts.montserrat(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,
                                 color: AppColors.primaryWhiteColor,
@@ -581,21 +606,22 @@ class _EnhancedAvailableDaysDialogState
                 ),
                 const SizedBox(height: 4),
                 GestureDetector(
-                  onTap: slot.isDefault
-                      ? null
-                      : () async {
-                          final newTime = await _selectTime(
-                            context,
-                            slot.from,
-                            selection.cafeOpenTime,
-                            selection.cafeCloseTime,
-                          );
-                          if (newTime != null) {
-                            setState(() {
-                              selection.timeSlots[index].from = newTime;
-                            });
-                          }
-                        },
+                  onTap:
+                      slot.isDefault
+                          ? null
+                          : () async {
+                            final newTime = await _selectTime(
+                              context,
+                              slot.from,
+                              selection.cafeOpenTime,
+                              selection.cafeCloseTime,
+                            );
+                            if (newTime != null) {
+                              setState(() {
+                                selection.timeSlots[index].from = newTime;
+                              });
+                            }
+                          },
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8,
@@ -651,27 +677,28 @@ class _EnhancedAvailableDaysDialogState
                   'To',
                   style: GoogleFonts.roboto(
                     fontSize: 12,
-                    color: const Color(0xFF5B6369),
+                    color: AppColors.textPrimaryGrey,
                     fontWeight: FontWeight.w400,
                   ),
                 ),
                 const SizedBox(height: 4),
                 GestureDetector(
-                  onTap: slot.isDefault
-                      ? null
-                      : () async {
-                          final newTime = await _selectTime(
-                            context,
-                            slot.to,
-                            selection.cafeOpenTime,
-                            selection.cafeCloseTime,
-                          );
-                          if (newTime != null) {
-                            setState(() {
-                              selection.timeSlots[index].to = newTime;
-                            });
-                          }
-                        },
+                  onTap:
+                      slot.isDefault
+                          ? null
+                          : () async {
+                            final newTime = await _selectTime(
+                              context,
+                              slot.to,
+                              selection.cafeOpenTime,
+                              selection.cafeCloseTime,
+                            );
+                            if (newTime != null) {
+                              setState(() {
+                                selection.timeSlots[index].to = newTime;
+                              });
+                            }
+                          },
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8,
@@ -684,7 +711,11 @@ class _EnhancedAvailableDaysDialogState
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                      SvgPicture.asset(Assets.CLOCK,fit: BoxFit.scaleDown,height: 10,),
+                        SvgPicture.asset(
+                          Assets.CLOCK,
+                          fit: BoxFit.scaleDown,
+                          height: 10,
+                        ),
                         const SizedBox(width: 4),
                         Flexible(
                           child: Text(
@@ -701,7 +732,7 @@ class _EnhancedAvailableDaysDialogState
                           const Icon(
                             Icons.unfold_more,
                             size: 18,
-                            color:AppColors.secondaryGreyTextColor,
+                            color: AppColors.secondaryGreyTextColor,
                           ),
                       ],
                     ),
@@ -713,17 +744,15 @@ class _EnhancedAvailableDaysDialogState
 
           // Delete Button
           if (!slot.isDefault)
-            SizedBox(
-              width: 32,
-              child: IconButton(
-                onPressed: () => _removeTimeSlot(day, index),
-                icon: const Icon(
-                  Icons.delete_outline,
+            InkWell(
+              onTap: () => _removeTimeSlot(day, index),
+              child: SizedBox(
+                width: 32,
+                child: ImageIcon(
+                  AssetImage(Assets.DELETE),
                   color: Color(0xFFE53935),
                   size: 20,
                 ),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
               ),
             )
           else
@@ -755,9 +784,5 @@ class TimeSlot {
   String to;
   bool isDefault;
 
-  TimeSlot({
-    required this.from,
-    required this.to,
-    required this.isDefault,
-  });
+  TimeSlot({required this.from, required this.to, required this.isDefault});
 }

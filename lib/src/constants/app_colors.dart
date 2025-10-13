@@ -8,6 +8,15 @@ class AppColors {
   static const primaryBlackColor = Color(0xFF000000);
   static const secondaryHeadingColor = Color(0x00000000);
   static const appRedColor = Color(0xFFD91D1D);
+    static const premiumBadgeColor = Color(0xFFF2DCF3);
+     static const tableTypeBadgeColor = Color(0xFFD3EBE4);
+      static const tableTypeBadgeTextColor = Color(0xFF06B989);
+        static const freeUserBadgeColor = Color(0xFFE3E3E3);
+        static const freeUserBadgeTextColor = Color(0xFFAAAAAA);
+ static const dividerColor = Color(0xFFD3DDE3);
+
+  
+  
 
   static const borderColor = Color(0xFF707070);
   static const borderColor1 = Color(0xFFCECECE);

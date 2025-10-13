@@ -1,3 +1,4 @@
+import 'package:soloseaters/src/ui/cafe_owner/attendees/attendees_screen.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/forgot_password/forgot_password_otp_screen.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/forgot_password/forgot_password_screen.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/forgot_password/reset_arguments.dart';
@@ -550,29 +551,29 @@ class AppRouter {
               );
             },
           ),
-          // GoRoute(
-          //   path: 'payment',
-          //   pageBuilder: (BuildContext context, GoRouterState state) {
-          //     return CustomTransitionPage<void>(
-          //       key: state.pageKey,
-          //       child:  PaymentHome(),
-          //       transitionDuration: const Duration(milliseconds: 300),
-          //       transitionsBuilder: (
-          //           BuildContext context,
-          //           Animation<double> animation,
-          //           Animation<double> secondaryAnimation,
-          //           Widget child,
-          //           ) {
-          //         return FadeTransition(
-          //           opacity: CurveTween(
-          //             curve: Curves.easeIn,
-          //           ).animate(animation),
-          //           child: child,
-          //         );
-          //       },
-          //     );
-          //   },
-          // ),
+          GoRoute(
+            path: 'attendees',
+            pageBuilder: (BuildContext context, GoRouterState state) {
+              return CustomTransitionPage<void>(
+                key: state.pageKey,
+                child:  AttendeesScreen(),
+                transitionDuration: const Duration(milliseconds: 700),
+                transitionsBuilder: (
+                    BuildContext context,
+                    Animation<double> animation,
+                    Animation<double> secondaryAnimation,
+                    Widget child,
+                    ) {
+                  return FadeTransition(
+                    opacity: CurveTween(
+                      curve: Curves.easeInToLinear,
+                    ).animate(animation),
+                    child: child,
+                  );
+                },
+              );
+            },
+          ),
         ],
         path: '/',
         builder: (BuildContext context, GoRouterState state) => SplashScreen(),

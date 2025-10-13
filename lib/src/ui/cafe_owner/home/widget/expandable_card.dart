@@ -1,10 +1,12 @@
 import 'package:collection/collection.dart';
+import 'package:go_router/go_router.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/model/cafe_owner/home/available_days.dart';
 import 'package:soloseaters/src/model/cafe_owner/home/dice_table_update_request.dart'
     show DiceTableTypeUpdateRequest;
 import 'package:soloseaters/src/ui/cafe_owner/home/bloc/home_bloc.dart';
 import 'package:soloseaters/src/ui/cafe_owner/home/model/card_item.dart';
+import 'package:soloseaters/src/ui/cafe_owner/home/widget/enhanced_available_days_dialog.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -331,6 +333,7 @@ class _ExpandableCardState extends State<ExpandableCard> {
                           EasyLoading.dismiss();
                           final card = state.cards[widget.index];
                           return AvailableDaysMultiSelectField(
+                            tableTypeName: card.title,
                             availableDays: card.availableDays,
                             initialSelectedDays: card.selectedDays,
                             onChanged: (days) {
@@ -348,8 +351,11 @@ class _ExpandableCardState extends State<ExpandableCard> {
                     ),
                     const Gap(10),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [_buildSaveButton(context, state)],
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _buildAttendeesButton(context),
+                        _buildSaveButton(context, state),
+                        ],
                     ),
                   ],
                 ),
@@ -392,7 +398,29 @@ class _ExpandableCardState extends State<ExpandableCard> {
       },
     );
   }
-
+///Attendees Button
+  Widget _buildAttendeesButton(BuildContext context ) {
+    return ElevatedButton(
+                  onPressed: () {
+                   context.push('/attendees');
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  child: Text(
+                    'View Attendees',
+                    style: GoogleFonts.montserrat(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                );
+  }
+ 
   Widget _buildSaveButton(BuildContext context, HomeState state) {
     final isPromoNotEmpty = _promoController.text.trim().isNotEmpty;
     final isDaysNotEmpty = selectedDays.isNotEmpty;
@@ -459,15 +487,20 @@ class _ExpandableCardState extends State<ExpandableCard> {
   }
 }
 
+
+// Replace your existing AvailableDaysMultiSelectField class with this updated version
+
 class AvailableDaysMultiSelectField extends StatefulWidget {
   final List<AvailableDay> availableDays;
   final ValueChanged<List<AvailableDay>>? onChanged;
   final List<AvailableDay>? initialSelectedDays;
+  final String? tableTypeName; // Add this for displaying table type
 
   const AvailableDaysMultiSelectField({
     required this.availableDays,
     this.onChanged,
     this.initialSelectedDays,
+    this.tableTypeName,
     super.key,
   });
 
@@ -504,102 +537,24 @@ class _AvailableDaysMultiSelectFieldState
         .map((d) {
           final open = d.openTime?.substring(0, 5) ?? "";
           final close = d.closeTime?.substring(0, 5) ?? "";
-          return "${d.day}: $open-$close";
+          return "${capitalizeFirstLetter(d.day!)}: $open-$close";
         })
         .join(', ');
   }
 
-  Future<void> _showMultiSelectDialog() async {
-    List<AvailableDay> tempSelected = List.from(selectedDays);
+  String capitalizeFirstLetter(String text) {
+    if (text.isEmpty) return text;
+    return "${text[0].toUpperCase()}${text.substring(1).toLowerCase()}";
+  }
 
+  Future<void> _showEnhancedDialog() async {
     final result = await showDialog<List<AvailableDay>>(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          backgroundColor: AppColors.primaryWhiteColor,
-          title: Text(
-            'Select available days',
-            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-              color: AppColors.primary,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: StatefulBuilder(
-              builder: (context, setModalState) {
-                return SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ...widget.availableDays.map((day) {
-                        final isChecked = tempSelected.any(
-                          (d) => d.day == day.day,
-                        );
-
-                        return CheckboxListTile(
-                          title: Text(
-                            "${capitalizeFirstLetter(day.day!)}: ${day.openTime!.substring(0, 5)} - ${day.closeTime!.substring(0, 5)}",
-                            style: Theme.of(
-                              context,
-                            ).textTheme.bodySmall!.copyWith(
-                              color: AppColors.textPrimaryGrey,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          value: isChecked,
-                          onChanged: (checked) {
-                            setModalState(() {
-                              if (checked == true) {
-                                if (!tempSelected.any(
-                                  (d) => d.day == day.day,
-                                )) {
-                                  tempSelected.add(day);
-                                }
-                              } else {
-                                tempSelected.removeWhere(
-                                  (d) => d.day == day.day,
-                                );
-                              }
-                            });
-                          },
-                        );
-                      }).toList(),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed:
-                  () => Navigator.pop(context, null), // Cancel returns null
-              child: Text(
-                'Cancel',
-                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                  color: AppColors.primary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(context, tempSelected); // Done returns selection
-              },
-              child: Text(
-                'Done',
-                style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                  color: AppColors.primary,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
+        return EnhancedAvailableDaysDialog(
+          availableDays: widget.availableDays,
+          initialSelectedDays: selectedDays,
+          tableTypeName: widget.tableTypeName ?? "Business Networking",
         );
       },
     );
@@ -614,17 +569,13 @@ class _AvailableDaysMultiSelectFieldState
           widget.onChanged!(selectedDays);
         }
       });
-      // if (widget.onChanged != null) {
-      //   widget.onChanged!(selectedDays);
-      // }
     }
-    // If result is null (Cancel), do nothing
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: _showMultiSelectDialog,
+      onTap: _showEnhancedDialog,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
         decoration: BoxDecoration(
@@ -651,9 +602,205 @@ class _AvailableDaysMultiSelectFieldState
       ),
     );
   }
+}
+
+
+
+// class AvailableDaysMultiSelectField extends StatefulWidget {
+//   final List<AvailableDay> availableDays;
+//   final ValueChanged<List<AvailableDay>>? onChanged;
+//   final List<AvailableDay>? initialSelectedDays;
+
+//   const AvailableDaysMultiSelectField({
+//     required this.availableDays,
+//     this.onChanged,
+//     this.initialSelectedDays,
+//     super.key,
+//   });
+
+//   @override
+//   State<AvailableDaysMultiSelectField> createState() =>
+//       _AvailableDaysMultiSelectFieldState();
+// }
+
+// class _AvailableDaysMultiSelectFieldState
+//     extends State<AvailableDaysMultiSelectField> {
+//   List<AvailableDay> selectedDays = [];
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     selectedDays = List<AvailableDay>.from(widget.initialSelectedDays ?? []);
+//   }
+
+//   @override
+//   void didUpdateWidget(covariant AvailableDaysMultiSelectField oldWidget) {
+//     super.didUpdateWidget(oldWidget);
+//     if (widget.initialSelectedDays != oldWidget.initialSelectedDays) {
+//       setState(() {
+//         selectedDays = List<AvailableDay>.from(
+//           widget.initialSelectedDays ?? [],
+//         );
+//       });
+//     }
+//   }
+
+//   String get selectedDaysText {
+//     if (selectedDays.isEmpty) return "All Days";
+//     return selectedDays
+//         .map((d) {
+//           final open = d.openTime?.substring(0, 5) ?? "";
+//           final close = d.closeTime?.substring(0, 5) ?? "";
+//           return "${d.day}: $open-$close";
+//         })
+//         .join(', ');
+//   }
+
+//   Future<void> _showMultiSelectDialog() async {
+//     List<AvailableDay> tempSelected = List.from(selectedDays);
+
+//     final result = await showDialog<List<AvailableDay>>(
+//       context: context,
+//       builder: (context) {
+//         return AlertDialog(
+//           backgroundColor: AppColors.primaryWhiteColor,
+//           title: Text(
+//             'Select available days',
+//             style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+//               color: AppColors.primary,
+//               fontSize: 16,
+//               fontWeight: FontWeight.w600,
+//             ),
+//           ),
+//           content: SizedBox(
+//             width: double.maxFinite,
+//             child: StatefulBuilder(
+//               builder: (context, setModalState) {
+//                 return SingleChildScrollView(
+//                   child: Column(
+//                     mainAxisSize: MainAxisSize.min,
+//                     children: [
+//                       ...widget.availableDays.map((day) {
+//                         final isChecked = tempSelected.any(
+//                           (d) => d.day == day.day,
+//                         );
+
+//                         return CheckboxListTile(
+//                           title: Text(
+//                             "${capitalizeFirstLetter(day.day!)}: ${day.openTime!.substring(0, 5)} - ${day.closeTime!.substring(0, 5)}",
+//                             style: Theme.of(
+//                               context,
+//                             ).textTheme.bodySmall!.copyWith(
+//                               color: AppColors.textPrimaryGrey,
+//                               fontSize: 13,
+//                               fontWeight: FontWeight.w500,
+//                             ),
+//                           ),
+//                           value: isChecked,
+//                           onChanged: (checked) {
+//                             setModalState(() {
+//                               if (checked == true) {
+//                                 if (!tempSelected.any(
+//                                   (d) => d.day == day.day,
+//                                 )) {
+//                                   tempSelected.add(day);
+//                                 }
+//                               } else {
+//                                 tempSelected.removeWhere(
+//                                   (d) => d.day == day.day,
+//                                 );
+//                               }
+//                             });
+//                           },
+//                         );
+//                       }).toList(),
+//                     ],
+//                   ),
+//                 );
+//               },
+//             ),
+//           ),
+//           actions: [
+//             TextButton(
+//               onPressed:
+//                   () => Navigator.pop(context, null), // Cancel returns null
+//               child: Text(
+//                 'Cancel',
+//                 style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+//                   color: AppColors.primary,
+//                   fontSize: 14,
+//                   fontWeight: FontWeight.w600,
+//                 ),
+//               ),
+//             ),
+//             ElevatedButton(
+//               onPressed: () {
+//                 Navigator.pop(context, tempSelected); // Done returns selection
+//               },
+//               child: Text(
+//                 'Done',
+//                 style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+//                   color: AppColors.primary,
+//                   fontSize: 14,
+//                   fontWeight: FontWeight.w600,
+//                 ),
+//               ),
+//             ),
+//           ],
+//         );
+//       },
+//     );
+
+//     if (result != null) {
+//       setState(() {
+//         selectedDays = result;
+//       });
+
+//       Future.microtask(() {
+//         if (widget.onChanged != null) {
+//           widget.onChanged!(selectedDays);
+//         }
+//       });
+//       // if (widget.onChanged != null) {
+//       //   widget.onChanged!(selectedDays);
+//       // }
+//     }
+//     // If result is null (Cancel), do nothing
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return GestureDetector(
+//       onTap: _showMultiSelectDialog,
+//       child: Container(
+//         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+//         decoration: BoxDecoration(
+//           border: Border.all(color: Colors.grey),
+//           borderRadius: BorderRadius.circular(12),
+//         ),
+//         child: Row(
+//           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//           children: [
+//             Expanded(
+//               child: Text(
+//                 selectedDaysText,
+//                 style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+//                   color: AppColors.timeTextColor,
+//                   fontSize: 13,
+//                   fontWeight: FontWeight.w500,
+//                 ),
+//                 overflow: TextOverflow.ellipsis,
+//               ),
+//             ),
+//             const Icon(Icons.arrow_drop_down),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
 
   String capitalizeFirstLetter(String text) {
     if (text.isEmpty) return text;
     return "${text[0].toUpperCase()}${text.substring(1).toLowerCase()}";
   }
-}
+
