@@ -1,6 +1,7 @@
 class UrlsDiceApp {
   ///base urls
   static const String baseUrlDev = 'https://app.soloseaters.com';
+  static const String baseUrlLocal = 'http://192.168.0.131:8001';
   static const String baseUrlLiveStaging ='';
   static const String baseUrlLiveProduction = '';
 
@@ -15,6 +16,7 @@ class UrlsDiceApp {
   static const String otpVerify = '/api/otp/verify';
   static const String resendOtp = '/api/otp/resend';
   static const String venueType = '/api/venue-types';
+  static const String countryList = '/api/country-list';
   static const String appleSignIn = '/api/apple/auth';
   static const String cafeProfileDelete = '/api/cafe/profile/delete';
   static const String appleSignUp = '/api/apple/signup';

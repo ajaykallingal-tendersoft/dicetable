@@ -124,8 +124,6 @@ class VenueErrorState extends SignUpState {
   List<Object?> get props => [errorMessage];
 }
 
-
-
 class SignUpFormState extends SignUpState {
   final String venueName;
   final String venueDescription;
@@ -146,6 +144,11 @@ class SignUpFormState extends SignUpState {
   final bool isLoadingVenueTypes;
   final String? error;
 
+  // NEW: Countries related fields
+  final List<Country> countries;
+  final bool isLoadingCountries;
+  final String? countryError;
+
   const SignUpFormState({
     this.venueName = '',
     this.venueDescription = '',
@@ -165,6 +168,10 @@ class SignUpFormState extends SignUpState {
     this.multipleBase64Images = const [],
     this.isLoadingVenueTypes = false,
     this.error,
+    // Countries
+    this.countries = const [],
+    this.isLoadingCountries = false,
+    this.countryError,
   });
 
   SignUpFormState copyWith({
@@ -187,6 +194,10 @@ class SignUpFormState extends SignUpState {
     List<String>? multipleBase64Images,
     bool? isLoadingVenueTypes,
     String? error,
+    // Countries
+    List<Country>? countries,
+    bool? isLoadingCountries,
+    String? countryError,
   }) {
     return SignUpFormState(
       venueName: venueName ?? this.venueName,
@@ -207,6 +218,9 @@ class SignUpFormState extends SignUpState {
       multipleBase64Images: multipleBase64Images ?? this.multipleBase64Images,
       isLoadingVenueTypes: isLoadingVenueTypes ?? this.isLoadingVenueTypes,
       error: error ?? this.error,
+      countries: countries ?? this.countries,
+      isLoadingCountries: isLoadingCountries ?? this.isLoadingCountries,
+      countryError: countryError ?? this.countryError,
     );
   }
 
@@ -230,5 +244,8 @@ class SignUpFormState extends SignUpState {
     multipleBase64Images,
     isLoadingVenueTypes,
     error,
+    countries,
+    isLoadingCountries,
+    countryError,
   ];
 }

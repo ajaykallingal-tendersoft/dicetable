@@ -108,7 +108,7 @@ class ApiClient {
   initClientDiceAppDev() async {
 
     _baseOptionsDiceApp = BaseOptions(
-      baseUrl: UrlsDiceApp.baseUrlDev,
+      baseUrl: UrlsDiceApp.baseUrlLocal,
       connectTimeout: const Duration(seconds: 5000),
       receiveTimeout: const Duration(seconds: 3000),
       followRedirects: true,
@@ -226,10 +226,18 @@ class ApiClient {
      data: otpVerifyRequest
     );
   }
+
   //Get Venue type
   Future<Response> getVenueTypes() {
     return dioDiceApp.get(
       UrlsDiceApp.venueType,
+    );
+  }
+
+  //Get Country List
+  Future<Response> getCountryList() {
+    return dioDiceApp.get(
+      UrlsDiceApp.countryList,
     );
   }
 
