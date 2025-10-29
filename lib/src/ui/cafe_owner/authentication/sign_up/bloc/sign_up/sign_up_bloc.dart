@@ -11,6 +11,7 @@ import 'package:soloseaters/src/model/cafe_owner/auth/signUp/google_sign-up_requ
 import 'package:soloseaters/src/model/cafe_owner/auth/signUp/google_sign-up_response.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/signUp/sign_up_request.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/signUp/sign_up_request_response.dart';
+import 'package:soloseaters/src/model/country_response.dart';
 import 'package:soloseaters/src/model/state_model.dart';
 import 'package:soloseaters/src/model/venue_type_response.dart';
 import 'package:soloseaters/src/resources/api_providers/auth/auth_data_provider.dart';
@@ -65,7 +66,7 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
       isGoogleSignUp = event.isGoogleSignUp;
       isAppleSignUp = event.isAppleSignUp;
     });
-  
+
     on<UpdateTextField>((event, emit) {
       _formState = event.update(_formState);
       emit(_formState);
@@ -722,6 +723,7 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
     });
 
     on<LoadVenueTypes>(_onFetchVenueType);
+    on<LoadCountries>(_onFetchCountries);
   }
 
   Future<void> _onFetchVenueType(
@@ -762,7 +764,44 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
     }
   }
 
-  Future<bool> isAndroid13OrHigher() async {
+Future<void> _onFetchCountries(
+    LoadCountries event,
+    Emitter<SignUpState> emit,
+    ) async {
+  try {
+    // Emit loading state
+    emit(_formState.copyWith(isLoadingCountries: true, countryError: null));
+
+    // Call API or repository to get countries
+    final StateModel? response = await authDataProvider.getCountryList();
+
+    if (response is SuccessState) {
+      final data = response as CountryResponse;
+      final List<Country> countryList = data.data ?? [];
+
+      _formState = _formState.copyWith(
+        countries: countryList,
+        isLoadingCountries: false,
+        countryError: null,
+      );
+      emit(_formState);
+    } else {
+      _formState = _formState.copyWith(
+        isLoadingCountries: false,
+        countryError: (response as ErrorState).msg,
+      );
+      emit(_formState);
+    }
+  } catch (e) {
+    _formState = _formState.copyWith(
+      isLoadingCountries: false,
+      countryError: e.toString(),
+    );
+    emit(_formState);
+  }
+}
+
+Future<bool> isAndroid13OrHigher() async {
     if (!Platform.isAndroid) return false;
 
     final deviceInfoPlugin = DeviceInfoPlugin();

@@ -42,10 +42,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
   late final TextEditingController _postalCodeController;
   late final TextEditingController _countryController;
   late final TextEditingController _regionController;
+  // List<String> _countryList = [];
   late final bool isGoogleSignUp;
   late final bool isAppleSignUp;
   bool showValidationErrors = false;
   String? appleMail;
+  String? selectedCountry;
   @override
   void initState() {
     super.initState();
@@ -57,7 +59,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
         isAppleSignUp: isAppleSignUp,
       ),
     );
+    // _countryList = [
+    //   'India',
+    //   'United Kingdom',
+    //   'Germany',
+    //   'France',
+    //   'United States',
+    // ];
     context.read<SignUpBloc>().add(LoadVenueTypes());
+    context.read<SignUpBloc>().add(LoadCountries());
     context.read<SignUpBloc>().add(ClearImageEvent());
     context.read<SignUpBloc>().add(const ResetFormEvent());
 
@@ -525,22 +535,132 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         );
                       },
                     ),
-                    CustomTextField(
-                      controller: _countryController,
-                      hintText: 'Country',
-                      errorText:
-                          showValidationErrors &&
-                                  formState != null &&
-                                  _countryController.text.isEmpty
-                              ? 'Country is required'
-                              : null,
-                      onChanged: (value) {
-                        context.read<SignUpBloc>().add(
-                          UpdateTextField(
-                            (state) => state.copyWith(country: value),
-                          ),
-                        );
-                      },
+                    // Padding(
+                    //   padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 0),
+                    //   child: DropdownButtonFormField<String>(
+                    //     initialValue: selectedCountry,
+                    //     decoration: InputDecoration(
+                    //       filled: true,
+                    //       fillColor: Colors.white,
+                    //       labelStyle: Theme.of(
+                    //         context,
+                    //       ).textTheme.bodySmall!.copyWith(
+                    //         color: AppColors.textPrimaryGrey,
+                    //         fontWeight: FontWeight.w500,
+                    //         fontSize: 15.sp,
+                    //       ),
+                    //       border: OutlineInputBorder(
+                    //         borderRadius: BorderRadius.circular(15),
+                    //         borderSide: const BorderSide(
+                    //           color: AppColors.textPrimaryGrey,
+                    //         ),
+                    //       ),
+                    //       enabledBorder: OutlineInputBorder(
+                    //         borderRadius: BorderRadius.circular(15),
+                    //         borderSide: const BorderSide(
+                    //           color: AppColors.textPrimaryGrey,
+                    //         ),
+                    //       ),
+                    //       focusedBorder: OutlineInputBorder(
+                    //         borderRadius: BorderRadius.circular(8),
+                    //         borderSide: const BorderSide(color: AppColors.primary),
+                    //       ),
+                    //       floatingLabelStyle: Theme.of(
+                    //         context,
+                    //       ).textTheme.bodySmall!.copyWith(
+                    //         color: AppColors.primary,
+                    //         fontWeight: FontWeight.w500,
+                    //         fontSize: 15.sp,
+                    //       ),
+                    //     ),
+                    //     hint: Text(
+                    //       'Select a Country',
+                    //       style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                    //         color: AppColors.textPrimaryGrey,
+                    //         fontWeight: FontWeight.w500,
+                    //         fontSize: 14.sp,
+                    //       ),
+                    //     ),
+                    //     style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                    //       color: AppColors.textPrimaryGrey,
+                    //       // Default selected item text color
+                    //       fontWeight: FontWeight.w500,
+                    //       fontSize: 15.sp,
+                    //     ),
+                    //     items:
+                    //     _countryList.map((countryValue) {
+                    //       return DropdownMenuItem<String>(
+                    //         value: countryValue,
+                    //         child: Text(
+                    //           countryValue,
+                    //           style: Theme.of(
+                    //             context,
+                    //           ).textTheme.bodySmall!.copyWith(
+                    //             color: AppColors.primary,
+                    //             // Always primary color for items in the dropdown list
+                    //             fontWeight: FontWeight.w500,
+                    //             fontSize: 14.sp,
+                    //           ),
+                    //         ),
+                    //       );
+                    //     }).toList(),
+                    //     onChanged: (String? newValue) {
+                    //       setState(() {
+                    //         selectedCountry = newValue;
+                    //         context.read<SignUpBloc>().add(
+                    //           UpdateTextField((state) => state.copyWith(country: newValue)),
+                    //         );
+                    //       });
+                    //     },
+                    //     validator: (value) {
+                    //       if (value == null || value.isEmpty) {
+                    //         return 'Please select a Country';
+                    //       }
+                    //       return null;
+                    //     },
+                    //   ),
+                    // ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 0),
+                      child: BlocBuilder<SignUpBloc, SignUpState>(
+                        builder: (context, state) {
+                          final formState = state as SignUpFormState;
+                          final countries = formState.countries;
+                          final isLoading = formState.isLoadingCountries;
+                          final selectedCountry = formState.country.isNotEmpty ? formState.country : null;
+
+                          if (isLoading) {
+                            return const Center(child: CircularProgressIndicator());
+                          }
+
+                          if (formState.countryError != null) {
+                            return Center(child: Text(formState.country.toString()));
+                          }
+
+                          return DropdownButtonFormField<String>(
+                            value: selectedCountry,
+                            decoration: InputDecoration(
+                              filled: true,
+                              fillColor: Colors.white,
+                              labelText: 'Select a Country',
+                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+                            ),
+                            items: countries.map((country) {
+                              return DropdownMenuItem<String>(
+                                value: country.name,
+                                child: Text(country.name ?? ''),
+                              );
+                            }).toList(),
+                            onChanged: (String? newValue) {
+                              context.read<SignUpBloc>().add(
+                                UpdateTextField((state) => state.copyWith(country: newValue)),
+                              );
+                            },
+                            validator: (value) =>
+                            value == null || value.isEmpty ? 'Please select a Country' : null,
+                          );
+                        },
+                      ),
                     ),
                     CustomTextField(
                       controller: _addressController,
@@ -767,7 +887,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 });
 
                                 if (isGoogleSignUp) {
-                                  print("Name:${_venueNameController.text}");
                                   final googleSignUpRequest =
                                       GoogleSignUpRequest(
                                         name: _venueNameController.text,
@@ -795,8 +914,6 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     ),
                                   );
                                 } else if (isAppleSignUp) {
-                                  print("IS_APPLE${isAppleSignUp}");
-                                  print("Name: ${_venueNameController.text}.");
                                   final appleAuthID =
                                       ObjectFactory().prefs.getAppleAuthID();
                                   final appleSignUpRequest = AppleSignUpRequest(

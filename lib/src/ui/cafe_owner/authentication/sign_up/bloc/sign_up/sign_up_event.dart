@@ -85,6 +85,8 @@ class SubmitAppleSignUp extends SignUpEvent {
 
 class LoadVenueTypes extends SignUpEvent {}
 
+class LoadCountries extends SignUpEvent {}
+
 class SetSignUpType extends SignUpEvent {
   final bool isGoogleSignUp;
   final bool isAppleSignUp;

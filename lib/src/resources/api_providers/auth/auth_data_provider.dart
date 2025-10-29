@@ -25,6 +25,7 @@ import 'package:soloseaters/src/model/verification/otp_verification_response.dar
 import 'package:soloseaters/src/model/verification/otp_verify_request.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:dio/dio.dart';
+import '../../../model/country_response.dart';
 
 class AuthDataProvider {
   ///Register
@@ -477,10 +478,41 @@ class AuthDataProvider {
   Future<StateModel?> getVenueTypes() async {
     try {
       final response = await ObjectFactory().apiClient.getVenueTypes();
-      // print(response.toString());
+      print(response.toString());
       if (response.statusCode == 200) {
         return StateModel<VenueTypeResponse>.success(
           VenueTypeResponse.fromJson(response.data),
+        );
+      }
+      return null;
+    } on DioException catch (e) {
+      if (e.response!.statusCode == 500) {
+        return StateModel.error(
+          "The server isn't responding! Please try again later.",
+        );
+      } else if (e.response!.statusCode == 408) {
+        return StateModel.error(
+          "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!",
+        );
+      } else if (e.type.name == "connectionError") {
+        return StateModel.error(
+          "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!",
+        );
+      }
+    }
+    return null;
+  }
+
+  ///Country List
+  Future<StateModel?> getCountryList() async {
+    try {
+      final response = await ObjectFactory().apiClient.getCountryList();
+      if (response.statusCode == 200) {
+
+        print("---> response.data: ${response.data}");
+
+        return StateModel<CountryResponse>.success(
+          CountryResponse.fromJson(response.data),
         );
       }
       return null;
