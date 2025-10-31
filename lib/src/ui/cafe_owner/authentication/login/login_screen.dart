@@ -577,9 +577,9 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       // Handle subscription status
-      if (response.subscriptionStatus == false) {
-        context.go('/login');
-      }
+      // if (response.subscriptionStatus == false) {
+      //   context.go('/login');
+      // }
 
       // Handle missing cafe linkage
       if (token?.isNotEmpty == true && (cafeId == null || cafeId.isEmpty)) {
@@ -607,11 +607,11 @@ class _LoginScreenState extends State<LoginScreen> {
   ) {
     EasyLoading.dismiss();
 
-    if (response.status == true) {
-      if (response.subscriptionStatus == false) {
-        context.go('/login');
-      }
-    }
+    // if (response.status == true) {
+    //   if (response.subscriptionStatus == false) {
+    //     context.go('/login');
+    //   }
+    // }
 
     if (response.status == true && response.token != null) {
       _setGoogleUserPreferences(response);
@@ -633,11 +633,11 @@ class _LoginScreenState extends State<LoginScreen> {
   ) {
     EasyLoading.dismiss();
 
-    if (response.status == true) {
-      if (response.subscriptionStatus == false) {
-        context.go('/login');
-      }
-    }
+    // if (response.status == true) {
+    //   if (response.subscriptionStatus == false) {
+    //     context.go('/login');
+    //   }
+    // }
 
     if (response.status == true && response.token != null) {
       _setAppleUserPreferences(response);

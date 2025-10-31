@@ -52,6 +52,8 @@ class Data {
   final String? venueType;
   final List<OpeningHour>? openingHours;
   final String? cafeSince;
+  final List<String>? gallery;
+  final List<String>? galleryIds;
 
   Data({
     this.id,
@@ -67,6 +69,8 @@ class Data {
     this.venueType,
     this.openingHours,
     this.cafeSince,
+    this.gallery,
+    this.galleryIds,
   });
 
   Data copyWith({
@@ -83,6 +87,8 @@ class Data {
     String? venueType,
     List<OpeningHour>? openingHours,
     String? cafeSince,
+    List<String>? gallery,
+    List<String>? galleryIds,
   }) => Data(
     id: id ?? this.id,
     name: name ?? this.name,
@@ -97,6 +103,8 @@ class Data {
     venueType: venueType ?? this.venueType,
     openingHours: openingHours ?? this.openingHours,
     cafeSince: cafeSince ?? this.cafeSince,
+    gallery: gallery ?? this.gallery,
+    galleryIds: galleryIds ?? this.galleryIds,
   );
 
   factory Data.fromJson(Map<String, dynamic> json) => Data(
@@ -116,9 +124,16 @@ class Data {
             ? []
             : List<OpeningHour>.from(
               json["opening_hours"]!.map((x) => OpeningHour.fromJson(x)),
-            
             ),
-            cafeSince: json["cafe_since"],
+    cafeSince: json["cafe_since"],
+    gallery:
+        json["gallery"] == null
+            ? []
+            : List<String>.from(json["gallery"]!.map((x) => x)),
+    galleryIds:
+        json["gallery_Ids"] == null
+            ? []
+            : List<String>.from(json["gallery_Ids"]!.map((x) => x)),
   );
 
   Map<String, dynamic> toJson() => {
@@ -138,6 +153,10 @@ class Data {
             ? []
             : List<dynamic>.from(openingHours!.map((x) => x.toJson())),
     "cafe_since": cafeSince,
+    "gallery":
+        gallery == null ? [] : List<dynamic>.from(gallery!.map((x) => x)),
+    "gallery_Ids":
+        galleryIds == null ? [] : List<dynamic>.from(galleryIds!.map((x) => x)),
   };
 }
 

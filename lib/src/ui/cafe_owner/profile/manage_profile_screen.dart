@@ -1,9 +1,12 @@
 import 'dart:io';
 import 'dart:convert';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:soloseaters/src/common/custom_text_field.dart';
 import 'package:soloseaters/src/common/elevated_button_widget.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/login/cubit/apple_signin_cubit.dart';
+import 'package:soloseaters/src/ui/cafe_owner/profile/widget/gallery_image_widget.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/login/cubit/google_sign_in_cubit.dart';
 import 'package:soloseaters/src/utils/data/sign_out.dart';
@@ -32,7 +35,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
       TextEditingController();
   late TextEditingController _emailController = TextEditingController();
   late TextEditingController _phoneController = TextEditingController();
-    late TextEditingController _countryController = TextEditingController();
+  late TextEditingController _countryController = TextEditingController();
   late TextEditingController _addressController = TextEditingController();
   late TextEditingController _postalCodeController = TextEditingController();
   File? _imageFile;
@@ -372,7 +375,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                           textFieldAnnotationText: 'Phone',
                           onChanged: (value) {},
                         ),
-                         CustomTextField(
+                        CustomTextField(
                           isProfile: true,
                           readOnly: true,
                           controller: _countryController,
@@ -424,6 +427,8 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                           textFieldAnnotationText: 'Opening Hours',
                           onChanged: (value) {},
                         ),
+                        const Gap(17),
+                        CafeEateryPhotosWidget(photoUrls: state.gallery ?? []),
                         const Gap(30),
                         InkWell(
                           onTap: () {
@@ -664,39 +669,41 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                     child: ClipOval(
                       child: BlocBuilder<ProfileBloc, ProfileState>(
                         builder: (context, state) {
-                          final base64Image =
+                          final imageUrl =
                               state.profileViewResponse?.data?.photo;
-                          if (base64Image != null && base64Image.isNotEmpty) {
-                            try {
-                              final cleanBase64 =
-                                  base64Image.startsWith('data:image')
-                                      ? base64Image.split(',').last
-                                      : base64Image;
-                              final decodedBytes = base64Decode(cleanBase64);
-                              return Image.memory(
-                                gaplessPlayback: true,
-                                decodedBytes,
-                                fit: BoxFit.cover,
-                                width: 170.r,
-                                height: 170.r,
-                                errorBuilder:
-                                    (context, error, stackTrace) => Image.asset(
-                                      'assets/png/profile-img.png',
-                                      fit: BoxFit.cover,
+
+                          if (imageUrl != null && imageUrl.isNotEmpty) {
+                            return CachedNetworkImage(
+                              imageUrl: imageUrl,
+                              fit: BoxFit.cover,
+                              width: 170.r,
+                              height: 170.r,
+                              placeholder:
+                                  (context, url) => Shimmer.fromColors(
+                                    baseColor: Color(0xFF003E69),
+                                    highlightColor: Color(0xFF0067AF),
+                                    child: Container(
                                       width: 170.r,
                                       height: 170.r,
+                                      color: Colors.white,
                                     ),
-                              );
-                            } catch (e) {
-                              // debugPrint('Invalid base64 image: $e');
-                              return Image.asset(
-                                'assets/png/profile-img.png',
-                                fit: BoxFit.cover,
-                                width: 170.r,
-                                height: 170.r,
-                              );
-                            }
+                                  ),
+
+                              fadeInDuration: const Duration(milliseconds: 500),
+                              fadeOutDuration: const Duration(
+                                milliseconds: 300,
+                              ),
+                              fadeInCurve: Curves.easeInOut,
+                              errorWidget:
+                                  (context, url, error) => Image.asset(
+                                    'assets/png/profile-img.png',
+                                    fit: BoxFit.cover,
+                                    width: 170.r,
+                                    height: 170.r,
+                                  ),
+                            );
                           }
+                          //
                           return Image.asset(
                             'assets/png/profile-img.png',
                             fit: BoxFit.cover,

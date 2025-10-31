@@ -108,7 +108,7 @@ class ApiClient {
   initClientDiceAppDev() async {
 
     _baseOptionsDiceApp = BaseOptions(
-      baseUrl: UrlsDiceApp.baseUrlLocal,
+      baseUrl: UrlsDiceApp.baseUrlDev,
       connectTimeout: const Duration(seconds: 5000),
       receiveTimeout: const Duration(seconds: 3000),
       followRedirects: true,
@@ -148,12 +148,23 @@ class ApiClient {
   /// Auth
   //Register
   Future<Response> registerUser(SignUpRequest signupRequest) {
-    return dioDiceApp.post(
-      UrlsDiceApp.register,
-      data: signupRequest,
+  final formData = signupRequest.toFormData();
+  return dioDiceApp.post(
+    UrlsDiceApp.register,
+    data: formData,
+    options: Options(
+      contentType: 'multipart/form-data',
+    ),
+  );
+}
 
-    );
-  }
+  
+  // Future<Response> registerUser(SignUpRequest signupRequest) {
+  //   return dioDiceApp.post(
+  //     UrlsDiceApp.register,
+  //     data: signupRequest,
+  //   );
+  // }
   //Login
   Future<Response> loginUser(LoginRequest loginRequest) {
     return dioDiceApp.post(

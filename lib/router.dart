@@ -569,6 +569,7 @@ class AppRouter {
                       curve: Curves.easeInToLinear,
                     ).animate(animation),
                     child: child,
+                    
                   );
                 },
               );
@@ -576,7 +577,8 @@ class AppRouter {
           ),
         ],
         path: '/',
-        builder: (BuildContext context, GoRouterState state) => SplashScreen(),
+        builder: (BuildContext context, GoRouterState state) => 
+        SplashScreen(),
       ),
     ],
   );

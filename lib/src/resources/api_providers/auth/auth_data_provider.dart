@@ -29,50 +29,52 @@ import '../../../model/country_response.dart';
 
 class AuthDataProvider {
   ///Register
-  Future<StateModel?> registerUser(SignUpRequest signUpRequest) async {
-    try {
-      final response = await ObjectFactory().apiClient.registerUser(
-        signUpRequest,
+ Future<StateModel?> registerUser(SignUpRequest signUpRequest) async {
+  try {
+    // Convert to FormData before sending
+    final response = await ObjectFactory().apiClient.registerUser(signUpRequest);
+
+    // If you want to log the request safely (without breaking)
+    // print("FormData fields:");
+    // print(signUpRequest.toFormData().fields);
+    // print("FormData files:");
+    // print(signUpRequest.toFormData().files.map((f) => f.key).toList());
+
+    if (response.statusCode == 200) {
+      return StateModel<SignUpRequestResponse>.success(
+        SignUpRequestResponse.fromJson(response.data),
       );
-      // print(response.toString());
-      // String jsonRequest = jsonEncode(signUpRequest);
-      // print("Request Payload:");
-      // print(jsonRequest);
-      if (response.statusCode == 200) {
-        return StateModel<SignUpRequestResponse>.success(
-          SignUpRequestResponse.fromJson(response.data),
-        );
-      }
-      return null;
-    } on DioException catch (e) {
-      if (e.response!.statusCode == 500) {
-        return StateModel.error(
-          "The server isn't responding! Please try again later.",
-        );
-        // return response!;
-      } else if (e.response!.statusCode == 408) {
-        return StateModel.error(
-          "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!",
-        );
-        // Something happened in setting up or sending the request that triggered an Error
-      } else if (e.type.name == "connectionError") {
-        return StateModel.error(
-          "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!",
-        );
-        // Something happened in setting up or sending the request that triggered an Error
-      } else if (e.response?.statusCode == 422) {
-        final errors = e.response?.data['errors'] as Map<String, dynamic>?;
-        String firstError = '';
-        if (errors != null && errors.isNotEmpty) {
-          firstError = (errors.values.first as List).first;
-        }
-        return StateModel.error(
-          firstError.isNotEmpty ? firstError : "Validation failed.",
-        );
-      }
     }
+
     return null;
+  } on DioException catch (e) {
+    if (e.response?.statusCode == 500) {
+      return StateModel.error(
+        "The server isn't responding! Please try again later.",
+      );
+    } else if (e.response?.statusCode == 408) {
+      return StateModel.error(
+        "The request took too long to process. Please try again later.",
+      );
+    } else if (e.type.name == "connectionError") {
+      return StateModel.error(
+        "Connection refused. Please try again later.",
+      );
+    } else if (e.response?.statusCode == 422) {
+      final errors = e.response?.data['errors'] as Map<String, dynamic>?;
+      String firstError = '';
+      if (errors != null && errors.isNotEmpty) {
+        firstError = (errors.values.first as List).first;
+      }
+      return StateModel.error(
+        firstError.isNotEmpty ? firstError : "Validation failed.",
+      );
+    }
   }
+
+  return null;
+}
+
 
   ///Login
   ///

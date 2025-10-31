@@ -53,6 +53,10 @@ class ProfileState extends Equatable {
   final ProfileEditViewResponse? profileEditViewResponse;
   final String? errorMessage;
   final bool isLoading;
+  final List<String> cafePhotos; // URLs or base64 images to display
+  final bool isUploadingPhotos;
+  final List<String>? gallery;
+  final List<String>? galleryIds;
 
   const ProfileState({
     this.venueName = '',
@@ -60,7 +64,7 @@ class ProfileState extends Equatable {
     this.email = '',
     this.password = '',
     this.phone = '',
-    this.country = '', 
+    this.country = '',
     this.address = '',
     this.city = '',
     this.postalCode = '',
@@ -76,6 +80,10 @@ class ProfileState extends Equatable {
     this.profileEditViewResponse,
     this.errorMessage,
     this.isLoading = false,
+    this.cafePhotos = const [],
+    this.isUploadingPhotos = false,
+    this.gallery,
+    this.galleryIds,
   });
 
   ProfileState copyWith({
@@ -100,6 +108,10 @@ class ProfileState extends Equatable {
     ProfileEditViewResponse? profileEditViewResponse,
     String? errorMessage,
     bool? isLoading,
+    List<String>? cafePhotos,
+    bool? isUploadingPhotos,
+    List<String>? gallery,
+    List<String>? galleryIds,
   }) {
     return ProfileState(
       venueName: venueName ?? this.venueName,
@@ -107,7 +119,7 @@ class ProfileState extends Equatable {
       email: email ?? this.email,
       password: password ?? this.password,
       phone: phone ?? this.phone,
-      country: country ?? this.country, 
+      country: country ?? this.country,
       address: address ?? this.address,
       city: city ?? this.city,
       postalCode: postalCode ?? this.postalCode,
@@ -133,6 +145,10 @@ class ProfileState extends Equatable {
           profileEditViewResponse ?? this.profileEditViewResponse,
       errorMessage: errorMessage ?? this.errorMessage,
       isLoading: isLoading ?? this.isLoading,
+      cafePhotos: cafePhotos ?? this.cafePhotos,
+      isUploadingPhotos: isUploadingPhotos ?? this.isUploadingPhotos,
+      gallery: gallery ?? this.gallery,
+      galleryIds: galleryIds ?? this.galleryIds,
     );
   }
 
@@ -159,6 +175,8 @@ class ProfileState extends Equatable {
     profileEditViewResponse,
     errorMessage,
     isLoading,
+    gallery,
+    galleryIds,
   ];
 }
 
@@ -394,12 +412,18 @@ class ProfileViewLoaded extends ProfileState {
     required super.venueDescription,
     required super.email,
     required super.phone,
-    required super.country, 
+    required super.country,
     required super.address,
     required super.postalCode,
     required super.venueType,
     required super.openingHours,
-  }) : super(profileViewResponse: profileViewResponse);
+    List<String>? gallery,
+    List<String>? galleryIds,
+  }) : super(
+         profileViewResponse: profileViewResponse,
+         gallery: gallery,
+         galleryIds: galleryIds,
+       );
 }
 
 class ProfileViewError extends ProfileState {
@@ -428,7 +452,9 @@ class ProfileEditViewLoaded extends ProfileState {
     required Map<String, ProfileOpeningHour> openingHours,
     XFile? image,
     String? blob, // Added
-    String? originalName, // Added
+    String? originalName,
+    List<String>? gallery,
+    List<String>? galleryIds,
   }) : super(
          profileEditViewResponse: profileEditViewResponse,
          venueName: venueName,
@@ -436,7 +462,7 @@ class ProfileEditViewLoaded extends ProfileState {
          email: email,
          phone: phone,
          address: address,
-          country: country,
+         country: country,
          postalCode: postalCode,
          venueTypes: venueTypes,
          selectedVenueTypeIds: selectedVenueTypeIds,

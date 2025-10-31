@@ -39,7 +39,7 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
 
           return Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.only(left: 16,right: 16,top: 16,bottom: 0),
             decoration: BoxDecoration(
               color: AppColors.signUpContainerColor,
               borderRadius: BorderRadius.circular(16),
@@ -186,7 +186,7 @@ class _ImageUploadWidgetState extends State<ImageUploadWidget> {
                       ),
                     ),
                   ),
-                  const Gap(10),
+                 
                   if (widget.showValidationErrors && state is SignUpFormState)
                     Padding(
                       padding: const EdgeInsets.only(left: 16.0, top: 4.0),

@@ -70,6 +70,15 @@ class _ExpandableCardState extends State<ExpandableCard> {
     _promoController.dispose();
     super.dispose();
   }
+  String _formatTime(String time) {
+  final parsed = TimeOfDay(
+    hour: int.parse(time.split(':')[0]),
+    minute: int.parse(time.split(':')[1]),
+  );
+  final localizations = MaterialLocalizations.of(context);
+  return localizations.formatTimeOfDay(parsed, alwaysUse24HourFormat: false);
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +86,6 @@ class _ExpandableCardState extends State<ExpandableCard> {
 
     return BlocBuilder<HomeBloc, HomeState>(
       builder: (context, state) {
-
         if (state is HomeLoaded) {
           EasyLoading.dismiss();
           final updatedCard = state.cards[widget.index];
@@ -172,11 +180,20 @@ class _ExpandableCardState extends State<ExpandableCard> {
                   ),
                   const SizedBox(width: 8),
                   GestureDetector(
-                    onTap: () {
-                      context.read<HomeBloc>().add(
-                        ToggleCheckEvent(widget.index),
-                      );
-                    },
+                    onTap:
+                        card.selectedDays.isNotEmpty
+                            ? null // disable unchecking once event exists
+                            : () {
+                              context.read<HomeBloc>().add(
+                                ToggleCheckEvent(widget.index),
+                              );
+                            },
+                    // onTap: () {
+
+                    // context.read<HomeBloc>().add(
+                    //   ToggleCheckEvent(widget.index),
+                    // );
+                    // },
                     child: Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
@@ -235,35 +252,62 @@ class _ExpandableCardState extends State<ExpandableCard> {
                                           dayOrder[b.day!.toLowerCase()]!,
                                         ),
                                   );
-
                                   return sortedDays.map((d) {
-                                    String? open =
-                                        d.openTime!.length >= 5
-                                            ? d.openTime!.substring(0, 5)
-                                            : d.openTime;
-                                    String? close =
-                                        d.closeTime!.length >= 5
-                                            ? d.closeTime!.substring(0, 5)
-                                            : d.closeTime;
-                                    return Text(
-                                      "${capitalizeFirstLetter(d.day!)}: $open - $close",
-                                      style: GoogleFonts.roboto(
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w600,
-                                        color: AppColors.shadowColor,
-                                      ),
+                                    final customTimings =
+                                        (d.timings ?? []).where((t) {
+                                          // Hide default slot if any custom slot exists
+                                          final isDefault =
+                                              t.open == "10:00:00" &&
+                                              t.close == "22:00:00";
+                                          final hasCustom = (d.timings ?? [])
+                                              .any(
+                                                (x) =>
+                                                    !(x.open == "10:00:00" &&
+                                                        x.close == "22:00:00"),
+                                              );
+                                          return hasCustom ? !isDefault : true;
+                                        }).toList();
+                                    // final firstTiming =
+                                    //     (d.timings != null &&
+                                    //             d.timings!.isNotEmpty)
+                                    //         ? d.timings!.first
+                                    //         : Timing(
+                                    //           open: "10:00:00",
+                                    //           close: "22:00:00",
+                                    //         );
+
+                                    // String open = firstTiming.open;
+                                    // String close = firstTiming.close;
+                                    return Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children:
+                                          customTimings.map((t) {
+                                            return Text(
+                                              "${capitalizeFirstLetter(d.day ?? '')}: ${_formatTime(t.open)} - ${_formatTime(t.close)}",
+
+                                              // "${capitalizeFirstLetter(d.day ?? '')}: ${t.open} - ${t.close}",
+                                              style: GoogleFonts.roboto(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w600,
+                                                color: AppColors.shadowColor,
+                                              ),
+                                            );
+                                          }).toList(),
                                     );
+
+                                    // return Text(
+                                    //   "${capitalizeFirstLetter(d.day ?? '')}: $open - $close",
+                                    //   style: GoogleFonts.roboto(
+                                    //     fontSize: 10,
+                                    //     fontWeight: FontWeight.w600,
+                                    //     color: AppColors.shadowColor,
+                                    //   ),
+                                    // );
                                   }).toList();
                                 })(),
                           )
-                          : Text(
-                            'All Days',
-                            style: GoogleFonts.roboto(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.shadowColor,
-                            ),
-                          ),
+                          : const SizedBox.shrink(),
                     ],
                   ),
                   !card.isExpanded
@@ -329,7 +373,6 @@ class _ExpandableCardState extends State<ExpandableCard> {
                           EasyLoading.show();
                         }
                         if (state is HomeLoaded) {
-
                           EasyLoading.dismiss();
                           final card = state.cards[widget.index];
                           return AvailableDaysMultiSelectField(
@@ -355,7 +398,7 @@ class _ExpandableCardState extends State<ExpandableCard> {
                       children: [
                         _buildAttendeesButton(context),
                         _buildSaveButton(context, state),
-                        ],
+                      ],
                     ),
                   ],
                 ),
@@ -398,29 +441,28 @@ class _ExpandableCardState extends State<ExpandableCard> {
       },
     );
   }
-///Attendees Button
-  Widget _buildAttendeesButton(BuildContext context ) {
+
+  ///Attendees Button
+  Widget _buildAttendeesButton(BuildContext context) {
     return ElevatedButton(
-                  onPressed: () {
-                   context.push('/attendees');
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                  child: Text(
-                    'View Attendees',
-                    style: GoogleFonts.montserrat(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                );
+      onPressed: () {
+        context.push('/attendees');
+      },
+      style: ElevatedButton.styleFrom(
+        backgroundColor: AppColors.primary,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      ),
+      child: Text(
+        'View Attendees',
+        style: GoogleFonts.montserrat(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+        ),
+      ),
+    );
   }
- 
+
   Widget _buildSaveButton(BuildContext context, HomeState state) {
     final isPromoNotEmpty = _promoController.text.trim().isNotEmpty;
     final isDaysNotEmpty = selectedDays.isNotEmpty;
@@ -442,9 +484,16 @@ class _ExpandableCardState extends State<ExpandableCard> {
                     selectedDays.isEmpty
                         ? 'All Days'
                         : selectedDays
-                            .map(
-                              (d) => "${d.day}: ${d.openTime}-${d.closeTime}",
-                            )
+                            .map((d) {
+                              final firstTiming =
+                                  (d.timings != null && d.timings!.isNotEmpty)
+                                      ? d.timings!.first
+                                      : Timing(
+                                        open: "10:00:00",
+                                        close: "22:00:00",
+                                      );
+                              return "${d.day}: ${firstTiming.open}-${firstTiming.close}";
+                            })
                             .join(', '),
                   ),
                 );
@@ -455,15 +504,20 @@ class _ExpandableCardState extends State<ExpandableCard> {
 
                 final diceTableIds = [widget.card.id];
                 final moreInfos = [_promoController.text];
-                // final availableDaysSelectedForApi = selectedDays;
+                //New chnage
                 final List<AvailableDay> availableDaysSelectedForApi =
                     selectedDays.map((day) {
+                      final timings =
+                          (day.timings != null && day.timings!.isNotEmpty)
+                              ? day.timings!
+                              : [Timing(open: "10:00:00", close: "22:00:00")];
+
                       return AvailableDay(
-                        // id: day.id,
-                        day: day.day,
-                        openTime: day.openTime,
-                        closeTime: day.closeTime,
-                        isOpen: widget.card.isSelected,
+                        id: day.id ?? 0,
+                        day: day.day ?? '',
+                        timings:
+                            timings, // ✅ use full list (supports multiple slots)
+                        isOpen: true,
                       );
                     }).toList();
 
@@ -486,7 +540,6 @@ class _ExpandableCardState extends State<ExpandableCard> {
     );
   }
 }
-
 
 // Replace your existing AvailableDaysMultiSelectField class with this updated version
 
@@ -532,11 +585,17 @@ class _AvailableDaysMultiSelectFieldState
   }
 
   String get selectedDaysText {
-    if (selectedDays.isEmpty) return "All Days";
+    if (selectedDays.isEmpty) return "";
     return selectedDays
         .map((d) {
-          final open = d.openTime?.substring(0, 5) ?? "";
-          final close = d.closeTime?.substring(0, 5) ?? "";
+          final firstTiming =
+              (d.timings != null && d.timings!.isNotEmpty)
+                  ? d.timings!.first
+                  : Timing(open: "10:00:00", close: "22:00:00");
+
+          final open = firstTiming.open;
+          final close = firstTiming.close;
+
           return "${capitalizeFirstLetter(d.day!)}: $open-$close";
         })
         .join(', ');
@@ -552,22 +611,22 @@ class _AvailableDaysMultiSelectFieldState
       context: context,
       builder: (context) {
         return EnhancedAvailableDaysDialog(
-          availableDays: widget.availableDays,
-          initialSelectedDays: selectedDays,
-          tableTypeName: widget.tableTypeName ?? "Business Networking",
+          availableDays: widget.availableDays, // ✅ Pass your full week list
+          initialSelectedDays: selectedDays, // ✅ Preload previously chosen days
+          tableTypeName:
+              widget.tableTypeName ?? "Business Networking", // optional
         );
       },
     );
 
-    if (result != null) {
+    if (result != null && result.isNotEmpty) {
       setState(() {
-        selectedDays = result;
+        selectedDays = result; // ✅ Already includes timings list
       });
 
+      // ✅ Notify parent (BLoC / callback)
       Future.microtask(() {
-        if (widget.onChanged != null) {
-          widget.onChanged!(selectedDays);
-        }
+        widget.onChanged?.call(selectedDays);
       });
     }
   }
@@ -604,203 +663,7 @@ class _AvailableDaysMultiSelectFieldState
   }
 }
 
-
-
-// class AvailableDaysMultiSelectField extends StatefulWidget {
-//   final List<AvailableDay> availableDays;
-//   final ValueChanged<List<AvailableDay>>? onChanged;
-//   final List<AvailableDay>? initialSelectedDays;
-
-//   const AvailableDaysMultiSelectField({
-//     required this.availableDays,
-//     this.onChanged,
-//     this.initialSelectedDays,
-//     super.key,
-//   });
-
-//   @override
-//   State<AvailableDaysMultiSelectField> createState() =>
-//       _AvailableDaysMultiSelectFieldState();
-// }
-
-// class _AvailableDaysMultiSelectFieldState
-//     extends State<AvailableDaysMultiSelectField> {
-//   List<AvailableDay> selectedDays = [];
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     selectedDays = List<AvailableDay>.from(widget.initialSelectedDays ?? []);
-//   }
-
-//   @override
-//   void didUpdateWidget(covariant AvailableDaysMultiSelectField oldWidget) {
-//     super.didUpdateWidget(oldWidget);
-//     if (widget.initialSelectedDays != oldWidget.initialSelectedDays) {
-//       setState(() {
-//         selectedDays = List<AvailableDay>.from(
-//           widget.initialSelectedDays ?? [],
-//         );
-//       });
-//     }
-//   }
-
-//   String get selectedDaysText {
-//     if (selectedDays.isEmpty) return "All Days";
-//     return selectedDays
-//         .map((d) {
-//           final open = d.openTime?.substring(0, 5) ?? "";
-//           final close = d.closeTime?.substring(0, 5) ?? "";
-//           return "${d.day}: $open-$close";
-//         })
-//         .join(', ');
-//   }
-
-//   Future<void> _showMultiSelectDialog() async {
-//     List<AvailableDay> tempSelected = List.from(selectedDays);
-
-//     final result = await showDialog<List<AvailableDay>>(
-//       context: context,
-//       builder: (context) {
-//         return AlertDialog(
-//           backgroundColor: AppColors.primaryWhiteColor,
-//           title: Text(
-//             'Select available days',
-//             style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-//               color: AppColors.primary,
-//               fontSize: 16,
-//               fontWeight: FontWeight.w600,
-//             ),
-//           ),
-//           content: SizedBox(
-//             width: double.maxFinite,
-//             child: StatefulBuilder(
-//               builder: (context, setModalState) {
-//                 return SingleChildScrollView(
-//                   child: Column(
-//                     mainAxisSize: MainAxisSize.min,
-//                     children: [
-//                       ...widget.availableDays.map((day) {
-//                         final isChecked = tempSelected.any(
-//                           (d) => d.day == day.day,
-//                         );
-
-//                         return CheckboxListTile(
-//                           title: Text(
-//                             "${capitalizeFirstLetter(day.day!)}: ${day.openTime!.substring(0, 5)} - ${day.closeTime!.substring(0, 5)}",
-//                             style: Theme.of(
-//                               context,
-//                             ).textTheme.bodySmall!.copyWith(
-//                               color: AppColors.textPrimaryGrey,
-//                               fontSize: 13,
-//                               fontWeight: FontWeight.w500,
-//                             ),
-//                           ),
-//                           value: isChecked,
-//                           onChanged: (checked) {
-//                             setModalState(() {
-//                               if (checked == true) {
-//                                 if (!tempSelected.any(
-//                                   (d) => d.day == day.day,
-//                                 )) {
-//                                   tempSelected.add(day);
-//                                 }
-//                               } else {
-//                                 tempSelected.removeWhere(
-//                                   (d) => d.day == day.day,
-//                                 );
-//                               }
-//                             });
-//                           },
-//                         );
-//                       }).toList(),
-//                     ],
-//                   ),
-//                 );
-//               },
-//             ),
-//           ),
-//           actions: [
-//             TextButton(
-//               onPressed:
-//                   () => Navigator.pop(context, null), // Cancel returns null
-//               child: Text(
-//                 'Cancel',
-//                 style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-//                   color: AppColors.primary,
-//                   fontSize: 14,
-//                   fontWeight: FontWeight.w600,
-//                 ),
-//               ),
-//             ),
-//             ElevatedButton(
-//               onPressed: () {
-//                 Navigator.pop(context, tempSelected); // Done returns selection
-//               },
-//               child: Text(
-//                 'Done',
-//                 style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-//                   color: AppColors.primary,
-//                   fontSize: 14,
-//                   fontWeight: FontWeight.w600,
-//                 ),
-//               ),
-//             ),
-//           ],
-//         );
-//       },
-//     );
-
-//     if (result != null) {
-//       setState(() {
-//         selectedDays = result;
-//       });
-
-//       Future.microtask(() {
-//         if (widget.onChanged != null) {
-//           widget.onChanged!(selectedDays);
-//         }
-//       });
-//       // if (widget.onChanged != null) {
-//       //   widget.onChanged!(selectedDays);
-//       // }
-//     }
-//     // If result is null (Cancel), do nothing
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return GestureDetector(
-//       onTap: _showMultiSelectDialog,
-//       child: Container(
-//         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-//         decoration: BoxDecoration(
-//           border: Border.all(color: Colors.grey),
-//           borderRadius: BorderRadius.circular(12),
-//         ),
-//         child: Row(
-//           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//           children: [
-//             Expanded(
-//               child: Text(
-//                 selectedDaysText,
-//                 style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-//                   color: AppColors.timeTextColor,
-//                   fontSize: 13,
-//                   fontWeight: FontWeight.w500,
-//                 ),
-//                 overflow: TextOverflow.ellipsis,
-//               ),
-//             ),
-//             const Icon(Icons.arrow_drop_down),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-
-  String capitalizeFirstLetter(String text) {
-    if (text.isEmpty) return text;
-    return "${text[0].toUpperCase()}${text.substring(1).toLowerCase()}";
-  }
-
+String capitalizeFirstLetter(String text) {
+  if (text.isEmpty) return text;
+  return "${text[0].toUpperCase()}${text.substring(1).toLowerCase()}";
+}

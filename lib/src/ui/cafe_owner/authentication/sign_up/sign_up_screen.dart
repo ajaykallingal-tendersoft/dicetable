@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:soloseaters/src/common/custom_text_field.dart';
 import 'package:soloseaters/src/common/elevated_button_widget.dart';
@@ -40,7 +42,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   late final TextEditingController _phoneController;
   late final TextEditingController _addressController;
   late final TextEditingController _postalCodeController;
-  late final TextEditingController _countryController;
+  // late final TextEditingController _countryController;
   late final TextEditingController _regionController;
   // List<String> _countryList = [];
   late final bool isGoogleSignUp;
@@ -92,7 +94,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     _confirmPasswordController = TextEditingController();
     _addressController = TextEditingController();
     _postalCodeController = TextEditingController();
-    _countryController = TextEditingController();
+    // _countryController = TextEditingController();
     _regionController = TextEditingController();
     _phoneController = TextEditingController();
 
@@ -151,7 +153,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
     _phoneController.dispose();
     _addressController.dispose();
     _postalCodeController.dispose();
-    _countryController.dispose();
+    // _countryController.dispose();
     _regionController.dispose();
     super.dispose();
   }
@@ -180,11 +182,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
         state.address.trim().isNotEmpty &&
         state.venueTypes.any((venue) => venue.isSelected) &&
         state.openingHours.values.any((hour) => hour.isEnabled) &&
-        state.base64Image != null &&
+        state.image != null &&
         state.country.trim().isNotEmpty &&
-        state.base64Image!.isNotEmpty;
+        state.multipleImages.isNotEmpty;
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -535,133 +536,126 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         );
                       },
                     ),
-                    // Padding(
-                    //   padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 0),
-                    //   child: DropdownButtonFormField<String>(
-                    //     initialValue: selectedCountry,
-                    //     decoration: InputDecoration(
-                    //       filled: true,
-                    //       fillColor: Colors.white,
-                    //       labelStyle: Theme.of(
-                    //         context,
-                    //       ).textTheme.bodySmall!.copyWith(
-                    //         color: AppColors.textPrimaryGrey,
-                    //         fontWeight: FontWeight.w500,
-                    //         fontSize: 15.sp,
-                    //       ),
-                    //       border: OutlineInputBorder(
-                    //         borderRadius: BorderRadius.circular(15),
-                    //         borderSide: const BorderSide(
-                    //           color: AppColors.textPrimaryGrey,
-                    //         ),
-                    //       ),
-                    //       enabledBorder: OutlineInputBorder(
-                    //         borderRadius: BorderRadius.circular(15),
-                    //         borderSide: const BorderSide(
-                    //           color: AppColors.textPrimaryGrey,
-                    //         ),
-                    //       ),
-                    //       focusedBorder: OutlineInputBorder(
-                    //         borderRadius: BorderRadius.circular(8),
-                    //         borderSide: const BorderSide(color: AppColors.primary),
-                    //       ),
-                    //       floatingLabelStyle: Theme.of(
-                    //         context,
-                    //       ).textTheme.bodySmall!.copyWith(
-                    //         color: AppColors.primary,
-                    //         fontWeight: FontWeight.w500,
-                    //         fontSize: 15.sp,
-                    //       ),
-                    //     ),
-                    //     hint: Text(
-                    //       'Select a Country',
-                    //       style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                    //         color: AppColors.textPrimaryGrey,
-                    //         fontWeight: FontWeight.w500,
-                    //         fontSize: 14.sp,
-                    //       ),
-                    //     ),
-                    //     style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                    //       color: AppColors.textPrimaryGrey,
-                    //       // Default selected item text color
-                    //       fontWeight: FontWeight.w500,
-                    //       fontSize: 15.sp,
-                    //     ),
-                    //     items:
-                    //     _countryList.map((countryValue) {
-                    //       return DropdownMenuItem<String>(
-                    //         value: countryValue,
-                    //         child: Text(
-                    //           countryValue,
-                    //           style: Theme.of(
-                    //             context,
-                    //           ).textTheme.bodySmall!.copyWith(
-                    //             color: AppColors.primary,
-                    //             // Always primary color for items in the dropdown list
-                    //             fontWeight: FontWeight.w500,
-                    //             fontSize: 14.sp,
-                    //           ),
-                    //         ),
-                    //       );
-                    //     }).toList(),
-                    //     onChanged: (String? newValue) {
-                    //       setState(() {
-                    //         selectedCountry = newValue;
-                    //         context.read<SignUpBloc>().add(
-                    //           UpdateTextField((state) => state.copyWith(country: newValue)),
-                    //         );
-                    //       });
-                    //     },
-                    //     validator: (value) {
-                    //       if (value == null || value.isEmpty) {
-                    //         return 'Please select a Country';
-                    //       }
-                    //       return null;
-                    //     },
-                    //   ),
-                    // ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 0),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 7,
+                        horizontal: 0,
+                      ),
                       child: BlocBuilder<SignUpBloc, SignUpState>(
                         builder: (context, state) {
-                          final formState = state as SignUpFormState;
-                          final countries = formState.countries;
-                          final isLoading = formState.isLoadingCountries;
-                          final selectedCountry = formState.country.isNotEmpty ? formState.country : null;
-
-                          if (isLoading) {
-                            return const Center(child: CircularProgressIndicator());
-                          }
-
-                          if (formState.countryError != null) {
-                            return Center(child: Text(formState.country.toString()));
-                          }
-
-                          return DropdownButtonFormField<String>(
-                            value: selectedCountry,
-                            decoration: InputDecoration(
-                              filled: true,
-                              fillColor: Colors.white,
-                              labelText: 'Select a Country',
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
-                            ),
-                            items: countries.map((country) {
-                              return DropdownMenuItem<String>(
-                                value: country.name,
-                                child: Text(country.name ?? ''),
+                          if (state is SignUpFormState) {
+                            if (state.isLoadingCountries) {
+                              return const Center(
+                                child: CircularProgressIndicator(),
                               );
-                            }).toList(),
-                            onChanged: (String? newValue) {
-                              context.read<SignUpBloc>().add(
-                                UpdateTextField((state) => state.copyWith(country: newValue)),
+                            }
+
+                            if (state.countryError != null) {
+                              return Text(
+                                'Error: ${state.countryError}',
+                                style: const TextStyle(color: Colors.red),
                               );
-                            },
-                            validator: (value) =>
-                            value == null || value.isEmpty ? 'Please select a Country' : null,
-                          );
+                            }
+
+                            final showError =
+                                showValidationErrors &&
+                                state.country.trim().isEmpty;
+
+                            return Stack(
+                              alignment: Alignment.centerLeft,
+                              children: [
+                                // The Dropdown styled as your TextField
+                                Container(
+                                  height: 70,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color:
+                                          showError
+                                              ? const Color(0xFFD32F2F)
+                                              : Colors.grey,
+                                      width: 1.2,
+                                    ),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
+                                  child: DropdownButtonHideUnderline(
+                                    child: DropdownButton<String>(
+                                      value:
+                                          state.country.isNotEmpty
+                                              ? state.country
+                                              : null,
+                                      hint: Text(
+                                        "Select Country",
+                                        style: TextStyle(
+                                          color: Colors.grey.shade600,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      icon: const Icon(
+                                        Icons.arrow_drop_down,
+                                        color: Colors.grey,
+                                      ),
+                                      isExpanded: true,
+                                      items:
+                                          state.countries.map((country) {
+                                            return DropdownMenuItem<String>(
+                                              value: country.id.toString(),
+                                              child: Text(
+                                                country.name ?? '',
+                                                style: const TextStyle(
+                                                  color: Colors.black,
+                                                  fontSize: 16,
+                                                ),
+                                              ),
+                                            );
+                                          }).toList(),
+                                      onChanged: (selectedId) {
+                                        if (selectedId != null) {
+                                          final selectedCountry = state
+                                              .countries
+                                              .firstWhere(
+                                                (c) =>
+                                                    c.id.toString() ==
+                                                    selectedId,
+                                              );
+                                          context.read<SignUpBloc>().add(
+                                            SelectCountryEvent(
+                                              countryId:
+                                                  selectedCountry.id.toString(),
+                                              countryName:
+                                                  selectedCountry.name ?? '',
+                                            ),
+                                          );
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                ),
+
+                                // The inline error text (positioned inside field)
+                                if (showError)
+                                  Positioned(
+                                    left: 20,
+                                    bottom: 6,
+                                    child: Text(
+                                      "Please select a country",
+                                      style: const TextStyle(
+                                        color: Color(0xFFD32F2F),
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            );
+                          }
+                          return const SizedBox.shrink();
                         },
                       ),
                     ),
+
                     CustomTextField(
                       controller: _addressController,
                       hintText: 'Street Address And City',
@@ -819,6 +813,32 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       state: SignUpFormState(),
                     ),
                     const Gap(30),
+
+                    // Column(
+                    //   crossAxisAlignment: CrossAxisAlignment.start,
+                    //   children: [
+                    //     MultipleImageUploadWidget(
+                    //       showValidationErrors: showValidationErrors,
+                    //       state: SignUpFormState(),
+                    //     ),
+                    //     if (showValidationErrors &&
+                    //         formState != null &&
+                    //         formState.multipleImages.isEmpty)
+                    //       Padding(
+                    //         padding: const EdgeInsets.only(
+                    //           left: 16.0,
+                    //           top: 4.0,
+                    //         ),
+                    //         child: Text(
+                    //           'Please upload at least one gallery image',
+                    //           style: TextStyle(
+                    //             color: AppColors.appRedColor,
+                    //             fontSize: 14.sp,
+                    //           ),
+                    //         ),
+                    //       ),
+                    //   ],
+                    // ),
                     MultipleImageUploadWidget(
                       showValidationErrors: showValidationErrors,
                       state: SignUpFormState(),
@@ -887,26 +907,26 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 });
 
                                 if (isGoogleSignUp) {
-                                  final googleSignUpRequest =
-                                      GoogleSignUpRequest(
-                                        name: _venueNameController.text,
-                                        venueDescription:
-                                            state.venueDescription,
-                                        email: _emailController.text.trim(),
-                                        // password: state.password,
-                                        // passwordConfirmation:
-                                        // state.confirmPassword,
-                                        country: state.country,
-                                        address: state.address,
-                                        loginType: 3,
-                                        phone: state.phone,
-                                        postcode: state.postalCode,
-                                        accommodations: selectedVenueTypeIds,
-                                        workingDays: workingDaysMap,
-                                        blob: state.base64Image,
-                                        fcmToken:
-                                            ObjectFactory().prefs.getFcmToken(),
-                                      );
+                                  final googleSignUpRequest = GoogleSignUpRequest(
+                                    name: _venueNameController.text,
+                                    venueDescription: state.venueDescription,
+                                    email: _emailController.text.trim(),
+                                    // password: state.password,
+                                    // passwordConfirmation:
+                                    // state.confirmPassword,
+                                    country:
+                                        state
+                                            .country, // Already contains the country ID
+                                    address: state.address,
+                                    loginType: 3,
+                                    phone: state.phone,
+                                    postcode: state.postalCode,
+                                    accommodations: selectedVenueTypeIds,
+                                    workingDays: workingDaysMap,
+                                    blob: state.base64Image,
+                                    fcmToken:
+                                        ObjectFactory().prefs.getFcmToken(),
+                                  );
 
                                   context.read<SignUpBloc>().add(
                                     SubmitGoogleSignUp(
@@ -953,9 +973,16 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     postcode: state.postalCode,
                                     accommodations: selectedVenueTypeIds,
                                     workingDays: workingDaysMap,
-                                    blob: state.base64Image,
                                     fcmToken:
                                         ObjectFactory().prefs.getFcmToken(),
+                                    image:
+                                        state.image != null
+                                            ? File(state.image!.path)
+                                            : null,
+                                    multipleImages:
+                                        state.multipleImages
+                                            .map((x) => File(x.path))
+                                            .toList(),
                                   );
                                   context.read<SignUpBloc>().add(
                                     SubmitSignUp(signupRequest: signUpRequest),

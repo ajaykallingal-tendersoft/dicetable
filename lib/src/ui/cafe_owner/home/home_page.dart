@@ -237,19 +237,19 @@ class _HomePageState extends State<HomePage> {
                   if(state is DiceTableUpdateLoading) {
                     EasyLoading.show();
                   }
-                  if (state is HomeLoaded) {
-                    EasyLoading.dismiss();
-                    if (state.subscriptionStatus == false) {
-                      Fluttertoast.showToast(
-                        fontSize: 14.sp, 
-                        backgroundColor: AppColors.primaryWhiteColor,
-                        textColor: AppColors.appRedColor,
-                        gravity: ToastGravity.BOTTOM,
-                        msg: "You dont have an active subscription. Please subscribe to access all features.",
-                      );
-                       SignOut().logout(context);
-                    }
-                  }
+                  // if (state is HomeLoaded) {
+                  //   EasyLoading.dismiss();
+                  //   if (state.subscriptionStatus == false) {
+                  //     Fluttertoast.showToast(
+                  //       fontSize: 14.sp, 
+                  //       backgroundColor: AppColors.primaryWhiteColor,
+                  //       textColor: AppColors.appRedColor,
+                  //       gravity: ToastGravity.BOTTOM,
+                  //       msg: "You dont have an active subscription. Please subscribe to access all features.",
+                  //     );
+                  //      SignOut().logout(context);
+                  //   }
+                  // }
                   if (state is HomeLoaded) {
                     if(state.homeResponse.status == false) {
                       if(state.homeResponse.message!.contains("Unauthorized")) {

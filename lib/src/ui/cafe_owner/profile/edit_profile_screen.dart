@@ -6,6 +6,7 @@ import 'package:soloseaters/src/common/elevated_button_widget.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/model/cafe_owner/profile/profile_update_request.dart';
 import 'package:soloseaters/src/ui/cafe_owner/profile/bloc/profile_bloc.dart';
+import 'package:soloseaters/src/ui/cafe_owner/profile/widget/cafe_gallery_edit_widget';
 import 'package:soloseaters/src/ui/cafe_owner/profile/widget/profile_opening_hour_widget.dart';
 import 'package:soloseaters/src/ui/cafe_owner/profile/widget/profile_venue_type_checkbox.dart';
 import 'package:flutter/material.dart';
@@ -39,7 +40,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   late TextEditingController _cityController;
   late TextEditingController _postalCodeController;
   late TextEditingController _countryController;
- 
 
   @override
   void initState() {
@@ -70,7 +70,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-    bool _isValidPhoneNumber(String number) {
+  bool _isValidPhoneNumber(String number) {
     final phoneRegex = RegExp(r'^\d{8,10}$');
     return phoneRegex.hasMatch(number);
   }
@@ -328,9 +328,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                       controller: _phoneController,
                                       hintText: 'Phone',
                                       textFieldAnnotationText: 'Phone',
-                                      errorText: !_isValidPhoneNumber(_phoneController.text.trim())
-                          ? "Please enter a valid phone number"
-                          : null,
+                                      errorText:
+                                          !_isValidPhoneNumber(
+                                                _phoneController.text.trim(),
+                                              )
+                                              ? "Please enter a valid phone number"
+                                              : null,
                                       onChanged: (value) {
                                         context.read<ProfileBloc>().add(
                                           UpdateTextField(
@@ -340,7 +343,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                         );
                                       },
                                     ),
-                                     CustomTextField(
+                                    CustomTextField(
                                       isEditMode: true,
                                       controller: _countryController,
                                       hintText: 'Country',
@@ -492,17 +495,40 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                               );
                                             },
                                           ),
+                                         
                                         ],
                                       ),
                                     ),
-                                    Gap(30.h),
+                                    Gap(10.h),
+                                   
+                                          EditGalleryPhotosWidget(
+                                            photoUrls: [
+                                           
+                                            ],
+                                          
+                                            onUploadGallery: () {
+                                              context.read<ProfileBloc>().add(
+                                                PickImageFromGalleryEvent(),
+                                              );
+                                            },
+                                            onTakePicture: () {
+                                              // Create a new event if you later add camera support
+                                              // context.read<ProfileBloc>().add(PickImageFromCameraEvent());
+                                            },
+                                            onDelete: (index) {
+                                              // Optional: handle delete event in future
+                                              // context.read<ProfileBloc>().add(DeleteCafePhotoEvent(index));
+                                            },
+                                          ),
+                                           Gap(30.h),
                                     InkWell(
                                       onTap: () {
                                         _submitProfile(context, state);
                                       },
                                       child: ElevatedButtonWidget(
                                         height: 70.h,
-                                        width: MediaQuery.of(context).size.width,
+                                        width:
+                                            MediaQuery.of(context).size.width,
                                         iconEnabled: false,
                                         iconLabel: 'SAVE CHANGES',
                                         color: AppColors.primary,

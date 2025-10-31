@@ -99,3 +99,16 @@ class SetSignUpType extends SignUpEvent {
   @override
   List<Object> get props => [isGoogleSignUp, isAppleSignUp];
 }
+
+class SelectCountryEvent extends SignUpEvent {
+  final String countryId;
+  final String countryName;
+
+  const SelectCountryEvent({
+    required this.countryId,
+    required this.countryName,
+  });
+
+  @override
+  List<Object?> get props => [countryId, countryName];
+}

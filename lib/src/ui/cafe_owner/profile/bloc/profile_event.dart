@@ -67,3 +67,33 @@ class ProfileDeleteEvent extends ProfileEvent {
   @override
   List<Object?> get props => [];
 }
+
+/// Pick cafe/eatery photo from gallery
+class PickCafePhotoFromGalleryEvent extends ProfileEvent {
+  @override
+  List<Object?> get props => [];
+}
+
+/// Pick cafe/eatery photo from camera
+class PickCafePhotoFromCameraEvent extends ProfileEvent {
+  @override
+  List<Object?> get props => [];
+}
+
+/// Delete a cafe/eatery photo at a specific index
+class DeleteCafePhotoEvent extends ProfileEvent {
+  final int index;
+  const DeleteCafePhotoEvent(this.index);
+
+  @override
+  List<Object?> get props => [index];
+}
+
+/// Upload new photos to backend (optional trigger)
+class UploadCafePhotosEvent extends ProfileEvent {
+  final List<String> base64Photos;
+  const UploadCafePhotosEvent(this.base64Photos);
+
+  @override
+  List<Object?> get props => [base64Photos];
+}

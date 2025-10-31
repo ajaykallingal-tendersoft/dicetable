@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:bloc/bloc.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/login/google_login_request_response.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/signUp/apple_sign-up_request.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/signUp/apple_sign-up_response.dart';
@@ -28,41 +29,46 @@ part 'sign_up_state.dart';
 
 class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
   final AuthDataProvider authDataProvider;
-   bool isGoogleSignUp;
-   bool isAppleSignUp;
+  bool isGoogleSignUp;
+  bool isAppleSignUp;
   final ImagePicker _picker = ImagePicker();
   XFile? _image;
   String base64String = '';
   String base64Encoded = '';
   SignUpFormState _formState;
   final SignUpFormState _initialFormState;
+  List<XFile> _multipleImages = [];
+  List<String> base64ImageList = [];
+  List<XFile> _multipleImageFiles = [];
 
-  SignUpBloc({required this.authDataProvider, this.isGoogleSignUp = false, this.isAppleSignUp = false})
-    : _formState = SignUpFormState(
-        openingHours: {
-          for (final day in ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'])
-            day: OpeningHour(
-              isEnabled: false,
-              from: const TimeOfDay(hour: 9, minute: 0),
-              to: const TimeOfDay(hour: 17, minute: 0),
-            ),
-        },
-      ),
-      _initialFormState = SignUpFormState(
-        openingHours: {
-          for (final day in ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'])
-            day: OpeningHour(
-              isEnabled: false,
-              from: const TimeOfDay(hour: 9, minute: 0),
-              to: const TimeOfDay(hour: 17, minute: 0),
-            ),
-        },
-      ),
-      super(SignUpInitial()) {
+  SignUpBloc({
+    required this.authDataProvider,
+    this.isGoogleSignUp = false,
+    this.isAppleSignUp = false,
+  }) : _formState = SignUpFormState(
+         openingHours: {
+           for (final day in ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'])
+             day: OpeningHour(
+               isEnabled: false,
+               from: const TimeOfDay(hour: 9, minute: 0),
+               to: const TimeOfDay(hour: 17, minute: 0),
+             ),
+         },
+       ),
+       _initialFormState = SignUpFormState(
+         openingHours: {
+           for (final day in ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'])
+             day: OpeningHour(
+               isEnabled: false,
+               from: const TimeOfDay(hour: 9, minute: 0),
+               to: const TimeOfDay(hour: 17, minute: 0),
+             ),
+         },
+       ),
+       super(SignUpInitial()) {
     emit(_formState);
 
-
-  on<SetSignUpType>((event, emit) {
+    on<SetSignUpType>((event, emit) {
       isGoogleSignUp = event.isGoogleSignUp;
       isAppleSignUp = event.isAppleSignUp;
     });
@@ -118,8 +124,87 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
       }
     }
 
-    ///New Functionality for picking image from gallery
+    on<SelectCountryEvent>((event, emit) {
+      _formState = _formState.copyWith(
+        country: event.countryId,
+        countryName: event.countryName,
+      );
+      emit(_formState);
+    });
+
     on<PickImageFromGalleryEvent>((event, emit) async {
+      emit(SignUpImageLoadingState());
+      try {
+        //  Handle Android permission
+        if (Platform.isAndroid) {
+          Permission permission;
+          if (await isAndroid13OrHigher()) {
+            permission = Permission.photos;
+          } else {
+            permission = Permission.storage;
+          }
+          final permissionStatus = await permission.request();
+          if (!permissionStatus.isGranted) {
+            emit(
+              SignUpImageErrorState(
+                errorMessage: "Photo access permission denied.",
+              ),
+            );
+            emit(_formState);
+            return;
+          }
+        }
+
+        //  Pick image from gallery
+        final pickedImage = await _picker.pickImage(
+          source: ImageSource.gallery,
+          imageQuality: 80,
+        );
+
+        if (pickedImage == null) {
+          emit(_formState);
+          return;
+        }
+
+        //  Validate file type
+        final ext = pickedImage.name.toLowerCase();
+        if (!(ext.endsWith('.png') ||
+            ext.endsWith('.jpeg') ||
+            ext.endsWith('.jpg'))) {
+          emit(
+            SignUpImageErrorState(
+              errorMessage: "Only JPEG or PNG images are allowed.",
+            ),
+          );
+          emit(_formState);
+          return;
+        }
+
+        // Compress
+        Uint8List? compressedBytes = await _compressImage(pickedImage);
+        if (compressedBytes == null || compressedBytes.isEmpty) {
+          emit(SignUpImageErrorState(errorMessage: "Failed to process image."));
+          emit(_formState);
+          return;
+        }
+
+        // Save compressed bytes as a temp File
+        final tempDir = await getTemporaryDirectory();
+        final compressedFile = File(
+          '${tempDir.path}/compressed_${DateTime.now().millisecondsSinceEpoch}.jpg',
+        );
+        await compressedFile.writeAsBytes(compressedBytes);
+
+        _formState = _formState.copyWith(image: XFile(compressedFile.path));
+        emit(_formState);
+      } catch (e) {
+        emit(SignUpImageErrorState(errorMessage: "Failed to pick image: $e"));
+        emit(_formState);
+      }
+    });
+
+    ///New Functionality for picking image from gallery
+    /* on<PickImageFromGalleryEvent>((event, emit) async {
       emit(SignUpImageLoadingState());
       try {
         if (Platform.isAndroid) {
@@ -208,12 +293,80 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
         emit(SignUpImageErrorState(errorMessage: "Failed to pick image: $e"));
         emit(_formState);
       }
-    });
-
-    List<XFile> _multipleImages = [];
-    List<String> base64ImageList = [];
+    });*/
 
     on<PickMultipleImagesFromGalleryEvent>((event, emit) async {
+      emit(SignUpImageLoadingState());
+      try {
+        if (Platform.isAndroid) {
+          Permission permission;
+          if (await isAndroid13OrHigher()) {
+            permission = Permission.photos;
+          } else {
+            permission = Permission.storage;
+          }
+          final permissionStatus = await permission.request();
+          if (!permissionStatus.isGranted) {
+            emit(
+              SignUpImageErrorState(
+                errorMessage: "Photo access permission denied.",
+              ),
+            );
+            emit(_formState);
+            return;
+          }
+        }
+
+        final pickedImages = await _picker.pickMultiImage(imageQuality: 80);
+        if (pickedImages.isEmpty) {
+          emit(_formState);
+          return;
+        }
+
+        // ✅ Compress each and store as XFile
+        for (final pickedImage in pickedImages) {
+          final ext = pickedImage.name.toLowerCase();
+          if (!(ext.endsWith('.png') ||
+              ext.endsWith('.jpeg') ||
+              ext.endsWith('.jpg'))) {
+            emit(
+              SignUpImageErrorState(
+                errorMessage: "Only JPEG or PNG images are allowed.",
+              ),
+            );
+            emit(_formState);
+            return;
+          }
+
+          final compressedBytes = await FlutterImageCompress.compressWithList(
+            await pickedImage.readAsBytes(),
+            minHeight: 1920,
+            minWidth: 1080,
+            quality: 85,
+          );
+
+          if (compressedBytes.isEmpty) continue;
+
+          final tempDir = await getTemporaryDirectory();
+          final file = File(
+            '${tempDir.path}/multi_${DateTime.now().millisecondsSinceEpoch}.jpg',
+          );
+          await file.writeAsBytes(compressedBytes);
+
+          // ✅ convert File → XFile for form state
+          _multipleImageFiles.add(XFile(file.path));
+        }
+
+        // ✅ update state safely
+        _formState = _formState.copyWith(multipleImages: _multipleImageFiles);
+        emit(_formState);
+      } catch (e) {
+        emit(SignUpImageErrorState(errorMessage: "Failed to pick images: $e"));
+        emit(_formState);
+      }
+    });
+
+    /*on<PickMultipleImagesFromGalleryEvent>((event, emit) async {
       emit(SignUpImageLoadingState());
       try {
         if (Platform.isAndroid) {
@@ -285,13 +438,16 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
         emit(SignUpImageErrorState(errorMessage: "Failed to pick images: $e"));
         emit(_formState);
       }
-    });
+    });*/
 
     on<ClearAllImagesEvent>((event, emit) async {
       emit(SignUpImageLoadingState());
       _multipleImages.clear();
       base64ImageList.clear();
-      _formState = _formState.copyWith(multipleImages: [], multipleBase64Images: []);
+      _formState = _formState.copyWith(
+        multipleImages: [],
+        multipleBase64Images: [],
+      );
       emit(_formState);
     });
 
@@ -300,7 +456,10 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
       if (event.index < _multipleImages.length) {
         _multipleImages.removeAt(event.index);
         base64ImageList.removeAt(event.index);
-        _formState = _formState.copyWith(multipleImages: _multipleImages, multipleBase64Images: base64ImageList);
+        _formState = _formState.copyWith(
+          multipleImages: _multipleImages,
+          multipleBase64Images: base64ImageList,
+        );
       }
       emit(_formState);
     });
@@ -308,19 +467,19 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
     on<TakeMultiplePicturesEvent>((event, emit) async {
       emit(SignUpImageLoadingState());
       try {
+        //  Camera permission
         if (Platform.isAndroid) {
-          Permission permission = await isAndroid13OrHigher()
-              ? Permission.camera
-              : Permission.storage;
-          final permissionStatus = await permission.request();
+          final permissionStatus = await Permission.camera.request();
           if (!permissionStatus.isGranted) {
-            emit(SignUpImageErrorState(errorMessage: "Camera permission denied."));
+            emit(
+              SignUpImageErrorState(errorMessage: "Camera permission denied."),
+            );
             emit(_formState);
             return;
           }
         }
 
-        // Capture an image from camera
+        //  Capture image from camera
         final XFile? capturedImage = await _picker.pickImage(
           source: ImageSource.camera,
           imageQuality: 80,
@@ -331,15 +490,21 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
           return;
         }
 
-        // Validate extension
+        //  Validate extension
         final ext = capturedImage.name.toLowerCase();
-        if (!(ext.endsWith('.png') || ext.endsWith('.jpeg') || ext.endsWith('.jpg'))) {
-          emit(SignUpImageErrorState(errorMessage: "Only JPEG or PNG images are allowed."));
+        if (!(ext.endsWith('.png') ||
+            ext.endsWith('.jpeg') ||
+            ext.endsWith('.jpg'))) {
+          emit(
+            SignUpImageErrorState(
+              errorMessage: "Only JPEG or PNG images are allowed.",
+            ),
+          );
           emit(_formState);
           return;
         }
 
-        // Compress image
+        //  Compress the image
         final compressedBytes = await FlutterImageCompress.compressWithList(
           await capturedImage.readAsBytes(),
           minHeight: 1920,
@@ -348,27 +513,101 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
         );
 
         if (compressedBytes.isEmpty) {
-          emit(SignUpImageErrorState(errorMessage: "Failed to compress image."));
+          emit(
+            SignUpImageErrorState(errorMessage: "Failed to compress image."),
+          );
           emit(_formState);
           return;
         }
 
-        // Convert to base64
-        final base64String = base64.encode(compressedBytes);
-        base64ImageList.add("data:image/jpeg;base64,$base64String");
-        _multipleImages.add(capturedImage);
-
-        // ✅ Update form state with appended images
-        _formState = _formState.copyWith(
-          multipleImages: _multipleImages,
-          multipleBase64Images: base64ImageList,
+        // Save compressed file to temp directory
+        final tempDir = await getTemporaryDirectory();
+        final file = File(
+          '${tempDir.path}/camera_multi_${DateTime.now().millisecondsSinceEpoch}.jpg',
         );
+        await file.writeAsBytes(compressedBytes);
+
+        // ✅ Convert File → XFile
+        final newXFile = XFile(file.path);
+
+        // ✅ Add to existing image list safely
+        final updatedList = [...?_formState.multipleImages, newXFile];
+
+        // ✅ Update form state
+        _formState = _formState.copyWith(multipleImages: updatedList);
         emit(_formState);
       } catch (e) {
-        emit(SignUpImageErrorState(errorMessage: "Failed to capture image: $e"));
+        emit(
+          SignUpImageErrorState(errorMessage: "Failed to capture image: $e"),
+        );
         emit(_formState);
       }
     });
+
+    // on<TakeMultiplePicturesEvent>((event, emit) async {
+    //   emit(SignUpImageLoadingState());
+    //   try {
+    //     if (Platform.isAndroid) {
+    //       Permission permission = await isAndroid13OrHigher()
+    //           ? Permission.camera
+    //           : Permission.storage;
+    //       final permissionStatus = await permission.request();
+    //       if (!permissionStatus.isGranted) {
+    //         emit(SignUpImageErrorState(errorMessage: "Camera permission denied."));
+    //         emit(_formState);
+    //         return;
+    //       }
+    //     }
+
+    //     // Capture an image from camera
+    //     final XFile? capturedImage = await _picker.pickImage(
+    //       source: ImageSource.camera,
+    //       imageQuality: 80,
+    //     );
+
+    //     if (capturedImage == null) {
+    //       emit(_formState); // user cancelled
+    //       return;
+    //     }
+
+    //     // Validate extension
+    //     final ext = capturedImage.name.toLowerCase();
+    //     if (!(ext.endsWith('.png') || ext.endsWith('.jpeg') || ext.endsWith('.jpg'))) {
+    //       emit(SignUpImageErrorState(errorMessage: "Only JPEG or PNG images are allowed."));
+    //       emit(_formState);
+    //       return;
+    //     }
+
+    //     // Compress image
+    //     final compressedBytes = await FlutterImageCompress.compressWithList(
+    //       await capturedImage.readAsBytes(),
+    //       minHeight: 1920,
+    //       minWidth: 1080,
+    //       quality: 85,
+    //     );
+
+    //     if (compressedBytes.isEmpty) {
+    //       emit(SignUpImageErrorState(errorMessage: "Failed to compress image."));
+    //       emit(_formState);
+    //       return;
+    //     }
+
+    //     // Convert to base64
+    //     final base64String = base64.encode(compressedBytes);
+    //     base64ImageList.add("data:image/jpeg;base64,$base64String");
+    //     _multipleImages.add(capturedImage);
+
+    //     // ✅ Update form state with appended images
+    //     _formState = _formState.copyWith(
+    //       multipleImages: _multipleImages,
+    //       multipleBase64Images: base64ImageList,
+    //     );
+    //     emit(_formState);
+    //   } catch (e) {
+    //     emit(SignUpImageErrorState(errorMessage: "Failed to capture image: $e"));
+    //     emit(_formState);
+    //   }
+    // });
 
     ///New Functionality for capturing image with camera
     ///
@@ -764,44 +1003,48 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
     }
   }
 
-Future<void> _onFetchCountries(
+  Future<void> _onFetchCountries(
     LoadCountries event,
     Emitter<SignUpState> emit,
-    ) async {
-  try {
-    // Emit loading state
-    emit(_formState.copyWith(isLoadingCountries: true, countryError: null));
+  ) async {
+    try {
+      emit(_formState.copyWith(isLoadingCountries: true, countryError: null));
 
-    // Call API or repository to get countries
-    final StateModel? response = await authDataProvider.getCountryList();
+      final StateModel? response = await authDataProvider.getCountryList();
 
-    if (response is SuccessState) {
-      final data = response as CountryResponse;
-      final List<Country> countryList = data.data ?? [];
+      if (response is SuccessState<CountryResponse>) {
+        final countryResponse = response.data;
+        final List<Country> countryList = countryResponse!.data ?? [];
 
+        _formState = _formState.copyWith(
+          countries: countryList,
+          isLoadingCountries: false,
+          countryError: null,
+        );
+        emit(_formState);
+      } else if (response is ErrorState) {
+        _formState = _formState.copyWith(
+          isLoadingCountries: false,
+          countryError: response.msg,
+        );
+        emit(_formState);
+      } else {
+        _formState = _formState.copyWith(
+          isLoadingCountries: false,
+          countryError: "Unexpected response type",
+        );
+        emit(_formState);
+      }
+    } catch (e) {
       _formState = _formState.copyWith(
-        countries: countryList,
         isLoadingCountries: false,
-        countryError: null,
-      );
-      emit(_formState);
-    } else {
-      _formState = _formState.copyWith(
-        isLoadingCountries: false,
-        countryError: (response as ErrorState).msg,
+        countryError: e.toString(),
       );
       emit(_formState);
     }
-  } catch (e) {
-    _formState = _formState.copyWith(
-      isLoadingCountries: false,
-      countryError: e.toString(),
-    );
-    emit(_formState);
   }
-}
 
-Future<bool> isAndroid13OrHigher() async {
+  Future<bool> isAndroid13OrHigher() async {
     if (!Platform.isAndroid) return false;
 
     final deviceInfoPlugin = DeviceInfoPlugin();

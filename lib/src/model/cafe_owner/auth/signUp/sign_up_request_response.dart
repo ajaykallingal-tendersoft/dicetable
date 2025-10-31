@@ -8,7 +8,7 @@ class SignUpRequestResponse {
   final int? otpLength;
   final int? resendAvailableInSeconds;
   final Map<String, dynamic>? errors;
-  final Map<String, dynamic> extra; // To hold any additional dynamic fields
+  final Map<String, dynamic> extra;
 
   SignUpRequestResponse({
     required this.status,
@@ -24,36 +24,34 @@ class SignUpRequestResponse {
   });
 
   factory SignUpRequestResponse.fromJson(Map<String, dynamic> json) {
-    // Extract known fields
-    final status = json['status'] as bool;
-    final token = json['token'] as String?;
-    final user = json['user'] != null ? User.fromJson(json['user']) : null;
-    final message = json['message'] as String?;
-    final cafeId = json['cafe_id'] as String?;
-   final  expiresAt = json["expiresAt"] as String?;
-    final otpLength = json["otpLength"] as int?;
-    final resendAvailableInSeconds = json["resendAvailableInSeconds"] as int?;
-    final errors = json['errors'] != null ? Map<String, dynamic>.from(json['errors']) : null;
-
-    // Remove known keys to get extra/dynamic fields
-    final knownKeys = {'status', 'token', 'user', 'message', 'errors', 'expiresAt','otpLength','resendAvailableInSeconds'};
-    final extra = Map<String, dynamic>.from(json)
-      ..removeWhere((key, _) => knownKeys.contains(key));
+    final knownKeys = {
+      'status',
+      'token',
+      'user',
+      'message',
+      'errors',
+      'expiresAt',
+      'otpLength',
+      'resendAvailableInSeconds',
+      'cafe_id'
+    };
 
     return SignUpRequestResponse(
-      status: status,
-      token: token,
-      user: user,
-      message: message,
-      cafeId: cafeId,
-      errors: errors,
-      extra: extra,
-      expiresAt: expiresAt,
-      otpLength: otpLength,
-      resendAvailableInSeconds: resendAvailableInSeconds,
+      status: json['status'] ?? false,
+      token: json['token'],
+      user: json['user'] != null ? User.fromJson(json['user']) : null,
+      message: json['message'],
+      cafeId: json['cafe_id']?.toString(),
+      expiresAt: json['expiresAt'],
+      otpLength: json['otpLength'],
+      resendAvailableInSeconds: json['resendAvailableInSeconds'],
+      errors: json['errors'] != null ? Map<String, dynamic>.from(json['errors']) : null,
+      extra: Map<String, dynamic>.from(json)
+        ..removeWhere((key, _) => knownKeys.contains(key)),
     );
   }
 }
+
 class User {
   final String userLogin;
   final String name;
@@ -67,6 +65,8 @@ class User {
   final int id;
   final int? emailOtp;
   final DateTime? otpExpiresAt;
+  final String? avatar;
+  final String? countryName;
 
   User({
     required this.userLogin,
@@ -81,22 +81,28 @@ class User {
     required this.id,
     this.emailOtp,
     this.otpExpiresAt,
+    this.avatar,
+    this.countryName,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      userLogin: json['user_login'],
-      name: json['name'],
-      email: json['email'],
-      phone: json['phone'] != null ? json['phone'] : "",
-      loginType: json['login_type'],
+      userLogin: json['user_login'] ?? '',
+      name: json['name'] ?? '',
+      email: json['email'] ?? '',
+      phone: json['phone']?.toString() ?? '',
+      loginType: int.tryParse(json['login_type'].toString()) ?? 0,
       country: json['country'],
       state: json['state'],
-      updatedAt: json['updated_at'],
-      createdAt: json['created_at'],
-      id: json['id'],
-      emailOtp: json["email_otp"],
-      otpExpiresAt: json["otp_expires_at"] == null ? null : DateTime.parse(json["otp_expires_at"]),
+      updatedAt: json['updated_at'] ?? '',
+      createdAt: json['created_at'] ?? '',
+      id: json['id'] ?? 0,
+      emailOtp: json['email_otp'],
+      otpExpiresAt: json['otp_expires_at'] != null
+          ? DateTime.tryParse(json['otp_expires_at'])
+          : null,
+      avatar: json['avatar'],
+      countryName: json['country_name'],
     );
   }
 }

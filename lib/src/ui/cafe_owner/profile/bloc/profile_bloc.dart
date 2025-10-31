@@ -173,12 +173,14 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
                     hour.day ?? '',
                     ProfileOpeningHour(
                       isEnabled: hour.isOpen ?? false,
-                      from: _parseTimeOfDay(hour.opening ?? '10:00'),
-                      to: _parseTimeOfDay(hour.closing ?? '12:00'),
+                      from: parseTimeOfDay(hour.opening ?? '10:00'),
+                      to: parseTimeOfDay(hour.closing ?? '12:00'),
                     ),
                   ),
                 ) ??
                 state.openingHours,
+            gallery: response.data?.gallery ?? [],
+            galleryIds: response.data?.galleryIds ?? [],
           ),
         );
       } else if (stateModel is ErrorState) {
@@ -220,8 +222,8 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
               processedOpeningHours[lowerCaseDay] = ProfileOpeningHour(
                 id: hour.id,
                 isEnabled: hour.isOpen ?? false,
-                from: _parseTimeOfDay(hour.opening ?? '10:00:00'),
-                to: _parseTimeOfDay(hour.closing ?? '22:00:00'),
+                from: parseTimeOfDay(hour.opening ?? '10:00:00'),
+                to: parseTimeOfDay(hour.closing ?? '22:00:00'),
               );
             }
           }
@@ -306,8 +308,27 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     });
   }
 
-  TimeOfDay _parseTimeOfDay(String time) {
-    final parts = time.split(':');
-    return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+  // TimeOfDay _parseTimeOfDay(String time) {
+  //   final parts = time.split(':');
+  //   return TimeOfDay(hour: int.parse(parts[0]), minute: int.parse(parts[1]));
+  // }
+  TimeOfDay parseTimeOfDay(String time) {
+    // Example input: "10:00 AM"
+    final regex = RegExp(r'(.*):(\d{2})\s*(AM|PM)', caseSensitive: false);
+    final match = regex.firstMatch(time.trim());
+    if (match != null) {
+      int hour = int.parse(match.group(1)!);
+      int minute = int.parse(match.group(2)!);
+      String period = match.group(3)!.toUpperCase();
+      if (period == "PM" && hour != 12) hour += 12;
+      if (period == "AM" && hour == 12) hour = 0;
+      return TimeOfDay(hour: hour, minute: minute);
+    } else {
+      // Fallback for "HH:mm" format if "AM"/"PM" are missing
+      final parts = time.split(':');
+      int hour = int.parse(parts[0]);
+      int minute = int.parse(parts[1]);
+      return TimeOfDay(hour: hour, minute: minute);
+    }
   }
 }

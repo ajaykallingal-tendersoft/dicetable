@@ -131,7 +131,8 @@ class SignUpFormState extends SignUpState {
   final String password;
   final String confirmPassword;
   final String phone;
-  final String country;
+  final String country; // This will store the country ID
+  final String countryName; // This will store the country name
   final String region;
   final String address;
   final String postalCode;
@@ -157,6 +158,7 @@ class SignUpFormState extends SignUpState {
     this.confirmPassword = '',
     this.phone = '',
     this.country = '',
+    this.countryName = '',
     this.region = '',
     this.address = '',
     this.postalCode = '',
@@ -182,6 +184,7 @@ class SignUpFormState extends SignUpState {
     String? confirmPassword,
     String? phone,
     String? country,
+    String? countryName,
     String? region,
     String? address,
     String? postalCode,
@@ -207,6 +210,7 @@ class SignUpFormState extends SignUpState {
       confirmPassword: confirmPassword ?? this.confirmPassword,
       phone: phone ?? this.phone,
       country: country ?? this.country,
+      countryName: countryName ?? this.countryName,
       region: region ?? this.region,
       address: address ?? this.address,
       postalCode: postalCode ?? this.postalCode,
@@ -233,6 +237,7 @@ class SignUpFormState extends SignUpState {
     confirmPassword,
     phone,
     country,
+    countryName,
     region,
     address,
     postalCode,
