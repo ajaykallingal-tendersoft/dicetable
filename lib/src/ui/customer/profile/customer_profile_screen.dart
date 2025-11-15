@@ -144,13 +144,13 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            child:  Icon(
+                            child: Icon(
                               Icons.notifications_outlined,
                               color: AppColors.primaryWhiteColor,
                               size: 28.w,
                             ),
                           )
-                          :  Icon(
+                          : Icon(
                             Icons.notifications_outlined,
                             color: AppColors.primaryWhiteColor,
                             size: 28.w,
@@ -210,8 +210,8 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                         key: _formKey,
                         child: Column(
                           children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   "Personal Information",
@@ -221,49 +221,94 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                                     fontWeight: FontWeight.w500,
                                   ),
                                 ),
-                                ElevatedButton.icon(
-                                  onPressed: () {
-                                    if (state.isEditMode) {
-                                      if (_formKey.currentState!.validate()) {
-                                        context.read<CustomerProfileBloc>().add(
-                                          const SaveProfileEvent(),
+                                Row(
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () {
+                                        context.push(
+                                          '/paid_profile',
+                                          extra: {
+                                            "name": nameController.text.trim(),
+                                          },
                                         );
-                                      }
-                                    } else {
-                                      context.read<CustomerProfileBloc>().add(
-                                        ToggleEditModeEvent(),
-                                      );
-                                    }
-                                  },
-                                  icon: SvgPicture.asset(
-                                    state.isEditMode
-                                        ? 'assets/svg/save-form.svg'
-                                        : 'assets/svg/edit-btn.svg',
-                                    height: 16.sp,
-                                  ),
-                                  label: Text(
-                                    state.isEditMode ? "SAVE" : "EDIT",
-                                    style: GoogleFonts.roboto(
-                                      color: AppColors.primary,
-                                      fontSize: 12.sp,
-                                      fontWeight: FontWeight.w600,
+                                      },
+
+                                      child: Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 10.w,
+                                          vertical: 6.h,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.primaryWhiteColor,
+                                          border: Border.all(
+                                            color: AppColors.primaryWhiteColor,
+                                            width: 1.sp,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            8.r,
+                                          ),
+                                        ),
+                                        constraints: BoxConstraints(
+                                          minWidth: 80.w,
+                                          minHeight: 30.h,
+                                        ),
+                                        child: Text(
+                                          "View Detailed Profile",
+                                          style: GoogleFonts.roboto(
+                                            color: AppColors.primary,
+                                            fontSize: 12.sp,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ),
                                     ),
-                                  ),
-                                  style: ElevatedButton.styleFrom(
-                                    padding: EdgeInsets.symmetric(
-                                      horizontal: 10.w,
-                                      vertical: 6.h,
+                                    Gap(20),
+                                    ElevatedButton.icon(
+                                      onPressed: () {
+                                        if (state.isEditMode) {
+                                          if (_formKey.currentState!
+                                              .validate()) {
+                                            context
+                                                .read<CustomerProfileBloc>()
+                                                .add(const SaveProfileEvent());
+                                          }
+                                        } else {
+                                          context
+                                              .read<CustomerProfileBloc>()
+                                              .add(ToggleEditModeEvent());
+                                        }
+                                      },
+                                      icon: SvgPicture.asset(
+                                        state.isEditMode
+                                            ? 'assets/svg/save-form.svg'
+                                            : 'assets/svg/edit-btn.svg',
+                                        height: 16.sp,
+                                      ),
+                                      label: Text(
+                                        state.isEditMode ? "SAVE" : "EDIT",
+                                        style: GoogleFonts.roboto(
+                                          color: AppColors.primary,
+                                          fontSize: 12.sp,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      style: ElevatedButton.styleFrom(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 10.w,
+                                          vertical: 6.h,
+                                        ),
+                                        foregroundColor:
+                                            AppColors.primaryWhiteColor,
+                                        backgroundColor:
+                                            AppColors.primaryWhiteColor,
+                                        side: BorderSide(
+                                          color: AppColors.primaryWhiteColor,
+                                          width: 1.sp,
+                                        ),
+                                        minimumSize: Size(80.w, 30.h),
+                                      ),
                                     ),
-                                    foregroundColor:
-                                        AppColors.primaryWhiteColor,
-                                    backgroundColor:
-                                        AppColors.primaryWhiteColor,
-                                    side: BorderSide(
-                                      color: AppColors.primaryWhiteColor,
-                                      width: 1.sp,
-                                    ),
-                                    minimumSize: Size(80.w, 30.h),
-                                  ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -403,7 +448,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                           gravity: ToastGravity.BOTTOM,
                           msg:
                               "Your session has expired. Please sign in again.",
-                              fontSize: 14.sp,
+                          fontSize: 14.sp,
                         );
                       });
                     }

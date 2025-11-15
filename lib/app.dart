@@ -1,5 +1,9 @@
 import 'package:soloseaters/router.dart';
 import 'package:soloseaters/src/constants/app_theme.dart';
+import 'package:soloseaters/src/purchase/bloc/bloc/purchase_bloc.dart';
+import 'package:soloseaters/src/purchase/bloc/bloc/purchase_event.dart';
+import 'package:soloseaters/src/purchase/repository/purchase_repository.dart';
+import 'package:soloseaters/src/purchase/services/purchase_service.dart';
 import 'package:soloseaters/src/resources/api_providers/auth/auth_data_provider.dart';
 import 'package:soloseaters/src/resources/api_providers/customer/booking_data_provider.dart';
 import 'package:soloseaters/src/resources/api_providers/customer/cafe_data_provider.dart';
@@ -30,12 +34,16 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 
 class App extends StatelessWidget {
-  const App({super.key});
+    final PaymentService purchaseService;
+  final PaymentRepository purchaseRepository;
+  const App({super.key,required this.purchaseRepository, required this.purchaseService});
 
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+         RepositoryProvider.value(value: purchaseService),
+        RepositoryProvider.value(value: purchaseRepository),
         BlocProvider<NetworkConnectivityBloc>(
           create:
               (BuildContext context) =>
@@ -101,6 +109,12 @@ class App extends StatelessWidget {
               (context) =>
                   CustomerSignUpBloc(authDataProvider: AuthDataProvider()),
         ),
+         BlocProvider(
+            create: (context) => PaymentPlanBloc(
+              paymentService: purchaseService,
+              paymentRepository: purchaseRepository,
+            )..add(InitializePaymentEvent()),
+          ),
       ],
       child: ScreenUtilInit(
         designSize: const Size(375, 812),

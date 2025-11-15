@@ -59,8 +59,11 @@ class ProfileVenueTypeCheckboxes extends StatelessWidget {
                     itemCount: venueTypes.length,
                     itemBuilder: (context, index) {
                       final type = venueTypes[index];
-                      final isSelected = state.selectedVenueTypeIds.contains(type.id);
+                      final isSelected = state.selectedVenueTypeIds.contains(
+                        type.id,
+                      );
                       return _ProfileVenueTypeCheckbox(
+                        key: ValueKey('${type.id}_${isSelected}'),
                         type: type,
                         isSelected: isSelected,
                       );
@@ -79,12 +82,11 @@ class ProfileVenueTypeCheckboxes extends StatelessWidget {
 class _ProfileVenueTypeCheckbox extends StatelessWidget {
   final dynamic type; // Using dynamic to match your existing type
   final bool isSelected;
-
   const _ProfileVenueTypeCheckbox({
+    Key? key, // <--- Accept key
     required this.type,
     required this.isSelected,
-  });
-
+  }) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -94,10 +96,7 @@ class _ProfileVenueTypeCheckbox extends StatelessWidget {
           onTap: () {
             if (type.id != null) {
               context.read<ProfileBloc>().add(
-                ToggleVenueType(
-                  venueTypeId: type.id!,
-                  isSelected: !isSelected,
-                ),
+                ToggleVenueType(venueTypeId: type.id!, isSelected: !isSelected),
               );
             }
           },
@@ -115,16 +114,17 @@ class _ProfileVenueTypeCheckbox extends StatelessWidget {
                 ),
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 200),
-                  child: isSelected
-                      ? Center(
-                          child: SvgPicture.asset(
-                            'assets/svg/check.svg',
-                            fit: BoxFit.scaleDown,
-                            width: 18.w,
-                            height: 18.h,
-                          ),
-                        )
-                      : const SizedBox.shrink(),
+                  child:
+                      isSelected
+                          ? Center(
+                            child: SvgPicture.asset(
+                              'assets/svg/check.svg',
+                              fit: BoxFit.scaleDown,
+                              width: 18.w,
+                              height: 18.h,
+                            ),
+                          )
+                          : const SizedBox.shrink(),
                 ),
               ),
               SizedBox(width: 8.w),

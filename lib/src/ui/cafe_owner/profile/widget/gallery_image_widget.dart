@@ -29,7 +29,7 @@ class CafeEateryPhotosWidget extends StatelessWidget {
           Text(
             'Cafe/Eatery Photos',
             style: TextTheme.of(context).bodySmall!.copyWith(
-                  color: AppColors.primaryWhiteColor,
+                  color: AppColors.profileTextFiledSubColor,
                   fontSize: 13,
                 ),
           ),
@@ -48,8 +48,8 @@ class CafeEateryPhotosWidget extends StatelessWidget {
                   shrinkWrap: true,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
                     childAspectRatio: 1,
                   ),
                   itemCount: photoUrls.length,

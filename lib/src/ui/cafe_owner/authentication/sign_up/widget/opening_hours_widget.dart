@@ -1,4 +1,5 @@
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:gap/gap.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import '../bloc/sign_up/sign_up_bloc.dart';
@@ -46,6 +47,7 @@ class _OpeningHoursWidgetState extends State<OpeningHoursWidget> {
   bool _needsCompactLayout(double screenWidth, double textScaleFactor) {
     return screenWidth < 400 || textScaleFactor > 1.3;
   }
+
   String formatTimeWithAmPm(TimeOfDay time) {
     final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
     final minute = time.minute.toString().padLeft(2, '0');
@@ -53,15 +55,13 @@ class _OpeningHoursWidgetState extends State<OpeningHoursWidget> {
     return '$hour:$minute $period';
   }
 
-
   @override
   Widget build(BuildContext context) {
     final fromTime = widget.data.from;
     final toTime = widget.data.to;
     final isEnabled = widget.data.isEnabled;
-  final displayTime =
+    final displayTime =
         '${formatTimeWithAmPm(fromTime)} - ${formatTimeWithAmPm(toTime)}';
-
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -199,14 +199,31 @@ class _OpeningHoursWidgetState extends State<OpeningHoursWidget> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 alignment: Alignment.center,
-                                child: Text(
-                                  fromTime.format(context),
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.bodyMedium!.copyWith(
-                                    color: AppColors.pickedTimeColor,
-                                    fontSize: timePickerFontSize.sp,
-                                  ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(
+                                      Icons.access_time,
+                                      size: 16,
+                                      color: Color(0xFF9E9E9E),
+                                    ),
+                                    const Gap(6),
+                                    Text(
+                                      fromTime.format(context),
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodyMedium!.copyWith(
+                                        color: AppColors.pickedTimeColor,
+                                        fontSize: timePickerFontSize.sp,
+                                      ),
+                                    ),
+                                    const Gap(6),
+                                    const Icon(
+                                      Icons.unfold_more,
+                                      size: 18,
+                                      color: Color(0xFF9E9E9E),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
@@ -254,14 +271,31 @@ class _OpeningHoursWidgetState extends State<OpeningHoursWidget> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 alignment: Alignment.center,
-                                child: Text(
-                                  toTime.format(context),
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.bodyMedium!.copyWith(
-                                    color: AppColors.pickedTimeColor,
-                                    fontSize: timePickerFontSize.sp,
-                                  ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(
+                                      Icons.access_time,
+                                      size: 16,
+                                      color: Color(0xFF9E9E9E),
+                                    ),
+                                    const Gap(6),
+                                    Text(
+                                      toTime.format(context),
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodyMedium!.copyWith(
+                                        color: AppColors.pickedTimeColor,
+                                        fontSize: timePickerFontSize.sp,
+                                      ),
+                                    ),
+                                    const Gap(6),
+                                    const Icon(
+                                      Icons.unfold_more,
+                                      size: 18,
+                                      color: Color(0xFF9E9E9E),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:badges/badges.dart' as badges;
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:soloseaters/src/common/elevated_button_widget.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/model/customer/booking/withdraw_booking_request.dart';
@@ -47,10 +48,16 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
   late final List<String> _tableType;
   late final String _description;
   late final String _image;
-  late final List<dynamic> _openingHours;
+  late final List<WorkingHour> _openingHours;
   late final String _id;
   late final bool _isFromFavorites;
   late bool _bookingStatus;
+  late final List<String> _gallery;
+  late final List<Attende> _attendes;
+  late final List<UpcomingEvent> _upcomingEvents;
+  final bool isPaidUser = false;
+  bool savePrefToggle = false;
+
   final CounterController controller = Get.find<CounterController>();
 
   @override
@@ -70,6 +77,9 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
           widget.cafeDetailsArguments!.openingHours as List<WorkingHour>;
       _id = widget.cafeDetailsArguments!.id;
       _bookingStatus = widget.cafeDetailsArguments!.bookingStatus;
+      _gallery = widget.cafeDetailsArguments!.gallery;
+      _attendes = widget.cafeDetailsArguments!.attendes;
+      _upcomingEvents = widget.cafeDetailsArguments!.upcomingEvents;
     } else if (widget.favDetailsArguments != null) {
       _isFromFavorites = true;
       _name = widget.favDetailsArguments!.name;
@@ -77,7 +87,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
       _description = widget.favDetailsArguments!.description;
       _image = widget.favDetailsArguments!.image;
       _openingHours =
-          widget.favDetailsArguments!.openingHours as List<FavWorkingHour>;
+          widget.favDetailsArguments!.openingHours as List<WorkingHour>;
       _id = widget.favDetailsArguments!.id;
       _bookingStatus = widget.favDetailsArguments!.bookingStatus;
     } else {
@@ -85,6 +95,14 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
         'Both cafeDetailsArguments and favDetailsArguments cannot be null',
       );
     }
+  }
+
+  void _toggleSavePref(bool value) {
+    setState(() {
+      savePrefToggle = value;
+
+      print('🔄 Toggle: $value');
+    });
   }
 
   @override
@@ -97,16 +115,13 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
             _isLoadingDialogShown = true;
           }
         } else if (state is CafeBookingLoaded) {
-          if(state.bookingRequestResponse.message != null) {
-          if(state.bookingRequestResponse.status == true) {
-            context.read<NotificationBloc>().add(FetchNotifications());
-          }
+          if (state.bookingRequestResponse.message != null) {
+            if (state.bookingRequestResponse.status == true) {
+              context.read<NotificationBloc>().add(FetchNotifications());
+            }
           }
           if (_isLoadingDialogShown) {
-            Navigator.of(
-              context,
-              rootNavigator: true,
-            ).pop();
+            Navigator.of(context, rootNavigator: true).pop();
             _isLoadingDialogShown = false;
           }
           if (state.bookingRequestResponse.status == true) {
@@ -123,9 +138,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(
-                  'Booking failed. Please try again later.',
-                ),
+                content: Text('Booking failed. Please try again later.'),
                 backgroundColor: AppColors.appRedColor,
                 duration: const Duration(seconds: 3),
               ),
@@ -173,9 +186,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(
-                  'Withdrawal failed.Please try again later.',
-                ),
+                content: Text('Withdrawal failed.Please try again later.'),
                 backgroundColor: AppColors.appRedColor,
                 duration: const Duration(seconds: 3),
               ),
@@ -249,13 +260,13 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              child:  Icon(
+                              child: Icon(
                                 Icons.notifications_outlined,
                                 color: AppColors.primaryWhiteColor,
                                 size: 28.w,
                               ),
                             )
-                            :  Icon(
+                            : Icon(
                               Icons.notifications_outlined,
                               color: AppColors.primaryWhiteColor,
                               size: 28.w,
@@ -282,10 +293,10 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
           child: SingleChildScrollView(
             physics: BouncingScrollPhysics(),
             child: Padding(
-              padding:  EdgeInsets.only(left: 26,right:26,bottom: 30.h),
+              padding: EdgeInsets.only(left: 13, right: 13, bottom: 30.h),
               child: Column(
                 children: [
-                   const Gap(30),
+                  const Gap(20),
                   CafeDetailsCard(
                     name: _name,
                     tableType: _tableType,
@@ -294,8 +305,11 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                     openingHours: _openingHours,
                     id: _id,
                     bookingStatus: _bookingStatus,
+                    gallery: _gallery,
+                    attendes: _attendes,
+                    upcomingEvents: _upcomingEvents,
                   ),
-                  const Gap(40),
+                  const Gap(30),
                   InkWell(
                     onTap: () {
                       if (isGuest) {
@@ -317,7 +331,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
 
                       _bookingStatus == true
                           ? _showWithdrawDialog(context)
-                          : _showBookingDialog(context);
+                          : _showBookingDialog(context, isPaidUser);
                     },
                     child: ElevatedButtonWidget(
                       height: 70.h,
@@ -331,7 +345,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                       textColor: AppColors.primaryWhiteColor,
                     ),
                   ),
-                    const Gap(40),
+                  const Gap(40),
                 ],
               ),
             ),
@@ -341,7 +355,572 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
     );
   }
 
-  void _showBookingDialog(BuildContext context) {
+  void _showBookingDialog(BuildContext context, bool isPaidUser) {
+    final TextEditingController checkInController = TextEditingController();
+    final TextEditingController checkOutController = TextEditingController();
+    String? selectedDiceTableType;
+    bool savePrefToggle = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              backgroundColor: AppColors.primaryWhiteColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16.r),
+              ),
+              insetPadding: EdgeInsets.symmetric(
+                horizontal: 20.w,
+                vertical: 4.h,
+              ),
+              child: Container(
+                constraints: BoxConstraints(
+                  maxWidth: 500.w,
+                  maxHeight: MediaQuery.of(context).size.height * 0.8,
+                ),
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: EdgeInsets.all(16.w),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            IconButton(
+                              padding: EdgeInsets.zero,
+                              constraints: BoxConstraints(),
+                              onPressed: () => dialogContext.pop(),
+                              icon: Icon(
+                                Icons.close,
+                                color: AppColors.textPrimaryGrey.withOpacity(
+                                  0.6,
+                                ),
+                                size: 24.w,
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        Text(
+                          'Select Time and Table Type',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 22.sp,
+                          ),
+                        ),
+
+                        Gap(24.h),
+
+                        // SELECT TIME Label
+                        Text(
+                          'SELECT TIME',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16.sp,
+                            // letterSpacing: 0.8,
+                          ),
+                        ),
+                        Gap(12.h),
+
+                        // Time Selection Row
+                        Container(
+                          padding: EdgeInsets.all(12.w),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryWhiteColor,
+                            borderRadius: BorderRadius.circular(15.r),
+                            border: Border.all(
+                              color: AppColors.textPrimaryGrey.withOpacity(0.2),
+                              width: 1,
+                            ),
+                          ),
+                          child: IntrinsicHeight(
+                            child: Row(
+                              children: [
+                                // Check In
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Check In:',
+                                        style: TextStyle(
+                                          color: AppColors.textPrimaryGrey,
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 14.sp,
+                                        ),
+                                      ),
+                                      Gap(6.h),
+                                      InkWell(
+                                        onTap:
+                                            () => _selectTime(
+                                              dialogContext,
+                                              checkInController,
+                                            ),
+                                        child: Container(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 8.w,
+                                            vertical: 10.h,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color:
+                                                AppColors.signUpContainerColor,
+                                            borderRadius: BorderRadius.circular(
+                                              8.r,
+                                            ),
+                                            border: Border.all(
+                                              color: AppColors.textPrimaryGrey
+                                                  .withOpacity(0.3),
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                Icons.access_time,
+                                                size: 16.w,
+                                                color: AppColors.textPrimaryGrey
+                                                    .withOpacity(0.6),
+                                              ),
+                                              SizedBox(width: 4.w),
+                                              Flexible(
+                                                child: Text(
+                                                  checkInController
+                                                          .text
+                                                          .isNotEmpty
+                                                      ? checkInController.text
+                                                      : '10:00 AM',
+                                                  style: TextStyle(
+                                                    color:
+                                                        checkInController
+                                                                .text
+                                                                .isNotEmpty
+                                                            ? AppColors
+                                                                .textPrimaryGrey
+                                                            : AppColors
+                                                                .textPrimaryGrey
+                                                                .withOpacity(
+                                                                  0.5,
+                                                                ),
+                                                    fontWeight: FontWeight.w500,
+                                                    fontSize: 13.sp,
+                                                  ),
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                              SizedBox(width: 2.w),
+                                              Icon(
+                                                Icons.unfold_more,
+                                                size: 16.w,
+                                                color: AppColors.textPrimaryGrey
+                                                    .withOpacity(0.6),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+
+                                // "To" Text
+                                Padding(
+                                  padding: EdgeInsets.only(
+                                    top: 20.w,
+                                    right: 10.w,
+                                  ),
+                                  child: Text(
+                                    'To',
+                                    style: TextStyle(
+                                      color: AppColors.textPrimaryGrey,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 13.sp,
+                                    ),
+                                  ),
+                                ),
+
+                                // Check Out
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Check Out:',
+                                        style: TextStyle(
+                                          color: AppColors.textPrimaryGrey,
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 14.sp,
+                                        ),
+                                      ),
+                                      Gap(6.h),
+                                      InkWell(
+                                        onTap:
+                                            () => _selectTime(
+                                              dialogContext,
+                                              checkOutController,
+                                            ),
+                                        child: Container(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 8.w,
+                                            vertical: 10.h,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color:
+                                                AppColors.signUpContainerColor,
+                                            borderRadius: BorderRadius.circular(
+                                              8.r,
+                                            ),
+                                            border: Border.all(
+                                              color: AppColors.textPrimaryGrey
+                                                  .withOpacity(0.3),
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                Icons.access_time,
+                                                size: 16.w,
+                                                color: AppColors.textPrimaryGrey
+                                                    .withOpacity(0.6),
+                                              ),
+                                              SizedBox(width: 4.w),
+                                              Flexible(
+                                                child: Text(
+                                                  checkOutController
+                                                          .text
+                                                          .isNotEmpty
+                                                      ? checkOutController.text
+                                                      : '12:00 PM',
+                                                  style: TextStyle(
+                                                    color:
+                                                        checkOutController
+                                                                .text
+                                                                .isNotEmpty
+                                                            ? AppColors
+                                                                .textPrimaryGrey
+                                                            : AppColors
+                                                                .textPrimaryGrey
+                                                                .withOpacity(
+                                                                  0.5,
+                                                                ),
+                                                    fontWeight: FontWeight.w500,
+                                                    fontSize: 13.sp,
+                                                  ),
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                              SizedBox(width: 2.w),
+                                              Icon(
+                                                Icons.unfold_more,
+                                                size: 16.w,
+                                                color: AppColors.textPrimaryGrey
+                                                    .withOpacity(0.6),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
+                        Gap(24.h),
+
+                        // SELECT TABLE TYPE Label
+                        Text(
+                          'SELECT TABLE TYPE',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16.sp,
+                            // letterSpacing: 0.8,
+                          ),
+                        ),
+                        Gap(12.h),
+
+                        // Table Type Dropdown
+                        Container(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(15.r),
+                            border: Border.all(
+                              color: AppColors.textPrimaryGrey.withOpacity(0.3),
+                            ),
+                          ),
+                          child: DropdownButtonFormField<String>(
+                            value: selectedDiceTableType,
+                            isDense: false,
+                            isExpanded: true,
+                            decoration: InputDecoration(
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 16.w,
+                                vertical: 14.h,
+                              ),
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              errorBorder: InputBorder.none,
+                              focusedErrorBorder: InputBorder.none,
+                            ),
+                            hint: Text(
+                              'Select Table Type',
+                              style: TextStyle(
+                                color: AppColors.textPrimaryGrey.withOpacity(
+                                  0.6,
+                                ),
+                                fontWeight: FontWeight.w400,
+                                fontSize: 14.sp,
+                              ),
+                            ),
+                            icon: Icon(
+                              Icons.keyboard_arrow_down,
+                              color: AppColors.textPrimaryGrey,
+                              size: 24.w,
+                            ),
+                            style: TextStyle(
+                              color: AppColors.textPrimaryGrey,
+                              fontWeight: FontWeight.w500,
+                              fontSize: 14.sp,
+                            ),
+                            dropdownColor: AppColors.primaryWhiteColor,
+                            items:
+                                _tableType.map((tableType) {
+                                  return DropdownMenuItem<String>(
+                                    value: tableType,
+                                    child: Text(
+                                      tableType,
+                                      style: TextStyle(
+                                        color: AppColors.textPrimaryGrey,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 14.sp,
+                                      ),
+                                    ),
+                                  );
+                                }).toList(),
+                            onChanged: (String? newValue) {
+                              setState(() {
+                                selectedDiceTableType = newValue;
+                              });
+                            },
+                          ),
+                        ),
+
+                        Gap(20.h),
+                        if (!isPaidUser)
+                          // Upgrade Info Box
+                          Container(
+                            padding: EdgeInsets.all(14.w),
+                            decoration: BoxDecoration(
+                              color: Color(0xFFE8F4F8),
+                              borderRadius: BorderRadius.circular(12.r),
+                            ),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  padding: EdgeInsets.all(2.w),
+                                  child: Icon(
+                                    Icons.info_outline,
+                                    color: AppColors.primary,
+                                    size: 20.w,
+                                  ),
+                                ),
+                                Gap(10.w),
+                                Expanded(
+                                  child: RichText(
+                                    text: TextSpan(
+                                      style: TextStyle(
+                                        color: AppColors.textPrimaryGrey,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 13.sp,
+                                        height: 1.4,
+                                      ),
+                                      children: [
+                                        TextSpan(
+                                          text:
+                                              'Upgrade to Serious Networker to unlock the full profile, save preferences, and more. ',
+                                        ),
+
+                                        WidgetSpan(
+                                          child: GestureDetector(
+                                            onTap: () {
+                                              // Add navigation to upgrade page
+                                              context.push('/payment_plan');
+                                            },
+                                            child: Text(
+                                              'Upgrade Now',
+                                              style: TextStyle(
+                                                color: AppColors.primary,
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 13.sp,
+                                                decoration:
+                                                    TextDecoration.underline,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        else
+                          Row(
+                            children: [
+                              Switch(
+                                value: savePrefToggle,
+                                onChanged: (value) {
+                                  setState(() {
+                                    savePrefToggle = value;
+                                  });
+                                  print('Switch value: $savePrefToggle');
+                                },
+                                activeColor: AppColors.primaryWhiteColor,
+                                activeTrackColor: AppColors.secondary,
+                                inactiveThumbColor: Colors.white,
+                                inactiveTrackColor: Colors.grey.shade400,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Save as Preference',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 14,
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+
+                        Gap(24.h),
+
+                        // Book Now Button
+                        Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 5,
+                            ),
+                            child: SizedBox(
+                              // width: double.infinity,
+                              height: 50.h,
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  if (_validateBookingInputs(
+                                    checkInController.text,
+                                    checkOutController.text,
+                                    selectedDiceTableType,
+                                    dialogContext,
+                                  )) {
+                                    dialogContext.pop();
+                                    _bookNow(
+                                      context: context,
+                                      checkInTime: checkInController.text,
+                                      checkOutTime: checkOutController.text,
+                                      diceTableType: selectedDiceTableType!,
+                                    );
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(18.r),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                  ), // or whatever value fits visually
+                                  child: Text(
+                                    'BOOK NOW',
+                                    style: TextStyle(
+                                      color: AppColors.primaryWhiteColor,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14.sp,
+                                      letterSpacing: 0.8,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  // Update the _selectTime method to format time in 12-hour format
+  Future<void> _selectTime(
+    BuildContext context,
+    TextEditingController controller,
+  ) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+      initialEntryMode: TimePickerEntryMode.dialOnly, // <-- for 24 hour input
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: ColorScheme.light(
+              primary: AppColors.primary,
+              onSurface: AppColors.textPrimaryGrey,
+            ),
+            timePickerTheme: TimePickerThemeData(
+              backgroundColor: AppColors.primaryWhiteColor,
+              hourMinuteShape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+              dayPeriodShape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.r),
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      final hour24 = picked.hour;
+      final minute = picked.minute;
+      final period = hour24 < 12 ? 'AM' : 'PM';
+      final hour12 = hour24 % 12 == 0 ? 12 : hour24 % 12;
+      final formattedTime =
+          '${hour12.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')} $period';
+      controller.text = formattedTime;
+    }
+  }
+
+  /*void _showBookingDialog(BuildContext context) {
     final TextEditingController checkInController = TextEditingController();
     final TextEditingController checkOutController = TextEditingController();
     String? selectedDiceTableType;
@@ -566,6 +1145,54 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                       return null;
                     },
                   ),
+                  const Gap(16), // Add a little space
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 4.w),
+                    child: Container(
+                      padding: EdgeInsets.all(12.w),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withOpacity(0.05), // Light background to mimic the UI
+                        borderRadius: BorderRadius.circular(8.r),
+                        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            Icons.info_outline,
+                            color: AppColors.primary,
+                            size: 20.w,
+                          ),
+                          const Gap(10),
+                          Expanded(
+                            child: RichText(
+                              text: TextSpan(
+                                style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                                  color: AppColors.textPrimaryGrey,
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 14.sp,
+                                ),
+                                children: [
+                                  const TextSpan(
+                                    text: 'Upgrade to **Serious Networker** to unlock the full profile, save preferences, and more. ',
+                                  ),
+                                  TextSpan(
+                                    text: 'Upgrade Now',
+                                    style: TextStyle(
+                                      color: AppColors.primary, // Highlight the action
+                                      fontWeight: FontWeight.w600,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                    // onTap: () { /* Add upgrade navigation logic here */ }
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
               actions: [
@@ -618,7 +1245,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
         );
       },
     );
-  }
+  }*/
 
   void _showWithdrawDialog(BuildContext context) {
     showDialog(
@@ -740,33 +1367,6 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
     }
 
     return true;
-  }
-
-  Future<void> _selectTime(
-    BuildContext context,
-    TextEditingController controller,
-  ) async {
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-      builder: (BuildContext context, Widget? child) {
-        return MediaQuery(
-          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-          child: Theme(
-            data: Theme.of(context).copyWith(
-              colorScheme: const ColorScheme.light(primary: AppColors.primary),
-            ),
-            child: child!,
-          ),
-        );
-      },
-    );
-
-    if (picked != null) {
-      final String formattedTime =
-          '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
-      controller.text = formattedTime;
-    }
   }
 
   Future<void> _withdrawBooking() async {

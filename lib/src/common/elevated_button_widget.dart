@@ -13,7 +13,7 @@ class ElevatedButtonWidget extends StatelessWidget {
     required this.iconLabel,
     this.icon,
     required this.color,
-    required this.textColor,
+    required this.textColor, void Function()? onPressed,
   });
 
   final double height;

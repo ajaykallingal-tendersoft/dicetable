@@ -97,3 +97,95 @@ class UploadCafePhotosEvent extends ProfileEvent {
   @override
   List<Object?> get props => [base64Photos];
 }
+
+class SaveProfileChangesEvent extends ProfileEvent {
+  final ProfileUpdateRequest updateRequest;
+  final bool isTextDataChanged;
+  final bool isProfileImageChanged;
+  final bool isGalleryChanged;
+
+  const SaveProfileChangesEvent({
+    required this.updateRequest,
+    this.isTextDataChanged = false,
+    this.isProfileImageChanged = false,
+    this.isGalleryChanged = false,
+  });
+
+  @override
+  List<Object?> get props => [
+    updateRequest,
+    isTextDataChanged,
+    isProfileImageChanged,
+    isGalleryChanged,
+  ];
+}
+
+// --- Profile Image Picker Events ---
+class PickProfileImageFromGalleryEvent extends ProfileEvent {
+  @override
+  List<Object?> get props => [];
+}
+
+class PickProfileImageFromCameraEvent extends ProfileEvent {
+  @override
+  List<Object?> get props => [];
+}
+
+// --- Gallery Image Picker Events ---
+class PickGalleryImagesFromGalleryEvent extends ProfileEvent {
+  @override
+  List<Object?> get props => [];
+}
+
+class PickGalleryImagesFromCameraEvent extends ProfileEvent {
+  @override
+  List<Object?> get props => [];
+}
+
+// In profile_event.dart - ADD THIS EVENT
+class DeleteGalleryPhotoEvent extends ProfileEvent {
+  final DeleteGalleryImageRequest deleteGalleryImageRequest;
+  final String photoId;
+  final int index;
+
+  const DeleteGalleryPhotoEvent({
+    required this.photoId,
+    required this.index,
+    required this.deleteGalleryImageRequest,
+  });
+
+  @override
+  List<Object?> get props => [photoId, index];
+}
+
+class DeleteLocalGalleryPhotoEvent extends ProfileEvent {
+  final int index; // The index within the local list (galleryPhotoFiles)
+
+  const DeleteLocalGalleryPhotoEvent({required this.index});
+
+  @override
+  List<Object?> get props => [index];
+}
+// Add these events to your profile_event.dart file
+
+// Event to load countries from API
+class LoadCountriesEvent extends ProfileEvent {
+  const LoadCountriesEvent();
+
+  @override
+  List<Object?> get props => [];
+}
+
+// Event to select a country
+class SelectCountryEvent extends ProfileEvent {
+  final String countryId;
+  final String countryName;
+
+  const SelectCountryEvent({
+    required this.countryId,
+    required this.countryName,
+  });
+
+  @override
+  List<Object?> get props => [countryId, countryName];
+}

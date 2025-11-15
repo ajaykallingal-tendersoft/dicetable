@@ -74,4 +74,4 @@ class CustomerProfileDeleteSuccess extends CustomerProfileState {
 class CustomerProfileDeleteError extends CustomerProfileState {
   final String errorMessage;
   CustomerProfileDeleteError({required this.errorMessage}) : super(errorMessage: errorMessage);
-}
+} 

@@ -9,6 +9,9 @@ class CafeDetailsArguments {
   final String image;
   final List<WorkingHour>? openingHours;
   final bool bookingStatus;
+  final List<String> gallery;
+   final List<Attende> attendes;
+  final List<UpcomingEvent> upcomingEvents;
 
   const CafeDetailsArguments({
     required this.from,
@@ -18,6 +21,10 @@ class CafeDetailsArguments {
     required this.description,
     required this.image,
     required this.openingHours,
-    required this.bookingStatus
+    required this.bookingStatus,
+    required this.gallery,
+    required this.attendes,
+    required this.upcomingEvents,
+
   });
 }

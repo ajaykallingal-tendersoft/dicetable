@@ -1,4 +1,5 @@
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:gap/gap.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/ui/cafe_owner/profile/bloc/profile_bloc.dart';
 import 'package:flutter/material.dart';
@@ -175,6 +176,7 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
                       padding: EdgeInsets.only(top: timePickerSpacing),
                       child: Row(
                         children: [
+                          
                           Expanded(
                             child: GestureDetector(
                               onTap:
@@ -199,14 +201,31 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 alignment: Alignment.center,
-                                child: Text(
-                                  fromTime.format(context),
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.bodyMedium!.copyWith(
-                                    color: AppColors.pickedTimeColor,
-                                    fontSize: timePickerFontSize,
-                                  ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(
+                                      Icons.access_time,
+                                      size: 16,
+                                      color: Color(0xFF9E9E9E),
+                                    ),
+                                    const Gap(6),
+                                    Text(
+                                      fromTime.format(context),
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodyMedium!.copyWith(
+                                        color: AppColors.pickedTimeColor,
+                                        fontSize: timePickerFontSize,
+                                      ),
+                                    ),
+                                      const Gap(6),
+                                    const Icon(
+                                      Icons.unfold_more,
+                                      size: 18,
+                                      color: Color(0xFF9E9E9E),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
@@ -253,14 +272,31 @@ class _ProfileOpeningHoursWidgetState extends State<ProfileOpeningHoursWidget> {
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 alignment: Alignment.center,
-                                child: Text(
-                                  toTime.format(context),
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.bodyMedium!.copyWith(
-                                    color: AppColors.pickedTimeColor,
-                                    fontSize: timePickerFontSize,
-                                  ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                     const Icon(
+                                      Icons.access_time,
+                                      size: 16,
+                                      color: Color(0xFF9E9E9E),
+                                    ),
+                                    const Gap(6),
+                                    Text(
+                                      toTime.format(context),
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodyMedium!.copyWith(
+                                        color: AppColors.pickedTimeColor,
+                                        fontSize: timePickerFontSize,
+                                      ),
+                                    ),
+                                     const Gap(6),
+                                    const Icon(
+                                      Icons.unfold_more,
+                                      size: 18,
+                                      color: Color(0xFF9E9E9E),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),

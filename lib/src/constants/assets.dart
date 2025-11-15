@@ -4,7 +4,7 @@ class Assets {
   // splash screen assets
   static const String SPLASH_LOGO = 'assets/png_icons/splash_logo.png';
   static const String NO_IMAGE =
-      "https://www.freeiconspng.com/thumbs/no-image-icon/no-image-icon-15.png";
+      "https://picsum.photos/200/200";
 
   static const String APPLE_LOGO = 'assets/png/apple-button.png';
   static const String GOOGLE_LOGO = 'assets/png/google.png';
@@ -19,9 +19,17 @@ class Assets {
 //PNG
   static const String DELETE = 'assets/png/delete.png';
     static const String PREMIUM = 'assets/png/premium.png';
+    static const String IMG_DELETE = 'assets/png/img_delete.png';
+        static const String NON_PREMIUM = 'assets/png/premium-grey.png';
+        static const String NOTIFY = 'assets/png/notify.png';
+        static const String UNNOTIFY = 'assets/png/unnotify.png';
+         static const String UPLOAD = 'assets/png/upload.png';
+
+
 
 
   ///Lottie
   static const String JUMBING_DOT = 'assets/lottie/jumbingdot.json';
+
 
 }

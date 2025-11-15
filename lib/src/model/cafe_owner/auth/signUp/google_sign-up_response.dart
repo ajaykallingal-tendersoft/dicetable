@@ -36,6 +36,7 @@ class GoogleSignUpRequestResponse {
           : null,
       message: json['message'],
       cafeId: json['cafe_id'],
+
       expiresAt: json['expires_at'],
       otpLength: json['otp_length'],
       resendAvailableInSeconds: json['resend_available_in_seconds'],
@@ -57,7 +58,7 @@ class User {
   final String name;
   final String email;
   final String phone;
-  final int loginType;
+  final String loginType;
   final String? country;
   final String? state;
   final String updatedAt;

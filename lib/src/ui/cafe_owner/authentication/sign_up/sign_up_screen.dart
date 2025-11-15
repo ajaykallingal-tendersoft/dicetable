@@ -184,7 +184,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
         state.openingHours.values.any((hour) => hour.isEnabled) &&
         state.image != null &&
         state.country.trim().isNotEmpty &&
-        state.multipleImages.isNotEmpty;
+        state.multipleImages != null ;
+        
   }
 
   @override
@@ -231,6 +232,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
             child: BlocConsumer<SignUpBloc, SignUpState>(
               listener: (context, state) {
+                if (state is SignUpSuccessState ||
+                    state is SignUpErrorState ||
+                    state is GoogleSignUpSuccessState ||
+                    state is GoogleSignUpErrorState ||
+                    state is AppleSignUpSuccessState ||
+                    state is AppleSignUpErrorState) {
+                  EasyLoading.dismiss();
+                }
+
                 if (state is SignUpSuccessState) {
                   final response = state.signUpRequestResponse;
                   if (response.status == false) {
@@ -589,9 +599,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                               : null,
                                       hint: Text(
                                         "Select Country",
-                                        style: TextStyle(
-                                          color: Colors.grey.shade600,
-                                          fontSize: 16,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodyMedium!.copyWith(
+                                          color: AppColors.textPrimaryGrey,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14,
                                         ),
                                       ),
                                       icon: const Icon(
@@ -605,10 +618,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                               value: country.id.toString(),
                                               child: Text(
                                                 country.name ?? '',
-                                                style: const TextStyle(
-                                                  color: Colors.black,
-                                                  fontSize: 16,
-                                                ),
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .bodyMedium!
+                                                    .copyWith(
+                                                      color:
+                                                          AppColors
+                                                              .textPrimaryGrey,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                      fontSize: 14,
+                                                    ),
                                               ),
                                             );
                                           }).toList(),
@@ -811,6 +831,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ImageUploadWidget(
                       showValidationErrors: showValidationErrors,
                       state: SignUpFormState(),
+                      // SignUpFormState(),
                     ),
                     const Gap(30),
 
@@ -842,16 +863,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     MultipleImageUploadWidget(
                       showValidationErrors: showValidationErrors,
                       state: SignUpFormState(),
+                      // SignUpFormState(),
                     ),
                     const Gap(30),
                     BlocBuilder<SignUpBloc, SignUpState>(
                       builder: (context, state) {
                         if (isLoading) {
-                          // EasyLoading.show();
-                          return RefreshProgressIndicator(
-                            color: AppColors.primaryWhiteColor,
-                            backgroundColor: AppColors.primary,
-                          );
+                          EasyLoading.show();
+                          return SizedBox.shrink(); // Or a placeholder widget
                         } else if (state is SignUpFormState) {
                           final isFormValid = _validateForm(state);
 
@@ -907,6 +926,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                 });
 
                                 if (isGoogleSignUp) {
+                                  print("Image path: ${state.image?.path}");
+                                  print(
+                                    "Multiple images count: ${state.multipleImages.length}",
+                                  );
                                   final googleSignUpRequest = GoogleSignUpRequest(
                                     name: _venueNameController.text,
                                     venueDescription: state.venueDescription,
@@ -926,6 +949,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     blob: state.base64Image,
                                     fcmToken:
                                         ObjectFactory().prefs.getFcmToken(),
+                                    image:
+                                        state.image != null
+                                            ? File(state.image!.path)
+                                            : null,
+                                    multipleImages:
+                                        state.multipleImages
+                                            .map((x) => File(x.path))
+                                            .toList(),
                                   );
 
                                   context.read<SignUpBloc>().add(
@@ -951,6 +982,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     fcmToken:
                                         ObjectFactory().prefs.getFcmToken(),
                                     apple_id: appleAuthID,
+                                    image:
+                                        state.image != null
+                                            ? File(state.image!.path)
+                                            : null,
+                                    multipleImages:
+                                        state.multipleImages
+                                            .map((x) => File(x.path))
+                                            .toList(),
                                   );
 
                                   context.read<SignUpBloc>().add(
@@ -959,7 +998,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
                                     ),
                                   );
                                 } else {
-                                  // Regular sign up (not Google or Apple)
+                                  print("Image path: ${state.image?.path}");
+                                  print(
+                                    "Multiple images count: ${state.multipleImages.length}",
+                                  ); // Regular sign up (not Google or Apple)
                                   final signUpRequest = SignUpRequest(
                                     name: state.venueName,
                                     venueDescription: state.venueDescription,

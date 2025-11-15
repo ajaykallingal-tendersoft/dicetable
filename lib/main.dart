@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:isolate';
 import 'package:soloseaters/src/constants/app_colors.dart';
+import 'package:soloseaters/src/purchase/repository/purchase_repository.dart';
+import 'package:soloseaters/src/purchase/services/purchase_service.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/count_controller.dart';
 import 'package:soloseaters/src/utils/data/notification_service.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
@@ -29,6 +31,8 @@ Future<void> main() async {
     WidgetsFlutterBinding.ensureInitialized();
     Get.put(CounterController());
     Bloc.observer = AppBlocObserver();
+      final purchaseService = PaymentService();
+  final purchaseRepository = PaymentRepository();
 
     // Set custom error widget to prevent red screen
     ErrorWidget.builder = (FlutterErrorDetails details) {
@@ -51,7 +55,7 @@ Future<void> main() async {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]).then((_) {
-      runApp(App());
+      runApp(App(purchaseRepository: purchaseRepository, purchaseService: purchaseService,));
     });
   }, _handleUncaughtError);
 }

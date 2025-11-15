@@ -25,6 +25,7 @@ class CustomerProfileBloc extends Bloc<CustomerProfileEvent, CustomerProfileStat
     on<FetchLocationEvent>(_onFetchLocation);
     on<SaveProfileEvent>(_onSaveProfile);
     on<CustomerProfileDeleteEvent>(_onProfileDelete);
+    
   }
 
   Future<void> _onGetCustomerProfile(

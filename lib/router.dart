@@ -1,3 +1,6 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:soloseaters/src/model/customer/cafe/cafe_list_response.dart';
+import 'package:soloseaters/src/resources/api_providers/customer/profile_data_provider.dart';
 import 'package:soloseaters/src/ui/cafe_owner/attendees/attendees_screen.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/forgot_password/forgot_password_otp_screen.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/forgot_password/forgot_password_screen.dart';
@@ -6,6 +9,7 @@ import 'package:soloseaters/src/ui/cafe_owner/authentication/forgot_password/res
 import 'package:soloseaters/src/ui/cafe_owner/authentication/login/login_screen.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/sign_up/sign_up_screen.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/sign_up/sign_up_screen_argument.dart';
+import 'package:soloseaters/src/ui/cafe_owner/home/attendees_arguments.dart';
 import 'package:soloseaters/src/ui/cafe_owner/home/home_screen.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/notification_screen.dart';
 import 'package:soloseaters/src/ui/cafe_owner/profile/bloc/profile_bloc.dart';
@@ -14,6 +18,7 @@ import 'package:soloseaters/src/ui/cafe_owner/profile/manage_profile_screen.dart
 import 'package:soloseaters/src/ui/cafe_owner/subscription/subscription_overview_screen.dart';
 import 'package:soloseaters/src/ui/cafe_owner/subscription/subscription_prompt_screen.dart';
 import 'package:soloseaters/src/ui/category/category_screen.dart';
+import 'package:soloseaters/src/ui/customer/attendees/networking_attendees.dart';
 import 'package:soloseaters/src/ui/customer/authentication/login/login_screen.dart';
 import 'package:soloseaters/src/ui/customer/authentication/sign_up/sign_up_screen.dart';
 import 'package:soloseaters/src/ui/customer/cafe_details/cafe_details_screen.dart';
@@ -23,7 +28,11 @@ import 'package:soloseaters/src/ui/customer/favourites/favourites_screen.dart';
 import 'package:soloseaters/src/ui/customer/favourites/widget/fav_details_argument.dart';
 import 'package:soloseaters/src/ui/customer/history/history_screen.dart';
 import 'package:soloseaters/src/ui/customer/home/home_screen.dart';
+import 'package:soloseaters/src/ui/customer/payment_plan/payment_plan_screen.dart';
 import 'package:soloseaters/src/ui/customer/profile/customer_profile_screen.dart';
+import 'package:soloseaters/src/ui/customer/profile/paid_profile_bloc/bloc/paid_profile_bloc.dart';
+import 'package:soloseaters/src/ui/customer/profile/paid_profile_bloc/bloc/paid_profile_event.dart';
+import 'package:soloseaters/src/ui/customer/profile/paid_profile_screen.dart';
 import 'package:soloseaters/src/ui/splash/splash_screen.dart';
 import 'package:soloseaters/src/ui/verification/email_verification_screen.dart';
 import 'package:soloseaters/src/ui/verification/verify_screen_argument.dart';
@@ -301,6 +310,40 @@ class AppRouter {
           GoRoute(
             path: 'edit_profile',
             pageBuilder: (BuildContext context, GoRouterState state) {
+              final existingBloc = BlocProvider.of<ProfileBloc>(context);
+
+              return CustomTransitionPage<void>(
+                key: state.pageKey,
+                child: BlocProvider.value(
+                  value: existingBloc, // reuse the same ProfileBloc instance
+                  child: EditProfileScreen(
+                    profileState:
+                        state.extra
+                            as ProfileState?, // optional if you still want to prefill
+                  ),
+                ),
+                transitionDuration: const Duration(milliseconds: 300),
+                transitionsBuilder: (
+                  BuildContext context,
+                  Animation<double> animation,
+                  Animation<double> secondaryAnimation,
+                  Widget child,
+                ) {
+                  return FadeTransition(
+                    opacity: CurvedAnimation(
+                      parent: animation,
+                      curve: Curves.easeIn,
+                    ),
+                    child: child,
+                  );
+                },
+              );
+            },
+          ),
+
+          /* GoRoute(
+            path: 'edit_profile',
+            pageBuilder: (BuildContext context, GoRouterState state) {
               return CustomTransitionPage<void>(
                 key: state.pageKey,
                 child: EditProfileScreen(
@@ -322,7 +365,7 @@ class AppRouter {
                 },
               );
             },
-          ),
+          ),*/
           GoRoute(
             path: 'notification',
             pageBuilder: (BuildContext context, GoRouterState state) {
@@ -556,20 +599,101 @@ class AppRouter {
             pageBuilder: (BuildContext context, GoRouterState state) {
               return CustomTransitionPage<void>(
                 key: state.pageKey,
-                child:  AttendeesScreen(),
-                transitionDuration: const Duration(milliseconds: 700),
+                child: AttendeesScreen(
+                  arguments: state.extra as AttendeesArguments,
+                ),
+                transitionDuration: const Duration(milliseconds: 300),
                 transitionsBuilder: (
-                    BuildContext context,
-                    Animation<double> animation,
-                    Animation<double> secondaryAnimation,
-                    Widget child,
-                    ) {
+                  BuildContext context,
+                  Animation<double> animation,
+                  Animation<double> secondaryAnimation,
+                  Widget child,
+                ) {
                   return FadeTransition(
                     opacity: CurveTween(
                       curve: Curves.easeInToLinear,
                     ).animate(animation),
                     child: child,
-                    
+                  );
+                },
+              );
+            },
+          ),
+          GoRoute(
+            path: 'networking_attendees',
+            pageBuilder: (BuildContext context, GoRouterState state) {
+              return CustomTransitionPage<void>(
+                key: state.pageKey,
+                child: NetworkingAttendeesScreen(
+                  arguments: state.extra as CafeDetailsArguments,
+                ),
+                transitionDuration: const Duration(milliseconds: 300),
+                transitionsBuilder: (
+                  BuildContext context,
+                  Animation<double> animation,
+                  Animation<double> secondaryAnimation,
+                  Widget child,
+                ) {
+                  return FadeTransition(
+                    opacity: CurveTween(
+                      curve: Curves.easeInToLinear,
+                    ).animate(animation),
+                    child: child,
+                  );
+                },
+              );
+            },
+          ),
+          GoRoute(
+            path: 'payment_plan',
+            pageBuilder: (BuildContext context, GoRouterState state) {
+              return CustomTransitionPage<void>(
+                key: state.pageKey,
+                child: ChoosePlanScreen(),
+                transitionDuration: const Duration(milliseconds: 300),
+                transitionsBuilder: (
+                  BuildContext context,
+                  Animation<double> animation,
+                  Animation<double> secondaryAnimation,
+                  Widget child,
+                ) {
+                  return FadeTransition(
+                    opacity: CurveTween(
+                      curve: Curves.easeInToLinear,
+                    ).animate(animation),
+                    child: child,
+                  );
+                },
+              );
+            },
+          ),
+          GoRoute(
+            path: 'paid_profile',
+            pageBuilder: (BuildContext context, GoRouterState state) {
+              return CustomTransitionPage<void>(
+                key: state.pageKey,
+                child: BlocProvider(
+                  create:
+                      (_) => PaidProfileBloc(
+                        customerProfileDataProvider:
+                            CustomerProfileDataProvider(),
+                      )..add(
+                        GetPaidProfileEvent(),
+                      ), // if you have an initial event
+                  child: PadiProfileScreen(profileData: state.extra as Map<String, dynamic>),
+                ),
+                transitionDuration: const Duration(milliseconds: 300),
+                transitionsBuilder: (
+                  BuildContext context,
+                  Animation<double> animation,
+                  Animation<double> secondaryAnimation,
+                  Widget child,
+                ) {
+                  return FadeTransition(
+                    opacity: CurveTween(
+                      curve: Curves.easeInToLinear,
+                    ).animate(animation),
+                    child: child,
                   );
                 },
               );
@@ -577,8 +701,7 @@ class AppRouter {
           ),
         ],
         path: '/',
-        builder: (BuildContext context, GoRouterState state) => 
-        SplashScreen(),
+        builder: (BuildContext context, GoRouterState state) => SplashScreen(),
       ),
     ],
   );

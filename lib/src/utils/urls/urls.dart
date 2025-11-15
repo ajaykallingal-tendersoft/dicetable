@@ -2,7 +2,7 @@ class UrlsDiceApp {
   ///base urls
   static const String baseUrlDev = 'https://app.soloseaters.com';
   static const String baseUrlLocal = 'http://192.168.0.131:8001';
-  static const String baseUrlLiveStaging ='';
+  static const String baseUrlLiveStaging = '';
   static const String baseUrlLiveProduction = '';
 
   ///Cafe Owner
@@ -20,14 +20,13 @@ class UrlsDiceApp {
   static const String appleSignIn = '/api/apple/auth';
   static const String cafeProfileDelete = '/api/cafe/profile/delete';
   static const String appleSignUp = '/api/apple/signup';
-
-
-
-
+  static const String profileImageUpload = '/api/upload-cafe-photo';
+  static const String profileMultipleImageUpload = '/api/upload-cafe-gallery';
 
   ///Subscription
   static const String subscriptionStart = '/api/subscription/start';
-  static const String subscriptionInitial = '/api/subscription/new-subscription';
+  static const String subscriptionInitial =
+      '/api/subscription/new-subscription';
   static const String subscriptionOverView = '/api/subscription/overview';
 
   ///Home
@@ -52,12 +51,14 @@ class UrlsDiceApp {
   static const String withdrawBooking = '/api/withdraw-booking';
   static const String deleteCustomerAccount = '/api/customer/profile/delete';
   static const String guestUserSignIn = '/api/guest/signin';
-
-
+  static const String getPaidCustomerProfileById = '/api/customer/paid-profile/';
+  static const String updatePaidCustomerProfile = '/api/customer/paid-profile/update/';
+  
 
   ///Notification
   static const String getCafeNotification = '/api/cafe/notifications';
   static const String getCustomerNotification = '/api/customer/notifications';
   static const String markNotificationAsRead = '/api/notification/read';
-  static const String updateNotificationStatus = '/api/notification/update-status';
+  static const String updateNotificationStatus =
+      '/api/notification/update-status';
 }

@@ -68,3 +68,12 @@ class DiceTableUpdateEvent extends HomeEvent {
   @override
   List<Object?> get props =>  [diceTableTypeUpdateRequest];
 }
+class UpdateAlwaysAvailableEvent extends HomeEvent {
+  final int index;
+  final bool isAlwaysAvailable;
+
+  const UpdateAlwaysAvailableEvent(this.index, this.isAlwaysAvailable);
+
+  @override
+  List<Object> get props => [index, isAlwaysAvailable];
+}

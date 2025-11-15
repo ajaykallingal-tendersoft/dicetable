@@ -1,16 +1,19 @@
+import 'dart:convert';
+import 'package:dio/dio.dart';
+import 'package:path/path.dart';
+
 class ProfileUpdateRequest {
   final String name;
   final String venueDescription;
   final String email;
-  final String? password; // Optional
+  final String? password;
   final String phone;
-  final String? country; // Optional
+  final String? country;
   final String address;
   final String postcode;
   final List<String> accommodations;
-  final List<WorkingDay> workingDays;
-  final String? blob;
-  final String? originalName; // Optional
+  final Map<String, dynamic> workingDays;
+  final MultipartFile? image; // optional
 
   ProfileUpdateRequest({
     required this.name,
@@ -18,43 +21,62 @@ class ProfileUpdateRequest {
     required this.email,
     this.password,
     required this.phone,
-    this.country, // Optional
+    this.country,
     required this.address,
     required this.postcode,
     required this.accommodations,
     required this.workingDays,
-    this.blob,
-    this.originalName,
+    this.image,
   });
 
+  /// ✅ Converts to proper Multipart FormData for Dio
+  FormData toFormData() {
+    final formData = FormData();
+
+    // 🔹 Basic text fields
+    formData.fields.addAll([
+      MapEntry('name', name),
+      MapEntry('venue_description', venueDescription),
+      MapEntry('email', email),
+      MapEntry('phone', phone),
+      MapEntry('country', country ?? ''),
+      MapEntry('address', address),
+      MapEntry('postcode', postcode),
+    ]);
+
+    // 🔹 accommodations[] format expected by backend
+    for (var acc in accommodations) {
+      formData.fields.add(MapEntry('accommodations[]', acc));
+    }
+
+    formData.fields.add(MapEntry('working_days', jsonEncode(workingDays)));
+
+    // 🔹 Optional password
+    if (password != null && password!.isNotEmpty) {
+      formData.fields.add(MapEntry('password', password!));
+    }
+
+    // 🔹 Optional image file
+    if (image != null) {
+      formData.files.add(MapEntry('image', image!));
+    }
+
+    return formData;
+  }
+
+  /// For debugging/logging
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = {
+    return {
       'name': name,
       'venue_description': venueDescription,
       'email': email,
       'phone': phone,
-      "country": country,
+      'country': country,
       'address': address,
       'postcode': postcode,
       'accommodations': accommodations,
-      'working_days': workingDays.map((e) => e.toJson()).toList(),
-      // 'blob': blob,
+      'working_days': workingDays
     };
-
-    // Conditionally add password only if not null and not empty
-    if (password != null && password!.isNotEmpty) {
-      data['password'] = password;
-    }
-
-    // Conditionally add originalName only if not null and not empty
-    if (originalName != null && originalName!.isNotEmpty) {
-      data['original_name'] = originalName;
-    }
-    if (blob != null && blob!.isNotEmpty) {
-      data['blob'] = blob;
-    }
-
-    return data;
   }
 }
 
@@ -66,7 +88,7 @@ class WorkingDay {
   final String close;
 
   WorkingDay({
-     this.id,
+    this.id,
     required this.day,
     required this.isOpen,
     required this.open,
@@ -80,9 +102,7 @@ class WorkingDay {
       'open': open,
       'close': close,
     };
-    if (id != null) {
-      data['id'] = id;
-    }
+    if (id != null) data['id'] = id;
     return data;
   }
 }

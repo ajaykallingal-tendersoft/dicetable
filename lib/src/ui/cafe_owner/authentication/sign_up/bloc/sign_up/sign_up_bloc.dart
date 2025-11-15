@@ -78,10 +78,16 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
       emit(_formState);
     });
     on<ResetFormEvent>((event, emit) {
-      _formState = _initialFormState; // Reset to initial state
+      _formState = _initialFormState;
       _image = null;
       base64String = '';
       base64Encoded = '';
+
+      // 🔧 Fix: clear all multi-image lists
+      _multipleImages.clear();
+      base64ImageList.clear();
+      _multipleImageFiles.clear();
+
       ObjectFactory().prefs.clearImageData();
       emit(_formState);
     });
@@ -295,9 +301,107 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
       }
     });*/
 
+    // on<PickMultipleImagesFromGalleryEvent>((event, emit) async {
+    //   emit(SignUpImageLoadingState());
+    //   try {
+    //     // Check permission
+    //     if (Platform.isAndroid) {
+    //       Permission permission;
+    //       if (await isAndroid13OrHigher()) {
+    //         permission = Permission.photos;
+    //       } else {
+    //         permission = Permission.storage;
+    //       }
+    //       final permissionStatus = await permission.request();
+    //       if (!permissionStatus.isGranted) {
+    //         emit(
+    //           SignUpImageErrorState(
+    //             errorMessage: "Photo access permission denied.",
+    //           ),
+    //         );
+    //         return;
+    //       }
+    //     }
+
+    //     final currentCount = _multipleImages.length;
+    //     final remainingSlots = 4 - currentCount;
+
+    //     if (remainingSlots <= 0) {
+    //       emit(
+    //         SignUpImageErrorState(
+    //           errorMessage: "You can upload a maximum of 4 images total.",
+    //         ),
+    //       );
+    //       emit(
+    //         _formState,
+    //       ); // <--- Add this to reset from the loading state and display current images
+    //       return;
+    //     }
+
+    //     // FIX: Pick images, enforcing the maximum limit right here
+    //     final pickedImages = await _picker.pickMultiImage(
+    //       imageQuality: 80,
+    //       limit: remainingSlots, // <-- Add the limit parameter!
+    //     );
+
+    //     if (pickedImages.isEmpty) {
+    //       emit(_formState);
+    //       return;
+    //     }
+
+    //     // Process only the allowed number of images
+    //     List<XFile> processedImages = [];
+
+    //     for (final pickedImage in pickedImages.take(remainingSlots)) {
+    //       // Validate file type
+    //       final ext = pickedImage.name.toLowerCase();
+    //       if (!(ext.endsWith('.png') ||
+    //           ext.endsWith('.jpeg') ||
+    //           ext.endsWith('.jpg'))) {
+    //         emit(
+    //           SignUpImageErrorState(
+    //             errorMessage: "Only JPEG or PNG images are allowed.",
+    //           ),
+    //         );
+    //         return;
+    //       }
+
+    //       // Compress image
+    //       final compressedBytes = await FlutterImageCompress.compressWithList(
+    //         await pickedImage.readAsBytes(),
+    //         minHeight: 1920,
+    //         minWidth: 1080,
+    //         quality: 85,
+    //       );
+
+    //       if (compressedBytes.isEmpty) {
+    //         continue; // Skip this image if compression fails
+    //       }
+
+    //       // Save compressed file
+    //       final tempDir = await getTemporaryDirectory();
+    //       final file = File(
+    //         '${tempDir.path}/multi_${DateTime.now().millisecondsSinceEpoch}_${processedImages.length}.jpg',
+    //       );
+    //       await file.writeAsBytes(compressedBytes);
+
+    //       // Add as XFile
+    //       processedImages.add(XFile(file.path));
+    //     }
+
+    //     // Update state with new images
+    //     _multipleImages = [..._multipleImages, ...processedImages];
+    //     _formState = _formState.copyWith(multipleImages: _multipleImages);
+    //     emit(_formState);
+    //   } catch (e) {
+    //     emit(SignUpImageErrorState(errorMessage: "Failed to pick images: $e"));
+    //   }
+    // });
+
     on<PickMultipleImagesFromGalleryEvent>((event, emit) async {
       emit(SignUpImageLoadingState());
       try {
+        // Check permission
         if (Platform.isAndroid) {
           Permission permission;
           if (await isAndroid13OrHigher()) {
@@ -312,19 +416,59 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
                 errorMessage: "Photo access permission denied.",
               ),
             );
+            emit(_formState); // Return to current state
+            return;
+          }
+        }
+
+        final currentCount = _multipleImages.length;
+        final remainingSlots = 4 - currentCount;
+
+        if (remainingSlots <= 0) {
+          emit(
+            SignUpImageErrorState(
+              errorMessage: "You can upload a maximum of 4 images total.",
+            ),
+          );
+          emit(_formState); // Return to current state
+          return;
+        }
+
+        // FIX: pickMultiImage's limit parameter must be >= 2
+        // If only 1 slot remains, use pickImage instead
+        List<XFile> pickedImages;
+
+        if (remainingSlots == 1) {
+          // Use single image picker when only 1 slot remains
+          final singleImage = await _picker.pickImage(
+            source: ImageSource.gallery,
+            imageQuality: 80,
+          );
+
+          if (singleImage == null) {
+            emit(_formState);
+            return;
+          }
+
+          pickedImages = [singleImage];
+        } else {
+          // Use multiple image picker when 2 or more slots remain
+          pickedImages = await _picker.pickMultiImage(
+            imageQuality: 80,
+            limit: remainingSlots,
+          );
+
+          if (pickedImages.isEmpty) {
             emit(_formState);
             return;
           }
         }
 
-        final pickedImages = await _picker.pickMultiImage(imageQuality: 80);
-        if (pickedImages.isEmpty) {
-          emit(_formState);
-          return;
-        }
+        // Process the picked images
+        List<XFile> processedImages = [];
 
-        // ✅ Compress each and store as XFile
-        for (final pickedImage in pickedImages) {
+        for (final pickedImage in pickedImages.take(remainingSlots)) {
+          // Validate file type
           final ext = pickedImage.name.toLowerCase();
           if (!(ext.endsWith('.png') ||
               ext.endsWith('.jpeg') ||
@@ -334,10 +478,11 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
                 errorMessage: "Only JPEG or PNG images are allowed.",
               ),
             );
-            emit(_formState);
+            emit(_formState); // Return to current state
             return;
           }
 
+          // Compress image
           final compressedBytes = await FlutterImageCompress.compressWithList(
             await pickedImage.readAsBytes(),
             minHeight: 1920,
@@ -345,100 +490,31 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
             quality: 85,
           );
 
-          if (compressedBytes.isEmpty) continue;
+          if (compressedBytes.isEmpty) {
+            continue; // Skip this image if compression fails
+          }
 
+          // Save compressed file
           final tempDir = await getTemporaryDirectory();
           final file = File(
-            '${tempDir.path}/multi_${DateTime.now().millisecondsSinceEpoch}.jpg',
+            '${tempDir.path}/multi_${DateTime.now().millisecondsSinceEpoch}_${processedImages.length}.jpg',
           );
           await file.writeAsBytes(compressedBytes);
 
-          // ✅ convert File → XFile for form state
-          _multipleImageFiles.add(XFile(file.path));
+          // Add as XFile
+          processedImages.add(XFile(file.path));
         }
 
-        // ✅ update state safely
-        _formState = _formState.copyWith(multipleImages: _multipleImageFiles);
+        // Update state with new images
+        _multipleImages = [..._multipleImages, ...processedImages];
+        _formState = _formState.copyWith(multipleImages: _multipleImages);
         emit(_formState);
       } catch (e) {
+        debugPrint('Error picking images: $e');
         emit(SignUpImageErrorState(errorMessage: "Failed to pick images: $e"));
-        emit(_formState);
+        emit(_formState); // Return to current state after error
       }
     });
-
-    /*on<PickMultipleImagesFromGalleryEvent>((event, emit) async {
-      emit(SignUpImageLoadingState());
-      try {
-        if (Platform.isAndroid) {
-          Permission permission;
-          if (await isAndroid13OrHigher()) {
-            permission = Permission.photos;
-          } else {
-            permission = Permission.storage;
-          }
-          final permissionStatus = await permission.request();
-          if (!permissionStatus.isGranted) {
-            emit(SignUpImageErrorState(errorMessage: "Photo access permission denied."));
-            emit(_formState);
-            return;
-          }
-        }
-
-        // Pick new images
-        final pickedImages = await _picker.pickMultiImage(imageQuality: 80);
-
-        // If user cancels or picks none, just keep existing state
-        if (pickedImages.isEmpty) {
-          emit(_formState);
-          return;
-        }
-
-        // ✅ Keep existing images if already present
-        List<XFile> existingImages = List<XFile>.from(_multipleImages);
-        List<String> existingBase64 = List<String>.from(base64ImageList);
-
-        for (final pickedImage in pickedImages) {
-          final ext = pickedImage.name.toLowerCase();
-          if (!(ext.endsWith('.png') || ext.endsWith('.jpeg') || ext.endsWith('.jpg'))) {
-            emit(SignUpImageErrorState(errorMessage: "Only JPEG or PNG images are allowed."));
-            emit(_formState);
-            return;
-          }
-
-          final compressedBytes = await FlutterImageCompress.compressWithList(
-            await pickedImage.readAsBytes(),
-            minHeight: 1920,
-            minWidth: 1080,
-            quality: 85,
-            rotate: 0,
-          );
-
-          if (compressedBytes == null) continue;
-          if (compressedBytes.length > 5 * 1024 * 1024) {
-            emit(SignUpImageErrorState(errorMessage: "Image too large after compression."));
-            emit(_formState);
-            return;
-          }
-
-          final base64String = base64.encode(compressedBytes);
-          existingBase64.add("data:image/jpeg;base64,$base64String");
-          existingImages.add(pickedImage);
-        }
-
-        // ✅ Update the stored image lists (append instead of replacing)
-        _multipleImages = existingImages;
-        base64ImageList = existingBase64;
-
-        _formState = _formState.copyWith(
-          multipleImages: _multipleImages,
-          multipleBase64Images: base64ImageList,
-        );
-        emit(_formState);
-      } catch (e) {
-        emit(SignUpImageErrorState(errorMessage: "Failed to pick images: $e"));
-        emit(_formState);
-      }
-    });*/
 
     on<ClearAllImagesEvent>((event, emit) async {
       emit(SignUpImageLoadingState());
@@ -451,46 +527,95 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
       emit(_formState);
     });
 
-    on<RemoveSingleImageEvent>((event, emit) async {
+    on<ClearSingleProfileImageEvent>((event, emit) async {
       emit(SignUpImageLoadingState());
-      if (event.index < _multipleImages.length) {
-        _multipleImages.removeAt(event.index);
-        base64ImageList.removeAt(event.index);
-        _formState = _formState.copyWith(
-          multipleImages: _multipleImages,
-          multipleBase64Images: base64ImageList,
-        );
+      try {
+        _image = null;
+        base64String = '';
+        base64Encoded = '';
+        _formState = _formState.copyWith(clearImage: true, base64Image: '');
+        ObjectFactory().prefs.clearImageData();
+        emit(_formState);
+      } catch (e) {
+        debugPrint('Error clearing profile image: $e');
+        emit(SignUpImageErrorState(errorMessage: "Failed to clear image: $e"));
+        emit(_formState);
       }
-      emit(_formState);
+    });
+
+    // on<RemoveSingleImageEvent>((event, emit) async {
+    //   emit(SignUpImageLoadingState());
+    //   if (event.index < _multipleImages.length) {
+    //     _multipleImages.removeAt(event.index);
+    //     _formState = _formState.copyWith(multipleImages: _multipleImages);
+    //   }
+    //   emit(_formState);
+    // });
+
+    on<RemoveMultipleImageEvent>((event, emit) async {
+      emit(SignUpImageLoadingState());
+
+      try {
+        // Validate index
+        if (event.index < 0 || event.index >= _multipleImages.length) {
+          debugPrint(
+            'Invalid remove index: ${event.index} for length: ${_multipleImages.length}',
+          );
+          emit(_formState);
+          return;
+        }
+
+        // Create a new list without the removed image
+        final updatedImages = List<XFile>.from(_multipleImages);
+        updatedImages.removeAt(event.index);
+
+        // Update the instance variable and state
+        _multipleImages = updatedImages;
+        _formState = _formState.copyWith(multipleImages: _multipleImages);
+
+        emit(_formState);
+      } catch (e) {
+        debugPrint('Error removing image: $e');
+        emit(SignUpImageErrorState(errorMessage: "Failed to remove image: $e"));
+      }
     });
 
     on<TakeMultiplePicturesEvent>((event, emit) async {
       emit(SignUpImageLoadingState());
       try {
-        //  Camera permission
+        // Check camera permission
         if (Platform.isAndroid) {
           final permissionStatus = await Permission.camera.request();
           if (!permissionStatus.isGranted) {
             emit(
               SignUpImageErrorState(errorMessage: "Camera permission denied."),
             );
-            emit(_formState);
             return;
           }
         }
 
-        //  Capture image from camera
+        // Check if limit is reached
+        if (_multipleImages.length >= 4) {
+          emit(
+            SignUpImageErrorState(
+              errorMessage: "You can upload a maximum of 4 images.",
+            ),
+          );
+          return;
+        }
+
+        // Capture image
         final XFile? capturedImage = await _picker.pickImage(
           source: ImageSource.camera,
           imageQuality: 80,
         );
 
         if (capturedImage == null) {
-          emit(_formState); // user cancelled
+          emit(_formState);
           return;
         }
 
-        //  Validate extension
+        // Validate extension
         final ext = capturedImage.name.toLowerCase();
         if (!(ext.endsWith('.png') ||
             ext.endsWith('.jpeg') ||
@@ -500,11 +625,10 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
               errorMessage: "Only JPEG or PNG images are allowed.",
             ),
           );
-          emit(_formState);
           return;
         }
 
-        //  Compress the image
+        // Compress
         final compressedBytes = await FlutterImageCompress.compressWithList(
           await capturedImage.readAsBytes(),
           minHeight: 1920,
@@ -516,33 +640,107 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
           emit(
             SignUpImageErrorState(errorMessage: "Failed to compress image."),
           );
-          emit(_formState);
           return;
         }
 
-        // Save compressed file to temp directory
+        // Save compressed file
         final tempDir = await getTemporaryDirectory();
         final file = File(
           '${tempDir.path}/camera_multi_${DateTime.now().millisecondsSinceEpoch}.jpg',
         );
         await file.writeAsBytes(compressedBytes);
 
-        // ✅ Convert File → XFile
-        final newXFile = XFile(file.path);
+        // Add to list
+        _multipleImages = [..._multipleImages, XFile(file.path)];
+        _formState = _formState.copyWith(multipleImages: _multipleImages);
 
-        // ✅ Add to existing image list safely
-        final updatedList = [...?_formState.multipleImages, newXFile];
-
-        // ✅ Update form state
-        _formState = _formState.copyWith(multipleImages: updatedList);
         emit(_formState);
       } catch (e) {
         emit(
           SignUpImageErrorState(errorMessage: "Failed to capture image: $e"),
         );
-        emit(_formState);
       }
     });
+
+    // on<TakeMultiplePicturesEvent>((event, emit) async {
+    //   emit(SignUpImageLoadingState());
+    //   try {
+    //     //  Camera permission
+    //     if (Platform.isAndroid) {
+    //       final permissionStatus = await Permission.camera.request();
+    //       if (!permissionStatus.isGranted) {
+    //         emit(
+    //           SignUpImageErrorState(errorMessage: "Camera permission denied."),
+    //         );
+    //         emit(_formState);
+    //         return;
+    //       }
+    //     }
+
+    //     //  Capture image from camera
+    //     final XFile? capturedImage = await _picker.pickImage(
+    //       source: ImageSource.camera,
+    //       imageQuality: 80,
+    //     );
+
+    //     if (capturedImage == null) {
+    //       emit(_formState); // user cancelled
+    //       return;
+    //     }
+
+    //     //  Validate extension
+    //     final ext = capturedImage.name.toLowerCase();
+    //     if (!(ext.endsWith('.png') ||
+    //         ext.endsWith('.jpeg') ||
+    //         ext.endsWith('.jpg'))) {
+    //       emit(
+    //         SignUpImageErrorState(
+    //           errorMessage: "Only JPEG or PNG images are allowed.",
+    //         ),
+    //       );
+    //       emit(_formState);
+    //       return;
+    //     }
+
+    //     //  Compress the image
+    //     final compressedBytes = await FlutterImageCompress.compressWithList(
+    //       await capturedImage.readAsBytes(),
+    //       minHeight: 1920,
+    //       minWidth: 1080,
+    //       quality: 85,
+    //     );
+
+    //     if (compressedBytes.isEmpty) {
+    //       emit(
+    //         SignUpImageErrorState(errorMessage: "Failed to compress image."),
+    //       );
+    //       emit(_formState);
+    //       return;
+    //     }
+
+    //     // Save compressed file to temp directory
+    //     final tempDir = await getTemporaryDirectory();
+    //     final file = File(
+    //       '${tempDir.path}/camera_multi_${DateTime.now().millisecondsSinceEpoch}.jpg',
+    //     );
+    //     await file.writeAsBytes(compressedBytes);
+
+    //     // ✅ Convert File → XFile
+    //     final newXFile = XFile(file.path);
+
+    //     // ✅ Add to existing image list safely
+    //     final updatedList = [...?_formState.multipleImages, newXFile];
+
+    //     // ✅ Update form state
+    //     _formState = _formState.copyWith(multipleImages: updatedList);
+    //     emit(_formState);
+    //   } catch (e) {
+    //     emit(
+    //       SignUpImageErrorState(errorMessage: "Failed to capture image: $e"),
+    //     );
+    //     emit(_formState);
+    //   }
+    // });
 
     // on<TakeMultiplePicturesEvent>((event, emit) async {
     //   emit(SignUpImageLoadingState());

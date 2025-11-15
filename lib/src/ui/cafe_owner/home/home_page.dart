@@ -29,6 +29,291 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final CounterController controller = Get.find<CounterController>();
+  bool _initialLoadComplete = false; // ✅ Track if initial data is loaded
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<HomeBloc>().add(GetHomeDataEvent());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<NotificationBloc>().add(FetchNotifications());
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isTabletOrLarger = ResponsiveBreakpoints.of(
+      context,
+    ).largerThan(MOBILE);
+    
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primary,
+            AppColors.primary,
+            AppColors.secondary,
+            AppColors.tertiary,
+          ],
+          stops: [0.0, 0.5, 0.75, 1.0],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+      ),
+      child: SafeArea(
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            SliverPadding(
+              padding: EdgeInsets.symmetric(horizontal: 20.h, vertical: 10.h),
+              sliver: SliverAppBar(
+                backgroundColor: Colors.transparent,
+                expandedHeight: isTabletOrLarger ? 130.h : 90.h,
+                leading: const SizedBox(),
+                flexibleSpace: FlexibleSpaceBar(
+                  centerTitle: false,
+                  collapseMode: CollapseMode.parallax,
+                  stretchModes: const [StretchMode.zoomBackground],
+                  background: SizedBox.fromSize(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        BlocConsumer<NotificationBloc, NotificationState>(
+                          listener: (context, state) async {
+                            if (state is NotificationLoaded) {
+                              WidgetsBinding.instance.addPostFrameCallback((_) {
+                                controller.notificationBadgeAmount.value =
+                                    state.notificationItems.data.unread.length;
+                              });
+                            }
+                          },
+                          builder: (context, state) {
+                            return Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                AutoSizeText(
+                                  "SOLO SEATERS",
+                                  style: GoogleFonts.montserrat(
+                                    color: AppColors.primaryWhiteColor,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: isTabletOrLarger ? 28.sp : 24.sp,
+                                  ),
+                                ),
+                                InkWell(
+                                  onTap: () {
+                                    GoRouter.of(context).push('/notification');
+                                  },
+                                  child: Obx(() {
+                                    return controller
+                                                .notificationBadgeAmount
+                                                .value >
+                                            0
+                                        ? badges.Badge(
+                                          position: badges.BadgePosition.topEnd(
+                                            top: 0,
+                                            end: 0,
+                                          ),
+                                          badgeAnimation:
+                                              badges.BadgeAnimation.slide(),
+                                          showBadge: true,
+                                          badgeStyle: badges.BadgeStyle(
+                                            shape: badges.BadgeShape.circle,
+                                            borderRadius: BorderRadius.circular(
+                                              10.r,
+                                            ),
+                                            badgeColor: Colors.red,
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 6.w,
+                                              vertical: 2.h,
+                                            ),
+                                          ),
+                                          badgeContent: Text(
+                                            controller
+                                                .notificationBadgeAmount
+                                                .value
+                                                .toString(),
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          child:  Icon(
+                                            Icons.notifications_outlined,
+                                            color: AppColors.primaryWhiteColor,
+                                            size: 28.w,
+                                          ),
+                                        )
+                                        :  Icon(
+                                          Icons.notifications_outlined,
+                                          color: AppColors.primaryWhiteColor,
+                                          size: 28.w,
+                                        );
+                                  }),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                        const Gap(25),
+                        Text(
+                          "Hi, ${ObjectFactory().prefs.getCafeUserName()}" ??
+                              "Hi",
+                          style: TextTheme.of(context).labelMedium!.copyWith(
+                            color: AppColors.primaryWhiteColor,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 18.sp,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            SliverPadding(
+              padding: const EdgeInsets.only(bottom: 20),
+              sliver: BlocConsumer<HomeBloc, HomeState>(
+                builder: (context, state) {
+                  // ✅ Always show content if available (even during loading)
+                  if (state is HomeLoaded) {
+                    return AnimationLimiter(
+                      child: SliverList(
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          final card = state.cards[index];
+                          return AnimationConfiguration.staggeredList(
+                            position: index,
+                            duration: const Duration(milliseconds: 375),
+                            child: SlideAnimation(
+                              verticalOffset: 50.0,
+                              child: FadeInAnimation(
+                                child: ExpandableCard(index: index, card: card),
+                              ),
+                            ),
+                          );
+                        }, childCount: state.cards.length),
+                      ),
+                    );
+                  }
+                  
+                  if (state is HomeError) {
+                    return SliverFillRemaining(
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              size: 64,
+                              color: Colors.grey[400],
+                            ),
+                            const Gap(16),
+                            Text(
+                              'Something went wrong!',
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 16,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const Gap(16),
+                            ElevatedButton(
+                              onPressed: () {
+                                context.read<HomeBloc>().add(
+                                  GetHomeDataEvent(),
+                                );
+                              },
+                              child: const Text('Retry'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+                  
+                  // ✅ Show empty space during initial load (EasyLoading will overlay)
+                  return const SliverToBoxAdapter(child: SizedBox.shrink());
+                },
+                listener: (BuildContext context, HomeState state) {
+                  // ✅ Show EasyLoading for ALL loading states
+                  if (state is HomeLoading) {
+                    EasyLoading.show();
+                  }
+                  
+                  if (state is DiceTableUpdateLoading) {
+                    EasyLoading.show();
+                  }
+                  
+                  if (state is HomeLoaded) {
+                    EasyLoading.dismiss();
+                    _initialLoadComplete = true; // ✅ Mark initial load complete
+                    
+                    if(state.homeResponse.status == false) {
+                      if(state.homeResponse.message!.contains("Unauthorized")) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          SignOut().logout(context);
+                          Fluttertoast.showToast(
+                            fontSize: 14.sp,
+                            backgroundColor: AppColors.primaryWhiteColor,
+                            textColor: AppColors.appRedColor,
+                            gravity: ToastGravity.BOTTOM,
+                            msg:
+                            "Your session has expired. Please sign in again.",
+                          );
+                        });
+                      }
+                    }
+                  }
+                  
+                  if (state is HomeError) {
+                    EasyLoading.dismiss();
+                    
+                    if (state.errorMessage.contains("Unauthorized") ||
+                        state.errorMessage.contains("status code of 401") || 
+                        state.errorMessage.contains("UnAuthorized")
+                    ) {
+                      SignOut().logout(context);
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        Fluttertoast.showToast(
+                          fontSize: 14.sp,
+                          backgroundColor: AppColors.primaryWhiteColor,
+                          textColor: AppColors.appRedColor,
+                          gravity: ToastGravity.BOTTOM,
+                          msg:
+                          "Your session has expired. Please sign in again.",
+                        );
+                      });
+                    } else {
+                      Fluttertoast.showToast(
+                        fontSize: 14.sp,
+                        backgroundColor: AppColors.primaryWhiteColor,
+                        textColor: AppColors.appRedColor,
+                        gravity: ToastGravity.BOTTOM,
+                        msg: state.errorMessage,
+                      );
+                    }
+                  }
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+
+/*class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  final CounterController controller = Get.find<CounterController>();
 
   @override
   void initState() {
@@ -303,3 +588,4 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
+*/

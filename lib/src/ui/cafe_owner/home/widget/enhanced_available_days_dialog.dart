@@ -1,869 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/constants/assets.dart';
 import 'package:soloseaters/src/model/cafe_owner/home/available_days.dart';
 import 'package:google_fonts/google_fonts.dart';
-
-/*class EnhancedAvailableDaysDialog extends StatefulWidget {
-  final List<AvailableDay> availableDays;
-  final List<AvailableDay>? initialSelectedDays;
-  final String tableTypeName;
-
-  const EnhancedAvailableDaysDialog({
-    required this.availableDays,
-    this.initialSelectedDays,
-    this.tableTypeName = "Business Networking",
-    super.key,
-  });
-
-  @override
-  State<EnhancedAvailableDaysDialog> createState() =>
-      _EnhancedAvailableDaysDialogState();
-}
-
-class _EnhancedAvailableDaysDialogState
-    extends State<EnhancedAvailableDaysDialog> {
-  Map<String, DaySelection> daySelections = {};
-  bool alwaysAvailable = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _initializeDaySelections();
-  }
-
-  /*void _initializeDaySelections() {
-    for (var day in widget.availableDays) {
-      final initialDay = widget.initialSelectedDays?.firstWhere(
-        (d) => d.day?.toLowerCase() == day.day?.toLowerCase(),
-        orElse: () => AvailableDay(),
-      );
-
-      daySelections[day.day!.toLowerCase()] = DaySelection(
-        isSelected: initialDay?.day != null,
-        isExpanded: false,
-        cafeOpenTime: day.openTime ?? "10:00",
-        cafeCloseTime: day.closeTime ?? "22:00",
-        timeSlots:
-            initialDay?.day != null
-                ? [
-                  TimeSlot(
-                    from: initialDay!.openTime ?? day.openTime ?? "10:00",
-                    to: initialDay.closeTime ?? day.closeTime ?? "22:00",
-                    isDefault: true,
-                  ),
-                ]
-                : [
-                  TimeSlot(
-                    from: day.openTime ?? "10:00",
-                    to: day.closeTime ?? "22:00",
-                    isDefault: true,
-                  ),
-                ],
-      );
-    }
-  }*/
-  void _initializeDaySelections() {
-  for (var day in widget.availableDays) {
-    final initialDay = widget.initialSelectedDays?.firstWhere(
-      (d) => d.day?.toLowerCase() == day.day?.toLowerCase(),
-      orElse: () => AvailableDay(day: day.day, timings: []),
-    );
-
-    final timings = initialDay?.timings ?? [];
-
-    List<TimeSlot> timeSlots = [];
-
-    if (timings.isNotEmpty) {
-      // First one = non-editable default
-      timeSlots.add(
-        TimeSlot(
-          from: timings.first.open ?? "10:00",
-          to: timings.first.close ?? "22:00",
-          isDefault: true,
-        ),
-      );
-
-      // Rest = editable slots
-      for (int i = 1; i < timings.length; i++) {
-        timeSlots.add(
-          TimeSlot(
-            from: timings[i].open ?? "10:00",
-            to: timings[i].close ?? "22:00",
-            isDefault: false,
-          ),
-        );
-      }
-    } else {
-      // No timings from API — default values
-      timeSlots.add(
-        TimeSlot(from: "10:00", to: "22:00", isDefault: true),
-      );
-    }
-
-    daySelections[day.day!.toLowerCase()] = DaySelection(
-      isSelected: timings.isNotEmpty,
-      isExpanded: false,
-      cafeOpenTime: timeSlots.first.from,
-      cafeCloseTime: timeSlots.first.to,
-      timeSlots: timeSlots,
-    );
-  }
-}
-
-
-  String _capitalizeFirstLetter(String text) {
-    if (text.isEmpty) return text;
-    return "${text[0].toUpperCase()}${text.substring(1).toLowerCase()}";
-  }
-
-  void _toggleAlwaysAvailable(bool value) {
-    print('_toggleAlwaysAvailable called with value: $value');
-
-    setState(() {
-      alwaysAvailable = value;
-      print('alwaysAvailable set to: $alwaysAvailable');
-
-      // Create a completely new map based on toggle state
-      Map<String, DaySelection> newSelections = {};
-
-      for (var entry in daySelections.entries) {
-        newSelections[entry.key] = DaySelection(
-          isSelected:
-              value, // Set based on toggle - true to check all, false to uncheck all
-          isExpanded: false,
-          cafeOpenTime: entry.value.cafeOpenTime,
-          cafeCloseTime: entry.value.cafeCloseTime,
-          timeSlots: [
-            TimeSlot(
-              from: entry.value.cafeOpenTime,
-              to: entry.value.cafeCloseTime,
-              isDefault: true,
-            ),
-          ],
-        );
-      }
-
-      daySelections = newSelections;
-
-      // Debug: Print state after update
-      if (value) {
-        print('Always Available toggled ON - All days selected');
-      } else {
-        print('Always Available toggled OFF - All days unselected');
-      }
-      daySelections.forEach((day, selection) {
-        print(
-          '$day: isSelected=${selection.isSelected}, from=${selection.timeSlots.first.from}, to=${selection.timeSlots.first.to}',
-        );
-      });
-    });
-  }
-
-  void _toggleDay(String day) {
-    setState(() {
-      daySelections[day]!.isSelected = !daySelections[day]!.isSelected;
-      if (daySelections[day]!.isSelected) {
-        daySelections[day]!.isExpanded = true;
-      } else {
-        daySelections[day]!.isExpanded = false;
-        // Reset to default slot when unchecked
-        daySelections[day]!.timeSlots = [
-          TimeSlot(
-            from: daySelections[day]!.cafeOpenTime,
-            to: daySelections[day]!.cafeCloseTime,
-            isDefault: true,
-          ),
-        ];
-      }
-
-      // If a day is manually unchecked, turn off "Always Available"
-      if (!daySelections[day]!.isSelected && alwaysAvailable) {
-        alwaysAvailable = false;
-      }
-    });
-  }
-
-  void _toggleExpand(String day) {
-    if (daySelections[day]!.isSelected) {
-      setState(() {
-        daySelections[day]!.isExpanded = !daySelections[day]!.isExpanded;
-      });
-    }
-  }
-
-  void _addTimeSlot(String day) {
-    setState(() {
-      daySelections[day]!.timeSlots.add(
-        TimeSlot(
-          from: daySelections[day]!.cafeOpenTime,
-          to: daySelections[day]!.cafeCloseTime,
-          isDefault: false,
-        ),
-      );
-    });
-  }
-
-  void _removeTimeSlot(String day, int index) {
-    setState(() {
-      daySelections[day]!.timeSlots.removeAt(index);
-    });
-  }
-
-  Future<String?> _selectTime(
-    BuildContext context,
-    String initialTime,
-    String minTime,
-    String maxTime,
-  ) async {
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: _parseTime(initialTime),
-      builder: (context, child) {
-        return MediaQuery(
-          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: false),
-          child: child!,
-        );
-      },
-    );
-
-    if (picked != null) {
-      final selectedMinutes = picked.hour * 60 + picked.minute;
-      final minMinutes = _timeToMinutes(minTime);
-      final maxMinutes = _timeToMinutes(maxTime);
-
-      if (selectedMinutes < minMinutes || selectedMinutes > maxMinutes) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Time must be between $minTime and $maxTime'),
-            backgroundColor: AppColors.appRedColor,
-          ),
-        );
-        return null;
-      }
-
-      return picked.format(context);
-    }
-    return null;
-  }
-
-  TimeOfDay _parseTime(String time) {
-    final parts = time.split(':');
-    int hour = int.parse(parts[0]);
-    int minute = int.parse(parts[1].substring(0, 2));
-    return TimeOfDay(hour: hour, minute: minute);
-  }
-
-  int _timeToMinutes(String time) {
-    final parts = time.split(':');
-    return int.parse(parts[0]) * 60 + int.parse(parts[1].substring(0, 2));
-  }
-
-  /*List<AvailableDay> _getSelectedDays() {
-    List<AvailableDay> selected = [];
-    daySelections.forEach((day, selection) {
-      if (selection.isSelected && selection.timeSlots.isNotEmpty) {
-        // For now, we'll use the first time slot
-        // You can modify this to handle multiple slots if your API supports it
-        final firstSlot = selection.timeSlots.first;
-        selected.add(
-          AvailableDay(
-            day: day,
-            openTime: firstSlot.from,
-            closeTime: firstSlot.to,
-            isOpen: true,
-          ),
-        );
-      }
-    });
-    return selected;
-  }*/
-  List<AvailableDay> _getSelectedDays() {
-  List<AvailableDay> selected = [];
-  daySelections.forEach((day, selection) {
-    if (selection.isSelected && selection.timeSlots.isNotEmpty) {
-      selected.add(
-        AvailableDay(
-          day: day,
-          isOpen: true,
-          timings: selection.timeSlots
-              .map((slot) => Timing(open: slot.from, close: slot.to))
-              .toList(),
-        ),
-      );
-    }
-  });
-  return selected;
-}
-
-
-  @override
-  Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
-    final isSmallScreen = screenWidth < 360;
-
-    return Dialog(
-      backgroundColor: Colors.white,
-      insetPadding: EdgeInsets.symmetric(
-        horizontal: screenWidth * 0.05,
-        vertical: screenHeight * 0.05,
-      ),
-      child: Container(
-        constraints: BoxConstraints(
-          maxHeight: screenHeight * 0.9,
-          maxWidth: 600,
-        ),
-        decoration: BoxDecoration(
-          color: AppColors.primaryWhiteColor,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Header
-            Container(
-              padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
-              decoration: BoxDecoration(
-                color: AppColors.primaryWhiteColor,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Select Available Days',
-                      style: GoogleFonts.montserrat(
-                        fontSize: isSmallScreen ? 18 : 22,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.primary,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () => Navigator.pop(context),
-                    child: const Icon(
-                      Icons.close,
-                      color: AppColors.secondaryGreyTextColor,
-                      size: 24,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-
-            // Content
-            Flexible(
-              child: SingleChildScrollView(
-                physics: BouncingScrollPhysics(),
-                child: Padding(
-                  padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Table Type Info
-                      Container(
-                        height: 60.h,
-                        width: double.infinity,
-                        padding: EdgeInsets.all(isSmallScreen ? 10 : 12),
-                        decoration: BoxDecoration(
-                          color: AppColors.subscriptionPromptSubColor,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Table Type',
-                              style: GoogleFonts.montserrat(
-                                fontSize: isSmallScreen ? 11 : 12,
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.w400,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                widget.tableTypeName,
-                                style: GoogleFonts.montserrat(
-                                  fontSize: isSmallScreen ? 12 : 16,
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // Always Available Toggle
-                      Container(
-                        padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              width: 50.0,
-                              height: 36.0,
-                              child: FittedBox(
-                                fit: BoxFit.fill,
-                                child: Switch(
-                                  value: alwaysAvailable,
-                                  onChanged: _toggleAlwaysAvailable,
-
-                                  activeColor: AppColors.primaryWhiteColor,
-                                  activeTrackColor: AppColors.secondary,
-
-                                  inactiveThumbColor: Colors.white,
-                                  inactiveTrackColor: Colors.grey.shade400,
-                                  trackOutlineColor: MaterialStateProperty.all(
-                                    Colors.transparent,
-                                  ),
-                                  trackOutlineWidth: MaterialStateProperty.all(
-                                    0.0,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                'Always Available',
-                                style: GoogleFonts.montserrat(
-                                  fontSize: isSmallScreen ? 13 : 14,
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      ...widget.availableDays.map((day) {
-                        return _buildDayTile(
-                          day.day!.toLowerCase(),
-                          isSmallScreen,
-                        );
-                      }).toList(),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            // Footer Button
-            Padding(
-              padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width / 2.7,
-                height: isSmallScreen ? 44 : 48,
-                child: ElevatedButton(
-                  onPressed: () {
-                    context.pop(_getSelectedDays());
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                  child: Text(
-                    'DONE',
-                    style: GoogleFonts.montserrat(
-                      fontSize: isSmallScreen ? 14 : 16,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDayTile(String day, bool isSmallScreen) {
-    final selection = daySelections[day];
-    if (selection == null) return SizedBox.shrink();
-
-    final isSelected = selection.isSelected;
-    final isExpanded = selection.isExpanded;
-
-    print(
-      'Building tile for $day: isSelected=$isSelected, isExpanded=$isExpanded',
-    );
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: AppColors.subscriptionPromptSubColor,
-        // border: Border.all(
-        //   color: isSelected
-        //       ? const Color(0xFF004B87)
-        //       : const Color(0xFFE0E0E0),
-        //   width: isSelected ? 2 : 1,
-        // ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.subscriptionPromptSubColor.withOpacity(0.1),
-            // Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 2,
-            offset: Offset(0, 3),
-          ),
-        ],
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: [
-          // Day Header
-          InkWell(
-            onTap: () => _toggleExpand(day),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  // Checkbox
-                  GestureDetector(
-                    onTap: () => _toggleDay(day),
-                    child: Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryWhiteColor,
-                        border: Border.all(color: AppColors.primary, width: 2),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child:
-                          isSelected
-                              ? SvgPicture.asset(
-                                Assets.CHECK,
-                                fit: BoxFit.scaleDown,
-                                height: 10,
-                              )
-                              // const Icon(
-                              //     Icons.check,
-                              //     size: 16,
-                              //     color: AppColors.primary,
-                              //   )
-                              : null,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-
-                  // Day Name
-                  Expanded(
-                    child: Text(
-                      _capitalizeFirstLetter(day),
-                      style: GoogleFonts.montserrat(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF1A1A1A),
-                      ),
-                    ),
-                  ),
-
-                  // Expand Icon
-                  if (isSelected)
-                    SvgPicture.asset(
-                      height: 10,
-                      fit: BoxFit.scaleDown,
-                      isExpanded ? Assets.TAB_ARROW_UP : Assets.TAB_ARROW_DOWN,
-                    ),
-                  // Icon(
-                  //   isExpanded
-                  //       ? Icons.keyboard_arrow_up
-                  //       : Icons.keyboard_arrow_down,
-                  //   color: AppColors.primary,
-                  //   size: 24,
-                  // ),
-                ],
-              ),
-            ),
-          ),
-
-          // Expanded Content
-          if (isSelected && isExpanded) ...[
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  // Time Slots
-                  ...List.generate(selection.timeSlots.length, (index) {
-                    final slot = selection.timeSlots[index];
-                    return _buildTimeSlot(day, index, slot);
-                  }),
-
-                  // Add New Button
-                  if (selection.timeSlots.length < 5)
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        SizedBox(
-                          // width: double.infinity,
-                          child: ElevatedButton.icon(
-                            onPressed: () => _addTimeSlot(day),
-                            style: ElevatedButton.styleFrom(
-                              fixedSize: Size(90.w, 20.h),
-                              backgroundColor: AppColors.primary,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              padding: EdgeInsets.zero,
-                            ),
-                            icon: const Icon(
-                              Icons.add,
-                              color: AppColors.primaryWhiteColor,
-                              size: 13,
-                            ),
-                            label: Text(
-                              'ADD NEW',
-                              style: GoogleFonts.montserrat(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.primaryWhiteColor,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                ],
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTimeSlot(String day, int index, TimeSlot slot) {
-    final selection = daySelections[day]!;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        children: [
-          // From Label and Time
-          Expanded(
-            flex: 1,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'From',
-                  style: GoogleFonts.montserrat(
-                    fontSize: 12,
-                    color: AppColors.textPrimaryGrey,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                GestureDetector(
-                  onTap:
-                      slot.isDefault
-                          ? null
-                          : () async {
-                            final newTime = await _selectTime(
-                              context,
-                              slot.from,
-                              selection.cafeOpenTime,
-                              selection.cafeCloseTime,
-                            );
-                            if (newTime != null) {
-                              setState(() {
-                                selection.timeSlots[index].from = newTime;
-                              });
-                            }
-                          },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryWhiteColor,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.access_time,
-                          size: 14,
-                          color: AppColors.secondaryGreyTextColor,
-                        ),
-                        const SizedBox(width: 4),
-                        Flexible(
-                          child: Text(
-                            slot.from,
-                            style: GoogleFonts.montserrat(
-                              fontSize: 13,
-                              color: AppColors.secondaryGreyTextColor,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (!slot.isDefault)
-                          const Icon(
-                            Icons.unfold_more,
-                            size: 18,
-                            color: Color(0xFF5B6369),
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(width: 8),
-
-          // To Label and Time
-          Expanded(
-            flex: 1,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'To',
-                  style: GoogleFonts.roboto(
-                    fontSize: 12,
-                    color: AppColors.textPrimaryGrey,
-                    fontWeight: FontWeight.w400,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                GestureDetector(
-                  onTap:
-                      slot.isDefault
-                          ? null
-                          : () async {
-                            final newTime = await _selectTime(
-                              context,
-                              slot.to,
-                              selection.cafeOpenTime,
-                              selection.cafeCloseTime,
-                            );
-                            if (newTime != null) {
-                              setState(() {
-                                selection.timeSlots[index].to = newTime;
-                              });
-                            }
-                          },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 10,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryWhiteColor,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        SvgPicture.asset(
-                          Assets.CLOCK,
-                          fit: BoxFit.scaleDown,
-                          height: 10,
-                        ),
-                        const SizedBox(width: 4),
-                        Flexible(
-                          child: Text(
-                            slot.to,
-                            style: GoogleFonts.montserrat(
-                              fontSize: 13,
-                              color: AppColors.secondaryGreyTextColor,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (!slot.isDefault)
-                          const Icon(
-                            Icons.unfold_more,
-                            size: 18,
-                            color: AppColors.secondaryGreyTextColor,
-                          ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // Delete Button
-          if (!slot.isDefault)
-            InkWell(
-              onTap: () => _removeTimeSlot(day, index),
-              child: SizedBox(
-                width: 32,
-                child: ImageIcon(
-                  AssetImage(Assets.DELETE),
-                  color: Color(0xFFE53935),
-                  size: 20,
-                ),
-              ),
-            )
-          else
-            const SizedBox(width: 8),
-        ],
-      ),
-    );
-  }
-}
-
-class DaySelection {
-  bool isSelected;
-  bool isExpanded;
-  String cafeOpenTime;
-  String cafeCloseTime;
-  List<TimeSlot> timeSlots;
-
-  DaySelection({
-    required this.isSelected,
-    required this.isExpanded,
-    required this.cafeOpenTime,
-    required this.cafeCloseTime,
-    required this.timeSlots,
-  });
-}
-
-class TimeSlot {
-  String from;
-  String to;
-  bool isDefault;
-
-  TimeSlot({required this.from, required this.to, required this.isDefault});
-}
-*/
+import 'package:intl/intl.dart';
 
 class EnhancedAvailableDaysDialog extends StatefulWidget {
   final List<AvailableDay> availableDays;
   final List<AvailableDay>? initialSelectedDays;
   final String tableTypeName;
+  final bool? initiallyAlwaysAvailable;
 
   const EnhancedAvailableDaysDialog({
     required this.availableDays,
     this.initialSelectedDays,
     this.tableTypeName = "Business Networking",
+    this.initiallyAlwaysAvailable,
     super.key,
   });
 
@@ -880,12 +37,30 @@ class _EnhancedAvailableDaysDialogState
   @override
   void initState() {
     super.initState();
-    _initializeDaySelections();
+
+    // ✅ Initialize day selections first to compute the state
+    final computedAlwaysAvailable = _initializeDaySelections();
+
+    // ✅ If widget.initiallyAlwaysAvailable is explicitly provided (not null), use it
+    // Otherwise, use the computed value from day selections
+    if (widget.initiallyAlwaysAvailable != null) {
+      alwaysAvailable = widget.initiallyAlwaysAvailable!;
+      print(
+        '🎯 Dialog initState: Using provided alwaysAvailable=${widget.initiallyAlwaysAvailable}',
+      );
+    } else {
+      alwaysAvailable = computedAlwaysAvailable;
+      print(
+        '🎯 Dialog initState: Using computed alwaysAvailable=$computedAlwaysAvailable',
+      );
+    }
+
+    print(
+      '🎯 Dialog initState FINAL: alwaysAvailable=$alwaysAvailable (from widget: ${widget.initiallyAlwaysAvailable}, computed: $computedAlwaysAvailable)',
+    );
   }
 
-  
-
-  /// ✅ Normalize malformed API or user-entered time values to "HH:mm:ss"
+  // Normalize malformed API or user-entered time values to "HH:mm:ss"
   String _normalizeTime(String time) {
     if (time.isEmpty) return "00:00:00";
 
@@ -904,8 +79,16 @@ class _EnhancedAvailableDaysDialogState
     return '${hh.toString().padLeft(2, '0')}:${mm.toString().padLeft(2, '0')}:${ss.toString().padLeft(2, '0')}';
   }
 
-  void _initializeDaySelections() {
+  bool _initializeDaySelections() {
     daySelections.clear();
+
+    // Get all open registration days
+    final openRegDays =
+        widget.availableDays.where((d) => d.isOpen ?? true).toList();
+
+    // Track how many days are selected with ONLY default timing
+    int daysWithOnlyDefault = 0;
+    int totalSelectedDays = 0;
 
     for (var day in widget.availableDays) {
       final hasDefaultTiming = day.timings != null && day.timings!.isNotEmpty;
@@ -917,47 +100,187 @@ class _EnhancedAvailableDaysDialogState
         hasDefaultTiming ? day.timings!.first.close : "22:00:00",
       );
 
+      // Find if this day is in initialSelectedDays
       final initialDay = widget.initialSelectedDays?.firstWhere(
         (d) => d.day?.toLowerCase() == day.day?.toLowerCase(),
         orElse: () => AvailableDay(),
       );
 
-      final hasEventSlots =
-          initialDay != null &&
-          initialDay.timings != null &&
-          initialDay.timings!.isNotEmpty &&
-          !(initialDay.timings!.length == 1 &&
-              _normalizeTime(initialDay.timings!.first.open) == defaultOpen &&
-              _normalizeTime(initialDay.timings!.first.close) == defaultClose);
+      // Check if this day is selected
+      final isDaySelected =
+          widget.initialSelectedDays?.any(
+            (d) => d.day?.toLowerCase() == day.day?.toLowerCase(),
+          ) ??
+          false;
 
-      final List<TimeSlot> slots = [];
-
-      if (hasEventSlots) {
-        slots.add(
-          TimeSlot(from: defaultOpen, to: defaultClose, isDefault: true),
-        );
-
-        for (var t in initialDay!.timings!) {
-          final open = _normalizeTime(t.open);
-          final close = _normalizeTime(t.close);
-
-          if (open != defaultOpen || close != defaultClose) {
-            slots.add(TimeSlot(from: open, to: close, isDefault: false));
-          }
-        }
-      } else if (hasDefaultTiming) {
-        slots.add(TimeSlot(from: defaultOpen, to: defaultClose, isDefault: true));
+      if (isDaySelected) {
+        totalSelectedDays++;
       }
 
+      // Identify custom event slots (non-default timings)
+      final List<Timing> apiCustomSlots = [];
+      if (initialDay != null && (initialDay.timings ?? []).isNotEmpty) {
+        for (var t in initialDay.timings!) {
+          final open = _normalizeTime(t.open);
+          final close = _normalizeTime(t.close);
+          // If timing differs from default, it's a custom event slot
+          if (open != defaultOpen || close != defaultClose) {
+            apiCustomSlots.add(t);
+          }
+        }
+      }
+
+      // Build time slots for UI
+      final List<TimeSlot> slots = [
+        TimeSlot(from: defaultOpen, to: defaultClose, isDefault: true),
+        ...apiCustomSlots.map(
+          (t) => TimeSlot(
+            from: _normalizeTime(t.open),
+            to: _normalizeTime(t.close),
+            isDefault: false,
+          ),
+        ),
+      ];
+
+      // Check if this day has ONLY default timing (exactly 1 timing matching default)
+      bool hasOnlyDefaultTiming = false;
+      if (isDaySelected &&
+          initialDay?.timings != null &&
+          initialDay!.timings!.isNotEmpty) {
+        hasOnlyDefaultTiming =
+            initialDay.timings!.length == 1 &&
+            _normalizeTime(initialDay.timings!.first.open) == defaultOpen &&
+            _normalizeTime(initialDay.timings!.first.close) == defaultClose;
+
+        if (hasOnlyDefaultTiming) {
+          daysWithOnlyDefault++;
+        }
+      }
+
+      // Determine if day should be expanded (has custom slots)
+      final hasCustomSlots = apiCustomSlots.isNotEmpty;
+
       daySelections[day.day!.toLowerCase()] = DaySelection(
-        isSelected: hasEventSlots,
-        isExpanded: false,
+        isSelected: isDaySelected,
+        isExpanded: hasCustomSlots,
         cafeOpenTime: defaultOpen,
         cafeCloseTime: defaultClose,
         timeSlots: slots,
       );
     }
+
+    // ✅ Determine if "Always Available" should be ON:
+    // 1. All open registration days must be selected
+    // 2. Every selected day must have ONLY default timing (no custom slots)
+    final allOpenDaysSelected = totalSelectedDays == openRegDays.length;
+    final allHaveOnlyDefaults = daysWithOnlyDefault == totalSelectedDays;
+
+    print(
+      '🔍 _initializeDaySelections: totalSelected=$totalSelectedDays, openDays=${openRegDays.length}, onlyDefaults=$daysWithOnlyDefault',
+    );
+    print(
+      '✅ Should be Always Available: ${allOpenDaysSelected && allHaveOnlyDefaults}',
+    );
+
+    return allOpenDaysSelected && allHaveOnlyDefaults && totalSelectedDays > 0;
   }
+
+  /*void _initializeDaySelections() {
+    daySelections.clear();
+
+    for (var day in widget.availableDays) {
+      final hasDefaultTiming = day.timings != null && day.timings!.isNotEmpty;
+
+      // Default open–close from API or fallback
+      final defaultOpen = _normalizeTime(
+        hasDefaultTiming ? day.timings!.first.open : "10:00:00",
+      );
+      final defaultClose = _normalizeTime(
+        hasDefaultTiming ? day.timings!.first.close : "22:00:00",
+      );
+
+      // Check if API already has events for this day
+      final initialDay = widget.initialSelectedDays?.firstWhere(
+        (d) => d.day?.toLowerCase() == day.day?.toLowerCase(),
+        orElse: () => AvailableDay(),
+      );
+
+      // Identify event (custom) slots — differ from default open/close
+      final List<Timing> apiCustomSlots = [];
+      if (initialDay != null && (initialDay.timings ?? []).isNotEmpty) {
+        for (var t in initialDay.timings!) {
+          final open = _normalizeTime(t.open);
+          final close = _normalizeTime(t.close);
+          if (open != defaultOpen || close != defaultClose) {
+            apiCustomSlots.add(t);
+          }
+        }
+      }
+
+      // Compose time slots for UI (default first, then events)
+      final List<TimeSlot> slots = [
+        TimeSlot(from: defaultOpen, to: defaultClose, isDefault: true),
+        ...apiCustomSlots.map(
+          (t) => TimeSlot(
+            from: _normalizeTime(t.open),
+            to: _normalizeTime(t.close),
+            isDefault: false,
+          ),
+        ),
+      ];
+      // ✅ Determine if all days have only default open-close slots
+      final isDefaultOnly = (day.timings ?? []).every(
+        (t) =>
+            _normalizeTime(t.open) == defaultOpen &&
+            _normalizeTime(t.close) == defaultClose,
+      );
+
+      final bool hasEventSlots = !isDefaultOnly;
+
+      // Build selection object
+      daySelections[day.day!.toLowerCase()] = DaySelection(
+        isSelected: true, // Mark all valid days as selected
+        isExpanded: hasEventSlots,
+        cafeOpenTime: defaultOpen,
+        cafeCloseTime: defaultClose,
+        timeSlots: slots,
+      );
+
+      // After loop, determine if ALL days are default (no custom slots)
+      if (widget.initialSelectedDays != null &&
+          widget.initialSelectedDays!.isNotEmpty &&
+          widget.initialSelectedDays!.every(
+            (d) => (d.timings ?? []).every(
+              (t) =>
+                  _normalizeTime(t.open) ==
+                      _normalizeTime(
+                        widget.availableDays
+                            .firstWhere(
+                              (ad) =>
+                                  ad.day?.toLowerCase() == d.day?.toLowerCase(),
+                            )
+                            .timings!
+                            .first
+                            .open,
+                      ) &&
+                  _normalizeTime(t.close) ==
+                      _normalizeTime(
+                        widget.availableDays
+                            .firstWhere(
+                              (ad) =>
+                                  ad.day?.toLowerCase() == d.day?.toLowerCase(),
+                            )
+                            .timings!
+                            .first
+                            .close,
+                      ),
+            ),
+          )) {  
+        setState(() => alwaysAvailable = true);
+      }
+
+    }
+  }*/
 
   String _capitalizeFirstLetter(String text) {
     if (text.isEmpty) return text;
@@ -967,36 +290,85 @@ class _EnhancedAvailableDaysDialogState
   void _toggleAlwaysAvailable(bool value) {
     setState(() {
       alwaysAvailable = value;
-      Map<String, DaySelection> newSelections = {};
 
-      for (var entry in daySelections.entries) {
-        if (value) {
-          newSelections[entry.key] = DaySelection(
+      print('🔄 Toggle Always Available: $value');
+
+      if (value) {
+        // ✅ When toggled ON: Select ALL days using their default open-close timings
+        print(
+          '✅ Selecting all ${widget.availableDays.length} cafe operating days',
+        );
+
+        for (var day in widget.availableDays) {
+          final dayKey = day.day!.toLowerCase();
+          final existingSelection = daySelections[dayKey];
+
+          // Default timings from availableDays (API)
+          final defaultOpen = _normalizeTime(
+            (day.timings?.isNotEmpty ?? false)
+                ? day.timings!.first.open
+                : "10:00:00",
+          );
+          final defaultClose = _normalizeTime(
+            (day.timings?.isNotEmpty ?? false)
+                ? day.timings!.first.close
+                : "22:00:00",
+          );
+
+          // ✅ Update all days to have a single default slot (no custom events)
+          daySelections[dayKey] = DaySelection(
             isSelected: true,
             isExpanded: false,
-            cafeOpenTime: entry.value.cafeOpenTime,
-            cafeCloseTime: entry.value.cafeCloseTime,
+            cafeOpenTime: defaultOpen,
+            cafeCloseTime: defaultClose,
             timeSlots: [
-              TimeSlot(
-                from: entry.value.cafeOpenTime,
-                to: entry.value.cafeCloseTime,
-                isDefault: true,
-              ),
+              TimeSlot(from: defaultOpen, to: defaultClose, isDefault: true),
             ],
           );
-        } else {
-          final hasExtraSlots = entry.value.timeSlots.length > 1;
-          newSelections[entry.key] = DaySelection(
-            isSelected: hasExtraSlots,
+
+          print('  ✓ $dayKey → $defaultOpen - $defaultClose');
+        }
+      } else {
+        // ✅ When toggled OFF: Keep only days that have custom event slots
+        print('❌ Toggled OFF - Keeping only custom event days');
+
+        for (var entry in daySelections.entries) {
+          final hasCustomSlots = entry.value.timeSlots.length > 1;
+
+          // Preserve only custom days; others remain but unselected
+          daySelections[entry.key] = DaySelection(
+            isSelected: hasCustomSlots,
             isExpanded: false,
             cafeOpenTime: entry.value.cafeOpenTime,
             cafeCloseTime: entry.value.cafeCloseTime,
-            timeSlots: entry.value.timeSlots,
+            timeSlots:
+                hasCustomSlots
+                    ? entry.value.timeSlots
+                    : [
+                      TimeSlot(
+                        from: entry.value.cafeOpenTime,
+                        to: entry.value.cafeCloseTime,
+                        isDefault: true,
+                      ),
+                    ],
           );
+
+          if (hasCustomSlots) {
+            print('  ✓ Kept ${entry.key} (has custom slots)');
+          } else {
+            print('  ✗ Cleared ${entry.key} (no custom slots)');
+          }
         }
       }
-      daySelections = newSelections;
     });
+
+    // ✅ Debug summary after toggle
+    final selectedDays =
+        daySelections.entries
+            .where((e) => e.value.isSelected)
+            .map((e) => e.key)
+            .toList();
+    print('📅 Selected days after toggle: $selectedDays');
   }
 
   void _toggleDay(String day) {
@@ -1029,33 +401,43 @@ class _EnhancedAvailableDaysDialogState
     }
   }
 
-/// ✅ Add new event slot between opening hours (smartly suggests next slot)
-void _addTimeSlot(String day) {
+ void _addTimeSlot(String day) {
   final selection = daySelections[day]!;
+  final openMins = _timeToMinutes(_normalizeTime(selection.cafeOpenTime));
+  final closeMins = _timeToMinutes(_normalizeTime(selection.cafeCloseTime));
 
-  final open = _normalizeTime(selection.cafeOpenTime);
-  final close = _normalizeTime(selection.cafeCloseTime);
-
-  // Sort event slots (ignore default)
+  // Get all existing custom slots sorted by start time
   final userSlots = selection.timeSlots.where((s) => !s.isDefault).toList()
-    ..sort((a, b) =>
-        _timeToMinutes(a.from).compareTo(_timeToMinutes(b.from)));
+    ..sort((a, b) => _timeToMinutes(a.from).compareTo(_timeToMinutes(b.from)));
 
-  String newStart = open;
-  String newEnd = close;
-
-  // If previous event exists, start after last one
-  if (userSlots.isNotEmpty) {
-    final last = userSlots.last;
-    final lastEnd = _timeToMinutes(last.to);
-    final nextStartMin = lastEnd + 5;
-    final nextEndMin = nextStartMin + 60;
-
-    newStart =
-        '${(nextStartMin ~/ 60).toString().padLeft(2, '0')}:${(nextStartMin % 60).toString().padLeft(2, '0')}:00';
-    newEnd =
-        '${(nextEndMin ~/ 60).toString().padLeft(2, '0')}:${(nextEndMin % 60).toString().padLeft(2, '0')}:00';
+  // ✅ FIX: Find the latest end time among all custom slots
+  int nextStartMin = openMins;
+  for (final slot in userSlots) {
+    final slotEnd = _timeToMinutes(slot.to);
+    // Always update to the latest end time (no early break)
+    if (slotEnd > nextStartMin) {
+      nextStartMin = slotEnd;
+    }
   }
+
+  print('🔍 Next available start: $nextStartMin minutes');
+  print('🔍 Existing slots: ${userSlots.map((s) => '${s.from}-${s.to}').toList()}');
+
+  // Calculate remaining time
+  final remainingTime = closeMins - nextStartMin;
+
+  if (remainingTime < 15) {
+    Fluttertoast.showToast(msg: 'Not enough time left to create a new slot.');
+    return;
+  }
+
+  // Create a slot with remaining time or max 60 minutes
+  final nextEndMin = nextStartMin + (remainingTime >= 60 ? 60 : remainingTime);
+
+  final newStart = '${(nextStartMin ~/ 60).toString().padLeft(2, '0')}:${(nextStartMin % 60).toString().padLeft(2, '0')}:00';
+  final newEnd = '${(nextEndMin ~/ 60).toString().padLeft(2, '0')}:${(nextEndMin % 60).toString().padLeft(2, '0')}:00';
+
+  print('🔍 Adding new slot: $newStart - $newEnd');
 
   if (_validateNewSlot(day, newStart, newEnd)) {
     setState(() {
@@ -1097,30 +479,20 @@ void _addTimeSlot(String day) {
       final maxMinutes = _timeToMinutes(_normalizeTime(maxTime));
 
       if (selectedMinutes < minMinutes || selectedMinutes > maxMinutes) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Time must be between $minTime and $maxTime'),
-            backgroundColor: AppColors.appRedColor,
-          ),
+        Fluttertoast.showToast(
+          msg: 'Time must be between $minTime and $maxTime',
         );
+
         return null;
       }
+      
 
       return '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}:00';
     }
     return null;
   }
 
-/// Detect overlap between two time slots
-bool _isOverlap(String start1, String end1, String start2, String end2) {
-  final s1 = _timeToMinutes(_normalizeTime(start1));
-  final e1 = _timeToMinutes(_normalizeTime(end1));
-  final s2 = _timeToMinutes(_normalizeTime(start2));
-  final e2 = _timeToMinutes(_normalizeTime(end2));
-  return s1 < e2 && e1 > s2;
-}
-
-/// Validate that a new event slot is inside café hours and non-overlapping
+  /// Validate that a new event slot is inside café hours and non-overlapping
 bool _validateNewSlot(String day, String newStart, String newEnd) {
   final selection = daySelections[day]!;
   final open = _normalizeTime(selection.cafeOpenTime);
@@ -1133,65 +505,214 @@ bool _validateNewSlot(String day, String newStart, String newEnd) {
   final openMins = _timeToMinutes(open);
   final closeMins = _timeToMinutes(close);
 
-  // Must lie within café open–close hours
+  // Validate: must lie inside the default café hours
   if (newStartMins < openMins || newEndMins > closeMins) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Time slot must be within café hours $open - $close'),
-        backgroundColor: AppColors.appRedColor,
-      ),
+    Fluttertoast.showToast(
+      msg: 'Time slot must be within café hours $open - $close',
     );
     return false;
   }
 
-  // ✅ If default slot exists, ensure new slot lies within its range
-  final defaultSlot = selection.timeSlots.firstWhere(
-    (s) => s.isDefault,
-    orElse: () => TimeSlot(from: open, to: close, isDefault: true),
-  );
-  final defaultOpenMins = _timeToMinutes(defaultSlot.from);
-  final defaultCloseMins = _timeToMinutes(defaultSlot.to);
-  if (newStartMins < defaultOpenMins || newEndMins > defaultCloseMins) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Time slot must be within opening hours '
-            '${defaultSlot.from} - ${defaultSlot.to}'),
-        backgroundColor: AppColors.appRedColor,
-      ),
-    );
+  // Validate: start must be before end
+  if (newEndMins <= newStartMins) {
+    Fluttertoast.showToast(msg: 'End time must be after start time');
     return false;
   }
 
-  // Prevent duplicates (only for user-created slots)
-  if (selection.timeSlots.any(
-    (s) => !s.isDefault &&
+  // ✅ FIX: Only check overlap with OTHER CUSTOM slots (skip default)
+  // Adjacent slots are OK (one ends at 11:00 AM, next starts at 11:00 AM)
+  for (final slot in selection.timeSlots) {
+    if (slot.isDefault) continue; // Skip the default café hours slot
+    
+    final existingStart = _timeToMinutes(slot.from);
+    final existingEnd = _timeToMinutes(slot.to);
+
+    // ✅ TRUE OVERLAP: New slot must start STRICTLY BEFORE existing ends
+    //    AND end STRICTLY AFTER existing starts (not equal)
+    final overlaps = (newStartMins < existingEnd && newEndMins > existingStart);
+
+    if (overlaps) {
+      Fluttertoast.showToast(
+        msg: 'Time slot overlaps with an existing one (${slot.from} - ${slot.to})',
+      );
+      return false;
+    }
+  }
+
+  // Prevent duplication
+  final duplicateExists = selection.timeSlots.any(
+    (s) =>
+        !s.isDefault &&
         _normalizeTime(s.from) == newStart &&
         _normalizeTime(s.to) == newEnd,
-  )) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('This time slot already exists'),
-        backgroundColor: AppColors.appRedColor,
-      ),
+  );
+  if (duplicateExists) {
+    Fluttertoast.showToast(msg: 'This time slot already exists');
+    return false;
+  }
+
+  return true;
+}
+
+
+  /// Validate that a new event slot is inside café hours and non-overlapping
+  // bool _validateNewSlot(String day, String newStart, String newEnd) {
+  //   final selection = daySelections[day]!;
+  //   final open = _normalizeTime(selection.cafeOpenTime);
+  //   final close = _normalizeTime(selection.cafeCloseTime);
+  //   newStart = _normalizeTime(newStart);
+  //   newEnd = _normalizeTime(newEnd);
+
+  //   final newStartMins = _timeToMinutes(newStart);
+  //   final newEndMins = _timeToMinutes(newEnd);
+  //   final openMins = _timeToMinutes(open);
+  //   final closeMins = _timeToMinutes(close);
+
+  //   // Validate: must lie inside the default café hours
+  //   if (newStartMins < openMins || newEndMins > closeMins) {
+  //     Fluttertoast.showToast(
+  //       msg: 'Time slot must be within café hours $open - $close',
+  //     );
+
+  //     return false;
+  //   }
+
+  //   // Validate: start must be before end
+  //   if (newEndMins <= newStartMins) {
+  //     Fluttertoast.showToast(msg: 'End time must be after start time');
+
+  //     return false;
+  //   }
+
+  //   //  Prevent overlap with existing event-created slots (ignore default)
+  //   for (final slot in selection.timeSlots) {
+  //     if (slot.isDefault) continue; // skip café hours
+  //     final existingStart = _timeToMinutes(slot.from);
+  //     final existingEnd = _timeToMinutes(slot.to);
+
+  //     // Overlap condition
+  //     final overlaps =
+  //         (newStartMins < existingEnd && newEndMins > existingStart);
+
+  //     if (overlaps) {
+  //       Fluttertoast.showToast(
+  //         msg:
+  //             'Time slot overlaps with an existing one (${slot.from} - ${slot.to})',
+  //       );
+
+  //       return false;
+  //     }
+  //   }
+
+  //   //  Prevent duplication
+  //   final duplicateExists = selection.timeSlots.any(
+  //     (s) =>
+  //         !s.isDefault &&
+  //         _normalizeTime(s.from) == newStart &&
+  //         _normalizeTime(s.to) == newEnd,
+  //   );
+  //   if (duplicateExists) {
+  //     Fluttertoast.showToast(msg: 'This time slot already exists');
+  //     return false;
+  //   }
+
+  //   return true;
+  // }
+
+  // bool _validateEditedSlot(
+  //   String day,
+  //   String newStart,
+  //   String newEnd,
+  //   int currentIndex,
+  // ) {
+  //   final selection = daySelections[day]!;
+  //   final open = _normalizeTime(selection.cafeOpenTime);
+  //   final close = _normalizeTime(selection.cafeCloseTime);
+
+  //   final newStartMins = _timeToMinutes(_normalizeTime(newStart));
+  //   final newEndMins = _timeToMinutes(_normalizeTime(newEnd));
+  //   final openMins = _timeToMinutes(open);
+  //   final closeMins = _timeToMinutes(close);
+
+  //   // Inside open–close
+  //   if (newStartMins < openMins || newEndMins > closeMins) {
+  //     Fluttertoast.showToast(
+  //       msg: 'Time must be within café hours ($open - $close)',
+  //     );
+  //     return false;
+  //   }
+
+  //   // Start before end
+  //   if (newEndMins <= newStartMins) {
+  //     Fluttertoast.showToast(msg: 'End time must be after start time');
+  //     return false;
+  //   }
+
+  //   // Prevent overlap with other non-default slots (ignore self)
+  //   for (int i = 0; i < selection.timeSlots.length; i++) {
+  //     if (i == currentIndex) continue;
+  //     final s = selection.timeSlots[i];
+  //     if (s.isDefault) continue;
+
+  //     final sStart = _timeToMinutes(_normalizeTime(s.from));
+  //     final sEnd = _timeToMinutes(_normalizeTime(s.to));
+
+  //     final overlaps = newStartMins < sEnd && newEndMins > sStart;
+  //     if (overlaps) {
+  //       Fluttertoast.showToast(
+  //         msg: 'This time overlaps with another slot (${s.from} - ${s.to})',
+  //       );
+  //       return false;
+  //     }
+  //   }
+
+  //   return true;
+  // }
+
+bool _validateEditedSlot(
+  String day,
+  String newStart,
+  String newEnd,
+  int currentIndex,
+) {
+  final selection = daySelections[day]!;
+  final open = _normalizeTime(selection.cafeOpenTime);
+  final close = _normalizeTime(selection.cafeCloseTime);
+
+  final newStartMins = _timeToMinutes(_normalizeTime(newStart));
+  final newEndMins = _timeToMinutes(_normalizeTime(newEnd));
+  final openMins = _timeToMinutes(open);
+  final closeMins = _timeToMinutes(close);
+
+  // Inside open–close
+  if (newStartMins < openMins || newEndMins > closeMins) {
+    Fluttertoast.showToast(
+      msg: 'Time must be within café hours ($open - $close)',
     );
     return false;
   }
 
-  // Check overlap only among user-created event slots (ignore default)
-  for (final slot in selection.timeSlots) {
-    if (slot.isDefault) continue; // <-- Ignore opening hours slot
+  // Start before end
+  if (newEndMins <= newStartMins) {
+    Fluttertoast.showToast(msg: 'End time must be after start time');
+    return false;
+  }
 
-    // Allow back-to-back slots (end == start)
-    final noOverlap =
-        _timeToMinutes(newEnd) <= _timeToMinutes(slot.from) ||
-        _timeToMinutes(newStart) >= _timeToMinutes(slot.to);
+  // ✅ FIX: Prevent overlap with other non-default slots (ignore self AND default)
+  // Adjacent slots are OK
+  for (int i = 0; i < selection.timeSlots.length; i++) {
+    if (i == currentIndex) continue; // Skip self
+    final s = selection.timeSlots[i];
+    if (s.isDefault) continue; // Skip the default café hours slot
 
-    if (!noOverlap) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('The timeslot overlaps an existing timeslot'),
-          backgroundColor: AppColors.appRedColor,
-        ),
+    final sStart = _timeToMinutes(_normalizeTime(s.from));
+    final sEnd = _timeToMinutes(_normalizeTime(s.to));
+
+    // ✅ TRUE OVERLAP check
+    final overlaps = newStartMins < sEnd && newEndMins > sStart;
+    if (overlaps) {
+      Fluttertoast.showToast(
+        msg: 'This time overlaps with another slot (${s.from} - ${s.to})',
       );
       return false;
     }
@@ -1200,6 +721,127 @@ bool _validateNewSlot(String day, String newStart, String newEnd) {
   return true;
 }
 
+ bool _validateAllSlots() {
+  for (final entry in daySelections.entries) {
+    final selection = entry.value;
+    if (!selection.isSelected) continue;
+
+    final open = _normalizeTime(selection.cafeOpenTime);
+    final close = _normalizeTime(selection.cafeCloseTime);
+    final openMins = _timeToMinutes(open);
+    final closeMins = _timeToMinutes(close);
+
+    for (int i = 0; i < selection.timeSlots.length; i++) {
+      final slot = selection.timeSlots[i];
+      if (slot.isDefault) continue; // Skip default slot validation
+
+      final startMins = _timeToMinutes(_normalizeTime(slot.from));
+      final endMins = _timeToMinutes(_normalizeTime(slot.to));
+
+      // Invalid order
+      if (endMins <= startMins) {
+        Fluttertoast.showToast(
+          msg:
+              '${_capitalizeFirstLetter(entry.key)} has invalid time range (${slot.from} - ${slot.to})',
+        );
+        return false;
+      }
+
+      // Outside default café hours
+      if (startMins < openMins || endMins > closeMins) {
+        Fluttertoast.showToast(
+          msg:
+              '${_capitalizeFirstLetter(entry.key)} slot must be within café hours ($open - $close)',
+        );
+        return false;
+      }
+
+      // ✅ FIX: Overlap check - only compare with OTHER custom slots
+      // Adjacent slots are OK
+      for (int j = 0; j < selection.timeSlots.length; j++) {
+        if (i == j) continue; // Skip self
+        final other = selection.timeSlots[j];
+        if (other.isDefault) continue; // Skip default slot
+
+        final otherStart = _timeToMinutes(_normalizeTime(other.from));
+        final otherEnd = _timeToMinutes(_normalizeTime(other.to));
+
+        // ✅ TRUE OVERLAP check
+        final overlaps = startMins < otherEnd && endMins > otherStart;
+
+        if (overlaps) {
+          Fluttertoast.showToast(
+            msg:
+                '${_capitalizeFirstLetter(entry.key)} has overlapping slots (${slot.from} - ${slot.to}) and (${other.from} - ${other.to})',
+          );
+          return false;
+        }
+      }
+    }
+  }
+  return true;
+}
+  // bool _validateAllSlots() {
+  //   for (final entry in daySelections.entries) {
+  //     final selection = entry.value;
+  //     if (!selection.isSelected) continue;
+
+  //     final open = _normalizeTime(selection.cafeOpenTime);
+  //     final close = _normalizeTime(selection.cafeCloseTime);
+  //     final openMins = _timeToMinutes(open);
+  //     final closeMins = _timeToMinutes(close);
+
+  //     for (int i = 0; i < selection.timeSlots.length; i++) {
+  //       final slot = selection.timeSlots[i];
+  //       if (slot.isDefault) continue;
+
+  //       final startMins = _timeToMinutes(_normalizeTime(slot.from));
+  //       final endMins = _timeToMinutes(_normalizeTime(slot.to));
+
+  //       // Invalid order
+  //       if (endMins <= startMins) {
+  //         Fluttertoast.showToast(
+  //           msg:
+  //               '${_capitalizeFirstLetter(entry.key)} has invalid time range (${slot.from} - ${slot.to})',
+  //         );
+
+  //         return false;
+  //       }
+
+  //       // Outside default café hours
+  //       if (startMins < openMins || endMins > closeMins) {
+  //         Fluttertoast.showToast(
+  //           msg:
+  //               '${_capitalizeFirstLetter(entry.key)} slot must be within café hours ($open - $close)',
+  //         );
+
+  //         return false;
+  //       }
+
+  //       // Overlap check (ignore itself)
+  //       for (int j = 0; j < selection.timeSlots.length; j++) {
+  //         if (i == j) continue;
+  //         final other = selection.timeSlots[j];
+  //         if (other.isDefault) continue;
+
+  //         final otherStart = _timeToMinutes(_normalizeTime(other.from));
+  //         final otherEnd = _timeToMinutes(_normalizeTime(other.to));
+
+  //         final overlaps = startMins < otherEnd && endMins > otherStart;
+
+  //         if (overlaps) {
+  //           Fluttertoast.showToast(
+  //             msg:
+  //                 '${_capitalizeFirstLetter(entry.key)} has overlapping slots (${slot.from} - ${slot.to}) and (${other.from} - ${other.to})',
+  //           );
+
+  //           return false;
+  //         }
+  //       }
+  //     }
+  //   }
+  //   return true;
+  // }
 
   TimeOfDay _parseTime(String time) {
     final clean = _normalizeTime(time);
@@ -1215,106 +857,83 @@ bool _validateNewSlot(String day, String newStart, String newEnd) {
     return int.parse(parts[0]) * 60 + int.parse(parts[1]);
   }
 
-/*List<AvailableDay> _getSelectedDays() {
-  List<AvailableDay> selected = [];
+  List<AvailableDay> _getSelectedDays() {
+    List<AvailableDay> selected = [];
 
-  daySelections.forEach((day, selection) {
-    // Only include days that are selected AND have at least one custom slot
-    final customSlots = selection.timeSlots.where((s) => !s.isDefault).toList();
-
-    if (selection.isSelected && customSlots.isNotEmpty) {
-      final timings = customSlots.map((slot) {
-        return Timing(
-          open: _normalizeTime(slot.from),
-          close: _normalizeTime(slot.to),
-        );
-      }).toList();
-
-      selected.add(
-        AvailableDay(
-          id: widget.availableDays
-              .firstWhere(
-                (d) => d.day?.toLowerCase() == day.toLowerCase(),
-                orElse: () => AvailableDay(),
-              )
-              .id,
-          day: day,
-          timings: timings,
-          isOpen: true,
-        ),
-      );
-    }
-  });
-
-  return selected;
-}*/
-
-List<AvailableDay> _getSelectedDays() {
-  List<AvailableDay> selected = [];
-
-  daySelections.forEach((day, selection) {
-    // CASE 1: Always available ON → send all days with default timings
-    if (alwaysAvailable) {
+    daySelections.forEach((day, selection) {
       final defaultSlot = selection.timeSlots.firstWhere(
         (s) => s.isDefault,
-        orElse: () => TimeSlot(
-          from: selection.cafeOpenTime,
-          to: selection.cafeCloseTime,
-          isDefault: true,
-        ),
-      );
-
-      selected.add(
-        AvailableDay(
-          id: widget.availableDays
-              .firstWhere(
-                (d) => d.day?.toLowerCase() == day.toLowerCase(),
-                orElse: () => AvailableDay(),
-              )
-              .id,
-          day: day,
-          timings: [
-            Timing(
-              open: _normalizeTime(defaultSlot.from),
-              close: _normalizeTime(defaultSlot.to),
+        orElse:
+            () => TimeSlot(
+              from: selection.cafeOpenTime,
+              to: selection.cafeCloseTime,
+              isDefault: true,
             ),
-          ],
-          isOpen: true,
-        ),
       );
-    }
 
-    // CASE 2: Always available OFF → only include days with custom event slots
-    else {
-      final customSlots = selection.timeSlots.where((s) => !s.isDefault).toList();
+      // CASE 1: Always Available → send all days with default slot only
+      if (alwaysAvailable) {
+        selected.add(
+          AvailableDay(
+            id:
+                widget.availableDays
+                    .firstWhere(
+                      (d) => d.day?.toLowerCase() == day.toLowerCase(),
+                      orElse: () => AvailableDay(),
+                    )
+                    .id,
+            day: day,
+            timings: [
+              Timing(
+                open: _normalizeTime(defaultSlot.from),
+                close: _normalizeTime(defaultSlot.to),
+              ),
+            ],
+            isOpen: true,
+          ),
+        );
+      }
+      // CASE 2: Custom event days → send default + event-created slots
+      else if (selection.isSelected && selection.timeSlots.isNotEmpty) {
+        final List<Timing> timings = [];
 
-      if (selection.isSelected && customSlots.isNotEmpty) {
-        final timings = customSlots.map((slot) {
-          return Timing(
-            open: _normalizeTime(slot.from),
-            close: _normalizeTime(slot.to),
+        // Always include the default open–close slot first
+        timings.add(
+          Timing(
+            open: _normalizeTime(defaultSlot.from),
+            close: _normalizeTime(defaultSlot.to),
+          ),
+        );
+
+        // Add all user-created custom event slots (non-default)
+        for (final slot in selection.timeSlots.where((s) => !s.isDefault)) {
+          timings.add(
+            Timing(
+              open: _normalizeTime(slot.from),
+              close: _normalizeTime(slot.to),
+            ),
           );
-        }).toList();
+        }
 
         selected.add(
           AvailableDay(
-            id: widget.availableDays
-                .firstWhere(
-                  (d) => d.day?.toLowerCase() == day.toLowerCase(),
-                  orElse: () => AvailableDay(),
-                )
-                .id,
+            id:
+                widget.availableDays
+                    .firstWhere(
+                      (d) => d.day?.toLowerCase() == day.toLowerCase(),
+                      orElse: () => AvailableDay(),
+                    )
+                    .id,
             day: day,
             timings: timings,
             isOpen: true,
           ),
         );
       }
-    }
-  });
+    });
 
-  return selected;
-}
+    return selected;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1382,7 +1001,10 @@ List<AvailableDay> _getSelectedDays() {
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
                 child: Padding(
-                  padding: EdgeInsets.all(isSmallScreen ? 16 : 20),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isSmallScreen ? 16 : 20,
+                    vertical: 0,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1403,7 +1025,7 @@ List<AvailableDay> _getSelectedDays() {
                               style: GoogleFonts.montserrat(
                                 fontSize: isSmallScreen ? 11 : 12,
                                 color: AppColors.primary,
-                                fontWeight: FontWeight.w400,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                             const SizedBox(width: 8),
@@ -1421,7 +1043,7 @@ List<AvailableDay> _getSelectedDays() {
                           ],
                         ),
                       ),
-
+                      Gap(8),
                       // Always Available Toggle
                       Row(
                         children: [
@@ -1447,12 +1069,13 @@ List<AvailableDay> _getSelectedDays() {
                               style: GoogleFonts.montserrat(
                                 fontSize: isSmallScreen ? 13 : 14,
                                 color: AppColors.primary,
-                                fontWeight: FontWeight.w500,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
                         ],
                       ),
+                      Gap(8),
 
                       ...widget.availableDays.map((day) {
                         return _buildDayTile(
@@ -1473,7 +1096,21 @@ List<AvailableDay> _getSelectedDays() {
                 width: MediaQuery.of(context).size.width / 2.7,
                 height: isSmallScreen ? 44 : 48,
                 child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context, _getSelectedDays()),
+                  onPressed: () {
+                    // ✅ Validate all before closing
+                    if (_validateAllSlots()) {
+                      Navigator.pop(context, {
+                        'days': _getSelectedDays(),
+                        'alwaysAvailable': alwaysAvailable,
+                      });
+                    }
+                  },
+                  // onPressed: () {
+                  //   // Validate all before closing
+                  //   if (_validateAllSlots()) {
+                  //     Navigator.pop(context, _getSelectedDays(), alwaysAvailable,);
+                  //   }
+                  // },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(
@@ -1493,6 +1130,119 @@ List<AvailableDay> _getSelectedDays() {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildTimeSlot(String day, int index, TimeSlot slot) {
+    final selection = daySelections[day]!;
+
+    Future<void> _pickNewTime({required bool isFrom}) async {
+      final newTime = await _selectTime(
+        context,
+        isFrom ? slot.from : slot.to,
+        selection.cafeOpenTime,
+        selection.cafeCloseTime,
+      );
+
+      if (newTime != null) {
+        final tempSlots = List<TimeSlot>.from(selection.timeSlots);
+        tempSlots[index] = TimeSlot(
+          from: isFrom ? newTime : slot.from,
+          to: isFrom ? slot.to : newTime,
+          isDefault: slot.isDefault,
+        );
+
+        final newStart = tempSlots[index].from;
+        final newEnd = tempSlots[index].to;
+
+        if (_validateEditedSlot(day, newStart, newEnd, index)) {
+          setState(() {
+            if (isFrom) {
+              selection.timeSlots[index].from = newTime;
+            } else {
+              selection.timeSlots[index].to = newTime;
+            }
+          });
+        }
+      }
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // FROM
+          Expanded(
+            flex: 1,
+            child: GestureDetector(
+              onTap: slot.isDefault ? null : () => _pickNewTime(isFrom: true),
+              child: _buildTimeBox(slot.from, slot.isDefault),
+            ),
+          ),
+          const SizedBox(width: 12),
+          // TO
+          Expanded(
+            flex: 1,
+            child: GestureDetector(
+              onTap: slot.isDefault ? null : () => _pickNewTime(isFrom: false),
+              child: _buildTimeBox(slot.to, slot.isDefault),
+            ),
+          ),
+          const SizedBox(width: 10),
+          // DELETE
+          if (!slot.isDefault)
+            InkWell(
+              onTap: () => _removeTimeSlot(day, index),
+              borderRadius: BorderRadius.circular(20),
+              child: Padding(
+                padding: const EdgeInsets.all(6),
+                child: Image.asset(Assets.DELETE, fit: BoxFit.cover, scale: 3),
+              ),
+            )
+          else
+            const SizedBox(width: 28),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTimeBox(String time, bool isDisabled) {
+    String _formatTime(String time) {
+      final parsed = DateFormat.Hms().parse(time); // Parses "HH:mm:ss"
+      return DateFormat.jm().format(parsed); // Converts to "10:00 AM"
+    }
+
+    return Container(
+      height: 42.h,
+      decoration: BoxDecoration(
+        color: AppColors.primaryWhiteColor,
+        borderRadius: BorderRadius.circular(10),
+        // border: Border.all(
+        //   color: const Color(0xFFDADADA),
+        // ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.access_time, size: 16, color: Color(0xFF9E9E9E)),
+              const SizedBox(width: 6),
+              Text(
+                _formatTime(time),
+                style: GoogleFonts.montserrat(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFF1A1A1A),
+                ),
+              ),
+            ],
+          ),
+          const Icon(Icons.unfold_more, size: 18, color: Color(0xFF9E9E9E)),
+        ],
       ),
     );
   }
@@ -1562,6 +1312,40 @@ List<AvailableDay> _getSelectedDays() {
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
+                  // Add "From" and "To" labels above the first slot
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 1,
+                          child: Text(
+                            'From',
+                            style: GoogleFonts.montserrat(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.timeTextColor,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 1,
+                          child: Text(
+                            'To',
+                            style: GoogleFonts.montserrat(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.timeTextColor,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          width: 38,
+                        ), // Space for delete icon alignment
+                      ],
+                    ),
+                  ),
                   ...List.generate(selection.timeSlots.length, (index) {
                     final slot = selection.timeSlots[index];
                     return _buildTimeSlot(day, index, slot);
@@ -1569,27 +1353,36 @@ List<AvailableDay> _getSelectedDays() {
                   if (selection.timeSlots.length < 5)
                     Align(
                       alignment: Alignment.centerRight,
-                      child: ElevatedButton.icon(
-                        onPressed: () => _addTimeSlot(day),
-                        style: ElevatedButton.styleFrom(
-                          fixedSize: Size(90.w, 20.h),
-                          backgroundColor: AppColors.primary,
-                          shape: RoundedRectangleBorder(
+                      child: InkWell(
+                        onTap: () => _addTimeSlot(day),
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          padding: EdgeInsets.zero,
-                        ),
-                        icon: const Icon(
-                          Icons.add,
-                          color: AppColors.primaryWhiteColor,
-                          size: 13,
-                        ),
-                        label: Text(
-                          'ADD NEW',
-                          style: GoogleFonts.montserrat(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.primaryWhiteColor,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.add,
+                                color: Colors.white,
+                                size: 13,
+                              ),
+                              const SizedBox(width: 5),
+                              Text(
+                                'ADD NEW',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -1597,126 +1390,6 @@ List<AvailableDay> _getSelectedDays() {
                 ],
               ),
             ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTimeSlot(String day, int index, TimeSlot slot) {
-    final selection = daySelections[day]!;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 1,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'From',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textPrimaryGrey,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                GestureDetector(
-                  onTap:
-                      index == 0
-                          ? null
-                          : () async {
-                            final newTime = await _selectTime(
-                              context,
-                              slot.from,
-                              selection.cafeOpenTime,
-                              selection.cafeCloseTime,
-                            );
-                            if (newTime != null) {
-                              setState(() {
-                                selection.timeSlots[index].from = newTime;
-                              });
-                            }
-                          },
-                  child: _buildTimeBox(slot.from, index == 0),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            flex: 1,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'To',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.textPrimaryGrey,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                GestureDetector(
-                  onTap:
-                      index == 0
-                          ? null
-                          : () async {
-                            final newTime = await _selectTime(
-                              context,
-                              slot.to,
-                              selection.cafeOpenTime,
-                              selection.cafeCloseTime,
-                            );
-                            if (newTime != null) {
-                              setState(() {
-                                selection.timeSlots[index].to = newTime;
-                              });
-                            }
-                          },
-                  child: _buildTimeBox(slot.to, index == 0),
-                ),
-              ],
-            ),
-          ),
-          if (index != 0)
-            InkWell(
-              onTap: () => _removeTimeSlot(day, index),
-              child: const Icon(Icons.delete, color: Colors.red, size: 20),
-            )
-          else
-            const SizedBox(width: 8),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTimeBox(String time, bool locked) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-      decoration: BoxDecoration(
-        color: locked ? Colors.grey.shade200 : AppColors.primaryWhiteColor,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.access_time,
-            size: 14,
-            color: AppColors.secondaryGreyTextColor,
-          ),
-          const SizedBox(width: 4),
-          Expanded(
-            child: Text(
-              time,
-              style: GoogleFonts.montserrat(
-                fontSize: 13,
-                color: locked ? Colors.grey : AppColors.secondaryGreyTextColor,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
         ],
       ),
     );

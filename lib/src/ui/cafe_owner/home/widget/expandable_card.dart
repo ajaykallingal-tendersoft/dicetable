@@ -4,6 +4,8 @@ import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/model/cafe_owner/home/available_days.dart';
 import 'package:soloseaters/src/model/cafe_owner/home/dice_table_update_request.dart'
     show DiceTableTypeUpdateRequest;
+import 'package:soloseaters/src/model/cafe_owner/home/venue_owner_home_screen_response.dart';
+import 'package:soloseaters/src/ui/cafe_owner/home/attendees_arguments.dart';
 import 'package:soloseaters/src/ui/cafe_owner/home/bloc/home_bloc.dart';
 import 'package:soloseaters/src/ui/cafe_owner/home/model/card_item.dart';
 import 'package:soloseaters/src/ui/cafe_owner/home/widget/enhanced_available_days_dialog.dart';
@@ -70,15 +72,24 @@ class _ExpandableCardState extends State<ExpandableCard> {
     _promoController.dispose();
     super.dispose();
   }
-  String _formatTime(String time) {
-  final parsed = TimeOfDay(
-    hour: int.parse(time.split(':')[0]),
-    minute: int.parse(time.split(':')[1]),
-  );
-  final localizations = MaterialLocalizations.of(context);
-  return localizations.formatTimeOfDay(parsed, alwaysUse24HourFormat: false);
-}
 
+  String _formatTime(String time) {
+    final parsed = TimeOfDay(
+      hour: int.parse(time.split(':')[0]),
+      minute: int.parse(time.split(':')[1]),
+    );
+    final localizations = MaterialLocalizations.of(context);
+    return localizations.formatTimeOfDay(parsed, alwaysUse24HourFormat: false);
+  }
+
+  String _normalizeTime(String time) {
+    // Ensure consistent HH:mm:ss format for reliable comparison
+    final parts = time.split(':');
+    if (parts.length == 2)
+      return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}:00';
+    if (parts.length == 1) return '${parts[0].padLeft(2, '0')}:00:00';
+    return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}:${parts[2].padLeft(2, '0')}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -223,14 +234,6 @@ class _ExpandableCardState extends State<ExpandableCard> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        "Available",
-                        style: GoogleFonts.roboto(
-                          fontSize: 12,
-                          fontWeight: FontWeight.normal,
-                          color: AppColors.shadowColor,
-                        ),
-                      ),
                       card.isSelected && selectedDays.isNotEmpty
                           ? Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -246,70 +249,73 @@ class _ExpandableCardState extends State<ExpandableCard> {
                                     'sun': 7,
                                   };
 
-                                  final sortedDays = [...selectedDays]..sort(
-                                    (a, b) => dayOrder[a.day!.toLowerCase()]!
-                                        .compareTo(
-                                          dayOrder[b.day!.toLowerCase()]!,
+                                  String _normalizeTime(String time) {
+                                    final parts = time.split(':');
+                                    if (parts.length == 2) {
+                                      return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}:00';
+                                    }
+                                    if (parts.length == 1) {
+                                      return '${parts[0].padLeft(2, '0')}:00:00';
+                                    }
+                                    return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}:${parts[2].padLeft(2, '0')}';
+                                  }
+
+                                  final sortedDays = [...selectedDays]..sort((
+                                    a,
+                                    b,
+                                  ) {
+                                    final orderA =
+                                        dayOrder[a.day?.toLowerCase() ?? ''] ??
+                                        99;
+                                    final orderB =
+                                        dayOrder[b.day?.toLowerCase() ?? ''] ??
+                                        99;
+                                    return orderA.compareTo(orderB);
+                                  });
+
+                                  // Build the list of widgets to display
+                                  List<Widget> displayWidgets = [];
+
+                                  for (var d in sortedDays) {
+                                    final timings = d.timings ?? [];
+
+                                    for (var t in timings) {
+                                      displayWidgets.add(
+                                        Text(
+                                          "${capitalizeFirstLetter(d.day ?? '')}: ${_formatTime(t.open)} - ${_formatTime(t.close)}",
+                                          style: GoogleFonts.roboto(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.shadowColor,
+                                          ),
                                         ),
-                                  );
-                                  return sortedDays.map((d) {
-                                    final customTimings =
-                                        (d.timings ?? []).where((t) {
-                                          // Hide default slot if any custom slot exists
-                                          final isDefault =
-                                              t.open == "10:00:00" &&
-                                              t.close == "22:00:00";
-                                          final hasCustom = (d.timings ?? [])
-                                              .any(
-                                                (x) =>
-                                                    !(x.open == "10:00:00" &&
-                                                        x.close == "22:00:00"),
-                                              );
-                                          return hasCustom ? !isDefault : true;
-                                        }).toList();
-                                    // final firstTiming =
-                                    //     (d.timings != null &&
-                                    //             d.timings!.isNotEmpty)
-                                    //         ? d.timings!.first
-                                    //         : Timing(
-                                    //           open: "10:00:00",
-                                    //           close: "22:00:00",
-                                    //         );
+                                      );
+                                    }
+                                  }
 
-                                    // String open = firstTiming.open;
-                                    // String close = firstTiming.close;
-                                    return Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children:
-                                          customTimings.map((t) {
-                                            return Text(
-                                              "${capitalizeFirstLetter(d.day ?? '')}: ${_formatTime(t.open)} - ${_formatTime(t.close)}",
+                                  // ✅ Only show "Available" label if there are time slots to display
+                                  if (displayWidgets.isEmpty) {
+                                    return [const SizedBox.shrink()];
+                                  }
 
-                                              // "${capitalizeFirstLetter(d.day ?? '')}: ${t.open} - ${t.close}",
-                                              style: GoogleFonts.roboto(
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.w600,
-                                                color: AppColors.shadowColor,
-                                              ),
-                                            );
-                                          }).toList(),
-                                    );
-
-                                    // return Text(
-                                    //   "${capitalizeFirstLetter(d.day ?? '')}: $open - $close",
-                                    //   style: GoogleFonts.roboto(
-                                    //     fontSize: 10,
-                                    //     fontWeight: FontWeight.w600,
-                                    //     color: AppColors.shadowColor,
-                                    //   ),
-                                    // );
-                                  }).toList();
+                                  return [
+                                    Text(
+                                      'Available',
+                                      style: GoogleFonts.roboto(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.primary,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    ...displayWidgets,
+                                  ];
                                 })(),
                           )
-                          : const SizedBox.shrink(),
+                          : SizedBox.shrink(),
                     ],
                   ),
+
                   !card.isExpanded
                       ? ElevatedButton.icon(
                         style: ElevatedButton.styleFrom(
@@ -340,8 +346,58 @@ class _ExpandableCardState extends State<ExpandableCard> {
                         ),
                       )
                       : const SizedBox(),
+
+                       // ✅ UPDATED: Edit button with payment gate
+                 /* !card.isExpanded
+                      ? BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
+                          builder: (context, paymentState) {
+                            return ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(13),
+                                  side: const BorderSide(
+                                    color: Color(0xFF5B6369),
+                                    width: 1,
+                                  ),
+                                ),
+                              ),
+                              onPressed: () async {
+                                // ✅ Check if venue owner has access
+                                if (paymentState.isVenueUser && 
+                                    !paymentState.canAccessPremiumFeatures) {
+                                  // Show upgrade dialog
+                                  await showDialog(
+                                    context: context,
+                                    barrierDismissible: true,
+                                    builder: (context) => const VenueUpgradeDialog(),
+                                  );
+                                  return;
+                                }
+                                
+                                // If has access, proceed with edit
+                                context.read<HomeBloc>().add(
+                                  ToggleExpandEvent(widget.index),
+                                );
+                              },
+                              label: const Text(
+                                'Edit',
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  color: Color(0xFF5B6369),
+                                ),
+                              ),
+                              icon: const Icon(
+                                Icons.edit,
+                                size: 15,
+                                color: Color(0xFF5B6369),
+                              ),
+                            );
+                          },
+                        )
+                      : const SizedBox(),*/
                 ],
               ),
+
               if (card.isExpanded) ...[
                 Column(
                   children: [
@@ -379,6 +435,8 @@ class _ExpandableCardState extends State<ExpandableCard> {
                             tableTypeName: card.title,
                             availableDays: card.availableDays,
                             initialSelectedDays: card.selectedDays,
+                            card: card,
+                            cardIndex: widget.index, // ✅ ADD THIS
                             onChanged: (days) {
                               setState(() {
                                 selectedDays = days;
@@ -396,13 +454,154 @@ class _ExpandableCardState extends State<ExpandableCard> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _buildAttendeesButton(context),
+                        // ✅ Show Attendees button only if this table has bookings
+                        if (widget.card.hasBookings &&
+                            widget.card.attendees.isNotEmpty)
+                          _buildAttendeesButton(context, state)
+                        else
+                          const SizedBox.shrink(),
+
                         _buildSaveButton(context, state),
                       ],
                     ),
                   ],
                 ),
               ],
+              /*
+               // ✅ UPDATED: Wrap expanded content in payment gate
+              if (card.isExpanded) ...[
+                BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
+                  builder: (context, paymentState) {
+                    // If venue owner without premium, show locked overlay
+                    if (paymentState.isVenueUser && 
+                        !paymentState.canAccessPremiumFeatures) {
+                      return Container(
+                        margin: const EdgeInsets.only(top: 10),
+                        padding: const EdgeInsets.all(40),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.grey.withOpacity(0.3),
+                          ),
+                        ),
+                        child: Center(
+                          child: Column(
+                            children: [
+                              const Icon(
+                                Icons.lock_outline,
+                                size: 48,
+                                color: Colors.grey,
+                              ),
+                              const SizedBox(height: 16),
+                              const Text(
+                                'Premium Feature Locked',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'Subscribe to edit table details',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              const SizedBox(height: 20),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  await showDialog(
+                                    context: context,
+                                    builder: (context) => const VenueUpgradeDialog(),
+                                  );
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 32,
+                                    vertical: 12,
+                                  ),
+                                ),
+                                child: const Text('Upgrade Now'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+                    
+                    // If has access, show normal expanded content
+                    return Column(
+                      children: [
+                        const Gap(10),
+                        TextField(
+                          key: ValueKey('promoTextField_${card.id}'),
+                          style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                            color: AppColors.timeTextColor,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          controller: _promoController,
+                          maxLines: 5,
+                          keyboardType: TextInputType.text,
+                          decoration: InputDecoration(
+                            hintText: "Write your promo here",
+                            filled: true,
+                            fillColor: AppColors.primaryWhiteColor,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                        const Gap(10),
+                        BlocBuilder<HomeBloc, HomeState>(
+                          builder: (context, state) {
+                            if (state is HomeLoading) {
+                              EasyLoading.show();
+                            }
+                            if (state is HomeLoaded) {
+                              EasyLoading.dismiss();
+                              final card = state.cards[widget.index];
+                              return AvailableDaysMultiSelectField(
+                                tableTypeName: card.title,
+                                availableDays: card.availableDays,
+                                initialSelectedDays: card.selectedDays,
+                                card: card,
+                                cardIndex: widget.index,
+                                onChanged: (days) {
+                                  setState(() {
+                                    selectedDays = days;
+                                  });
+                                  context.read<HomeBloc>().add(
+                                    UpdateSelectedDaysEvent(widget.index, days),
+                                  );
+                                },
+                              );
+                            }
+                            return const SizedBox();
+                          },
+                        ),
+                        const Gap(10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            if (widget.card.hasBookings &&
+                                widget.card.attendees.isNotEmpty)
+                              _buildAttendeesButton(context, state)
+                            else
+                              const SizedBox.shrink(),
+                            _buildSaveButton(context, state),
+                          ],
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ],*/
             ],
           ),
         );
@@ -443,24 +642,65 @@ class _ExpandableCardState extends State<ExpandableCard> {
   }
 
   ///Attendees Button
-  Widget _buildAttendeesButton(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () {
-        context.push('/attendees');
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.primary,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      ),
-      child: Text(
-        'View Attendees',
-        style: GoogleFonts.montserrat(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: Colors.white,
-        ),
-      ),
-    );
+  Widget _buildAttendeesButton(BuildContext context, HomeState state) {
+    if (state is HomeLoaded) {
+      DiceTable? diceTableWithBookings;
+      try {
+        diceTableWithBookings = state.homeResponse.diceTables.firstWhere(
+          (table) => table.hasBookings == true,
+        );
+      } catch (_) {
+        diceTableWithBookings = null;
+      }
+
+      if (diceTableWithBookings != null) {
+        final hasAttendees = diceTableWithBookings.attendees.isNotEmpty;
+
+        if (diceTableWithBookings.hasBookings && hasAttendees) {
+          final firstAttendee = diceTableWithBookings.attendees.first;
+
+          return InkWell(
+            onTap: () {
+              context.push(
+                '/attendees',
+                extra: AttendeesArguments(
+                  tableId: diceTableWithBookings!.id,
+                  attendees: diceTableWithBookings.attendees,
+                  bookingDate: firstAttendee.bookingDate?.toString(),
+                ),
+              );
+            },
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary,
+                    blurRadius: 1,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Text(
+                  'View Attendees (${diceTableWithBookings.attendees.length})',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
+      }
+    }
+
+    return const SizedBox.shrink();
   }
 
   Widget _buildSaveButton(BuildContext context, HomeState state) {
@@ -469,12 +709,12 @@ class _ExpandableCardState extends State<ExpandableCard> {
 
     return ElevatedButton.icon(
       onPressed:
-          (state is DiceTableUpdateLoading ||
-                  !isPromoNotEmpty ||
-                  !isDaysNotEmpty)
+          (state is DiceTableUpdateLoading || !isDaysNotEmpty)
               ? null
               : () {
                 print('Selected days being sent: $selectedDays');
+
+                // existing BLoC updates
                 context.read<HomeBloc>().add(
                   UpdatePromoTextEvent(widget.index, _promoController.text),
                 );
@@ -503,23 +743,67 @@ class _ExpandableCardState extends State<ExpandableCard> {
                 context.read<HomeBloc>().add(ToggleExpandEvent(widget.index));
 
                 final diceTableIds = [widget.card.id];
-                final moreInfos = [_promoController.text];
-                //New chnage
-                final List<AvailableDay> availableDaysSelectedForApi =
-                    selectedDays.map((day) {
-                      final timings =
-                          (day.timings != null && day.timings!.isNotEmpty)
-                              ? day.timings!
-                              : [Timing(open: "10:00:00", close: "22:00:00")];
+                final text = _promoController.text.trim();
+                final moreInfos = (text.isNotEmpty) ? [text] : <String>[];
 
-                      return AvailableDay(
-                        id: day.id ?? 0,
-                        day: day.day ?? '',
-                        timings:
-                            timings, // ✅ use full list (supports multiple slots)
-                        isOpen: true,
-                      );
+                // Get updated card from BLoC instead of recalculating locally 🚀
+                final homeState = context.read<HomeBloc>().state;
+                bool finalAlwaysAvailable = false;
+                if (homeState is HomeLoaded) {
+                  final updatedCard = homeState.cards[widget.index];
+                  finalAlwaysAvailable = updatedCard.isAlwaysAvailable;
+                }
+
+                // Prepare API data as before
+                final allCafeDays = widget.card.availableDays;
+                final selectedDayNames =
+                    selectedDays.map((d) => d.day?.toLowerCase() ?? '').toSet();
+
+                final List<AvailableDay> availableDaysForApi =
+                    allCafeDays.map((cafeDay) {
+                      final dayName = cafeDay.day?.toLowerCase() ?? '';
+                      final isSelected = selectedDayNames.contains(dayName);
+
+                      if (isSelected) {
+                        final selectedDay = selectedDays.firstWhere(
+                          (d) => d.day?.toLowerCase() == dayName,
+                        );
+
+                        final timings =
+                            (selectedDay.timings != null &&
+                                    selectedDay.timings!.isNotEmpty)
+                                ? selectedDay.timings!
+                                : [Timing(open: "10:00:00", close: "22:00:00")];
+
+                        return AvailableDay(
+                          id: cafeDay.id ?? 0,
+                          day: cafeDay.day ?? '',
+                          timings: timings,
+                          isOpen: true,
+                        );
+                      } else {
+                        final defaultTimings =
+                            (cafeDay.timings != null &&
+                                    cafeDay.timings!.isNotEmpty)
+                                ? cafeDay.timings!
+                                : [Timing(open: "10:00:00", close: "22:00:00")];
+
+                        return AvailableDay(
+                          id: cafeDay.id ?? 0,
+                          day: cafeDay.day ?? '',
+                          timings: defaultTimings,
+                          isOpen: false,
+                        );
+                      }
                     }).toList();
+
+                print('📤 Sending to API:');
+                print('  always_available: $finalAlwaysAvailable');
+                for (var day in availableDaysForApi) {
+                  print(
+                    '  ${day.day}: is_open=${day.isOpen}, timings=${day.timings?.length}',
+                  );
+                }
 
                 context.read<HomeBloc>().add(
                   DiceTableUpdateEvent(
@@ -527,7 +811,9 @@ class _ExpandableCardState extends State<ExpandableCard> {
                       cafeId: cafeId!,
                       diceTableId: diceTableIds,
                       moreInfo: moreInfos,
-                      availableDays: availableDaysSelectedForApi,
+                      availableDays: availableDaysForApi,
+                      alwaysAvailable:
+                          finalAlwaysAvailable, // ✅ latest flag from BLoC
                     ),
                   ),
                 );
@@ -539,6 +825,7 @@ class _ExpandableCardState extends State<ExpandableCard> {
       icon: const Icon(Icons.save, size: 15),
     );
   }
+
 }
 
 // Replace your existing AvailableDaysMultiSelectField class with this updated version
@@ -548,12 +835,16 @@ class AvailableDaysMultiSelectField extends StatefulWidget {
   final ValueChanged<List<AvailableDay>>? onChanged;
   final List<AvailableDay>? initialSelectedDays;
   final String? tableTypeName; // Add this for displaying table type
+  final CardModel? card;
+  final int cardIndex;
 
   const AvailableDaysMultiSelectField({
     required this.availableDays,
     this.onChanged,
     this.initialSelectedDays,
     this.tableTypeName,
+    this.card,
+    required this.cardIndex,
     super.key,
   });
 
@@ -584,53 +875,152 @@ class _AvailableDaysMultiSelectFieldState
     }
   }
 
+  // Replace the selectedDaysText getter in _AvailableDaysMultiSelectFieldState class
+
+  String _normalizeTime(String time) {
+    final parts = time.split(':');
+    if (parts.length == 2) {
+      return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}:00';
+    }
+    if (parts.length == 1) {
+      return '${parts[0].padLeft(2, '0')}:00:00';
+    }
+    return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}:${parts[2].padLeft(2, '0')}';
+  }
+
+  String _formatTime(String time) {
+    try {
+      final parsed = TimeOfDay(
+        hour: int.parse(time.split(':')[0]),
+        minute: int.parse(time.split(':')[1]),
+      );
+      // Simple 12-hour format
+      final hour = parsed.hourOfPeriod == 0 ? 12 : parsed.hourOfPeriod;
+      final period = parsed.period == DayPeriod.am ? 'AM' : 'PM';
+      final minute = parsed.minute.toString().padLeft(2, '0');
+      return '$hour:$minute $period';
+    } catch (e) {
+      return time;
+    }
+  }
+
   String get selectedDaysText {
-    if (selectedDays.isEmpty) return "";
-    return selectedDays
-        .map((d) {
-          final firstTiming =
-              (d.timings != null && d.timings!.isNotEmpty)
-                  ? d.timings!.first
-                  : Timing(open: "10:00:00", close: "22:00:00");
+    if (selectedDays.isEmpty) return "Select Available Days";
 
-          final open = firstTiming.open;
-          final close = firstTiming.close;
+    final dayOrder = {
+      'mon': 1,
+      'tue': 2,
+      'wed': 3,
+      'thu': 4,
+      'fri': 5,
+      'sat': 6,
+      'sun': 7,
+    };
 
-          return "${capitalizeFirstLetter(d.day!)}: $open-$close";
-        })
-        .join(', ');
+    final sortedDays = [...selectedDays]..sort((a, b) {
+      final orderA = dayOrder[a.day?.toLowerCase() ?? ''] ?? 99;
+      final orderB = dayOrder[b.day?.toLowerCase() ?? ''] ?? 99;
+      return orderA.compareTo(orderB);
+    });
+
+    final List<String> lines = [];
+
+    for (final d in sortedDays) {
+      final timings =
+          (d.timings != null && d.timings!.isNotEmpty)
+              ? d.timings!
+              : [Timing(open: "10:00:00", close: "22:00:00")];
+
+      // ✅ Show all slots for each day
+      final slots = timings
+          .map((t) => "${_formatTime(t.open)} - ${_formatTime(t.close)}")
+          .join(', ');
+
+      lines.add("${capitalizeFirstLetter(d.day ?? '')}: $slots");
+    }
+
+    return lines.isEmpty ? "Select Available Days" : lines.join('\n');
   }
 
   String capitalizeFirstLetter(String text) {
     if (text.isEmpty) return text;
     return "${text[0].toUpperCase()}${text.substring(1).toLowerCase()}";
   }
+  // ... inside _AvailableDaysMultiSelectFieldState
+
+  // Helper method to look up the default timing for a specific day name
+  Timing? _findDefaultTimingForDay(String dayName) {
+    // Find the corresponding day model in the full list of available days
+    final defaultDay = widget.availableDays.firstWhere(
+      // Match the day name (case-insensitive)
+      (d) => d.day?.toLowerCase() == dayName.toLowerCase(),
+      // Use orElse to handle cases where a day might not be in the full list
+      orElse: () => AvailableDay(day: null),
+    );
+
+    // If the day was found and has timings, the first timing is assumed to be the default.
+    if (defaultDay.timings != null && defaultDay.timings!.isNotEmpty) {
+      return defaultDay.timings!.first;
+    }
+    return null;
+  }
+
+ 
 
   Future<void> _showEnhancedDialog() async {
-    final result = await showDialog<List<AvailableDay>>(
+    // ✅ Get the CURRENT card from BLoC using the index
+    final homeState = context.read<HomeBloc>().state;
+    bool currentAlwaysAvailable = false;
+    CardModel? currentCard;
+
+    if (homeState is HomeLoaded) {
+      currentCard = homeState.cards[widget.cardIndex]; // ✅ Use index directly
+      currentAlwaysAvailable = currentCard.isAlwaysAvailable;
+      print(
+        '🔍 Opening dialog for "${currentCard.title}" (index=${widget.cardIndex}): isAlwaysAvailable=$currentAlwaysAvailable',
+      );
+    }
+
+    // ✅ Updated to expect a Map result instead of List<AvailableDay>
+    final result = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (context) {
         return EnhancedAvailableDaysDialog(
-          availableDays: widget.availableDays, // ✅ Pass your full week list
-          initialSelectedDays: selectedDays, // ✅ Preload previously chosen days
-          tableTypeName:
-              widget.tableTypeName ?? "Business Networking", // optional
+          availableDays: widget.availableDays,
+          initialSelectedDays: selectedDays,
+          tableTypeName: widget.tableTypeName ?? "Business Networking",
+          initiallyAlwaysAvailable: currentAlwaysAvailable,
         );
       },
     );
 
-    if (result != null && result.isNotEmpty) {
+    if (result != null) {
+      // ✅ Extract returned data safely
+      final selectedDaysResult = (result['days'] as List<AvailableDay>?) ?? [];
+      final isAlwaysAvailable = result['alwaysAvailable'] as bool? ?? false;
+
       setState(() {
-        selectedDays = result; // ✅ Already includes timings list
+        selectedDays = selectedDaysResult;
       });
 
-      // ✅ Notify parent (BLoC / callback)
+      // Notify parent immediately (if any listener provided)
       Future.microtask(() {
         widget.onChanged?.call(selectedDays);
       });
+
+      // ✅ Correct: using index for Bloc event
+      if (currentCard != null) {
+        print(
+          '💾 Dispatching UpdateAlwaysAvailableEvent for card index=${widget.cardIndex}, value=$isAlwaysAvailable',
+        );
+        context.read<HomeBloc>().add(
+          UpdateAlwaysAvailableEvent(widget.cardIndex, isAlwaysAvailable),
+        );
+      }
     }
   }
 
+ 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -643,6 +1033,7 @@ class _AvailableDaysMultiSelectFieldState
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start, // ✅ Important
           children: [
             Expanded(
               child: Text(
@@ -652,10 +1043,14 @@ class _AvailableDaysMultiSelectFieldState
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
                 ),
-                overflow: TextOverflow.ellipsis,
+                softWrap: true,
+                maxLines: null, // ✅ allow multiple lines
               ),
             ),
-            const Icon(Icons.arrow_drop_down),
+            Align(
+              alignment: Alignment.topRight, // ✅ Fix position
+              child: const Icon(Icons.arrow_drop_down),
+            ),
           ],
         ),
       ),

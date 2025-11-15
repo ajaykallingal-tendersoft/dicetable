@@ -223,7 +223,10 @@ class CafeListCard extends StatelessWidget {
                                 image: cafes.photo ?? '',
                                 openingHours: cafes.workingHours,
                                 id: cafes.id.toString(),
-                                bookingStatus: cafes.bookingStatus ?? false,
+                                bookingStatus: cafes.bookingStatus ?? false, 
+                                gallery: cafes.gallery ?? [], 
+                                attendes: cafes.attendes ?? [],
+                                upcomingEvents: cafes.upcomingEvents ?? [],
                               ),
                             );
                           },

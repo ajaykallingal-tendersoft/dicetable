@@ -7,6 +7,7 @@ import 'package:soloseaters/src/common/elevated_button_widget.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/login/cubit/apple_signin_cubit.dart';
 import 'package:soloseaters/src/ui/cafe_owner/profile/widget/gallery_image_widget.dart';
+import 'package:soloseaters/src/ui/cafe_owner/profile/widget/manage_profile_opening_hour_widget.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/login/cubit/google_sign_in_cubit.dart';
 import 'package:soloseaters/src/utils/data/sign_out.dart';
@@ -51,6 +52,8 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
     _isMounted = true;
     context.read<ProfileBloc>().add(GetProfileViewEvent());
     _initializeControllers();
+    final bloc = context.read<ProfileBloc>();
+    print("ProfileBloc hashCode: ${bloc.hashCode}");
   }
 
   void _initializeControllers() {
@@ -62,7 +65,7 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
     _emailController = TextEditingController(text: state.email);
     // _passwordController = TextEditingController(text: state.password);
     _phoneController = TextEditingController(text: state.phone);
-    _countryController = TextEditingController(text: state.country);
+    _countryController = TextEditingController(text: state.countryName);
     _addressController = TextEditingController(text: state.address);
     _postalCodeController = TextEditingController(text: state.postalCode);
     ObjectFactory().prefs.setCafeUserName(cafeUserName: state.venueName);
@@ -415,18 +418,19 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                         ),
 
                         const Gap(17),
-                        CustomTextField(
-                          height: 213,
-                          isProfile: true,
-                          readOnly: true,
-                          maxLines: 10,
-                          controller: TextEditingController(
-                            text: _formatOpeningHours(state.openingHours),
-                          ),
-                          hintText: 'Opening Hours',
-                          textFieldAnnotationText: 'Opening Hours',
-                          onChanged: (value) {},
-                        ),
+                        OpeningHoursWidget(openingHours: state.openingHours,),
+                        // CustomTextField(
+                        //   height: 250.h,
+                        //   isProfile: true,
+                        //   readOnly: true,
+                        //   maxLines: 20,
+                        //   controller: TextEditingController(
+                        //     text: _formatOpeningHours(state.openingHours),
+                        //   ),
+                        //   hintText: 'Opening Hours',
+                        //   textFieldAnnotationText: 'Opening Hours',
+                        //   onChanged: (value) {},
+                        // ),
                         const Gap(17),
                         CafeEateryPhotosWidget(photoUrls: state.gallery ?? []),
                         const Gap(30),
@@ -559,27 +563,79 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
   }
 
   // For opening hours, create a formatted string with each day and its hours
-  String _formatOpeningHours(Map<String, ProfileOpeningHour> openingHours) {
-    if (openingHours.isEmpty) return 'No opening hours set';
-    final buffer = StringBuffer();
-    openingHours.forEach((day, hours) {
-      if (hours.isEnabled) {
-        final fromTime = _formatTimeOfDay(hours.from);
-        final toTime = _formatTimeOfDay(hours.to);
-        buffer.writeln('$day: $fromTime - $toTime');
-      } else {
-        buffer.writeln('$day: Closed');
-      }
-    });
-    return buffer.toString();
-  }
+  // String _formatOpeningHours(Map<String, ProfileOpeningHour> openingHours) {
+  //   if (openingHours.isEmpty) return 'No opening hours set';
+  //   final buffer = StringBuffer();
+  //   openingHours.forEach((day, hours) {
+  //     if (hours.isEnabled) {
+  //       final fromTime = _formatTimeOfDay(hours.from);
+  //       final toTime = _formatTimeOfDay(hours.to);
+  //       buffer.writeln('$day: $fromTime - $toTime');
+  //     } else {
+  //       buffer.writeln('$day: Closed');
+  //     }
+  //   });
+  //   return buffer.toString();
+  // }
 
+  // The original time formatting function remains good
   String _formatTimeOfDay(TimeOfDay time) {
     final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
     final minute = time.minute.toString().padLeft(2, '0');
     final period = time.period == DayPeriod.am ? 'AM' : 'PM';
     return '$hour:$minute $period';
   }
+
+
+// Modified function to create ONLY the list of day/time strings
+String _formatOpeningHours(Map<String, ProfileOpeningHour> openingHours) {
+  if (openingHours.isEmpty) return 'No opening hours set';
+
+  //  Define the standard order of days (Full Name -> BLoC Key)
+  const orderedDayMap = {
+    'Monday': 'mon',
+    'Tuesday': 'tue',
+    'Wednesday': 'wed',
+    'Thursday': 'thu',
+    'Friday': 'fri',
+    'Saturday': 'sat',
+    'Sunday': 'sun',
+  };
+
+  final buffer = StringBuffer();
+
+  //  Iterate through the full day names for correct display order
+  for (final entry in orderedDayMap.entries) {
+    final fullDayName = entry.key; // e.g., 'Monday'
+    final blocKey = entry.value;   // e.g., 'mon'
+
+    //  Look up the hours using the BLoC's key ('mon', 'tue', etc.)
+    final hours = openingHours[blocKey];
+
+    // Safety check: only process if the day data is present
+    if (hours != null) {
+      if (hours.isEnabled) {
+        final fromTime = _formatTimeOfDay(hours.from);
+        final toTime = _formatTimeOfDay(hours.to);
+        // Format: Day: HH:MM AM/PM - HH:MM AM/PM
+        buffer.writeln('$fullDayName: $fromTime - $toTime\n');
+      } else {
+        // Format: Day: Closed
+        buffer.writeln('$fullDayName: Closed\n');
+      }
+    }
+  }
+
+  // Return the combined string, removing any leading/trailing whitespace
+  return buffer.toString().trim();
+}
+
+  // String _formatTimeOfDay(TimeOfDay time) {
+  //   final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
+  //   final minute = time.minute.toString().padLeft(2, '0');
+  //   final period = time.period == DayPeriod.am ? 'AM' : 'PM';
+  //   return '$hour:$minute $period';
+  // }
 
   Widget _buildSliverAppBar() {
     final isTabletOrLarger = ResponsiveBreakpoints.of(
@@ -673,8 +729,10 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                               state.profileViewResponse?.data?.photo;
 
                           if (imageUrl != null && imageUrl.isNotEmpty) {
+                            final String cacheBustingUrl =
+                                '$imageUrl?t=${DateTime.now().millisecondsSinceEpoch}';
                             return CachedNetworkImage(
-                              imageUrl: imageUrl,
+                              imageUrl: cacheBustingUrl,
                               fit: BoxFit.cover,
                               width: 170.r,
                               height: 170.r,

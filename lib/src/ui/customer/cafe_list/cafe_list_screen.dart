@@ -133,11 +133,11 @@ class _CafeListScreenState extends State<CafeListScreen> {
         child: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
-            CupertinoSliverRefreshControl(
-              onRefresh: () async {
-                // context.read<CardCubit>().fetchCards();
-              },
-            ),
+            // CupertinoSliverRefreshControl(
+            //   onRefresh: () async {
+            //     // context.read<CardCubit>().fetchCards();
+            //   },
+            // ),
             SliverAppBar(
               pinned: false,
               backgroundColor: Colors.transparent,
@@ -389,16 +389,7 @@ class _CafeListScreenState extends State<CafeListScreen> {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              Gap(8),
-                              Text(
-                                state.errorMessage,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: AppColors.primaryWhiteColor
-                                      .withOpacity(0.8),
-                                  fontSize: 14,
-                                ),
-                              ),
+                             
                               Gap(16),
                               ElevatedButton(
                                 onPressed: () {

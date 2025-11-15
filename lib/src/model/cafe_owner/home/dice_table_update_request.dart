@@ -1,42 +1,45 @@
-// To parse this JSON data, do
-//
-//     final diceTableTypeUpdateRequest = diceTableTypeUpdateRequestFromJson(jsonString);
-
-import 'package:meta/meta.dart';
 import 'dart:convert';
-
 import 'available_days.dart';
 
-DiceTableTypeUpdateRequest diceTableTypeUpdateRequestFromJson(String str) => DiceTableTypeUpdateRequest.fromJson(json.decode(str));
+DiceTableTypeUpdateRequest diceTableTypeUpdateRequestFromJson(String str) =>
+    DiceTableTypeUpdateRequest.fromJson(json.decode(str));
 
-String diceTableTypeUpdateRequestToJson(DiceTableTypeUpdateRequest data) => json.encode(data.toJson());
+String diceTableTypeUpdateRequestToJson(DiceTableTypeUpdateRequest data) =>
+    json.encode(data.toJson());
 
 class DiceTableTypeUpdateRequest {
   final int cafeId;
-  final List<int> diceTableId;
-  final List<String> moreInfo;
-  final List<AvailableDay> availableDays;
+  final List<int>? diceTableId;
+  final List<String>? moreInfo;
+  final List<AvailableDay>? availableDays;
+   final bool alwaysAvailable; 
 
   DiceTableTypeUpdateRequest({
     required this.cafeId,
-    required this.diceTableId,
-    required this.moreInfo,
-    required this.availableDays,
+    this.diceTableId,
+    this.moreInfo,
+    this.availableDays,
+    required this.alwaysAvailable,
   });
 
-  factory DiceTableTypeUpdateRequest.fromJson(Map<String, dynamic> json) => DiceTableTypeUpdateRequest(
-    cafeId: json["cafe_id"],
-    diceTableId: List<int>.from(json["dice_table_id"].map((x) => x)),
-    moreInfo: List<String>.from(json["more_info"].map((x) => x)),
-    availableDays: List<AvailableDay>.from(json["available_days"].map((x) => AvailableDay.fromJson(x))),
-  );
+  factory DiceTableTypeUpdateRequest.fromJson(Map<String, dynamic> json) =>
+      DiceTableTypeUpdateRequest(
+        cafeId: json["cafe_id"],
+        diceTableId: (json["dice_table_id"] as List?)?.map((x) => x as int).toList(),
+        moreInfo: (json["more_info"] as List?)?.map((x) => x as String).toList(),
+        availableDays: (json["available_days"] as List?)
+            ?.map((x) => AvailableDay.fromJson(x))
+            .toList(),
+          alwaysAvailable: json["always_available"]
+      );
 
   Map<String, dynamic> toJson() => {
-    "cafe_id": cafeId,
-    "dice_table_id": List<dynamic>.from(diceTableId.map((x) => x)),
-    "more_info": List<dynamic>.from(moreInfo.map((x) => x)),
-    "available_days": List<dynamic>.from(availableDays.map((x) => x.toJson())),
-  };
+        "cafe_id": cafeId,
+        // ✅ Safely handle null lists — no more null crashes
+        "dice_table_id": (diceTableId ?? []).map((x) => x).toList(),
+        "more_info": (moreInfo ?? []).map((x) => x).toList(),
+        "available_days":
+            (availableDays ?? []).map((x) => x.toJson()).toList(),
+            'always_available': alwaysAvailable,
+      };
 }
-
-

@@ -12,6 +12,7 @@ class UpdateTextField extends SignUpEvent {
 
   const UpdateTextField(this.update);
 }
+
 class ResetFormEvent extends SignUpEvent {
   const ResetFormEvent();
 
@@ -39,9 +40,13 @@ class PickMultipleImagesFromGalleryEvent extends SignUpEvent {}
 
 class ClearAllImagesEvent extends SignUpEvent {}
 
-class RemoveSingleImageEvent extends SignUpEvent {
+class RemoveMultipleImageEvent extends SignUpEvent {
   final int index;
-  RemoveSingleImageEvent(this.index);
+  RemoveMultipleImageEvent(this.index);
+}
+
+class ClearSingleProfileImageEvent extends SignUpEvent {
+  const ClearSingleProfileImageEvent();
 }
 
 class TakeMultiplePicturesEvent extends SignUpEvent {}
