@@ -86,4 +86,3 @@ class CardModel {
       selectedDays: selectedDays ?? this.selectedDays,
     );
   }
-}
