@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:soloseaters/main.dart';
 import 'package:soloseaters/src/model/customer/cafe/cafe_list_response.dart';
 import 'package:soloseaters/src/resources/api_providers/customer/profile_data_provider.dart';
 import 'package:soloseaters/src/ui/cafe_owner/attendees/attendees_screen.dart';
@@ -41,6 +42,7 @@ import 'package:go_router/go_router.dart';
 
 class AppRouter {
   static final GoRouter _router = GoRouter(
+    navigatorKey: navigatorKey,
     routes: <GoRoute>[
       GoRoute(
         routes: <GoRoute>[

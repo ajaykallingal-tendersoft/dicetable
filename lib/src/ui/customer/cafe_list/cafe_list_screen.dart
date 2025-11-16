@@ -177,7 +177,7 @@ class _CafeListScreenState extends State<CafeListScreen> {
                                       ? badges.Badge(
                                         position: badges.BadgePosition.topEnd(
                                           top: 0,
-                                          end: 0,
+                                          end: -12,
                                         ),
                                         badgeAnimation:
                                             badges.BadgeAnimation.slide(),
@@ -200,7 +200,7 @@ class _CafeListScreenState extends State<CafeListScreen> {
                                               .toString(),
                                           style: TextStyle(
                                             color: Colors.white,
-                                            fontSize: 12.sp,
+                                            fontSize: 10.sp,
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),

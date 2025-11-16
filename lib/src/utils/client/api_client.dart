@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/forgot_password/forgot_password_request.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/forgot_password/password_reset_request.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/forgot_password/resend_otp_request.dart';
@@ -24,6 +25,7 @@ import 'package:soloseaters/src/model/customer/profile/customer_profile_update_r
 import 'package:soloseaters/src/model/verification/otp_verify_request.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/notification_item.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
+import 'package:soloseaters/src/utils/data/sign_out.dart';
 import 'package:soloseaters/src/utils/urls/urls.dart';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
@@ -105,15 +107,75 @@ class ApiClient {
           return handler.next(options);
         },
 
-        onError: (dioError, handler) {
+        onError: (dioError, handler) async {
           print("❌ API ERROR: ${dioError.message}");
           print("Response → ${dioError.response?.data}");
+          if (dioError.response?.statusCode == 401) {
+            final RequestOptions options = dioError.response!.requestOptions;
+
+            // Prevent infinite loop if the tokenRefresh API call also fails with 401
+            if (options.path != UrlsDiceApp.tokenRefresh) {
+              print("Attempting to refresh token...");
+
+              // Determine the current user type (Cafe Owner or Customer)
+              // NOTE: If ObjectFactory().prefs.getUserDecisionName() returns null,
+              // the app may be in an unlogged state, but we'll default to Cafe Owner logic here
+              final userCategory = ObjectFactory().prefs.getUserDecisionName();
+              final isPublicUser = userCategory == "PUBLIC_USER";
+
+              try {
+                // 2. Call the token refresh API (your existing function [cite: 17])
+                final Response refreshResponse = await tokenRefresh();
+
+                // 3. Extract and save the new token based on the user type
+                // Assuming the new token is in refreshResponse.data['data']['authToken']
+                final newAuthToken = refreshResponse.data['data']['authToken'];
+
+                String updatedToken;
+
+                if (isPublicUser) {
+                  // Save Customer Token
+                  ObjectFactory().prefs.setCustomerAuthToken(
+                    token: newAuthToken,
+                  );
+                  updatedToken = ObjectFactory().prefs.getCustomerAuthToken()!;
+                  print("Customer Token refreshed and updated.");
+                } else {
+                  // Save Cafe Owner Token
+                  ObjectFactory().prefs.setAuthToken(token: newAuthToken);
+                  updatedToken = ObjectFactory().prefs.getAuthToken()!;
+                  print("Cafe Owner Token refreshed and updated.");
+                }
+
+                // 4. Update the Authorization header for the failed request
+                // The structure for both owner and customer tokens is typically 'Bearer <token>'
+                options.headers["Authorization"] = updatedToken;
+
+                // 5. Retry the original request with the new token
+                print("Retrying original request with new token...");
+                return handler.resolve(await dioDiceApp.fetch(options));
+              } catch (e) {
+                // 6. If token refresh itself fails, log out the user
+                print(
+                  "Token refresh failed: $e. Logging out user/Session expired.",
+                );
+                SignOut().logoutFromInterceptor();
+                // TODO: Implement a forced logout and navigate to the login/category screen
+                // e.g., ObjectFactory().prefs.logoutUser();
+                // e.g., NavigatorKey.currentState?.context.go('/category');
+                return handler.next(
+                  dioError,
+                ); // Pass the original 401 error along
+              }
+            }
+          }
           return handler.next(dioError);
         },
 
         onResponse: (res, handler) {
           print("✅ API RESPONSE: ${res.statusCode}");
           print("Body → ${res.data}");
+
           return handler.next(res);
         },
       ),
@@ -129,6 +191,17 @@ class ApiClient {
     //     },
     //   ),
     // );
+  }
+
+  Future<Response> tokenRefresh() {
+    final userCategory = ObjectFactory().prefs.getUserDecisionName();
+    final isPublicUser = userCategory == "PUBLIC_USER";
+    final venueToken = ObjectFactory().prefs.getAuthToken();
+    final publicToken = ObjectFactory().prefs.getCustomerAuthToken();
+    return dioDiceApp.post(
+      UrlsDiceApp.tokenRefresh,
+      data: isPublicUser ? publicToken : venueToken,
+    );
   }
 
   ///Cafe Owner

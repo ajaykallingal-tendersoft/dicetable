@@ -122,6 +122,7 @@ class App extends StatelessWidget {
         splitScreenMode: true,
         builder: (context, child) {
           return MaterialApp.router(
+          
             locale: const Locale('en', 'US'),
             debugShowCheckedModeBanner: false,
             title: 'Solo Seaters',

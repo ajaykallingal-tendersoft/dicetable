@@ -4,6 +4,8 @@ class UrlsDiceApp {
   static const String baseUrlLocal = 'http://192.168.0.131:8001';
   static const String baseUrlLiveStaging = '';
   static const String baseUrlLiveProduction = '';
+  static const String tokenRefresh = '/api/refresh';
+  
 
   ///Cafe Owner
   ///Auth

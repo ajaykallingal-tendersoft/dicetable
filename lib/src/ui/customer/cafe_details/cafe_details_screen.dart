@@ -48,7 +48,8 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
   late final List<String> _tableType;
   late final String _description;
   late final String _image;
-  late final List<WorkingHour> _openingHours;
+  late final dynamic _openingHours;
+  late final List<FavWorkingHour> _favOpeningHours;
   late final String _id;
   late final bool _isFromFavorites;
   late bool _bookingStatus;
@@ -73,8 +74,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
       _tableType = widget.cafeDetailsArguments!.tableType;
       _description = widget.cafeDetailsArguments!.description;
       _image = widget.cafeDetailsArguments!.image;
-      _openingHours =
-          widget.cafeDetailsArguments!.openingHours as List<WorkingHour>;
+      _openingHours = widget.cafeDetailsArguments!.openingHours;
       _id = widget.cafeDetailsArguments!.id;
       _bookingStatus = widget.cafeDetailsArguments!.bookingStatus;
       _gallery = widget.cafeDetailsArguments!.gallery;
@@ -86,10 +86,12 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
       _tableType = widget.favDetailsArguments!.tableType;
       _description = widget.favDetailsArguments!.description;
       _image = widget.favDetailsArguments!.image;
-      _openingHours =
-          widget.favDetailsArguments!.openingHours as List<WorkingHour>;
+      _openingHours = widget.favDetailsArguments!.openingHours;
       _id = widget.favDetailsArguments!.id;
       _bookingStatus = widget.favDetailsArguments!.bookingStatus;
+      _gallery = widget.favDetailsArguments!.gallery; // Now available
+      _attendes = widget.favDetailsArguments!.attendes; // Now available
+      _upcomingEvents = widget.favDetailsArguments!.upcomingEvents;
     } else {
       throw Exception(
         'Both cafeDetailsArguments and favDetailsArguments cannot be null',
@@ -238,7 +240,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                             ? badges.Badge(
                               position: badges.BadgePosition.topEnd(
                                 top: 0,
-                                end: 0,
+                                end: -12,
                               ),
                               badgeAnimation: badges.BadgeAnimation.slide(),
                               showBadge: true,
@@ -358,6 +360,8 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
   void _showBookingDialog(BuildContext context, bool isPaidUser) {
     final TextEditingController checkInController = TextEditingController();
     final TextEditingController checkOutController = TextEditingController();
+    final TextEditingController apiCheckInController = TextEditingController();
+    final TextEditingController apiCheckOutController = TextEditingController();
     String? selectedDiceTableType;
     bool savePrefToggle = false;
 
@@ -463,7 +467,10 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                                             () => _selectTime(
                                               dialogContext,
                                               checkInController,
+                                              apiCheckInController,
+                                              setState,
                                             ),
+
                                         child: Container(
                                           padding: EdgeInsets.symmetric(
                                             horizontal: 8.w,
@@ -569,6 +576,8 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                                             () => _selectTime(
                                               dialogContext,
                                               checkOutController,
+                                              apiCheckOutController,
+                                              setState,
                                             ),
                                         child: Container(
                                           padding: EdgeInsets.symmetric(
@@ -835,9 +844,10 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                                     dialogContext.pop();
                                     _bookNow(
                                       context: context,
-                                      checkInTime: checkInController.text,
-                                      checkOutTime: checkOutController.text,
+                                      checkInTime: apiCheckInController.text,
+                                      checkOutTime: apiCheckOutController.text,
                                       diceTableType: selectedDiceTableType!,
+                                      setAsPref: savePrefToggle,
                                     );
                                   }
                                 },
@@ -882,6 +892,8 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
   Future<void> _selectTime(
     BuildContext context,
     TextEditingController controller,
+    TextEditingController apiController,
+    void Function(void Function()) updateState,
   ) async {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
@@ -914,338 +926,17 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
       final minute = picked.minute;
       final period = hour24 < 12 ? 'AM' : 'PM';
       final hour12 = hour24 % 12 == 0 ? 12 : hour24 % 12;
+
+      final apiTime =
+          '${hour24.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
       final formattedTime =
           '${hour12.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')} $period';
-      controller.text = formattedTime;
+      updateState(() {
+        controller.text = formattedTime;
+        apiController.text = apiTime;
+      });
     }
   }
-
-  /*void _showBookingDialog(BuildContext context) {
-    final TextEditingController checkInController = TextEditingController();
-    final TextEditingController checkOutController = TextEditingController();
-    String? selectedDiceTableType;
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext dialogContext) {
-        return StatefulBuilder(
-          builder: (context, setState) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              title: Text(
-                'Select Time & Table Type',
-                style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 16.sp,
-                ),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                      color: AppColors.textPrimaryGrey, // Default text color
-                      fontWeight: FontWeight.w500,
-                      fontSize: 15.sp,
-                    ),
-                    controller: checkInController,
-                    readOnly: true,
-                    decoration: InputDecoration(
-                      // Label style: Initially grey
-                      labelStyle: Theme.of(
-                        context,
-                      ).textTheme.bodySmall!.copyWith(
-                        color: AppColors.textPrimaryGrey,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 15.sp,
-                      ),
-                      labelText: 'Check-in Time',
-                      // Hint style: Grey
-                      hintStyle: Theme.of(
-                        context,
-                      ).textTheme.bodySmall!.copyWith(
-                        color: AppColors.textPrimaryGrey,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 15.sp,
-                      ),
-                      hintText: 'Check-in time',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(
-                          color: AppColors.textPrimaryGrey,
-                        ), // Default border color
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        // Border when enabled but not focused
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(
-                          color: AppColors.textPrimaryGrey,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        // Border when focused
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(
-                          color: AppColors.primary,
-                        ), // Primary color when focused
-                      ),
-                      floatingLabelStyle: Theme.of(
-                        context,
-                      ).textTheme.bodySmall!.copyWith(
-                        // Label when focused
-                        color: AppColors.primary, // Primary color when focused
-                        fontWeight: FontWeight.w500,
-                        fontSize: 15.sp,
-                      ),
-                      suffixIcon: const Icon(
-                        Icons.access_time,
-                        color: AppColors.textPrimaryGrey,
-                      ), // Default icon color
-                    ),
-                    onTap: () => _selectTime(dialogContext, checkInController),
-                  ),
-                  const SizedBox(height: 16),
-                  // Check-out Time
-                  TextField(
-                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                      color: AppColors.textPrimaryGrey, // Default text color
-                      fontWeight: FontWeight.w500,
-                      fontSize: 15.sp,
-                    ),
-                    controller: checkOutController,
-                    readOnly: true,
-                    decoration: InputDecoration(
-                      labelStyle: Theme.of(
-                        context,
-                      ).textTheme.bodySmall!.copyWith(
-                        color: AppColors.textPrimaryGrey,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 15.sp,
-                      ),
-                      labelText: 'Check-out Time',
-                      hintStyle: Theme.of(
-                        context,
-                      ).textTheme.bodySmall!.copyWith(
-                        color: AppColors.textPrimaryGrey,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 15.sp,
-                      ),
-                      hintText: 'Check-out time',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(
-                          color: AppColors.textPrimaryGrey,
-                        ),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(
-                          color: AppColors.textPrimaryGrey,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: AppColors.primary),
-                      ),
-                      floatingLabelStyle: Theme.of(
-                        context,
-                      ).textTheme.bodySmall!.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 15.sp,
-                      ),
-                      suffixIcon: const Icon(
-                        Icons.access_time,
-                        color: AppColors.textPrimaryGrey,
-                      ),
-                    ),
-                    onTap: () => _selectTime(dialogContext, checkOutController),
-                  ),
-                  const SizedBox(height: 16),
-                  // Table Type Dropdown
-                  DropdownButtonFormField<String>(
-                    value: selectedDiceTableType,
-                    decoration: InputDecoration(
-                      labelStyle: Theme.of(
-                        context,
-                      ).textTheme.bodySmall!.copyWith(
-                        color: AppColors.textPrimaryGrey,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 15.sp,
-                      ),
-                      labelText: 'Table Type',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(
-                          color: AppColors.textPrimaryGrey,
-                        ),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(
-                          color: AppColors.textPrimaryGrey,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8),
-                        borderSide: const BorderSide(color: AppColors.primary),
-                      ),
-                      floatingLabelStyle: Theme.of(
-                        context,
-                      ).textTheme.bodySmall!.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 15.sp,
-                      ),
-                    ),
-                    hint: Text(
-                      'Select table type',
-                      style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                        color: AppColors.textPrimaryGrey,
-                        fontWeight: FontWeight.w500,
-                        fontSize: 14.sp,
-                      ),
-                    ),
-                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                      color: AppColors.textPrimaryGrey,
-                      // Default selected item text color
-                      fontWeight: FontWeight.w500,
-                      fontSize: 15.sp,
-                    ),
-                    items:
-                        _tableType.map((tableType) {
-                          return DropdownMenuItem<String>(
-                            value: tableType,
-                            child: Text(
-                              tableType,
-                              style: Theme.of(
-                                context,
-                              ).textTheme.bodySmall!.copyWith(
-                                color: AppColors.primary,
-                                // Always primary color for items in the dropdown list
-                                fontWeight: FontWeight.w500,
-                                fontSize: 14.sp,
-                              ),
-                            ),
-                          );
-                        }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        selectedDiceTableType = newValue;
-                      });
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please select a table type';
-                      }
-                      return null;
-                    },
-                  ),
-                  const Gap(16), // Add a little space
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 4.w),
-                    child: Container(
-                      padding: EdgeInsets.all(12.w),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withOpacity(0.05), // Light background to mimic the UI
-                        borderRadius: BorderRadius.circular(8.r),
-                        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(
-                            Icons.info_outline,
-                            color: AppColors.primary,
-                            size: 20.w,
-                          ),
-                          const Gap(10),
-                          Expanded(
-                            child: RichText(
-                              text: TextSpan(
-                                style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                                  color: AppColors.textPrimaryGrey,
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 14.sp,
-                                ),
-                                children: [
-                                  const TextSpan(
-                                    text: 'Upgrade to **Serious Networker** to unlock the full profile, save preferences, and more. ',
-                                  ),
-                                  TextSpan(
-                                    text: 'Upgrade Now',
-                                    style: TextStyle(
-                                      color: AppColors.primary, // Highlight the action
-                                      fontWeight: FontWeight.w600,
-                                      decoration: TextDecoration.underline,
-                                    ),
-                                    // onTap: () { /* Add upgrade navigation logic here */ }
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => dialogContext.pop(),
-                  child: Text(
-                    'Cancel',
-                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                      color: AppColors.shadowColor,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 14.sp,
-                    ),
-                  ),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    if (_validateBookingInputs(
-                      checkInController.text,
-                      checkOutController.text,
-                      selectedDiceTableType,
-                      dialogContext,
-                    )) {
-                      dialogContext.pop();
-                      _bookNow(
-                        context: context,
-                        checkInTime: checkInController.text,
-                        checkOutTime: checkOutController.text,
-                        diceTableType: selectedDiceTableType!,
-                      );
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: Text(
-                    'Book Now',
-                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                      color: AppColors.primaryWhiteColor,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 14.sp,
-                    ),
-                  ),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }*/
 
   void _showWithdrawDialog(BuildContext context) {
     showDialog(
@@ -1338,20 +1029,18 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
     }
 
     if (checkIn.isNotEmpty && checkOut.isNotEmpty) {
-      final checkInTime = TimeOfDay(
-        hour: int.parse(checkIn.split(':')[0]),
-        minute: int.parse(checkIn.split(':')[1]),
-      );
-      final checkOutTime = TimeOfDay(
-        hour: int.parse(checkOut.split(':')[0]),
-        minute: int.parse(checkOut.split(':')[1]),
-      );
+      try {
+        final checkInTime = _parseTime(checkIn);
+        final checkOutTime = _parseTime(checkOut);
 
-      final checkInMinutes = checkInTime.hour * 60 + checkInTime.minute;
-      final checkOutMinutes = checkOutTime.hour * 60 + checkOutTime.minute;
+        final checkInMinutes = checkInTime.hour * 60 + checkInTime.minute;
+        final checkOutMinutes = checkOutTime.hour * 60 + checkOutTime.minute;
 
-      if (checkOutMinutes <= checkInMinutes) {
-        errors.add('Check-out time must be after check-in time');
+        if (checkOutMinutes <= checkInMinutes) {
+          errors.add('Check-out time must be after check-in time');
+        }
+      } catch (e) {
+        errors.add('Invalid time format selected');
       }
     }
 
@@ -1367,6 +1056,31 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
     }
 
     return true;
+  }
+
+  TimeOfDay _parseTime(String timeString) {
+    // Example: "07:15 PM"
+    final parts = timeString.trim().split(' ');
+
+    if (parts.length != 2) {
+      throw FormatException("Invalid time format");
+    }
+
+    final time = parts[0]; // "07:15"
+    final period = parts[1]; // "PM"
+
+    final hourMinute = time.split(':');
+    int hour = int.parse(hourMinute[0]);
+    int minute = int.parse(hourMinute[1]);
+
+    // Convert 12-hour time to 24-hour format
+    if (period.toUpperCase() == 'PM' && hour != 12) {
+      hour += 12;
+    } else if (period.toUpperCase() == 'AM' && hour == 12) {
+      hour = 0;
+    }
+
+    return TimeOfDay(hour: hour, minute: minute);
   }
 
   Future<void> _withdrawBooking() async {
@@ -1397,6 +1111,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
     required String checkInTime,
     required String checkOutTime,
     required String diceTableType,
+    required bool setAsPref,
   }) async {
     try {
       final bookingRequest = BookingRequest(
@@ -1413,6 +1128,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
             _isFromFavorites
                 ? 'Booked from favorites'
                 : 'Booked from cafe list',
+        // setAsPref = setAsPref,
       );
 
       if (mounted) {

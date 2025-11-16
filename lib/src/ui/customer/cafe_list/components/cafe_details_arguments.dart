@@ -7,7 +7,7 @@ class CafeDetailsArguments {
   final List<String> tableType;
   final String description;
   final String image;
-  final List<WorkingHour>? openingHours;
+  final dynamic openingHours;
   final bool bookingStatus;
   final List<String> gallery;
    final List<Attende> attendes;

@@ -20,6 +20,7 @@ class BookingRequest {
   final String userEmail;
   final String deviceId;
   final String additionalInfo;
+  // final bool setAsPref;
 
   BookingRequest({
     required this.cafeId,
@@ -32,6 +33,7 @@ class BookingRequest {
     required this.userEmail,
     required this.deviceId,
     required this.additionalInfo,
+    // required this.setAsPref,
   });
 
   factory BookingRequest.fromJson(Map<String, dynamic> json) => BookingRequest(
@@ -45,6 +47,7 @@ class BookingRequest {
     userEmail: json["user_email"],
     deviceId: json["device_id"],
     additionalInfo: json["additional_info"],
+    // setAsPref: json["setAsPref"],
   );
 
   Map<String, dynamic> toJson() => {
@@ -58,5 +61,6 @@ class BookingRequest {
     "user_email": userEmail,
     "device_id": deviceId,
     "additional_info": additionalInfo,
+    // "setAsPref": setAsPref,
   };
 }

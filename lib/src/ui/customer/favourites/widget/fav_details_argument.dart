@@ -1,3 +1,4 @@
+import 'package:soloseaters/src/model/customer/cafe/cafe_list_response.dart';
 import 'package:soloseaters/src/model/customer/cafe/favourite_list_response.dart';
 
 class FavDetailsArguments {
@@ -9,6 +10,9 @@ class FavDetailsArguments {
   final String image;
   final List<FavWorkingHour>? openingHours;
   final bool bookingStatus;
+    final List<String> gallery;
+   final List<Attende> attendes;
+  final List<UpcomingEvent> upcomingEvents;
 
   const FavDetailsArguments({
     required this.from,
@@ -19,5 +23,8 @@ class FavDetailsArguments {
     required this.image,
     required this.openingHours,
     required this.bookingStatus,
+    required this.gallery,
+    required this.attendes,
+    required this.upcomingEvents
   });
 }

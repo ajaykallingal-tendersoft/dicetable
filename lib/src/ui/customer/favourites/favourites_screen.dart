@@ -149,7 +149,7 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                                     ? badges.Badge(
                                       position: badges.BadgePosition.topEnd(
                                         top: 0,
-                                        end: 0,
+                                        end: -12,
                                       ),
                                       badgeAnimation:
                                           badges.BadgeAnimation.slide(),
@@ -170,7 +170,7 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                                             .toString(),
                                         style: TextStyle(
                                           color: Colors.white,
-                                          fontSize: 12.sp,
+                                          fontSize: 10.sp,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),

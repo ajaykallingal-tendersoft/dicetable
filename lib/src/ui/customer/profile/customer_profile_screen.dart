@@ -122,7 +122,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                           ? badges.Badge(
                             position: badges.BadgePosition.topEnd(
                               top: 0,
-                              end: 0,
+                              end: -12,
                             ),
                             badgeAnimation: badges.BadgeAnimation.slide(),
                             showBadge: true,
@@ -140,8 +140,8 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                                   .toString(),
                               style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 12.sp,
-                                fontWeight: FontWeight.bold,
+                                fontSize: 10.sp,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                             child: Icon(

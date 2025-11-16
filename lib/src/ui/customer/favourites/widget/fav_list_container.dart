@@ -230,6 +230,11 @@ class FavListCard extends StatelessWidget {
                                 openingHours: cafes.workingHours,
                                 id: cafes.id.toString(),
                                 bookingStatus: cafes.bookingStatus ?? false,
+                                gallery:
+                                    [], // Empty list since API doesn't provide this
+                                attendes:
+                                    [], // Empty list since API doesn't provide this
+                                upcomingEvents: [],
                               ),
                             );
                           },

@@ -134,57 +134,61 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                             ),
                             isGuest
                                 ? SizedBox.shrink()
-                                : InkWell(
-                                  onTap: () {
-                                    context.push('/notification');
-                                  },
-                                  child: Obx(() {
-                                    return controller
-                                                .notificationBadgeAmount
-                                                .value >
-                                            0
-                                        ? badges.Badge(
-                                          position: badges.BadgePosition.topEnd(
-                                            top: 0,
-                                            end: 0,
-                                          ),
-                                          badgeAnimation:
-                                              badges.BadgeAnimation.slide(),
-                                          showBadge: true,
-                                          badgeStyle: badges.BadgeStyle(
-                                            shape: badges.BadgeShape.circle,
-                                            borderRadius: BorderRadius.circular(
-                                              10.r,
+                                : Padding(
+                                  padding: const EdgeInsets.only(right: 10.0),
+                                  child: InkWell(
+                                    onTap: () {
+                                      context.push('/notification');
+                                    },
+                                    child: Obx(() {
+                                      return controller
+                                                  .notificationBadgeAmount
+                                                  .value >
+                                              0
+                                          ? badges.Badge(
+                                            position: badges.BadgePosition.topEnd(
+                                              top: 0,
+                                              end: -9,
+                                  
                                             ),
-                                            badgeColor: Colors.red,
-                                            padding: EdgeInsets.symmetric(
-                                              horizontal: 4.w,
-                                              vertical: 2.h,
+                                            badgeAnimation:
+                                                badges.BadgeAnimation.slide(),
+                                            showBadge: true,
+                                            badgeStyle: badges.BadgeStyle(
+                                              shape: badges.BadgeShape.circle,
+                                              borderRadius: BorderRadius.circular(
+                                                10.r,
+                                              ),
+                                              badgeColor: Colors.red,
+                                              padding: EdgeInsets.symmetric(
+                                                horizontal: 4.w,
+                                                vertical: 2.h,
+                                              ),
                                             ),
-                                          ),
-                                          badgeContent: Text(
-                                            controller
-                                                .notificationBadgeAmount
-                                                .value
-                                                .toString(),
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 12.sp,
-                                              fontWeight: FontWeight.bold,
+                                            badgeContent: Text(
+                                              controller
+                                                  .notificationBadgeAmount
+                                                  .value
+                                                  .toString(),
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 10.sp,
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                             ),
-                                          ),
-                                          child:  Icon(
+                                            child:  Icon(
+                                              Icons.notifications_outlined,
+                                              color: AppColors.primaryWhiteColor,
+                                              size: 28.w,
+                                            ),
+                                          )
+                                          :  Icon(
                                             Icons.notifications_outlined,
                                             color: AppColors.primaryWhiteColor,
                                             size: 28.w,
-                                          ),
-                                        )
-                                        :  Icon(
-                                          Icons.notifications_outlined,
-                                          color: AppColors.primaryWhiteColor,
-                                          size: 28.w,
-                                        );
-                                  }),
+                                          );
+                                    }),
+                                  ),
                                 ),
                           ],
                         ),

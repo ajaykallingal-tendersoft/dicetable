@@ -20,6 +20,7 @@ import 'package:soloseaters/src/model/cafe_owner/auth/signUp/sign_up_request_res
 import 'package:soloseaters/src/model/customer/guest/guest_signin_response.dart';
 import 'package:soloseaters/src/model/customer/guest/guest_user_request.dart';
 import 'package:soloseaters/src/model/state_model.dart';
+import 'package:soloseaters/src/model/token_refresh_response.dart';
 import 'package:soloseaters/src/model/venue_type_response.dart';
 import 'package:soloseaters/src/model/verification/otp_verification_response.dart';
 import 'package:soloseaters/src/model/verification/otp_verify_request.dart';
@@ -711,4 +712,37 @@ class AuthDataProvider {
       return StateModel.error("An unexpected error occurred: ${e.toString()}");
     }
   }
+
+
+  Future<StateModel?> tokenRefresh() async {
+    try {
+      final response =
+      await ObjectFactory().apiClient.tokenRefresh();
+      // print(response.toString());
+      // String jsonRequest = jsonEncode(request);
+      // print("Request Payload:");
+      // print(jsonRequest);
+      if (response.statusCode == 200) {
+        return StateModel<TokenRefreshResponse>.success(
+            TokenRefreshResponse.fromJson(response.data));
+      }
+      return null;
+    } on DioException catch (e) {
+
+      if (e.response!.statusCode == 500) {
+        return StateModel.error(
+            "The server isn't responding! Please try again later.");
+      } else if (e.response!.statusCode == 408) {
+        return StateModel.error(
+            "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!");
+      } else if (e.type.name == "connectionError") {
+        return StateModel.error(
+            "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!");
+      }
+
+    }
+    return null;
+  }
+
+
 }
