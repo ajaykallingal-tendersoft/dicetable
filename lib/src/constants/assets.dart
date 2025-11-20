@@ -24,6 +24,13 @@ class Assets {
         static const String NOTIFY = 'assets/png/notify.png';
         static const String UNNOTIFY = 'assets/png/unnotify.png';
          static const String UPLOAD = 'assets/png/upload.png';
+                  static const String BELL  = 'assets/png/bell.png';
+                   static const String  ATTENDEE= 'assets/png/attendee.png';
+                    static const String  CALENDAR= 'assets/png/calendar.png';
+                     static const String  CLOCK_YEARLY = 'assets/png/clock.png';
+                      static const String  PERSONAL= 'assets/png/personal.png';
+                       static const String  TABLE= 'assets/png/table.png';
+
 
 
 

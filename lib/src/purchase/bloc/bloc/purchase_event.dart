@@ -51,11 +51,12 @@ class HandlePurchaseUpdateEvent extends PaymentPlanEvent {
 
 class VerifyPurchaseEvent extends PaymentPlanEvent {
   final PurchaseDetails purchaseDetails;
+  final Map<String, dynamic> verificationPayload;
 
-  const VerifyPurchaseEvent(this.purchaseDetails);
+  const VerifyPurchaseEvent(this.purchaseDetails, this.verificationPayload);
 
   @override
-  List<Object?> get props => [purchaseDetails];
+  List<Object?> get props => [purchaseDetails, verificationPayload];
 }
 
 class RestorePurchasesEvent extends PaymentPlanEvent {

@@ -5,6 +5,7 @@ import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/ui/cafe_owner/home/bloc/home_bloc.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/bloc/notification_bloc.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/count_controller.dart';
+import 'package:soloseaters/src/utils/data/auth_session_manager.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:soloseaters/src/utils/data/sign_out.dart';
 import 'package:flutter/cupertino.dart';
@@ -45,7 +46,7 @@ class _HomePageState extends State<HomePage> {
     final isTabletOrLarger = ResponsiveBreakpoints.of(
       context,
     ).largerThan(MOBILE);
-    
+
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -99,57 +100,68 @@ class _HomePageState extends State<HomePage> {
                                     fontSize: isTabletOrLarger ? 28.sp : 24.sp,
                                   ),
                                 ),
-                                InkWell(
-                                  onTap: () {
-                                    GoRouter.of(context).push('/notification');
-                                  },
-                                  child: Obx(() {
-                                    return controller
-                                                .notificationBadgeAmount
-                                                .value >
-                                            0
-                                        ? badges.Badge(
-                                          position: badges.BadgePosition.topEnd(
-                                            top: 0,
-                                            end: 0,
-                                          ),
-                                          badgeAnimation:
-                                              badges.BadgeAnimation.slide(),
-                                          showBadge: true,
-                                          badgeStyle: badges.BadgeStyle(
-                                            shape: badges.BadgeShape.circle,
-                                            borderRadius: BorderRadius.circular(
-                                              10.r,
+                                Padding(
+                                  padding: const EdgeInsets.only(right: 6.0),
+                                  child: InkWell(
+                                    onTap: () {
+                                      GoRouter.of(
+                                        context,
+                                      ).push('/notification');
+                                    },
+                                    child: Obx(() {
+                                      return controller
+                                                  .notificationBadgeAmount
+                                                  .value >
+                                              0
+                                          ? badges.Badge(
+                                            position: badges
+                                                .BadgePosition.topEnd(
+                                              top: 0,
+                                              end: -5,
                                             ),
-                                            badgeColor: Colors.red,
-                                            padding: EdgeInsets.symmetric(
-                                              horizontal: 6.w,
-                                              vertical: 2.h,
+                                            badgeAnimation:
+                                                badges.BadgeAnimation.slide(),
+                                            showBadge: true,
+                                            badgeStyle: badges.BadgeStyle(
+                                              shape: badges.BadgeShape.circle,
+
+                                              badgeColor: Colors.red,
+                                              padding: EdgeInsets.all(4),
                                             ),
-                                          ),
-                                          badgeContent: Text(
-                                            controller
-                                                .notificationBadgeAmount
-                                                .value
-                                                .toString(),
-                                            style: TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 12,
-                                              fontWeight: FontWeight.bold,
+                                            badgeContent: Text(
+                                              // Logic: If greater than 99, show "99+", otherwise show number
+                                              int.parse(
+                                                        controller
+                                                            .notificationBadgeAmount
+                                                            .value
+                                                            .toString(),
+                                                      ) >
+                                                      99
+                                                  ? "99+"
+                                                  : controller
+                                                      .notificationBadgeAmount
+                                                      .value
+                                                      .toString(),
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 10.sp,
+                                                fontWeight: FontWeight.bold,
+                                              ),
                                             ),
-                                          ),
-                                          child:  Icon(
+                                            child: Icon(
+                                              Icons.notifications_outlined,
+                                              color:
+                                                  AppColors.primaryWhiteColor,
+                                              size: 28.w,
+                                            ),
+                                          )
+                                          : Icon(
                                             Icons.notifications_outlined,
                                             color: AppColors.primaryWhiteColor,
                                             size: 28.w,
-                                          ),
-                                        )
-                                        :  Icon(
-                                          Icons.notifications_outlined,
-                                          color: AppColors.primaryWhiteColor,
-                                          size: 28.w,
-                                        );
-                                  }),
+                                          );
+                                    }),
+                                  ),
                                 ),
                               ],
                             );
@@ -195,7 +207,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     );
                   }
-                  
+
                   if (state is HomeError) {
                     return SliverFillRemaining(
                       child: Center(
@@ -230,7 +242,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     );
                   }
-                  
+
                   // ✅ Show empty space during initial load (EasyLoading will overlay)
                   return const SliverToBoxAdapter(child: SizedBox.shrink());
                 },
@@ -239,17 +251,20 @@ class _HomePageState extends State<HomePage> {
                   if (state is HomeLoading) {
                     EasyLoading.show();
                   }
-                  
+
                   if (state is DiceTableUpdateLoading) {
                     EasyLoading.show();
                   }
-                  
+
                   if (state is HomeLoaded) {
                     EasyLoading.dismiss();
                     _initialLoadComplete = true; // ✅ Mark initial load complete
-                    
-                    if(state.homeResponse.status == false) {
-                      if(state.homeResponse.message!.contains("Unauthorized")) {
+
+                    if (state.homeResponse.status == false) {
+                      if (state.homeResponse.message!.contains(
+                            "Unauthorized",
+                          ) &&
+                          AuthSessionManager.consumeRefreshFailureFlag()) {
                         WidgetsBinding.instance.addPostFrameCallback((_) {
                           SignOut().logout(context);
                           Fluttertoast.showToast(
@@ -258,20 +273,20 @@ class _HomePageState extends State<HomePage> {
                             textColor: AppColors.appRedColor,
                             gravity: ToastGravity.BOTTOM,
                             msg:
-                            "Your session has expired. Please sign in again.",
+                                "Your session has expired. Please sign in again.",
                           );
                         });
                       }
                     }
                   }
-                  
+
                   if (state is HomeError) {
                     EasyLoading.dismiss();
-                    
-                    if (state.errorMessage.contains("Unauthorized") ||
-                        state.errorMessage.contains("status code of 401") || 
-                        state.errorMessage.contains("UnAuthorized")
-                    ) {
+
+                    if ((state.errorMessage.contains("Unauthorized") ||
+                            state.errorMessage.contains("status code of 401") ||
+                            state.errorMessage.contains("UnAuthorized")) &&
+                        AuthSessionManager.consumeRefreshFailureFlag()) {
                       SignOut().logout(context);
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         Fluttertoast.showToast(
@@ -280,7 +295,7 @@ class _HomePageState extends State<HomePage> {
                           textColor: AppColors.appRedColor,
                           gravity: ToastGravity.BOTTOM,
                           msg:
-                          "Your session has expired. Please sign in again.",
+                              "Your session has expired. Please sign in again.",
                         );
                       });
                     } else {

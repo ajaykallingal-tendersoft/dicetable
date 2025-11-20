@@ -58,6 +58,8 @@ class Prefs {
   static const String _IS_FIRST_LAUNCH = "is_first_launch";
   static const String _PENDING_NOTIFICATION_NAVIGATION =
       'pending_notification_navigation';
+  static const String _PENDING_NOTIFICATION_PAYLOAD =
+      'pending_notification_payload';
   static const String _DEVICE_ID = 'device_id';
   static const String _IS_GUEST = "is_GUEST";
   static const String _CAFE_USER_ID = "cafe_user_id";
@@ -285,6 +287,35 @@ class Prefs {
   /// Get Pending Notification Navigation
   bool? getPendingNotificationNavigation() {
     return _sharedPreferences?.getBool(_PENDING_NOTIFICATION_NAVIGATION);
+  }
+
+  void setPendingNotificationPayload(Map<String, dynamic>? payload) {
+    if (payload == null || payload.isEmpty) {
+      _sharedPreferences?.remove(_PENDING_NOTIFICATION_PAYLOAD);
+      return;
+    }
+    _sharedPreferences?.setString(
+      _PENDING_NOTIFICATION_PAYLOAD,
+      jsonEncode(payload),
+    );
+  }
+
+  Map<String, dynamic>? getPendingNotificationPayload() {
+    final rawPayload =
+        _sharedPreferences?.getString(_PENDING_NOTIFICATION_PAYLOAD);
+    if (rawPayload == null || rawPayload.isEmpty) {
+      return null;
+    }
+    try {
+      return Map<String, dynamic>.from(jsonDecode(rawPayload));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> clearPendingNotificationNavigation() async {
+    await _sharedPreferences?.remove(_PENDING_NOTIFICATION_NAVIGATION);
+    await _sharedPreferences?.remove(_PENDING_NOTIFICATION_PAYLOAD);
   }
 
   ///after login set isLoggedIn true

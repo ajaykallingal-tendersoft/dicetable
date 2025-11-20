@@ -83,6 +83,7 @@ class User {
   final dynamic deletedAt;
   final dynamic emailOtp;
   final dynamic otpExpiresAt;
+  final int? isPaid;
 
   User({
     this.id,
@@ -111,6 +112,7 @@ class User {
     this.deletedAt,
     this.emailOtp,
     this.otpExpiresAt,
+    this.isPaid,
   });
 
   factory User.fromJson(Map<String, dynamic> json) => User(
@@ -145,6 +147,7 @@ class User {
     deletedAt: json["deleted_at"],
     emailOtp: json["email_otp"],
     otpExpiresAt: json["otp_expires_at"],
+    isPaid: json["is_paid"],
   );
 
   Map<String, dynamic> toJson() => {
@@ -174,5 +177,6 @@ class User {
     "deleted_at": deletedAt,
     "email_otp": emailOtp,
     "otp_expires_at": otpExpiresAt,
+    "is_paid": isPaid,
   };
 }

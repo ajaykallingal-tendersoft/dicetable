@@ -1,13 +1,14 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/constants/assets.dart';
-import 'package:soloseaters/src/model/cafe_owner/attendees/attendees.dart';
 import 'package:soloseaters/src/model/cafe_owner/home/venue_owner_home_screen_response.dart';
 import 'package:soloseaters/src/ui/cafe_owner/home/attendees_arguments.dart';
 
@@ -46,7 +47,7 @@ class AttendeesScreen extends StatelessWidget {
             ),
           ),
           title: Text(
-            'Attendees - Business Networking',
+            'Attendees - ${arguments.tableTypeName}',
             style: GoogleFonts.montserrat(
               fontSize: 18,
               fontWeight: FontWeight.w600,
@@ -68,8 +69,6 @@ class AttendeesScreen extends StatelessWidget {
 
   Widget _buildAttendeeCard(Attendee attendee) {
     final name = attendee.name ?? 'Guest User';
-    final profilePhoto = attendee.profilePhoto ?? '';
-    final hasPhoto = profilePhoto.isNotEmpty;
     final preferences = attendee.preferences ?? [];
 
     return Container(
@@ -102,20 +101,7 @@ class AttendeesScreen extends StatelessWidget {
                     height: 56,
                     fit: BoxFit.cover,
                     placeholder:
-                        (context, url) => Container(
-                          width: 56,
-                          height: 56,
-                          alignment: Alignment.center,
-                          decoration: BoxDecoration(
-                            color: Colors.grey[300],
-                            shape: BoxShape.circle,
-                          ),
-                          child: const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                        ),
+                        (context, url) => _buildPlaceholder(attendee.name ?? ''),
                     errorWidget:
                         (context, url, error) =>
                             _buildPlaceholder(attendee.name ?? ''),
@@ -146,7 +132,7 @@ class AttendeesScreen extends StatelessWidget {
                       spacing: 6,
                       runSpacing: 6,
                       children: [
-                        if (attendee.isPaidUser == true)
+                        if (attendee.isPaidUser == 1)
                           _buildBadge(
                             icon: Image.asset(
                               Assets.PREMIUM,
@@ -175,7 +161,7 @@ class AttendeesScreen extends StatelessWidget {
                             icon: const Icon(
                               Icons.check_circle_outline_rounded,
                               size: 16,
-                              color: Colors.white,
+                              color: AppColors.tableTypeBadgeTextColor,
                             ),
                             label: pref,
                             backgroundColor: AppColors.tableTypeBadgeColor,
@@ -192,7 +178,7 @@ class AttendeesScreen extends StatelessWidget {
           ),
           const Gap(10),
 
-          if (attendee.isPaidUser == true)
+          if (attendee.isPaidUser == 1)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6.0),
               child: Divider(color: AppColors.dividerColor, height: 1),
@@ -200,7 +186,7 @@ class AttendeesScreen extends StatelessWidget {
 
           // Description or additional info
           if ((attendee.additionalInfo ?? '').isNotEmpty &&
-              attendee.isPaidUser == true) ...[
+              attendee.isPaidUser == 1) ...[
             const SizedBox(height: 12),
             Padding(
               padding: const EdgeInsets.only(left: 5.0),
@@ -210,7 +196,7 @@ class AttendeesScreen extends StatelessWidget {
                   fontSize: 12,
                   color: AppColors.textPrimaryGrey,
                   fontWeight: FontWeight.w500,
-                  height: 1.4,
+                  // height: 1.4,
                 ),
               ),
             ),

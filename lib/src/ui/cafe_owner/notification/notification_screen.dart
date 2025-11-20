@@ -2,6 +2,7 @@ import 'package:gap/gap.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/notification_item.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/tab_button.dart';
+import 'package:soloseaters/src/utils/data/auth_session_manager.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:soloseaters/src/utils/data/sign_out.dart';
 import 'package:flutter/material.dart';
@@ -114,8 +115,9 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 }
                 if (state.notificationItems.status == false) {
                   if (state.notificationItems.message.contains(
-                    "Unauthorized",
-                  )) {
+                        "Unauthorized",
+                      ) &&
+                      AuthSessionManager.consumeRefreshFailureFlag()) {
                     EasyLoading.dismiss();
                     SignOut().logout(context);
                     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -135,9 +137,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 EasyLoading.show();
               } else {
                 if (state is NotificationError) {
-                  if (state.errorMessage.contains("Unauthorized") ||
-                      state.errorMessage.contains("UnAuthorized") ||
-                      state.errorMessage.contains("Session expired")) {
+                  if ((state.errorMessage.contains("Unauthorized") ||
+                          state.errorMessage.contains("UnAuthorized") ||
+                          state.errorMessage.contains("Session expired")) &&
+                      AuthSessionManager.consumeRefreshFailureFlag()) {
                     EasyLoading.dismiss();
                     SignOut().logout(context);
                     WidgetsBinding.instance.addPostFrameCallback((_) {

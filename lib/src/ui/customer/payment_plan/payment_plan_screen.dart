@@ -2,11 +2,12 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
+import 'package:soloseaters/src/constants/assets.dart';
 import 'package:soloseaters/src/purchase/bloc/bloc/purchase_bloc.dart';
 import 'package:soloseaters/src/purchase/bloc/bloc/purchase_event.dart';
 import 'package:soloseaters/src/purchase/bloc/bloc/purchase_state.dart';
-
 
 class ChoosePlanScreen extends StatelessWidget {
   const ChoosePlanScreen({super.key});
@@ -33,22 +34,30 @@ class ChoosePlanScreen extends StatelessWidget {
           backgroundColor: Colors.transparent,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: AppColors.primaryWhiteColor),
+            icon: const Icon(
+              Icons.arrow_back,
+              color: AppColors.primaryWhiteColor,
+            ),
             onPressed: () => Navigator.of(context).pop(),
           ),
-          title: const Text(
+          title: Text(
             'Choose Your Plan',
-            style: TextStyle(
+            style: GoogleFonts.montserrat(
               color: AppColors.primaryWhiteColor,
               fontWeight: FontWeight.bold,
             ),
           ),
-          centerTitle: true,
+          centerTitle: false,
           actions: [
             IconButton(
-              icon: const Icon(Icons.restore, color: AppColors.primaryWhiteColor),
+              icon: const Icon(
+                Icons.restore,
+                color: AppColors.primaryWhiteColor,
+              ),
               onPressed: () {
-                context.read<PaymentPlanBloc>().add(const RestorePurchasesEvent());
+                context.read<PaymentPlanBloc>().add(
+                  const RestorePurchasesEvent(),
+                );
               },
               tooltip: 'Restore Purchases',
             ),
@@ -58,28 +67,49 @@ class ChoosePlanScreen extends StatelessWidget {
           listener: (context, state) {
             // Handle purchase success
             if (state.status == PaymentPlanStatus.purchaseSuccess) {
+              // Refresh subscription status after successful purchase
+              context.read<PaymentPlanBloc>().add(
+                const CheckSubscriptionStatusEvent(),
+              );
               _showSuccessDialog(context, state);
             }
             // Handle purchase failure
             else if (state.status == PaymentPlanStatus.purchaseFailed) {
-              _showErrorSnackBar(context, state.errorMessage ?? 'Purchase failed');
+              _showErrorSnackBar(
+                context,
+                state.errorMessage ?? 'Purchase failed',
+              );
             }
             // Handle purchase restoration
             else if (state.status == PaymentPlanStatus.purchaseRestored) {
+              // Refresh subscription status after restore
+              context.read<PaymentPlanBloc>().add(
+                const CheckSubscriptionStatusEvent(),
+              );
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('✅ Purchases restored successfully'),
+                SnackBar(
+                  content: Text(
+                    '✅ Purchases restored successfully',
+                    style: GoogleFonts.montserrat(
+                      color: AppColors.primaryWhiteColor,
+                    ),
+                  ),
                   backgroundColor: Colors.green,
-                  duration: Duration(seconds: 2),
+                  duration: const Duration(seconds: 2),
                 ),
               );
             }
             // Handle cancellation
             else if (state.status == PaymentPlanStatus.cancelled) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Purchase was cancelled'),
-                  duration: Duration(seconds: 2),
+                SnackBar(
+                  content: Text(
+                    'Purchase was cancelled',
+                    style: GoogleFonts.montserrat(
+                      color: AppColors.primaryWhiteColor,
+                    ),
+                  ),
+                  duration: const Duration(seconds: 2),
                 ),
               );
             }
@@ -87,17 +117,17 @@ class ChoosePlanScreen extends StatelessWidget {
           builder: (context, state) {
             // Show loading indicator
             if (state.status == PaymentPlanStatus.loading) {
-              return const Center(
+              return Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircularProgressIndicator(
+                    const CircularProgressIndicator(
                       color: AppColors.primaryWhiteColor,
                     ),
-                    SizedBox(height: 16),
+                    const SizedBox(height: 16),
                     Text(
                       'Loading plans...',
-                      style: TextStyle(
+                      style: GoogleFonts.montserrat(
                         color: AppColors.primaryWhiteColor,
                         fontSize: 16,
                       ),
@@ -108,7 +138,7 @@ class ChoosePlanScreen extends StatelessWidget {
             }
 
             // Show error if no products loaded
-            if (state.status == PaymentPlanStatus.purchaseFailed && 
+            if (state.status == PaymentPlanStatus.purchaseFailed &&
                 !state.hasProducts) {
               return Center(
                 child: Padding(
@@ -123,8 +153,9 @@ class ChoosePlanScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        state.errorMessage ?? 'Failed to load subscription plans',
-                        style: const TextStyle(
+                        state.errorMessage ??
+                            'Failed to load subscription plans',
+                        style: GoogleFonts.montserrat(
                           color: AppColors.primaryWhiteColor,
                           fontSize: 16,
                         ),
@@ -134,14 +165,14 @@ class ChoosePlanScreen extends StatelessWidget {
                       ElevatedButton(
                         onPressed: () {
                           context.read<PaymentPlanBloc>().add(
-                            const LoadProductsEvent(),
+                            LoadProductsEvent(),
                           );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primaryWhiteColor,
                           foregroundColor: AppColors.primary,
                         ),
-                        child: const Text('Retry'),
+                        child: Text('Retry', style: GoogleFonts.montserrat()),
                       ),
                     ],
                   ),
@@ -157,20 +188,17 @@ class ChoosePlanScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 16.0),
-                    
+
                     // Title
-                    const Text(
+                    Text(
                       'Select the Perfect Plan for you',
-                      style: TextStyle(
+                      style: GoogleFonts.montserrat(
                         color: AppColors.primaryWhiteColor,
-                        fontSize: 18,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 24.0),
-
-                    // Trial info for venue users
-                    if (state.isVenueUser && state.isInTrialPeriod)
-                      _buildTrialInfoCard(state),
 
                     // Features card
                     _buildFeaturesCard(context),
@@ -180,10 +208,10 @@ class ChoosePlanScreen extends StatelessWidget {
                     if (state.hasProducts)
                       ..._buildPlanOptions(context, state)
                     else
-                      const Center(
+                      Center(
                         child: Text(
                           'No plans available at the moment',
-                          style: TextStyle(
+                          style: GoogleFonts.montserrat(
                             color: AppColors.primaryWhiteColor,
                             fontSize: 16,
                           ),
@@ -198,8 +226,7 @@ class ChoosePlanScreen extends StatelessWidget {
                     const SizedBox(height: 16.0),
 
                     // Terms text
-                    _buildTermsText(context),
-
+                    // _buildTermsText(context),
                     const SizedBox(height: 40.0),
                   ],
                 ),
@@ -218,23 +245,16 @@ class ChoosePlanScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.secondary.withOpacity(0.2),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: AppColors.secondary,
-          width: 1,
-        ),
+        border: Border.all(color: AppColors.secondary, width: 1),
       ),
       child: Row(
         children: [
-          const Icon(
-            Icons.access_time,
-            color: AppColors.secondary,
-            size: 24,
-          ),
+          const Icon(Icons.access_time, color: AppColors.secondary, size: 24),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               'Trial ends in ${state.daysRemainingInTrial} days',
-              style: const TextStyle(
+              style: GoogleFonts.montserrat(
                 color: AppColors.primaryWhiteColor,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -258,9 +278,9 @@ class ChoosePlanScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Features Include',
-            style: TextStyle(
+            style: GoogleFonts.montserrat(
               color: AppColors.primary,
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -268,38 +288,43 @@ class ChoosePlanScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16.0),
           _buildFeatureRow(
-            Icons.person,
+            Assets.PERSONAL,
             'Personalized Profile',
             'Bio, multiple photos & more details',
           ),
           const SizedBox(height: 12.0),
           _buildFeatureRow(
-            Icons.table_chart,
+            Assets.TABLE,
             'Table Preferences',
             'Save your favorite table types',
           ),
           const SizedBox(height: 12.0),
           _buildFeatureRow(
-            Icons.notifications_none,
+            Assets.BELL,
             'Smart Notifications',
             'Mute/unmute favorite cafés',
           ),
           const SizedBox(height: 12.0),
           _buildFeatureRow(
-            Icons.group,
+            Assets.ATTENDEE,
             'View Attendees',
-            'See who\ts joining upcoming events',
+            'See who\'s joining upcoming events',
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFeatureRow(IconData icon, String title, String subtitle) {
+  Widget _buildFeatureRow(String imagePath, String title, String subtitle) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: AppColors.primary, size: 28.0),
+        Image.asset(
+          imagePath,
+          color: AppColors.primary,
+          height: 28.0,
+          width: 28.0,
+        ),
         const SizedBox(width: 16.0),
         Expanded(
           child: Column(
@@ -307,7 +332,7 @@ class ChoosePlanScreen extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: GoogleFonts.montserrat(
                   color: AppColors.primary,
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -316,7 +341,7 @@ class ChoosePlanScreen extends StatelessWidget {
               const SizedBox(height: 4.0),
               Text(
                 subtitle,
-                style: TextStyle(
+                style: GoogleFonts.montserrat(
                   color: AppColors.primary.withOpacity(0.7),
                   fontSize: 14,
                 ),
@@ -331,7 +356,16 @@ class ChoosePlanScreen extends StatelessWidget {
   List<Widget> _buildPlanOptions(BuildContext context, PaymentPlanState state) {
     final widgets = <Widget>[];
 
-    for (var product in state.products) {
+    // 1. Separate yearly and other products
+    final yearlyProducts =
+        state.products.where((p) => p.id.contains('yearly')).toList();
+    final otherProducts =
+        state.products.where((p) => !p.id.contains('yearly')).toList();
+
+    // 2. Combine, putting yearly first
+    final sortedProducts = [...yearlyProducts, ...otherProducts];
+
+    for (var product in sortedProducts) {
       final isSelected = state.selectedProductId == product.id;
 
       widgets.add(
@@ -359,19 +393,22 @@ class ChoosePlanScreen extends StatelessWidget {
     const Color selectedColor = AppColors.signUpContainerColor;
     const Color unselectedColor = Colors.transparent;
 
-    final Color borderColor = isSelected
-        ? selectedColor
-        : AppColors.primaryWhiteColor.withOpacity(0.3);
+    final Color borderColor =
+        isSelected
+            ? selectedColor
+            : AppColors.primaryWhiteColor.withOpacity(0.3);
 
     // Determine icon and period
-    IconData icon = Icons.schedule;
     String period = '';
+    String? assetPath;
 
     if (product.id.contains('yearly')) {
-      icon = Icons.calendar_today;
+      // 💡 Use your actual asset path for the yearly plan icon
+      assetPath = Assets.CALENDAR;
       period = 'Year';
     } else if (product.id.contains('monthly')) {
-      icon = Icons.schedule;
+      // 💡 Use your actual asset path for the monthly plan icon
+      assetPath = Assets.CLOCK_YEARLY;
       period = 'Month';
     }
 
@@ -383,10 +420,7 @@ class ChoosePlanScreen extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected ? selectedColor : unselectedColor,
           borderRadius: BorderRadius.circular(12.0),
-          border: Border.all(
-            color: borderColor,
-            width: isSelected ? 0 : 1,
-          ),
+          border: Border.all(color: borderColor, width: isSelected ? 0 : 1),
         ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -397,47 +431,57 @@ class ChoosePlanScreen extends StatelessWidget {
                 children: [
                   isSelected
                       ? const Icon(
-                          Icons.check_circle,
-                          color: AppColors.secondary,
-                          size: 24.0,
-                        )
+                        Icons.check_circle,
+                        color: AppColors.secondary,
+                        size: 24.0,
+                      )
                       : const Icon(
-                          Icons.radio_button_unchecked,
-                          color: AppColors.primaryWhiteColor,
-                          size: 24.0,
-                        ),
+                        Icons.radio_button_unchecked,
+                        color: AppColors.primaryWhiteColor,
+                        size: 24.0,
+                      ),
                   const SizedBox(width: 16.0),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
+                    // mainAxisAlignment: MainAxisAlignment.center,
+                    // crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         product.price,
-                        style: const TextStyle(
-                          color: AppColors.primary,
+                        style: GoogleFonts.montserrat(
+                          color:
+                              isSelected
+                                  ? AppColors.primary
+                                  : AppColors.primaryWhiteColor,
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       if (period.isNotEmpty)
                         Text(
-                          '/ $period',
-                          style: TextStyle(
-                            color: AppColors.primary.withOpacity(0.7),
+                          ' / $period',
+                          style: GoogleFonts.montserrat(
+                            color:
+                                isSelected
+                                    ? AppColors.primary
+                                    : AppColors.primaryWhiteColor,
                             fontSize: 14,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                     ],
                   ),
                 ],
               ),
-              Icon(
-                icon,
-                color: isSelected
-                    ? AppColors.primary
-                    : AppColors.primaryWhiteColor,
-                size: 24.0,
-              ),
+              if (assetPath != null)
+                Image.asset(
+                  assetPath,
+                  height: 24.0, // Match the original Icon size
+                  width: 24.0, // Match the original Icon size
+                  color:
+                      isSelected
+                          ? AppColors.primary
+                          : AppColors.primaryWhiteColor,
+                ),
             ],
           ),
         ),
@@ -446,7 +490,8 @@ class ChoosePlanScreen extends StatelessWidget {
   }
 
   Widget _buildContinueButton(BuildContext context, PaymentPlanState state) {
-    final isProcessing = state.isProcessing ||
+    final isProcessing =
+        state.isProcessing ||
         state.status == PaymentPlanStatus.purchasing ||
         state.status == PaymentPlanStatus.verifying;
 
@@ -455,53 +500,43 @@ class ChoosePlanScreen extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: canPurchase
-            ? () {
-                context.read<PaymentPlanBloc>().add(
-                      const PurchaseSelectedPlanEvent(),
-                    );
-              }
-            : null,
+        onPressed:
+            canPurchase
+                ? () {
+                  context.read<PaymentPlanBloc>().add(
+                    const PurchaseSelectedPlanEvent(),
+                  );
+                }
+                : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primaryWhiteColor,
-          disabledBackgroundColor:
-              AppColors.primaryWhiteColor.withOpacity(0.5),
+          disabledBackgroundColor: AppColors.primaryWhiteColor.withOpacity(0.5),
           minimumSize: const Size(double.infinity, 50),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(25),
           ),
           padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
         ),
-        child: isProcessing
-            ? const SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor:
-                      AlwaysStoppedAnimation<Color>(AppColors.primary),
+        child:
+            isProcessing
+                ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      AppColors.primary,
+                    ),
+                  ),
+                )
+                : Text(
+                  'CONTINUE',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary, // Ensure button text color is set
+                  ),
                 ),
-              )
-            : const Text(
-                'CONTINUE',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-      ),
-    );
-  }
-
-  Widget _buildTermsText(BuildContext context) {
-    return Center(
-      child: Text(
-        'By continuing, you agree to our Terms of Service\nand Privacy Policy. Auto-renewable subscription.',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          color: AppColors.primaryWhiteColor.withOpacity(0.7),
-          fontSize: 12,
-        ),
       ),
     );
   }
@@ -510,56 +545,59 @@ class ChoosePlanScreen extends StatelessWidget {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: const Row(
-          children: [
-            Icon(Icons.check_circle, color: Colors.green, size: 32),
-            SizedBox(width: 12),
-            Text('Success!'),
-          ],
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Your subscription has been activated!',
-              style: TextStyle(fontSize: 16),
+      builder:
+          (dialogContext) => AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
             ),
-            const SizedBox(height: 12),
-            Text(
-              'Plan: ${state.currentSubscriptionId?.replaceAll('_', ' ').toUpperCase()}',
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
+            title: Row(
+              children: [
+                const Icon(Icons.check_circle, color: Colors.green, size: 32),
+                const SizedBox(width: 12),
+                Text('Success!', style: GoogleFonts.montserrat()),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Your subscription has been activated!',
+                  style: GoogleFonts.montserrat(fontSize: 16,color: AppColors.primary),
+                  
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'Plan: ${state.currentSubscriptionId?.replaceAll('_', ' ').toUpperCase()}',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Enjoy all premium features! 🎉',
+                  style: GoogleFonts.montserrat(fontSize: 14,color: AppColors.primary),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(dialogContext).pop(); // Close dialog
+                  Navigator.of(context).pop(); // Go back
+                },
+                child: Text(
+                  'Continue',
+                  style: GoogleFonts.montserrat(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Enjoy all premium features! 🎉',
-              style: TextStyle(fontSize: 14),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(dialogContext).pop(); // Close dialog
-              Navigator.of(context).pop(); // Go back
-            },
-            child: const Text(
-              'Continue',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
@@ -570,17 +608,15 @@ class ChoosePlanScreen extends StatelessWidget {
           children: [
             const Icon(Icons.error_outline, color: Colors.white),
             const SizedBox(width: 12),
-            Expanded(
-              child: Text(message),
-            ),
+            Expanded(child: Text(message, style: GoogleFonts.montserrat())),
           ],
         ),
-        backgroundColor: Colors.red,
+        backgroundColor: AppColors.appRedColor,
         duration: const Duration(seconds: 4),
         behavior: SnackBarBehavior.floating,
         action: SnackBarAction(
           label: 'Dismiss',
-          textColor: Colors.white,
+          textColor: AppColors.primaryWhiteColor,
           onPressed: () {},
         ),
       ),

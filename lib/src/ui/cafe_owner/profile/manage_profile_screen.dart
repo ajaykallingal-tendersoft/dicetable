@@ -10,6 +10,7 @@ import 'package:soloseaters/src/ui/cafe_owner/profile/widget/gallery_image_widge
 import 'package:soloseaters/src/ui/cafe_owner/profile/widget/manage_profile_opening_hour_widget.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/login/cubit/google_sign_in_cubit.dart';
+import 'package:soloseaters/src/utils/data/auth_session_manager.dart';
 import 'package:soloseaters/src/utils/data/sign_out.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -133,8 +134,10 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
         }
         if (state is ProfileViewLoaded) {
           if (state.profileViewResponse.status == false) {
-            if (state.errorMessage!.contains("Unauthorized") ||
-                state.errorMessage!.contains("status code of 401")) {
+            final message = state.errorMessage ?? '';
+            if ((message.contains("Unauthorized") ||
+                    message.contains("status code of 401")) &&
+                AuthSessionManager.consumeRefreshFailureFlag()) {
               EasyLoading.dismiss();
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 SignOut().logout(context);
@@ -151,8 +154,9 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
         }
         if (state is ProfileViewError) {
           EasyLoading.dismiss();
-          if (state.errorMessage.contains("UnAuthorized") ||
-              state.errorMessage.contains("status code of 401")) {
+          if ((state.errorMessage.contains("UnAuthorized") ||
+                  state.errorMessage.contains("status code of 401")) &&
+              AuthSessionManager.consumeRefreshFailureFlag()) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               SignOut().logout(context);
               Fluttertoast.showToast(
@@ -419,18 +423,6 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
 
                         const Gap(17),
                         OpeningHoursWidget(openingHours: state.openingHours,),
-                        // CustomTextField(
-                        //   height: 250.h,
-                        //   isProfile: true,
-                        //   readOnly: true,
-                        //   maxLines: 20,
-                        //   controller: TextEditingController(
-                        //     text: _formatOpeningHours(state.openingHours),
-                        //   ),
-                        //   hintText: 'Opening Hours',
-                        //   textFieldAnnotationText: 'Opening Hours',
-                        //   onChanged: (value) {},
-                        // ),
                         const Gap(17),
                         CafeEateryPhotosWidget(photoUrls: state.gallery ?? []),
                         const Gap(30),
@@ -630,12 +622,6 @@ String _formatOpeningHours(Map<String, ProfileOpeningHour> openingHours) {
   return buffer.toString().trim();
 }
 
-  // String _formatTimeOfDay(TimeOfDay time) {
-  //   final hour = time.hourOfPeriod == 0 ? 12 : time.hourOfPeriod;
-  //   final minute = time.minute.toString().padLeft(2, '0');
-  //   final period = time.period == DayPeriod.am ? 'AM' : 'PM';
-  //   return '$hour:$minute $period';
-  // }
 
   Widget _buildSliverAppBar() {
     final isTabletOrLarger = ResponsiveBreakpoints.of(
@@ -752,22 +738,28 @@ String _formatOpeningHours(Map<String, ProfileOpeningHour> openingHours) {
                                 milliseconds: 300,
                               ),
                               fadeInCurve: Curves.easeInOut,
-                              errorWidget:
-                                  (context, url, error) => Image.asset(
-                                    'assets/png/profile-img.png',
-                                    fit: BoxFit.cover,
-                                    width: 170.r,
-                                    height: 170.r,
-                                  ),
+                               errorWidget: (context, url, error) {
+                                      print('Profile image error: $error');
+                                      return Container(
+                                        color: AppColors.secondary,
+                                        child: const Icon(
+                                          Icons.person,
+                                          size: 60,
+                                          color: Colors.white,
+                                        ),
+                                      );
+                                    },
                             );
                           }
                           //
-                          return Image.asset(
-                            'assets/png/profile-img.png',
-                            fit: BoxFit.cover,
-                            width: 170.r,
-                            height: 170.r,
-                          );
+                          return Container(
+                                    color: AppColors.secondary,
+                                    child: const Icon(
+                                      Icons.person,
+                                      size: 60,
+                                      color: Colors.white,
+                                    ),
+                                  );
                         },
                       ),
                     ),

@@ -1401,13 +1401,17 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ),
 
                     // 🔑 FIX: This Image.asset runs only if the URL is invalid or download fails.
-                    errorWidget:
-                        (context, url, error) => Image.asset(
-                          'assets/png/profile-img.png',
-                          fit: BoxFit.cover,
-                          width: double.infinity,
-                          height: double.infinity,
+                    errorWidget: (context, url, error) {
+                      print('Profile image error: $error');
+                      return Container(
+                        color: AppColors.secondary,
+                        child: const Icon(
+                          Icons.person,
+                          size: 60,
+                          color: Colors.white,
                         ),
+                      );
+                    },
 
                     fadeInDuration: const Duration(milliseconds: 500),
                     fadeOutDuration: const Duration(milliseconds: 300),
@@ -1415,14 +1419,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   );
                 } else {
                   //Placeholder if neither exists
-                  imageWidget = Image.asset(
-                    'assets/png/profile-img.png',
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: double.infinity,
+                  imageWidget = Container(
+                    color: AppColors.secondary,
+                    child: const Icon(
+                      Icons.person,
+                      size: 60,
+                      color: Colors.white,
+                    ),
                   );
                 }
-
                 // Your same positioned structure preserved
                 return Positioned(
                   top:
@@ -1480,8 +1485,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 );
               },
             ),
-
-       
           ],
         ),
       ),
@@ -1508,88 +1511,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           child: SvgPicture.asset('assets/svg/notify.svg'),
         ),
       ],
-    );
-  }
-
-  Widget _buildProfileImage(ProfileState state) {
-    final image = state.image;
-
-    // If user has selected a new image file, show it
-    if (image != null) {
-      return Image.file(
-        File(image.path),
-        fit: BoxFit.cover,
-        width: 170.r,
-        height: 170.r,
-        // Add gaplessPlayback to prevent flickering during rebuilds
-        gaplessPlayback: true,
-        errorBuilder:
-            (context, error, stackTrace) => Image.asset(
-              'assets/png/profile-img.png',
-              fit: BoxFit.cover,
-              width: 170.r,
-              height: 170.r,
-            ),
-      );
-    }
-
-    // If there's a photo from server, show it
-    if (state.profileEditViewResponse?.data?.photo?.isNotEmpty ?? false) {
-      return _buildBase64Image(state.profileEditViewResponse!.data!.photo);
-    }
-
-    // Default fallback image
-    return Image.asset(
-      'assets/png/profile-img.png',
-      fit: BoxFit.cover,
-      width: 170.r,
-      height: 170.r,
-      // Add gaplessPlayback here too
-      gaplessPlayback: true,
-    );
-  }
-
-  Widget _buildBase64Image(String? base64Image) {
-    if (base64Image != null && base64Image.isNotEmpty) {
-      try {
-        final cleanBase64 =
-            base64Image.startsWith('data:image')
-                ? base64Image.split(',').last
-                : base64Image;
-        final decodedBytes = base64Decode(cleanBase64);
-        return Image.memory(
-          decodedBytes,
-          fit: BoxFit.cover,
-          width: 170.r,
-          height: 170.r,
-          // Add gaplessPlayback to prevent flickering
-          gaplessPlayback: true,
-          errorBuilder:
-              (context, error, stackTrace) => Image.asset(
-                'assets/png/profile-img.png',
-                fit: BoxFit.cover,
-                width: 170.r,
-                height: 170.r,
-                gaplessPlayback: true,
-              ),
-        );
-      } catch (e) {
-        // debugPrint('Invalid base64 image: $e');
-        return Image.asset(
-          'assets/png/profile-img.png',
-          fit: BoxFit.cover,
-          width: 170.r,
-          height: 170.r,
-          gaplessPlayback: true,
-        );
-      }
-    }
-    return Image.asset(
-      'assets/png/profile-img.png',
-      fit: BoxFit.cover,
-      width: 170.r,
-      height: 170.r,
-      gaplessPlayback: true,
     );
   }
 

@@ -2,6 +2,7 @@ import 'package:badges/badges.dart' as badges;
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/resources/api_providers/customer/history_data_provider.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/count_controller.dart';
+import 'package:soloseaters/src/utils/data/auth_session_manager.dart';
 import 'package:soloseaters/src/utils/data/sign_out.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -56,7 +57,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 // context.read<CardCubit>().fetchCards();
               },
             ),
-           SliverAppBar(
+            SliverAppBar(
               backgroundColor: AppColors.primary,
               expandedHeight: 80.h,
               centerTitle: false,
@@ -83,33 +84,41 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   child: Obx(() {
                     return controller.notificationBadgeAmount.value > 0
                         ? badges.Badge(
-                          position: badges.BadgePosition.topEnd(top: 0, end: 0),
+                          position: badges.BadgePosition.topEnd(
+                            top: 0,
+                            end: -2,
+                          ),
                           badgeAnimation: badges.BadgeAnimation.slide(),
                           showBadge: true,
                           badgeStyle: badges.BadgeStyle(
                             shape: badges.BadgeShape.circle,
                             borderRadius: BorderRadius.circular(10.r),
                             badgeColor: Colors.red,
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 4.w,
-                              vertical: 2.h,
-                            ),
+                            padding: EdgeInsets.all(4),
                           ),
                           badgeContent: Text(
-                            controller.notificationBadgeAmount.value.toString(),
+                            // Logic: If greater than 99, show "99+", otherwise show number
+                            int.parse(
+                                      controller.notificationBadgeAmount.value
+                                          .toString(),
+                                    ) >
+                                    99
+                                ? "99+"
+                                : controller.notificationBadgeAmount.value
+                                    .toString(),
                             style: TextStyle(
                               color: Colors.white,
-                              fontSize: 12.sp,
+                              fontSize: 10.sp,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          child:  Icon(
+                          child: Icon(
                             Icons.notifications_outlined,
                             color: AppColors.primaryWhiteColor,
                             size: 27.w,
                           ),
                         )
-                        :  Icon(
+                        : Icon(
                           Icons.notifications_outlined,
                           color: AppColors.primaryWhiteColor,
                           size: 27.w,
@@ -129,8 +138,8 @@ class _HistoryScreenState extends State<HistoryScreen> {
               sliver: SliverToBoxAdapter(
                 child: BlocConsumer<HistoryBloc, HistoryState>(
                   builder: (context, state) {
-                    if(state is HistoryLoaded) {
-                      if(state.historyListResponse.data!.isEmpty) {
+                    if (state is HistoryLoaded) {
+                      if (state.historyListResponse.data!.isEmpty) {
                         WidgetsBinding.instance.addPostFrameCallback((_) {
                           EasyLoading.dismiss();
                         });
@@ -152,7 +161,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       return ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        padding: const EdgeInsets.only(top: 16, left: 16, right: 16,bottom: 30),
+                        padding: const EdgeInsets.only(
+                          top: 16,
+                          left: 16,
+                          right: 16,
+                          bottom: 30,
+                        ),
                         itemCount: state.historyListResponse.data!.length,
                         itemBuilder: (context, index) {
                           final entry = state.historyListResponse.data![index];
@@ -245,21 +259,24 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   },
                   listener: (context, state) {
                     if (state is HistoryLoaded) {
-                      if(state.historyListResponse.message!.contains("Unauthorized access!")) {
+                      if (state.historyListResponse.message!.contains(
+                        "Unauthorized access!",
+                      )) {
                         EasyLoading.dismiss();
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          SignOut().logout(context);
-                          Fluttertoast.showToast(
-                            fontSize: 14.sp,
-                            backgroundColor: AppColors.primaryWhiteColor,
-                            textColor: AppColors.appRedColor,
-                            gravity: ToastGravity.BOTTOM,
-                            msg:
-                            "Your session has expired. Please sign in again.",
-                          );
-                        });
+                        if (AuthSessionManager.consumeRefreshFailureFlag()) {
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            SignOut().logout(context);
+                            Fluttertoast.showToast(
+                              fontSize: 14.sp,
+                              backgroundColor: AppColors.primaryWhiteColor,
+                              textColor: AppColors.appRedColor,
+                              gravity: ToastGravity.BOTTOM,
+                              msg:
+                                  "Your session has expired. Please sign in again.",
+                            );
+                          });
+                        }
                       }
-
                     }
                     if (state is HistoryError) {
                       EasyLoading.dismiss();
@@ -268,8 +285,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         backgroundColor: AppColors.primaryWhiteColor,
                         textColor: AppColors.appRedColor,
                         gravity: ToastGravity.BOTTOM,
-                        msg:
-                        state.errorMessage,
+                        msg: state.errorMessage,
                       );
                     }
                   },

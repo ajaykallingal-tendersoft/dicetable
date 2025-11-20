@@ -221,6 +221,8 @@
 
 import 'dart:convert';
 
+import 'package:soloseaters/src/model/customer/cafe/favourite_list_response.dart';
+
 CafeListResponse cafeListResponseFromJson(String str) => CafeListResponse.fromJson(json.decode(str));
 
 String cafeListResponseToJson(CafeListResponse data) => json.encode(data.toJson());
@@ -565,6 +567,16 @@ class WorkingHour {
         opening: json["opening"],
         closing: json["closing"],
     );
+    factory WorkingHour.fromFavWorkingHour(FavWorkingHour favHour) {
+      return WorkingHour(
+        day: favHour.day,
+        // Convert int? (0 or 1) to bool? (false or true). 
+        // We assume 1 is true and 0/null is false/null.
+        isOpen: favHour.isOpen == null ? null : favHour.isOpen == 1, 
+        opening: favHour.opening,
+        closing: favHour.closing,
+      );
+    }
 
     Map<String, dynamic> toJson() => {
         "day": day,

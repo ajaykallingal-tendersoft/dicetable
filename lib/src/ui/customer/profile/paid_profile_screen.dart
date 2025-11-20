@@ -128,32 +128,49 @@ class _PadiProfileScreenState extends State<PadiProfileScreen> {
         // Show error message
         if (state.errorMessage != null &&
             state.errorMessage!.isNotEmpty &&
-            !state.isLoading) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  const Icon(Icons.error_outline, color: Colors.white),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      state.errorMessage!,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
+            !state.isLoading &&
+            !state.isUpdating) {
+          // ✅ Added this condition
+
+          // Don't show subscription errors repeatedly if user is just interacting
+          final isSubscriptionError = state.errorMessage!.contains(
+            'subscription',
+          );
+          final hasLocalChanges =
+              state.selectedBusinessImages.isNotEmpty ||
+              state.selectedHobbyImages.isNotEmpty ||
+              state.selectedProfileImage != null;
+
+          // Only show subscription error once (not on every interaction)
+          if (isSubscriptionError && hasLocalChanges) {
+            // Skip showing the error again if user is just making local changes
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    const Icon(Icons.error_outline, color: Colors.white),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        state.errorMessage!,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
+                backgroundColor: AppColors.appRedColor,
+                behavior: SnackBarBehavior.floating,
+                duration: const Duration(seconds: 4),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
-              backgroundColor: AppColors.appRedColor,
-              behavior: SnackBarBehavior.floating,
-              duration: const Duration(seconds: 4),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-          );
+            );
+          }
         }
 
         // Initialize controllers once when profile loads
@@ -199,7 +216,7 @@ class _PadiProfileScreenState extends State<PadiProfileScreen> {
                           controller: aboutMeController,
                           maxLines: 5,
                           height: 110,
-                          hintText: "Tell us about yourself...",
+                          hintText: "Add about yourself...",
                           onChanged: (_) {
                             context.read<PaidProfileBloc>().add(
                               const UpdateTextFieldEvent(),
@@ -215,7 +232,7 @@ class _PadiProfileScreenState extends State<PadiProfileScreen> {
                           controller: businessDetailsController,
                           maxLines: 5,
                           height: 110,
-                          hintText: "Tell us about your business...",
+                          hintText: "Add about your business...",
                           onChanged: (_) {
                             context.read<PaidProfileBloc>().add(
                               const UpdateTextFieldEvent(),
@@ -234,7 +251,7 @@ class _PadiProfileScreenState extends State<PadiProfileScreen> {
                           controller: interestController,
                           maxLines: 5,
                           height: 110,
-                          hintText: "Tell us about your interests...",
+                          hintText: "Add about your interests...",
                           onChanged: (_) {
                             context.read<PaidProfileBloc>().add(
                               const UpdateTextFieldEvent(),
@@ -298,15 +315,15 @@ class _PadiProfileScreenState extends State<PadiProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      hasLocalImages
-                          ? 'Business Photos (${localImages.length} new selected)'
-                          : 'Business Photos (${apiImages.length} saved)',
-                      style: GoogleFonts.roboto(
-                        color: AppColors.primaryWhiteColor.withOpacity(0.7),
-                        fontSize: 12.sp,
-                      ),
-                    ),
+                    // Text(
+                    //   hasLocalImages
+                    //       ? 'Business Photos (${localImages.length} new selected)'
+                    //       : 'Business Photos (${apiImages.length} saved)',
+                    //   style: GoogleFonts.roboto(
+                    //     color: AppColors.primaryWhiteColor.withOpacity(0.7),
+                    //     fontSize: 12.sp,
+                    //   ),
+                    // ),
                     if (hasLocalImages && hasApiImages)
                       Text(
                         'New images will replace existing ones',
@@ -357,15 +374,15 @@ class _PadiProfileScreenState extends State<PadiProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      hasLocalImages
-                          ? 'Hobby Photos (${localImages.length} new selected)'
-                          : 'Hobby Photos (${apiImages.length} saved)',
-                      style: GoogleFonts.roboto(
-                        color: AppColors.primaryWhiteColor.withOpacity(0.7),
-                        fontSize: 12.sp,
-                      ),
-                    ),
+                    // Text(
+                    //   hasLocalImages
+                    //       ? 'Hobby Photos (${localImages.length} new selected)'
+                    //       : 'Hobby Photos (${apiImages.length} saved)',
+                    //   style: GoogleFonts.roboto(
+                    //     color: AppColors.primaryWhiteColor.withOpacity(0.7),
+                    //     fontSize: 12.sp,
+                    //   ),
+                    // ),
                     if (hasLocalImages && hasApiImages)
                       Text(
                         'New images will replace existing ones',
@@ -412,9 +429,9 @@ class _PadiProfileScreenState extends State<PadiProfileScreen> {
       shrinkWrap: true,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
-        childAspectRatio: 1,
+        crossAxisSpacing: 10,
+        mainAxisSpacing: 10,
+        childAspectRatio: 0.7,
       ),
       itemCount: allImages.length,
       itemBuilder: (context, index) {
@@ -424,7 +441,7 @@ class _PadiProfileScreenState extends State<PadiProfileScreen> {
         return Stack(
           children: [
             ClipRRect(
-              borderRadius: BorderRadius.circular(10.r),
+              borderRadius: BorderRadius.circular(15.r),
               child:
                   isLocal
                       ? Image.file(
@@ -1041,17 +1058,6 @@ class _PadiProfileScreenState extends State<PadiProfileScreen> {
         onTap: () => Navigator.pop(context),
         child: SvgPicture.asset('assets/svg/back.svg', fit: BoxFit.scaleDown),
       ),
-      // actions: [
-      //   InkWell(
-      //     onTap: () {
-      //       // TODO: Navigate to notifications
-      //     },
-      //     child: Padding(
-      //       padding: EdgeInsets.only(right: 15.w),
-      //       child: SvgPicture.asset('assets/svg/notify.svg'),
-      //     ),
-      //   ),
-      // ],
     );
   }
 

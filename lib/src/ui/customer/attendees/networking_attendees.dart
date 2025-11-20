@@ -64,25 +64,28 @@ class _NetworkingAttendeesScreenState extends State<NetworkingAttendeesScreen> {
         ),
         body: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              _buildVenueImageCard(),
-              const SizedBox(height: 20),
-              ListView.builder(
-                shrinkWrap: true,
-                physics: NeverScrollableScrollPhysics(),
-                itemCount: attendees.length,
-                itemBuilder: (context, index) {
-                  final attendee = attendees[index];
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16.0),
-                    child: _buildAttendeeCard(attendee),
-                  );
-                },
-              ),
-              const SizedBox(height: 30),
-            ],
-          ),
+          child:
+              attendees.isEmpty
+                  ? _buildEmptyAttendeesUI(context) // SHOW ONLY EMPTY UI
+                  : Column(
+                    children: [
+                      _buildVenueImageCard(),
+                      const SizedBox(height: 20),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: attendees.length,
+                        itemBuilder: (context, index) {
+                          final attendee = attendees[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 16.0),
+                            child: _buildAttendeeCard(attendee),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 30),
+                    ],
+                  ),
         ),
       ),
     );
@@ -150,6 +153,7 @@ class _NetworkingAttendeesScreenState extends State<NetworkingAttendeesScreen> {
 
   Widget _buildAttendeeCard(Attende attende) {
     final imageUrl = attende.profilePhoto ?? "";
+    print("Attentee Photo: ${attende.profilePhoto}");
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -250,4 +254,36 @@ class _NetworkingAttendeesScreenState extends State<NetworkingAttendeesScreen> {
       ),
     );
   }
+}
+
+Widget _buildEmptyAttendeesUI(BuildContext context) {
+  return SizedBox(
+    height: MediaQuery.sizeOf(context).height,
+    width: MediaQuery.sizeOf(context).width,
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(
+          "No attendees found!",
+          style: GoogleFonts.montserrat(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
+        ),
+        const Gap(8),
+        Text(
+          "Once people start joining this event,\nyou can view them.",
+          textAlign: TextAlign.center,
+          style: GoogleFonts.montserrat(
+            fontSize: 14,
+            fontWeight: FontWeight.w400,
+            color: Colors.white.withOpacity(0.9),
+          ),
+        ),
+        const Gap(150),
+      ],
+    ),
+  );
 }

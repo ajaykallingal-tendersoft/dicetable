@@ -9,13 +9,13 @@ import 'package:soloseaters/src/model/customer/cafe/cafe_list_response.dart';
 import 'package:soloseaters/src/model/customer/cafe/favourite_list_response.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/bloc/notification_bloc.dart';
 import 'package:soloseaters/src/ui/customer/cafe_details/widget/cafe_details_card.dart';
-import 'package:soloseaters/src/ui/customer/cafe_list/bloc/cafe_list_bloc.dart';
 import 'package:soloseaters/src/ui/customer/cafe_list/components/cafe_details_arguments.dart';
 import 'package:soloseaters/src/ui/customer/favourites/widget/fav_details_argument.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
+import 'package:soloseaters/src/purchase/bloc/bloc/purchase_bloc.dart';
+import 'package:soloseaters/src/purchase/bloc/bloc/purchase_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -48,15 +48,15 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
   late final List<String> _tableType;
   late final String _description;
   late final String _image;
-  late final dynamic _openingHours;
-  late final List<FavWorkingHour> _favOpeningHours;
+  late final List<WorkingHour>? _openingHours;
+  // late final dynamic _openingHours;
+  // late final List<FavWorkingHour> _favOpeningHours;
   late final String _id;
   late final bool _isFromFavorites;
   late bool _bookingStatus;
   late final List<String> _gallery;
   late final List<Attende> _attendes;
   late final List<UpcomingEvent> _upcomingEvents;
-  final bool isPaidUser = false;
   bool savePrefToggle = false;
 
   final CounterController controller = Get.find<CounterController>();
@@ -74,7 +74,9 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
       _tableType = widget.cafeDetailsArguments!.tableType;
       _description = widget.cafeDetailsArguments!.description;
       _image = widget.cafeDetailsArguments!.image;
-      _openingHours = widget.cafeDetailsArguments!.openingHours;
+      _openingHours =
+          widget.cafeDetailsArguments!.openingHours as List<WorkingHour>?;
+      // _openingHours = widget.cafeDetailsArguments!.openingHours;
       _id = widget.cafeDetailsArguments!.id;
       _bookingStatus = widget.cafeDetailsArguments!.bookingStatus;
       _gallery = widget.cafeDetailsArguments!.gallery;
@@ -82,11 +84,25 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
       _upcomingEvents = widget.cafeDetailsArguments!.upcomingEvents;
     } else if (widget.favDetailsArguments != null) {
       _isFromFavorites = true;
+      final List<dynamic>? favHoursDynamic =
+          widget.favDetailsArguments!.openingHours;
+      if (favHoursDynamic != null && favHoursDynamic.isNotEmpty) {
+        final List<FavWorkingHour> favHours =
+            favHoursDynamic.cast<FavWorkingHour>();
+
+        _openingHours =
+            favHours
+                .map((favHour) => WorkingHour.fromFavWorkingHour(favHour))
+                .toList();
+      } else {
+        _openingHours = null;
+      }
+
       _name = widget.favDetailsArguments!.name;
       _tableType = widget.favDetailsArguments!.tableType;
       _description = widget.favDetailsArguments!.description;
       _image = widget.favDetailsArguments!.image;
-      _openingHours = widget.favDetailsArguments!.openingHours;
+      // _openingHours = widget.favDetailsArguments!.openingHours;
       _id = widget.favDetailsArguments!.id;
       _bookingStatus = widget.favDetailsArguments!.bookingStatus;
       _gallery = widget.favDetailsArguments!.gallery; // Now available
@@ -97,14 +113,6 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
         'Both cafeDetailsArguments and favDetailsArguments cannot be null',
       );
     }
-  }
-
-  void _toggleSavePref(bool value) {
-    setState(() {
-      savePrefToggle = value;
-
-      print('🔄 Toggle: $value');
-    });
   }
 
   @override
@@ -240,7 +248,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                             ? badges.Badge(
                               position: badges.BadgePosition.topEnd(
                                 top: 0,
-                                end: -12,
+                                end: -2,
                               ),
                               badgeAnimation: badges.BadgeAnimation.slide(),
                               showBadge: true,
@@ -333,7 +341,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
 
                       _bookingStatus == true
                           ? _showWithdrawDialog(context)
-                          : _showBookingDialog(context, isPaidUser);
+                          : _showBookingDialog(context);
                     },
                     child: ElevatedButtonWidget(
                       height: 70.h,
@@ -357,7 +365,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
     );
   }
 
-  void _showBookingDialog(BuildContext context, bool isPaidUser) {
+  void _showBookingDialog(BuildContext context) {
     final TextEditingController checkInController = TextEditingController();
     final TextEditingController checkOutController = TextEditingController();
     final TextEditingController apiCheckInController = TextEditingController();
@@ -674,152 +682,178 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                               color: AppColors.textPrimaryGrey.withOpacity(0.3),
                             ),
                           ),
-                          child: DropdownButtonFormField<String>(
-                            value: selectedDiceTableType,
-                            isDense: false,
-                            isExpanded: true,
-                            decoration: InputDecoration(
-                              contentPadding: EdgeInsets.symmetric(
-                                horizontal: 16.w,
-                                vertical: 14.h,
-                              ),
-                              border: InputBorder.none,
-                              enabledBorder: InputBorder.none,
-                              focusedBorder: InputBorder.none,
-                              errorBorder: InputBorder.none,
-                              focusedErrorBorder: InputBorder.none,
-                            ),
-                            hint: Text(
-                              'Select Table Type',
-                              style: TextStyle(
-                                color: AppColors.textPrimaryGrey.withOpacity(
-                                  0.6,
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 6.0),
+                            child: DropdownButtonFormField<String>(
+                              value: selectedDiceTableType,
+                              isDense: false,
+                              isExpanded: true,
+                              decoration: InputDecoration(
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 16.w,
+                                  vertical: 14.h,
                                 ),
-                                fontWeight: FontWeight.w400,
+                                border: InputBorder.none,
+                                enabledBorder: InputBorder.none,
+                                focusedBorder: InputBorder.none,
+                                errorBorder: InputBorder.none,
+                                focusedErrorBorder: InputBorder.none,
+                              ),
+                              hint: Text(
+                                'Select Table Type',
+                                style: TextStyle(
+                                  color: AppColors.textPrimaryGrey.withOpacity(
+                                    0.6,
+                                  ),
+                                  fontWeight: FontWeight.w400,
+                                  fontSize: 14.sp,
+                                ),
+                              ),
+                              icon: Icon(
+                                Icons.keyboard_arrow_down,
+                                color: AppColors.textPrimaryGrey,
+                                size: 24.w,
+                              ),
+                              style: TextStyle(
+                                color: AppColors.textPrimaryGrey,
+                                fontWeight: FontWeight.w500,
                                 fontSize: 14.sp,
                               ),
-                            ),
-                            icon: Icon(
-                              Icons.keyboard_arrow_down,
-                              color: AppColors.textPrimaryGrey,
-                              size: 24.w,
-                            ),
-                            style: TextStyle(
-                              color: AppColors.textPrimaryGrey,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14.sp,
-                            ),
-                            dropdownColor: AppColors.primaryWhiteColor,
-                            items:
-                                _tableType.map((tableType) {
-                                  return DropdownMenuItem<String>(
-                                    value: tableType,
-                                    child: Text(
-                                      tableType,
-                                      style: TextStyle(
-                                        color: AppColors.textPrimaryGrey,
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: 14.sp,
+                              dropdownColor: AppColors.primaryWhiteColor,
+                              items:
+                                  _tableType.map((tableType) {
+                                    return DropdownMenuItem<String>(
+                                      value: tableType,
+                                      child: Text(
+                                        tableType,
+                                        style: TextStyle(
+                                          color: AppColors.textPrimaryGrey,
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: 14.sp,
+                                        ),
                                       ),
-                                    ),
-                                  );
-                                }).toList(),
-                            onChanged: (String? newValue) {
-                              setState(() {
-                                selectedDiceTableType = newValue;
-                              });
-                            },
+                                    );
+                                  }).toList(),
+                              onChanged: (String? newValue) {
+                                setState(() {
+                                  selectedDiceTableType = newValue;
+                                });
+                              },
+                            ),
                           ),
                         ),
 
                         Gap(20.h),
-                        if (!isPaidUser)
-                          // Upgrade Info Box
-                          Container(
-                            padding: EdgeInsets.all(14.w),
-                            decoration: BoxDecoration(
-                              color: Color(0xFFE8F4F8),
-                              borderRadius: BorderRadius.circular(12.r),
-                            ),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  padding: EdgeInsets.all(2.w),
-                                  child: Icon(
-                                    Icons.info_outline,
-                                    color: AppColors.primary,
-                                    size: 20.w,
-                                  ),
-                                ),
-                                Gap(10.w),
-                                Expanded(
-                                  child: RichText(
-                                    text: TextSpan(
-                                      style: TextStyle(
-                                        color: AppColors.textPrimaryGrey,
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: 13.sp,
-                                        height: 1.4,
-                                      ),
-                                      children: [
-                                        TextSpan(
-                                          text:
-                                              'Upgrade to Serious Networker to unlock the full profile, save preferences, and more. ',
-                                        ),
+                        BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
+                          builder: (context, paymentState) {
+                            final isPaidUser =
+                                paymentState.canAccessPremiumFeatures ||
+                                paymentState.isSubscriptionActive;
 
-                                        WidgetSpan(
-                                          child: GestureDetector(
-                                            onTap: () {
-                                              // Add navigation to upgrade page
-                                              context.push('/payment_plan');
-                                            },
-                                            child: Text(
-                                              'Upgrade Now',
-                                              style: TextStyle(
-                                                color: AppColors.primary,
-                                                fontWeight: FontWeight.w600,
-                                                fontSize: 13.sp,
-                                                decoration:
-                                                    TextDecoration.underline,
+                            if (!isPaidUser) {
+                              // Upgrade Info Box
+                              return Container(
+                                padding: EdgeInsets.all(14.w),
+                                decoration: BoxDecoration(
+                                  color: Color(0xFFE8F4F8),
+                                  borderRadius: BorderRadius.circular(12.r),
+                                ),
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      padding: EdgeInsets.all(2.w),
+                                      child: Icon(
+                                        Icons.info_outline,
+                                        color: AppColors.primary,
+                                        size: 20.w,
+                                      ),
+                                    ),
+                                    Gap(10.w),
+                                    Expanded(
+                                      child: RichText(
+                                        text: TextSpan(
+                                          style: TextStyle(
+                                            color: AppColors.textPrimaryGrey,
+                                            fontWeight: FontWeight.w400,
+                                            fontSize: 13.sp,
+                                            height: 1.4,
+                                          ),
+                                          children: [
+                                            TextSpan(
+                                              text:
+                                                  'Upgrade to Serious Networker to unlock the full profile, save preferences, and more. ',
+                                            ),
+
+                                            WidgetSpan(
+                                              child: GestureDetector(
+                                                onTap: () {
+                                                  // Navigate to upgrade page
+                                                  Navigator.of(context).pop();
+                                                  context.push('/payment_plan');
+                                                },
+                                                child: Text(
+                                                  'Upgrade Now',
+                                                  style: TextStyle(
+                                                    color: AppColors.primary,
+                                                    fontWeight: FontWeight.w600,
+                                                    fontSize: 13.sp,
+                                                    decoration:
+                                                        TextDecoration
+                                                            .underline,
+                                                  ),
+                                                ),
                                               ),
                                             ),
-                                          ),
+                                          ],
                                         ),
-                                      ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            } else {
+                              // Toggle for paid users
+                              return Row(
+                                children: [
+                                  SizedBox(
+                                    width: 50.0,
+                                    height: 36.0,
+                                    child: FittedBox(
+                                      fit: BoxFit.fill,
+                                      child: Switch(
+                                        value: savePrefToggle,
+                                        onChanged: (value) {
+                                          setState(() {
+                                            savePrefToggle = value;
+                                          });
+                                          print(
+                                            'Switch value: $savePrefToggle',
+                                          );
+                                        },
+                                        activeColor:
+                                            AppColors.primaryWhiteColor,
+                                        activeTrackColor: AppColors.secondary,
+                                        inactiveThumbColor: Colors.white,
+                                        inactiveTrackColor:
+                                            Colors.grey.shade400,
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          )
-                        else
-                          Row(
-                            children: [
-                              Switch(
-                                value: savePrefToggle,
-                                onChanged: (value) {
-                                  setState(() {
-                                    savePrefToggle = value;
-                                  });
-                                  print('Switch value: $savePrefToggle');
-                                },
-                                activeColor: AppColors.primaryWhiteColor,
-                                activeTrackColor: AppColors.secondary,
-                                inactiveThumbColor: Colors.white,
-                                inactiveTrackColor: Colors.grey.shade400,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Save as Preference',
-                                style: GoogleFonts.montserrat(
-                                  fontSize: 14,
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    'Save as Preference',
+                                    style: GoogleFonts.montserrat(
+                                      fontSize: 14,
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }
+                          },
+                        ),
 
                         Gap(24.h),
 
@@ -898,16 +932,17 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
-      initialEntryMode: TimePickerEntryMode.dialOnly, // <-- for 24 hour input
+      initialEntryMode: TimePickerEntryMode.input, // <-- for 24 hour input
       builder: (BuildContext context, Widget? child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: ColorScheme.light(
+            colorScheme: const ColorScheme.light(
               primary: AppColors.primary,
               onSurface: AppColors.textPrimaryGrey,
             ),
             timePickerTheme: TimePickerThemeData(
               backgroundColor: AppColors.primaryWhiteColor,
+              // Assuming r is defined (e.g., using flutter_screenutil or similar)
               hourMinuteShape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8.r),
               ),
@@ -916,7 +951,10 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
               ),
             ),
           ),
-          child: child!,
+          child: MediaQuery(
+            data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+            child: child!,
+          ),
         );
       },
     );

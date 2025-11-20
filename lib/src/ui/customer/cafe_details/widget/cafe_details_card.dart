@@ -2,7 +2,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/constants/assets.dart';
+import 'package:soloseaters/src/purchase/bloc/bloc/purchase_bloc.dart';
+import 'package:soloseaters/src/purchase/bloc/bloc/purchase_state.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
@@ -16,7 +19,8 @@ class CafeDetailsCard extends StatefulWidget {
   final List<String> tableType;
   final String description;
   final String image;
-   final dynamic openingHours;
+  final List<WorkingHour>? openingHours;
+  //  final dynamic openingHours;
   // final List<WorkingHour>? openingHours;
   final bool bookingStatus;
   final List<String> gallery;
@@ -51,11 +55,12 @@ class _CafeDetailsCardState extends State<CafeDetailsCard> {
 
   Widget _buildDot(int index) {
     return Container(
-      width: 8.0,
-      height: 8.0,
+      width: 10.0,
+      height: 5.0,
       margin: EdgeInsets.symmetric(horizontal: 4.0),
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
+        shape: BoxShape.rectangle,
+        borderRadius: BorderRadius.circular(8),
         color:
             _currentPage == index
                 ? AppColors.primary
@@ -95,7 +100,6 @@ class _CafeDetailsCardState extends State<CafeDetailsCard> {
       final parts = time24.split(':');
       final hour = int.parse(parts[0]);
       final minute = int.parse(parts[1]);
-      final time = TimeOfDay(hour: hour, minute: minute);
       // You might need a more robust way to get the context for format,
       // but this is a simple string conversion approach:
       final period = hour >= 12 ? 'PM' : 'AM';
@@ -109,16 +113,16 @@ class _CafeDetailsCardState extends State<CafeDetailsCard> {
 
   @override
   Widget build(BuildContext context) {
+    final String sanitizedDescription = widget.description.trim();
     final bool hasDescription =
-        widget.description != null &&
-        widget.description.trim().isNotEmpty &&
-        widget.description.trim().toLowerCase() != 'null';
+        sanitizedDescription.isNotEmpty &&
+        sanitizedDescription.toLowerCase() != 'null';
 
     final bool hasUpcomingEvents = widget.upcomingEvents?.isNotEmpty ?? false;
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(16),
-      margin: EdgeInsets.all(10),
+      padding: EdgeInsets.all(12),
+      margin: EdgeInsets.all(5),
       decoration: BoxDecoration(
         color: AppColors.primaryWhiteColor,
         borderRadius: BorderRadius.circular(15),
@@ -146,43 +150,48 @@ class _CafeDetailsCardState extends State<CafeDetailsCard> {
                   fontSize: 16.sp,
                 ),
               ),
-              InkWell(
-                onTap: () {
-                  context.push(
-                    '/networking_attendees',
-                    extra: CafeDetailsArguments(
-                      from: "CafeList",
-                      name: widget.name ?? "Unknown Cafe",
-                      tableType: widget.tableType ?? [],
-                      description: widget.description ?? "No description",
-                      image: widget.image ?? '',
-                      openingHours: widget.openingHours ?? [],
-                      id: widget.id.toString(),
-                      bookingStatus: widget.bookingStatus ?? false,
-                      gallery: widget.gallery ?? [],
-                      attendes: widget.attendes ?? [],
-                      upcomingEvents: widget.upcomingEvents ?? [],
+              BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
+                builder: (context, paymentState) {
+                  // Premium gating temporarily disabled to allow attendee list access for all users.
+                  return InkWell(
+                    onTap: () {
+                      context.push(
+                        '/networking_attendees',
+                        extra: CafeDetailsArguments(
+                          from: "CafeList",
+                          name: widget.name,
+                          tableType: widget.tableType,
+                          description: widget.description,
+                          image: widget.image,
+                          openingHours: widget.openingHours ?? [],
+                          id: widget.id.toString(),
+                          bookingStatus: widget.bookingStatus,
+                          gallery: widget.gallery,
+                          attendes: widget.attendes ?? [],
+                          upcomingEvents: widget.upcomingEvents ?? [],
+                        ),
+                      );
+                    },
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        'View Attendees',
+                        style: Theme.of(context).textTheme.bodySmall!.copyWith(
+                          color: AppColors.primaryWhiteColor,
+                          fontSize: 12.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                   );
-                  // TODO: Implement navigation to the attendees screen
-                  // context.push('/attendees_screen', extra: id);
                 },
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color:
-                        AppColors.primary, // Using primary color for the button
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Text(
-                    'View Attendess',
-                    style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                      color: AppColors.primaryWhiteColor,
-                      fontSize: 12.sp,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
               ),
             ],
           ),
@@ -198,7 +207,7 @@ class _CafeDetailsCardState extends State<CafeDetailsCard> {
                   borderRadius: BorderRadius.circular(15),
                   child: AspectRatio(
                     aspectRatio:
-                        4/3, // Auto adjust height instead of fixed 240.h
+                        4 / 3, // Auto adjust height instead of fixed 240.h
                     child: PageView.builder(
                       itemCount: widget.gallery.length,
                       onPageChanged: (index) {
@@ -244,58 +253,7 @@ class _CafeDetailsCardState extends State<CafeDetailsCard> {
                 );
               },
             ),
-
-          // ClipRRect(
-          //   borderRadius: BorderRadius.circular(15),
-          //   child: SizedBox(
-          //     height: 240.h, // Define a fixed height for the carousel
-          //     child: PageView.builder(
-          //       itemCount: widget.gallery.length,
-          //       onPageChanged: (index) {
-          //         setState(() {
-          //           _currentPage = index;
-          //         });
-          //       },
-          //       itemBuilder: (context, index) {
-          //         final imageUrl = widget.gallery[index];
-          //         // Use the Hero tag on the first image only, or use a list of unique tags
-          //         final heroTag =
-          //             index == 0 ? widget.id : '${widget.id}_$index';
-
-          //         return Hero(
-          //           tag: heroTag,
-          //           child:
-          //               (imageUrl.trim().isNotEmpty)
-          //                   ? CachedNetworkImage(
-          //                     imageUrl: imageUrl,
-          //                     fit:
-          //                         BoxFit
-          //                             .cover, // Use BoxFit.cover for carousels
-          //                     placeholder:
-          //                         (context, url) => Center(
-          //                           child: Lottie.asset(
-          //                             Assets.JUMBING_DOT,
-          //                             height: 20,
-          //                             width: 20,
-          //                           ),
-          //                         ),
-          //                     errorWidget:
-          //                         (context, url, error) => SvgPicture.asset(
-          //                           'assets/svg/cafe-list.svg',
-          //                           fit: BoxFit.cover,
-          //                         ),
-          //                   )
-          //                   : SvgPicture.asset(
-          //                     'assets/svg/cafe-list.svg',
-          //                     fit: BoxFit.cover,
-          //                   ),
-          //         );
-          //       },
-          //     ),
-          //   ),
-          // ),
           Gap(7),
-
           // Pagination Dots
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -322,7 +280,10 @@ class _CafeDetailsCardState extends State<CafeDetailsCard> {
                   ),
                 ),
                 TextSpan(
-                  text: widget.tableType.join(', ') ?? '',
+                  text:
+                      widget.tableType.isNotEmpty
+                          ? widget.tableType.join(', ')
+                          : 'No table type available',
                   style: TextTheme.of(context).bodyMedium!.copyWith(
                     color: AppColors.shadowColor,
                     fontWeight: FontWeight.w600,
@@ -351,7 +312,9 @@ class _CafeDetailsCardState extends State<CafeDetailsCard> {
           Visibility(
             visible: hasDescription,
             child: Text(
-              widget.description,
+              sanitizedDescription.isEmpty
+                  ? 'No description available'
+                  : sanitizedDescription,
               style: TextTheme.of(context).bodyMedium!.copyWith(
                 color: AppColors.shadowColor,
                 fontWeight: FontWeight.w600,
@@ -384,8 +347,7 @@ class _CafeDetailsCardState extends State<CafeDetailsCard> {
                     // The main logic to process and display all event details
                     // The following section is corrected:
                     ...?widget.upcomingEvents?.map((event) {
-                      // Correctly cast the dynamic event to UpcomingEvent
-                      final upcomingEvent = event as UpcomingEvent;
+                      final upcomingEvent = event;
 
                       final dayWidgets = <Widget>[];
 
@@ -396,7 +358,7 @@ class _CafeDetailsCardState extends State<CafeDetailsCard> {
                         for (var day in availableDays) {
                           // Access properties directly from the AvailableDay object
                           // and use the helper function _getFullDay
-                          final fullDay = _getFullDay(day.day as String);
+                          final fullDay = _getFullDay(day.day ?? '');
 
                           // Access timings directly from the AvailableDay object
                           final timings = day.timings;
@@ -404,12 +366,14 @@ class _CafeDetailsCardState extends State<CafeDetailsCard> {
                           if (timings != null) {
                             for (var timing in timings) {
                               // Access open/close directly from the Timing object
-                              final openTime = _formatTime(
-                                timing.open as String,
-                              );
-                              final closeTime = _formatTime(
-                                timing.close as String,
-                              );
+                              final openTime =
+                                  timing.open != null
+                                      ? _formatTime(timing.open!)
+                                      : 'N/A';
+                              final closeTime =
+                                  timing.close != null
+                                      ? _formatTime(timing.close!)
+                                      : 'N/A';
 
                               // 1. Event Name on Day (Business Networking on Monday)
                               dayWidgets.add(
@@ -473,10 +437,7 @@ class _CafeDetailsCardState extends State<CafeDetailsCard> {
           // --- START OF WORKING HOURS FIX ---
           if (widget.openingHours != null && widget.openingHours!.isNotEmpty)
             ...widget.openingHours!
-                .map((entry) {
-                  // Safely cast the entry to the correct WorkingHour model
-                  final workingHour = entry as WorkingHour;
-
+                .map((workingHour) {
                   // Determine the display text, color, and font weight
                   final String timeText;
                   final Color timeColor;
@@ -498,7 +459,7 @@ class _CafeDetailsCardState extends State<CafeDetailsCard> {
                     timeFontWeight = FontWeight.w600;
                   }
 
-                  final dayName = _getFullDay(workingHour.day as String);
+                  final dayName = _getFullDay(workingHour.day ?? '');
 
                   return Padding(
                     padding: const EdgeInsets.only(

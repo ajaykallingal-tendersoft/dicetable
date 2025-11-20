@@ -1,27 +1,31 @@
 import 'package:bloc/bloc.dart';
+import 'package:equatable/equatable.dart';
 import 'package:flutter/services.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/login/apple_login_request.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/login/apple_login_request_response.dart';
+import 'package:soloseaters/src/model/cafe_owner/auth/login/google_login_request.dart';
+import 'package:soloseaters/src/model/cafe_owner/auth/login/google_login_request_response.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/login/login_request.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/login/login_request_response.dart';
 import 'package:soloseaters/src/model/customer/guest/guest_signin_response.dart';
 import 'package:soloseaters/src/model/customer/guest/guest_user_request.dart';
+import 'package:soloseaters/src/purchase/repository/purchase_repository.dart';
 import 'package:soloseaters/src/resources/api_providers/auth/auth_data_provider.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:soloseaters/src/utils/extension/state_model_extension.dart';
-import 'package:equatable/equatable.dart';
-
-import '../../../../../model/cafe_owner/auth/login/google_login_request.dart';
-import '../../../../../model/cafe_owner/auth/login/google_login_request_response.dart';
 
 part 'customer_login_event.dart';
 part 'customer_login_state.dart';
 
 class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
   final AuthDataProvider authDataProvider;
+  final PaymentRepository paymentRepository;
 
-  CustomerLoginBloc({required this.authDataProvider})
-    : super(LoginFormState()) {
+  CustomerLoginBloc({
+    required this.authDataProvider,
+    PaymentRepository? paymentRepository,
+  }) : paymentRepository = paymentRepository ?? PaymentRepository(),
+       super(const LoginFormState()) {
     on<EmailChanged>(_onEmailChanged);
     on<PasswordChanged>(_onPasswordChanged);
     on<FormSubmitted>(_onFormSubmitted);
@@ -96,14 +100,17 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
           loginType: 5,
         );
         final stateModel = await authDataProvider.loginUser(loginRequest);
-    
 
         if (stateModel.isSuccess) {
-          emit(
-            CustomerLoginSuccessState(
-              loginRequestResponse: stateModel.data as LoginRequestResponse,
+          final loginResponse = stateModel.data as LoginRequestResponse;
+          await paymentRepository.cacheBackendSubscriptionState(
+            isPaidUser: _isPaidUser(
+              subscriptionStatus: loginResponse.subscriptionStatus,
+              isPaidFlag: loginResponse.user?.isPaid,
             ),
+            subscriptionStatus: loginResponse.subscriptionStatus,
           );
+          emit(CustomerLoginSuccessState(loginRequestResponse: loginResponse));
           emit(LoginFormState(email: email, password: password));
         } else if (stateModel.isError) {
           emit(CustomerLoginFailureState(stateModel.error as String));
@@ -132,6 +139,13 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
         event.googleLoginRequest,
       );
       if (response!.data.status == true) {
+        await paymentRepository.cacheBackendSubscriptionState(
+          isPaidUser: _isPaidUser(
+            subscriptionStatus: response.data.subscriptionStatus,
+            isPaidFlag: response.data.user?.isPaid,
+          ),
+          subscriptionStatus: response.data.subscriptionStatus,
+        );
         emit(GoogleLoginLoaded(googleLoginResponse: response.data));
         emit(
           LoginFormState(email: formState.email, password: formState.password),
@@ -184,12 +198,18 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
       );
 
       if (response!.data.status == true) {
+        await paymentRepository.cacheBackendSubscriptionState(
+          isPaidUser: _isPaidUser(
+            subscriptionStatus: response.data.subscriptionStatus,
+            isPaidFlag: response.data.user?.isPaid,
+          ),
+          subscriptionStatus: response.data.subscriptionStatus,
+        );
         emit(LoginWithAppleLoaded(appleLoginRequestResponse: response.data));
         emit(
           LoginFormState(email: formState.email, password: formState.password),
         );
       } else {
-        
         emit(
           LoginWithAppleError(
             response.data.message,
@@ -213,5 +233,10 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
         LoginFormState(email: formState.email, password: formState.password),
       );
     }
+  }
+
+  bool _isPaidUser({bool? subscriptionStatus, int? isPaidFlag}) {
+    final paidFlag = isPaidFlag ?? 0;
+    return subscriptionStatus == true || paidFlag == 1;
   }
 }

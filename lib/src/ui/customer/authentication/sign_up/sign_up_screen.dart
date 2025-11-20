@@ -146,6 +146,9 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                 );
               }
             } else if (response.status == true) {
+              ObjectFactory().prefs.setCustomerUserMail(
+                customerUserMail: state.signUpRequestResponse.user!.email,
+              );
               ObjectFactory().prefs.setCustomerAuthToken(
                 token: state.signUpRequestResponse.token,
               );
@@ -212,6 +215,9 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
               ObjectFactory().prefs.setCustomerAuthToken(
                 token: state.googleSignUpRequestResponse.token,
               );
+              ObjectFactory().prefs.setCustomerUserMail(
+                customerUserMail: state.googleSignUpRequestResponse.user!.email,
+              );
               ObjectFactory().prefs.setUserId(
                 userId: state.googleSignUpRequestResponse.user!.id.toString(),
               );
@@ -259,6 +265,10 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
               ObjectFactory().prefs.setCustomerAuthToken(
                 token: state.appleSignUpRequestResponse.token,
               );
+              ObjectFactory().prefs.setCustomerUserMail(
+                customerUserMail: state.appleSignUpRequestResponse.user!.email,
+              );
+
               ObjectFactory().prefs.setUserId(
                 userId: state.appleSignUpRequestResponse.user!.id.toString(),
               );

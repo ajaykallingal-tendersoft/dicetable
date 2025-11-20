@@ -96,29 +96,36 @@ class DiceTable {
 }
 
 class Attendee {
-    final int? userId;
-    final String? name;
-    final String? email;
-    final String? profilePhoto;
-    final dynamic bookingDate;
-    final dynamic bookingTime;
-    final String? additionalInfo;
-    final bool? isPaidUser;
-    final List<String>? preferences;
+  final int? userId;
+  final String? name;
+  final String? email;
+  final String? profilePhoto;
+  final dynamic bookingDate;
+  final dynamic bookingTime;
+  final String? additionalInfo;
+  final int? isPaidUser;
+  final List<String> preferences;
 
-    Attendee({
-        this.userId,
-        this.name,
-        this.email,
-        this.profilePhoto,
-        this.bookingDate,
-        this.bookingTime,
-        this.additionalInfo,
-        this.isPaidUser,
-        this.preferences,
-    });
+  Attendee({
+    this.userId,
+    this.name,
+    this.email,
+    this.profilePhoto,
+    this.bookingDate,
+    this.bookingTime,
+    this.additionalInfo,
+    this.isPaidUser,
+    required this.preferences,
+  });
 
-    factory Attendee.fromJson(Map<String, dynamic> json) => Attendee(
+  static List<String> _parseSocialSolo(dynamic value) {
+    if (value is List) {
+      return value.map((e) => e.toString()).toList();
+    }
+    return <String>[]; // fallback for false/null
+  }
+
+  factory Attendee.fromJson(Map<String, dynamic> json) => Attendee(
         userId: json["user_id"],
         name: json["name"],
         email: json["email"],
@@ -126,13 +133,11 @@ class Attendee {
         bookingDate: json["booking_date"],
         bookingTime: json["booking_time"],
         additionalInfo: json["additional_info"],
-        isPaidUser: json["isPaidUser"],
-         preferences: json["preferences"] != null
-            ? List<String>.from(json["preferences"].map((x) => x.toString()))
-            : [],
-    );
+        isPaidUser: json['is_paid'] as int?,
+        preferences: _parseSocialSolo(json["social_solo"]),
+      );
 
-    Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toJson() => {
         "user_id": userId,
         "name": name,
         "email": email,
@@ -141,8 +146,10 @@ class Attendee {
         "booking_time": bookingTime,
         "additional_info": additionalInfo,
         "isPaidUser": isPaidUser,
-         "preferences": preferences,
-    };
+        "social_solo": preferences,
+      };
+
+
 }
 
 

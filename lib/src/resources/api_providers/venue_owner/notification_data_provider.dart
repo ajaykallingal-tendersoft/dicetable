@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:soloseaters/src/model/state_model.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/notification_item.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
@@ -19,27 +17,28 @@ class NotificationDataProvider {
       }
       return null;
     } on DioException catch (e) {
-
-      if (e.response?.statusCode == 500) {
+      final statusCode = e.response?.statusCode;
+      if (statusCode == 500) {
         return StateModel.error(
             "The server isn't responding! Please try again later.");
-        // return response!;
-      } else if (e.response?.statusCode == 408) {
+      } else if (statusCode == 408) {
         return StateModel.error(
-            "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-      } else if (e.response!.statusCode == 401) {
+            "Hello there! It seems like your request took longer than expected to process. Please try again later.");
+      } else if (statusCode == 401) {
+        return StateModel.error("UnAuthorized error");
+      } else if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout) {
         return StateModel.error(
-            "UnAuthorized error");
-      } else if (e.type.name == "connectionError") {
+            "The request timed out. Please check your connection and try again.");
+      } else if (e.type == DioExceptionType.connectionError ||
+          e.type == DioExceptionType.unknown) {
         return StateModel.error(
-            "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-      }else if(e.response == null) {
-        return StateModel.error(
-            "The server isn't responding! Please try again later.");
+            "Connection error. Please check your internet connection and try again.");
       }
-
     }
-    return null;
+    return StateModel.error(
+        "Unexpected error occurred. Please try again later.");
   }
 
   /// Customer notification data by id
@@ -54,38 +53,34 @@ class NotificationDataProvider {
       }
       return null;
     } on DioException catch (e) {
-
-      if (e.response?.statusCode == 500) {
+      final statusCode = e.response?.statusCode;
+      if (statusCode == 500) {
         return StateModel.error(
             "The server isn't responding! Please try again later.");
-      } else if (e.response?.statusCode == 408) {
+      } else if (statusCode == 408) {
         return StateModel.error(
-            "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-      } else if (e.response!.statusCode == 401) {
+            "Hello there! It seems like your request took longer than expected to process. Please try again later.");
+      } else if (statusCode == 401) {
+        return StateModel.error("UnAuthorized error");
+      } else if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout) {
         return StateModel.error(
-            "UnAuthorized error");
-      } else if (e.type.name == "connectionError") {
+            "The request timed out. Please check your connection and try again.");
+      } else if (e.type == DioExceptionType.connectionError ||
+          e.type == DioExceptionType.unknown) {
         return StateModel.error(
-            "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-      }else if(e.response == null) {
-        return StateModel.error(
-            "The server isn't responding! Please try again later.");
+            "Connection error. Please check your internet connection and try again.");
       }
-
     }
-    return null;
+    return StateModel.error(
+        "Unexpected error occurred. Please try again later.");
   }
 
   /// Mark notification as read
   Future<StateModel<dynamic>> markNotificationAsRead(NotificationReadRequest request) async {
     try {
       final response = await ObjectFactory().apiClient.markNotificationAsRead(request);
-
-      final String jsonRequest = jsonEncode(request);
-      // print("Request Payload:");
-      // print(jsonRequest);
-      // print("Response status code: ${response.statusCode}");
-      // print("Response data: ${response.data}");
 
       if (response.data != null) {
         if (response.statusCode == 200) {

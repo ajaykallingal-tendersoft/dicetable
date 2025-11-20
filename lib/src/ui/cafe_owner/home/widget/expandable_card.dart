@@ -4,11 +4,13 @@ import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/model/cafe_owner/home/available_days.dart';
 import 'package:soloseaters/src/model/cafe_owner/home/dice_table_update_request.dart'
     show DiceTableTypeUpdateRequest;
-import 'package:soloseaters/src/model/cafe_owner/home/venue_owner_home_screen_response.dart';
+import 'package:soloseaters/src/purchase/bloc/bloc/purchase_bloc.dart';
+import 'package:soloseaters/src/purchase/bloc/bloc/purchase_state.dart';
 import 'package:soloseaters/src/ui/cafe_owner/home/attendees_arguments.dart';
 import 'package:soloseaters/src/ui/cafe_owner/home/bloc/home_bloc.dart';
 import 'package:soloseaters/src/ui/cafe_owner/home/model/card_item.dart';
 import 'package:soloseaters/src/ui/cafe_owner/home/widget/enhanced_available_days_dialog.dart';
+import 'package:soloseaters/src/ui/cafe_owner/subscription/widget/subscription_upgrade_popup.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -82,14 +84,52 @@ class _ExpandableCardState extends State<ExpandableCard> {
     return localizations.formatTimeOfDay(parsed, alwaysUse24HourFormat: false);
   }
 
-  String _normalizeTime(String time) {
-    // Ensure consistent HH:mm:ss format for reliable comparison
-    final parts = time.split(':');
-    if (parts.length == 2)
-      return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}:00';
-    if (parts.length == 1) return '${parts[0].padLeft(2, '0')}:00:00';
-    return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}:${parts[2].padLeft(2, '0')}';
+  Future<void> showUpgradePopup(BuildContext context) async {
+    // You would typically call showDialog here
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const UpgradePopup(),
+    );
   }
+  Widget _buildCollapsedAttendeesButton(BuildContext context) {
+  final card = widget.card;
+
+  if (!card.hasBookings || card.attendees.isEmpty) {
+    return const SizedBox.shrink();
+  }
+
+  return InkWell(
+    onTap: () {
+      context.push(
+        '/attendees',
+        extra: AttendeesArguments(
+          tableId: card.id,
+          tableTypeName: card.title,
+          attendees: card.attendees,
+          bookingDate: card.attendees.first.bookingDate?.toString(),
+        ),
+      );
+    },
+    borderRadius: BorderRadius.circular(20),
+    child: Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
+      decoration: BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
+        "View Attendees",
+        style: GoogleFonts.montserrat(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+        ),
+      ),
+    ),
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -172,301 +212,271 @@ class _ExpandableCardState extends State<ExpandableCard> {
                 ],
               ),
               const Gap(10),
-              Row(
+             // DESCRIPTION + CHECKMARK ROW
+Row(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+  children: [
+    Expanded(
+      child: Text(
+        card.description!.isNotEmpty
+            ? card.description!
+            : (card.description ?? 'No description available'),
+        style: Theme.of(context).textTheme.bodySmall!.copyWith(
+              color: AppColors.shadowColor,
+              fontWeight: FontWeight.w400,
+              fontSize: 11.sp,
+            ),
+        softWrap: true,
+      ),
+    ),
+    const SizedBox(width: 8),
+    GestureDetector(
+      onTap: card.selectedDays.isNotEmpty
+          ? null
+          : () {
+              context.read<HomeBloc>().add(
+                    ToggleCheckEvent(widget.index),
+                  );
+            },
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: AppColors.unSelectedColor,
+            width: 2,
+          ),
+          color: AppColors.unSelectedColor,
+        ),
+        child: Icon(
+          Icons.check,
+          size: 17,
+          color: card.isSelected ? AppColors.primary : Colors.transparent,
+        ),
+      ),
+    ),
+  ],
+),
+
+const Gap(10),
+
+// AVAILABILITY + EDIT BUTTON (collapsed-only)
+Row(
+  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  children: [
+    // LEFT SIDE: Availability timings
+    Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        card.isSelected && selectedDays.isNotEmpty
+            ? Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Expanded(
-                    child: Text(
-                      card.description!.isNotEmpty
-                          ? card.description!
-                          : (card.description ?? 'No description available'),
-                      style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                        color: AppColors.shadowColor,
-                        fontWeight: FontWeight.w400,
-                        fontSize: 11.sp,
-                      ),
-                      softWrap: true,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap:
-                        card.selectedDays.isNotEmpty
-                            ? null // disable unchecking once event exists
-                            : () {
-                              context.read<HomeBloc>().add(
-                                ToggleCheckEvent(widget.index),
-                              );
-                            },
-                    // onTap: () {
+                children: (() {
+                  final dayOrder = {
+                    'mon': 1,
+                    'tue': 2,
+                    'wed': 3,
+                    'thu': 4,
+                    'fri': 5,
+                    'sat': 6,
+                    'sun': 7,
+                  };
 
-                    // context.read<HomeBloc>().add(
-                    //   ToggleCheckEvent(widget.index),
-                    // );
-                    // },
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: AppColors.unSelectedColor,
-                          width: 2,
-                        ),
-                        color: AppColors.unSelectedColor,
-                      ),
-                      child: Icon(
-                        Icons.check,
-                        size: 17,
-                        color:
-                            card.isSelected
-                                ? AppColors.primary
-                                : Colors.transparent,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const Gap(10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      card.isSelected && selectedDays.isNotEmpty
-                          ? Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children:
-                                (() {
-                                  final dayOrder = {
-                                    'mon': 1,
-                                    'tue': 2,
-                                    'wed': 3,
-                                    'thu': 4,
-                                    'fri': 5,
-                                    'sat': 6,
-                                    'sun': 7,
-                                  };
+                  final sortedDays = [...selectedDays]..sort((a, b) {
+                    final orderA = dayOrder[a.day?.toLowerCase() ?? ''] ?? 99;
+                    final orderB = dayOrder[b.day?.toLowerCase() ?? ''] ?? 99;
+                    return orderA.compareTo(orderB);
+                  });
 
-                                  String _normalizeTime(String time) {
-                                    final parts = time.split(':');
-                                    if (parts.length == 2) {
-                                      return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}:00';
-                                    }
-                                    if (parts.length == 1) {
-                                      return '${parts[0].padLeft(2, '0')}:00:00';
-                                    }
-                                    return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}:${parts[2].padLeft(2, '0')}';
-                                  }
+                  List<Widget> displayWidgets = [];
 
-                                  final sortedDays = [...selectedDays]..sort((
-                                    a,
-                                    b,
-                                  ) {
-                                    final orderA =
-                                        dayOrder[a.day?.toLowerCase() ?? ''] ??
-                                        99;
-                                    final orderB =
-                                        dayOrder[b.day?.toLowerCase() ?? ''] ??
-                                        99;
-                                    return orderA.compareTo(orderB);
-                                  });
-
-                                  // Build the list of widgets to display
-                                  List<Widget> displayWidgets = [];
-
-                                  for (var d in sortedDays) {
-                                    final timings = d.timings ?? [];
-
-                                    for (var t in timings) {
-                                      displayWidgets.add(
-                                        Text(
-                                          "${capitalizeFirstLetter(d.day ?? '')}: ${_formatTime(t.open)} - ${_formatTime(t.close)}",
-                                          style: GoogleFonts.roboto(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w600,
-                                            color: AppColors.shadowColor,
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                  }
-
-                                  // ✅ Only show "Available" label if there are time slots to display
-                                  if (displayWidgets.isEmpty) {
-                                    return [const SizedBox.shrink()];
-                                  }
-
-                                  return [
-                                    Text(
-                                      'Available',
-                                      style: GoogleFonts.roboto(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w700,
-                                        color: AppColors.primary,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    ...displayWidgets,
-                                  ];
-                                })(),
-                          )
-                          : SizedBox.shrink(),
-                    ],
-                  ),
-
-                  !card.isExpanded
-                      ? ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(13),
-                            side: const BorderSide(
-                              color: Color(0xFF5B6369),
-                              width: 1,
-                            ),
+                  for (var d in sortedDays) {
+                    final timings = d.timings ?? [];
+                    for (var t in timings) {
+                      displayWidgets.add(
+                        Text(
+                          "${capitalizeFirstLetter(d.day ?? '')}: ${_formatTime(t.open)} - ${_formatTime(t.close)}",
+                          style: GoogleFonts.roboto(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.shadowColor,
                           ),
                         ),
-                        onPressed: () {
-                          context.read<HomeBloc>().add(
-                            ToggleExpandEvent(widget.index),
-                          );
-                        },
-                        label: const Text(
-                          'Edit',
-                          style: TextStyle(
-                            fontSize: 9,
-                            color: Color(0xFF5B6369),
-                          ),
-                        ),
-                        icon: const Icon(
-                          Icons.edit,
-                          size: 15,
-                          color: Color(0xFF5B6369),
-                        ),
-                      )
-                      : const SizedBox(),
+                      );
+                    }
+                  }
 
-                       // ✅ UPDATED: Edit button with payment gate
-                 /* !card.isExpanded
-                      ? BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
-                          builder: (context, paymentState) {
-                            return ElevatedButton.icon(
-                              style: ElevatedButton.styleFrom(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(13),
-                                  side: const BorderSide(
-                                    color: Color(0xFF5B6369),
-                                    width: 1,
-                                  ),
-                                ),
-                              ),
-                              onPressed: () async {
-                                // ✅ Check if venue owner has access
-                                if (paymentState.isVenueUser && 
-                                    !paymentState.canAccessPremiumFeatures) {
-                                  // Show upgrade dialog
-                                  await showDialog(
-                                    context: context,
-                                    barrierDismissible: true,
-                                    builder: (context) => const VenueUpgradeDialog(),
-                                  );
-                                  return;
-                                }
-                                
-                                // If has access, proceed with edit
-                                context.read<HomeBloc>().add(
-                                  ToggleExpandEvent(widget.index),
-                                );
-                              },
-                              label: const Text(
-                                'Edit',
-                                style: TextStyle(
-                                  fontSize: 9,
-                                  color: Color(0xFF5B6369),
-                                ),
-                              ),
-                              icon: const Icon(
-                                Icons.edit,
-                                size: 15,
-                                color: Color(0xFF5B6369),
-                              ),
-                            );
-                          },
-                        )
-                      : const SizedBox(),*/
-                ],
-              ),
+                  if (displayWidgets.isEmpty) {
+                    return [const SizedBox.shrink()];
+                  }
 
-              if (card.isExpanded) ...[
-                Column(
-                  children: [
-                    const Gap(10),
-                    TextField(
-                      key: ValueKey('promoTextField_${card.id}'),
-
-                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                        color: AppColors.timeTextColor,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      controller: _promoController,
-                      maxLines: 5,
-                      keyboardType: TextInputType.text,
-                      decoration: InputDecoration(
-                        hintText: "Write your promo here",
-                        filled: true,
-                        fillColor: AppColors.primaryWhiteColor,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                  return [
+                    Text(
+                      'Available',
+                      style: GoogleFonts.roboto(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primary,
                       ),
                     ),
-                    const Gap(10),
-                    BlocBuilder<HomeBloc, HomeState>(
-                      builder: (context, state) {
-                        if (state is HomeLoading) {
-                          EasyLoading.show();
-                        }
-                        if (state is HomeLoaded) {
-                          EasyLoading.dismiss();
-                          final card = state.cards[widget.index];
-                          return AvailableDaysMultiSelectField(
-                            tableTypeName: card.title,
-                            availableDays: card.availableDays,
-                            initialSelectedDays: card.selectedDays,
-                            card: card,
-                            cardIndex: widget.index, // ✅ ADD THIS
-                            onChanged: (days) {
-                              setState(() {
-                                selectedDays = days;
-                              });
-                              context.read<HomeBloc>().add(
-                                UpdateSelectedDaysEvent(widget.index, days),
-                              );
-                            },
-                          );
-                        }
-                        return SizedBox();
-                      },
-                    ),
-                    const Gap(10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // ✅ Show Attendees button only if this table has bookings
-                        if (widget.card.hasBookings &&
-                            widget.card.attendees.isNotEmpty)
-                          _buildAttendeesButton(context, state)
-                        else
-                          const SizedBox.shrink(),
+                    const SizedBox(height: 4),
+                    ...displayWidgets,
+                  ];
+                })(),
+              )
+            : const SizedBox.shrink(),
+      ],
+    ),
 
-                        _buildSaveButton(context, state),
-                      ],
-                    ),
-                  ],
+    // RIGHT SIDE: Edit (collapsed only)
+    // if (!card.isExpanded)
+    //   BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
+    //     builder: (context, paymentState) {
+    //       return ElevatedButton.icon(
+    //         style: ElevatedButton.styleFrom(
+    //           shape: RoundedRectangleBorder(
+    //             borderRadius: BorderRadius.circular(13),
+    //             side: const BorderSide(
+    //               color: Color(0xFF5B6369),
+    //               width: 1,
+    //             ),
+    //           ),
+    //         ),
+    //         onPressed: () {
+    //           context.read<HomeBloc>().add(
+    //                 ToggleExpandEvent(widget.index),
+    //               );
+    //         },
+    //         label: const Text(
+    //           'Edit',
+    //           style: TextStyle(
+    //             fontSize: 9,
+    //             color: Color(0xFF5B6369),
+    //           ),
+    //         ),
+    //         icon: const Icon(
+    //           Icons.edit,
+    //           size: 15,
+    //           color: Color(0xFF5B6369),
+    //         ),
+    //       );
+    //     },
+    //   ),
+  ],
+),
+
+// ADD THE COLLAPSED BUTTON ROW BELOW TIMINGS
+if (!card.isExpanded)
+  Padding(
+    padding: const EdgeInsets.only(top: 10),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        // Collapsed "View Attendees"
+        if (widget.card.hasBookings && widget.card.attendees.isNotEmpty)
+          _buildAttendeesButton(context, state)
+        else
+          const SizedBox.shrink(),
+
+        // Edit button (reuse same builder)
+        BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
+          builder: (context, paymentState) {
+            return ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(13),
+                  side: const BorderSide(
+                    color: Color(0xFF5B6369),
+                    width: 1,
+                  ),
                 ),
-              ],
+              ),
+              onPressed: () {
+                context.read<HomeBloc>().add(ToggleExpandEvent(widget.index));
+              },
+              label: const Text(
+                'Edit',
+                style: TextStyle(
+                  fontSize: 9,
+                  color: Color(0xFF5B6369),
+                ),
+              ),
+              icon: const Icon(
+                Icons.edit,
+                size: 15,
+                color: Color(0xFF5B6369),
+              ),
+            );
+          },
+        ),
+      ],
+    ),
+  ),
+
+// EXPANDED UI
+if (card.isExpanded) ...[
+  Column(
+    children: [
+      const Gap(10),
+      TextField(
+        key: ValueKey('promoTextField_${card.id}'),
+        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+              color: AppColors.timeTextColor,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+        controller: _promoController,
+        maxLines: 5,
+        keyboardType: TextInputType.text,
+        decoration: InputDecoration(
+          hintText: "Write your promo here",
+          filled: true,
+          fillColor: AppColors.primaryWhiteColor,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      ),
+      const Gap(10),
+      BlocBuilder<HomeBloc, HomeState>(
+        builder: (context, state) {
+          if (state is HomeLoaded) {
+            final card = state.cards[widget.index];
+            return AvailableDaysMultiSelectField(
+              tableTypeName: card.title,
+              availableDays: card.availableDays,
+              initialSelectedDays: card.selectedDays,
+              card: card,
+              cardIndex: widget.index,
+              onChanged: (days) {
+                setState(() => selectedDays = days);
+                context.read<HomeBloc>().add(
+                      UpdateSelectedDaysEvent(widget.index, days),
+                    );
+              },
+            );
+          }
+          return const SizedBox();
+        },
+      ),
+      const Gap(10),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          if (widget.card.hasBookings &&
+              widget.card.attendees.isNotEmpty)
+            _buildAttendeesButton(context, state)
+          else
+            const SizedBox.shrink(),
+
+          _buildSaveButton(context, state),
+        ],
+      ),
+    ],
+  ),
+],
+
               /*
                // ✅ UPDATED: Wrap expanded content in payment gate
               if (card.isExpanded) ...[
@@ -643,68 +653,65 @@ class _ExpandableCardState extends State<ExpandableCard> {
 
   ///Attendees Button
   Widget _buildAttendeesButton(BuildContext context, HomeState state) {
-    if (state is HomeLoaded) {
-      DiceTable? diceTableWithBookings;
-      try {
-        diceTableWithBookings = state.homeResponse.diceTables.firstWhere(
-          (table) => table.hasBookings == true,
-        );
-      } catch (_) {
-        diceTableWithBookings = null;
-      }
-
-      if (diceTableWithBookings != null) {
-        final hasAttendees = diceTableWithBookings.attendees.isNotEmpty;
-
-        if (diceTableWithBookings.hasBookings && hasAttendees) {
-          final firstAttendee = diceTableWithBookings.attendees.first;
-
-          return InkWell(
-            onTap: () {
-              context.push(
-                '/attendees',
-                extra: AttendeesArguments(
-                  tableId: diceTableWithBookings!.id,
-                  attendees: diceTableWithBookings.attendees,
-                  bookingDate: firstAttendee.bookingDate?.toString(),
-                ),
-              );
-            },
-            borderRadius: BorderRadius.circular(20),
-            child: Container(
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary,
-                    blurRadius: 1,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Center(
-                child: Text(
-                  'View Attendees (${diceTableWithBookings.attendees.length})',
-                  style: GoogleFonts.montserrat(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-          );
-        }
-      }
+    if (state is! HomeLoaded) {
+      return const SizedBox.shrink();
     }
 
-    return const SizedBox.shrink();
+    final currentCard = state.cards[widget.index];
+    final hasAttendees =
+        currentCard.hasBookings && currentCard.attendees.isNotEmpty;
+
+    if (!hasAttendees) {
+      return const SizedBox.shrink();
+    }
+
+    final firstAttendee = currentCard.attendees.first;
+
+    return InkWell(
+      onTap: () {
+        context.push(
+          '/attendees',
+          extra: AttendeesArguments(
+            tableId: currentCard.id,
+            tableTypeName: currentCard.title,
+            attendees: currentCard.attendees,
+            bookingDate: firstAttendee.bookingDate?.toString(),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        height: 26.h,
+        // width: 102.w,
+        padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 9),
+        decoration: BoxDecoration(
+          color: AppColors.primary,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary,
+              blurRadius: 1,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Center(
+          child: Text(
+            'View Attendees',
+            style: GoogleFonts.montserrat(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            
+            
+          ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildSaveButton(BuildContext context, HomeState state) {
-    final isPromoNotEmpty = _promoController.text.trim().isNotEmpty;
     final isDaysNotEmpty = selectedDays.isNotEmpty;
 
     return ElevatedButton.icon(
@@ -825,7 +832,6 @@ class _ExpandableCardState extends State<ExpandableCard> {
       icon: const Icon(Icons.save, size: 15),
     );
   }
-
 }
 
 // Replace your existing AvailableDaysMultiSelectField class with this updated version
@@ -876,17 +882,6 @@ class _AvailableDaysMultiSelectFieldState
   }
 
   // Replace the selectedDaysText getter in _AvailableDaysMultiSelectFieldState class
-
-  String _normalizeTime(String time) {
-    final parts = time.split(':');
-    if (parts.length == 2) {
-      return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}:00';
-    }
-    if (parts.length == 1) {
-      return '${parts[0].padLeft(2, '0')}:00:00';
-    }
-    return '${parts[0].padLeft(2, '0')}:${parts[1].padLeft(2, '0')}:${parts[2].padLeft(2, '0')}';
-  }
 
   String _formatTime(String time) {
     try {
@@ -946,26 +941,6 @@ class _AvailableDaysMultiSelectFieldState
     if (text.isEmpty) return text;
     return "${text[0].toUpperCase()}${text.substring(1).toLowerCase()}";
   }
-  // ... inside _AvailableDaysMultiSelectFieldState
-
-  // Helper method to look up the default timing for a specific day name
-  Timing? _findDefaultTimingForDay(String dayName) {
-    // Find the corresponding day model in the full list of available days
-    final defaultDay = widget.availableDays.firstWhere(
-      // Match the day name (case-insensitive)
-      (d) => d.day?.toLowerCase() == dayName.toLowerCase(),
-      // Use orElse to handle cases where a day might not be in the full list
-      orElse: () => AvailableDay(day: null),
-    );
-
-    // If the day was found and has timings, the first timing is assumed to be the default.
-    if (defaultDay.timings != null && defaultDay.timings!.isNotEmpty) {
-      return defaultDay.timings!.first;
-    }
-    return null;
-  }
-
- 
 
   Future<void> _showEnhancedDialog() async {
     // ✅ Get the CURRENT card from BLoC using the index
@@ -1020,7 +995,6 @@ class _AvailableDaysMultiSelectFieldState
     }
   }
 
- 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(

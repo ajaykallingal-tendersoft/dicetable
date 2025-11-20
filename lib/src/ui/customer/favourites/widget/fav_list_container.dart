@@ -30,6 +30,8 @@ class FavListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
     // Log cafe data for debugging
     print(
       'Rendering FavListCard: id=${cafes.id}, name=${cafes.name}, photo=${cafes.photo}',
@@ -58,11 +60,16 @@ class FavListCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     cafes.name ?? "Unknown Cafe",
-                    style: TextTheme.of(context).labelMedium!.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16.sp,
-                    ),
+                    style: textTheme.labelMedium?.copyWith(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16.sp,
+                        ) ??
+                        TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16.sp,
+                        ),
                   ),
                 ),
                 // Updated favorite button with loading state
@@ -169,23 +176,30 @@ class FavListCard extends StatelessWidget {
                     children: [
                       RichText(
                         text: TextSpan(
-                          style: Theme.of(
-                            context,
-                          ).textTheme.bodySmall!.copyWith(
-                            fontSize: 10.sp,
-                            color: AppColors.shadowColor,
-                          ),
+                          style: textTheme.bodySmall?.copyWith(
+                                fontSize: 10.sp,
+                                color: AppColors.shadowColor,
+                              ) ??
+                              TextStyle(
+                                fontSize: 10.sp,
+                                color: AppColors.shadowColor,
+                              ),
                           children: [
                             TextSpan(
                               text: 'Table Type:\n',
-                              style: TextTheme.of(context).bodySmall!.copyWith(
-                                color: AppColors.textPrimary,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 10.sp,
-                              ),
+                              style: textTheme.bodySmall?.copyWith(
+                                    color: AppColors.textPrimary,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 10.sp,
+                                  ) ??
+                                  TextStyle(
+                                    color: AppColors.textPrimary,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 10.sp,
+                                  ),
                             ),
-                            WidgetSpan(
-                              child: SizedBox(height: 15), // vertical spacing
+                            const WidgetSpan(
+                              child: SizedBox(height: 15),
                             ),
                             TextSpan(
                               text:
@@ -193,11 +207,16 @@ class FavListCard extends StatelessWidget {
                                           cafes.tableTypes!.isNotEmpty
                                       ? cafes.tableTypes!.join(', ')
                                       : 'No table types available',
-                              style: TextTheme.of(context).bodySmall!.copyWith(
-                                color: AppColors.textPrimary,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 12.sp,
-                              ),
+                              style: textTheme.bodySmall?.copyWith(
+                                    color: AppColors.textPrimary,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12.sp,
+                                  ) ??
+                                  TextStyle(
+                                    color: AppColors.textPrimary,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12.sp,
+                                  ),
                             ),
                           ],
                         ),
@@ -207,11 +226,16 @@ class FavListCard extends StatelessWidget {
                         cafes.venueDescription ?? "No description available",
                         maxLines: 5,
                         textAlign: TextAlign.left,
-                        style: TextTheme.of(context).bodySmall!.copyWith(
-                          color: AppColors.shadowColor,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 10.sp,
-                        ),
+                        style: textTheme.bodySmall?.copyWith(
+                              color: AppColors.shadowColor,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 10.sp,
+                            ) ??
+                            TextStyle(
+                              color: AppColors.shadowColor,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 10.sp,
+                            ),
                       ),
                       Gap(10),
                       Align(
@@ -223,30 +247,36 @@ class FavListCard extends StatelessWidget {
                               extra: FavDetailsArguments(
                                 from: "FavList",
                                 name: cafes.name ?? "Unknown Cafe",
-                                tableType: cafes.tableTypes ?? [],
+                                tableType: cafes.tableTypes ?? const [],
                                 description:
                                     cafes.venueDescription ?? "No description",
                                 image: cafes.photo ?? '',
                                 openingHours: cafes.workingHours,
                                 id: cafes.id.toString(),
                                 bookingStatus: cafes.bookingStatus ?? false,
-                                gallery:
-                                    [], // Empty list since API doesn't provide this
-                                attendes:
-                                    [], // Empty list since API doesn't provide this
-                                upcomingEvents: [],
+                                gallery: _mapGallery(cafes.gallery),
+                                attendes: _mapAttendees(cafes.attendes),
+                                upcomingEvents:
+                                    _mapUpcomingEvents(cafes.upcomingEvents),
                               ),
                             );
                           },
                           child: Text(
                             "VIEW MORE",
-                            style: TextTheme.of(context).bodyLarge!.copyWith(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 11.sp,
-                              decoration: TextDecoration.underline,
-                              decorationColor: AppColors.primary,
-                            ),
+                            style: textTheme.bodyLarge?.copyWith(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 11.sp,
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: AppColors.primary,
+                                ) ??
+                                TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 11.sp,
+                                  decoration: TextDecoration.underline,
+                                  decorationColor: AppColors.primary,
+                                ),
                           ),
                         ),
                       ),
@@ -255,121 +285,49 @@ class FavListCard extends StatelessWidget {
                 ),
               ],
             ),
-            // Row(
-            //   children: [
-            //     Expanded(
-            //       flex: 1,
-            //       child: Hero(
-            //         tag: cafes.id ?? 'unknown',
-            //         child: ClipRRect(
-            //           borderRadius: BorderRadius.circular(15),
-            //           child: CachedNetworkImage(
-            //             imageUrl: cafes.photo ?? '',
-            //             fit: BoxFit.cover,
-            //             placeholder: (context, url) => Center(
-            //               child: Lottie.asset(
-            //                 Assets.JUMBING_DOT,
-            //                 height: 20,
-            //                 width: 20,
-            //               ),
-            //             ),
-            //             errorWidget: (context, url, error) => SvgPicture.asset(
-            //               'assets/svg/cafe-list.svg',
-
-            //             ),
-            //           ),
-            //         ),
-            //       ),
-            //     ),
-            //     Gap(10),
-            //     Expanded(
-            //       flex: 2,
-            //       child: Column(
-            //         crossAxisAlignment: CrossAxisAlignment.start,
-            //         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            //         mainAxisSize: MainAxisSize.max,
-            //         children: [
-            //           RichText(
-            //             text: TextSpan(
-            //               style: Theme.of(context).textTheme.bodySmall!.copyWith(
-            //                 fontSize: 10.sp,
-            //                 color: AppColors.shadowColor,
-            //               ),
-            //               children: [
-            //                 TextSpan(
-            //                   text: 'Table Type:\n',
-            //                   style: TextTheme.of(context).bodySmall!.copyWith(
-            //                     color: AppColors.textPrimary,
-            //                     fontWeight: FontWeight.w600,
-            //                     fontSize: 10.sp,
-            //                   ),
-            //                 ),
-            //                 WidgetSpan(
-            //                   child: SizedBox(height: 15), // vertical spacing
-            //                 ),
-            //                 TextSpan(
-            //                   text: cafes.tableTypes != null && cafes.tableTypes!.isNotEmpty
-            //                       ? cafes.tableTypes!.join(', ')
-            //                       : 'No table types available',
-            //                   style: TextTheme.of(context).bodySmall!.copyWith(
-            //                     color: AppColors.textPrimary,
-            //                     fontWeight: FontWeight.w600,
-            //                     fontSize: 12.sp,
-            //                   ),
-            //                 ),
-            //               ],
-            //             ),
-            //           ),
-            //           Gap(8),
-            //           Text(
-            //             cafes.venueDescription ?? "No description available",
-            //             maxLines: 5,
-            //             textAlign: TextAlign.left,
-            //             style: TextTheme.of(context).bodySmall!.copyWith(
-            //               color: AppColors.shadowColor,
-            //               fontWeight: FontWeight.w600,
-            //               fontSize: 10.sp,
-            //             ),
-            //           ),
-            //           Gap(10),
-            //           Align(
-            //             alignment: Alignment.bottomRight,
-            //             child: TextButton(
-            //               onPressed: () {
-            //                 context.push(
-            //                   '/cafe_details',
-            //                   extra: FavDetailsArguments(
-            //                     from: "FavList",
-            //                     name: cafes.name ?? "Unknown Cafe",
-            //                     tableType: cafes.tableTypes ?? [],
-            //                     description: cafes.venueDescription ?? "No description",
-            //                     image: cafes.photo ?? '',
-            //                     openingHours: cafes.workingHours,
-            //                     id: cafes.id.toString(),
-            //                     bookingStatus: cafes.bookingStatus ?? false,
-            //                   ),
-            //                 );
-            //               },
-            //               child: Text(
-            //                 "VIEW MORE",
-            //                 style: TextTheme.of(context).bodyLarge!.copyWith(
-            //                   color: AppColors.primary,
-            //                   fontWeight: FontWeight.bold,
-            //                   fontSize: 11.sp,
-            //                   decoration: TextDecoration.underline,
-            //                   decorationColor: AppColors.primary,
-            //                 ),
-            //               ),
-            //             ),
-            //           ),
-            //         ],
-            //       ),
-            //     ),
-            //   ],
-            // ),
+          
           ],
         ),
       ),
     );
+  }
+
+  List<String> _mapGallery(List<String>? gallery) {
+    if (gallery == null) return const [];
+    return List<String>.from(gallery);
+  }
+
+  List<Attende> _mapAttendees(List<FavAttende>? attendees) {
+    if (attendees == null) return const [];
+    return attendees
+        .map(
+          (fav) => Attende(
+            name: fav.name,
+            email: fav.email,
+            profilePhoto: fav.profilePhoto?.toString(),
+            additionalInfo: fav.additionalInfo?.toString(),
+          ),
+        )
+        .toList();
+  }
+
+  List<UpcomingEvent> _mapUpcomingEvents(
+    List<FavUpcomingEvent>? upcomingEvents,
+  ) {
+    if (upcomingEvents == null) return const [];
+
+    return upcomingEvents.map((favEvent) {
+      final availableDays = favEvent.availableDays
+          ?.whereType<Map<String, dynamic>>()
+          .map((day) => AvailableDay.fromJson(day))
+          .toList();
+
+      return UpcomingEvent(
+        id: favEvent.id,
+        name: favEvent.name,
+        description: favEvent.description,
+        availableDays: availableDays,
+      );
+    }).toList();
   }
 }

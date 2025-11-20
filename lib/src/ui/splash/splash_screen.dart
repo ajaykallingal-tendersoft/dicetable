@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
+import 'package:soloseaters/src/utils/data/notification_service.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -16,16 +17,31 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _navigateAfterDelay();
     ObjectFactory().prefs.setIsGuestUser(false);
+    _bootstrapNavigationDecision();
+  }
+
+  Future<void> _bootstrapNavigationDecision() async {
+    final notificationService = NotificationServices();
+    final hasPendingNotification =
+        ObjectFactory().prefs.getPendingNotificationNavigation() ?? false;
+
+    if (hasPendingNotification) {
+      await _navigateToNextScreen();
+      await Future.delayed(const Duration(milliseconds: 150));
+      await notificationService.handlePendingNotificationNavigation();
+      return;
+    }
+
+    await _navigateAfterDelay();
   }
 
   Future<void> _navigateAfterDelay() async {
     await Future.delayed(const Duration(seconds: splashDelay));
-    _navigateToNextScreen();
+    await _navigateToNextScreen();
   }
 
-  void _navigateToNextScreen() {
+  Future<void> _navigateToNextScreen() async {
     if (!mounted) return;
     final isLoggedIn = ObjectFactory().prefs.isLoggedIn() == true;
     final isCustomerLoggedIn =

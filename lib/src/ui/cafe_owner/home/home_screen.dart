@@ -139,7 +139,11 @@ Widget _buildPage(int index) {
   }
 }
 
-PreferredSizeWidget? _buildAppBar(int index, BuildContext context, CounterController controller) {
+PreferredSizeWidget? _buildAppBar(
+  int index,
+  BuildContext context,
+  CounterController controller,
+) {
   switch (index) {
     case 1:
       return AppBar(
@@ -153,7 +157,7 @@ PreferredSizeWidget? _buildAppBar(int index, BuildContext context, CounterContro
           style: TextTheme.of(context).labelLarge!.copyWith(
             color: AppColors.primaryWhiteColor,
             fontWeight: FontWeight.w600,
-            fontSize: 18.sp
+            fontSize: 18.sp,
           ),
         ),
         actions: [
@@ -161,7 +165,8 @@ PreferredSizeWidget? _buildAppBar(int index, BuildContext context, CounterContro
             listener: (context, state) async {
               if (state is NotificationLoaded) {
                 WidgetsBinding.instance.addPostFrameCallback((_) {
-                  controller.notificationBadgeAmount.value = state.notificationItems.data.unread.length;
+                  controller.notificationBadgeAmount.value =
+                      state.notificationItems.data.unread.length;
                 });
               }
             },
@@ -173,29 +178,41 @@ PreferredSizeWidget? _buildAppBar(int index, BuildContext context, CounterContro
                 child: Obx(() {
                   return controller.notificationBadgeAmount.value > 0
                       ? badges.Badge(
-                    position: badges.BadgePosition.topEnd(top: 0, end: 0),
-                    badgeAnimation: badges.BadgeAnimation.slide(),
-                    showBadge: true,
-                    badgeStyle: badges.BadgeStyle(
-                      shape: badges.BadgeShape.circle,
-                      borderRadius: BorderRadius.circular(10.r),
-                      badgeColor: Colors.red,
-                      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-                    ),
-                    badgeContent: Text(
-                      controller.notificationBadgeAmount.value.toString(),
-                      style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
-                    ),
-                    child: Icon(
-                      Icons.notifications_outlined,
-                      color: AppColors.primaryWhiteColor,
-                      size: 28.w,
-                    ),
-                  ) :  Icon(
-                    Icons.notifications_outlined,
-                    color: AppColors.primaryWhiteColor,
-                    size: 28.w,
-                  );
+                        position: badges.BadgePosition.topEnd(top: 0, end: -2),
+                        badgeAnimation: badges.BadgeAnimation.slide(),
+                        showBadge: true,
+                        badgeStyle: badges.BadgeStyle(
+                          shape: badges.BadgeShape.circle,
+                          badgeColor: Colors.red,
+                          padding: EdgeInsets.all(4),
+                        ),
+                        badgeContent: Text(
+                          // Logic: If greater than 99, show "99+", otherwise show number
+                          int.parse(
+                                    controller.notificationBadgeAmount.value
+                                        .toString(),
+                                  ) >
+                                  99
+                              ? "99+"
+                              : controller.notificationBadgeAmount.value
+                                  .toString(),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.notifications_outlined,
+                          color: AppColors.primaryWhiteColor,
+                          size: 28.w,
+                        ),
+                      )
+                      : Icon(
+                        Icons.notifications_outlined,
+                        color: AppColors.primaryWhiteColor,
+                        size: 28.w,
+                      );
                 }),
               );
             },

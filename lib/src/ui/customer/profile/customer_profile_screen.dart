@@ -4,6 +4,9 @@ import 'package:soloseaters/src/common/elevated_button_widget.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/count_controller.dart';
 import 'package:soloseaters/src/ui/customer/profile/bloc/customer_profile_bloc.dart';
+import 'package:soloseaters/src/purchase/bloc/bloc/purchase_bloc.dart';
+import 'package:soloseaters/src/purchase/bloc/bloc/purchase_state.dart';
+import 'package:soloseaters/src/utils/data/auth_session_manager.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:soloseaters/src/utils/data/sign_out.dart';
 import 'package:flutter/material.dart';
@@ -122,26 +125,29 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                           ? badges.Badge(
                             position: badges.BadgePosition.topEnd(
                               top: 0,
-                              end: -12,
+                              end: -2,
                             ),
                             badgeAnimation: badges.BadgeAnimation.slide(),
                             showBadge: true,
                             badgeStyle: badges.BadgeStyle(
                               shape: badges.BadgeShape.circle,
-                              borderRadius: BorderRadius.circular(10.r),
                               badgeColor: Colors.red,
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 4.w,
-                                vertical: 2.h,
-                              ),
+                              padding: EdgeInsets.all(4),
                             ),
                             badgeContent: Text(
-                              controller.notificationBadgeAmount.value
-                                  .toString(),
+                              // Logic: If greater than 99, show "99+", otherwise show number
+                              int.parse(
+                                        controller.notificationBadgeAmount.value
+                                            .toString(),
+                                      ) >
+                                      99
+                                  ? "99+"
+                                  : controller.notificationBadgeAmount.value
+                                      .toString(),
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 10.sp,
-                                fontWeight: FontWeight.w600,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                             child: Icon(
@@ -223,44 +229,60 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                                 ),
                                 Row(
                                   children: [
-                                    GestureDetector(
-                                      onTap: () {
-                                        context.push(
-                                          '/paid_profile',
-                                          extra: {
-                                            "name": nameController.text.trim(),
+                                    BlocBuilder<
+                                      PaymentPlanBloc,
+                                      PaymentPlanState
+                                    >(
+                                      builder: (context, paymentState) {
+                                        // Premium gating temporarily disabled to allow open access.
+                                        return ElevatedButton(
+                                          onPressed: () {
+                                            context.push(
+                                              '/paid_profile',
+                                              extra: {
+                                                "name":
+                                                    nameController.text.trim(),
+                                              },
+                                            );
                                           },
+                                          style: ElevatedButton.styleFrom(
+                                            // Match Container color
+                                            backgroundColor:
+                                                AppColors.primaryWhiteColor,
+                                            // Match Container lack of shadow
+                                            elevation: 0,
+                                            // Match Container padding
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: 10.w,
+                                              vertical: 6.h,
+                                            ),
+                                            // Match Container constraints
+                                            minimumSize: Size(80.w, 30.h),
+                                            // Match Container layout behavior (removes default button margins)
+                                            tapTargetSize:
+                                                MaterialTapTargetSize
+                                                    .shrinkWrap,
+                                            // Match Container border and radius
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(13.r),
+                                              side: BorderSide(
+                                                color:
+                                                    AppColors.primaryWhiteColor,
+                                                width: 1.sp,
+                                              ),
+                                            ),
+                                          ),
+                                          child: Text(
+                                            "View Detailed Profile",
+                                            style: GoogleFonts.roboto(
+                                              color: AppColors.primary,
+                                              fontSize: 12.sp,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
                                         );
                                       },
-
-                                      child: Container(
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 10.w,
-                                          vertical: 6.h,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: AppColors.primaryWhiteColor,
-                                          border: Border.all(
-                                            color: AppColors.primaryWhiteColor,
-                                            width: 1.sp,
-                                          ),
-                                          borderRadius: BorderRadius.circular(
-                                            8.r,
-                                          ),
-                                        ),
-                                        constraints: BoxConstraints(
-                                          minWidth: 80.w,
-                                          minHeight: 30.h,
-                                        ),
-                                        child: Text(
-                                          "View Detailed Profile",
-                                          style: GoogleFonts.roboto(
-                                            color: AppColors.primary,
-                                            fontSize: 12.sp,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                        ),
-                                      ),
                                     ),
                                     Gap(20),
                                     ElevatedButton.icon(
@@ -301,10 +323,16 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                                             AppColors.primaryWhiteColor,
                                         backgroundColor:
                                             AppColors.primaryWhiteColor,
-                                        side: BorderSide(
-                                          color: AppColors.primaryWhiteColor,
-                                          width: 1.sp,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            13.r,
+                                          ),
+                                          side: BorderSide(
+                                            color: AppColors.primaryWhiteColor,
+                                            width: 1.sp,
+                                          ),
                                         ),
+
                                         minimumSize: Size(80.w, 30.h),
                                       ),
                                     ),
@@ -439,7 +467,8 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                 },
                 listener: (BuildContext context, CustomerProfileState state) {
                   if (state.profile.status == false) {
-                    if (state.profile.message!.contains("Unauthorized")) {
+                    if (state.profile.message!.contains("Unauthorized") &&
+                        AuthSessionManager.consumeRefreshFailureFlag()) {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         SignOut().logout(context);
                         Fluttertoast.showToast(

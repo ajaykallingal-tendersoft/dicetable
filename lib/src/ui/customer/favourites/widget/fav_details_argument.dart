@@ -8,10 +8,10 @@ class FavDetailsArguments {
   final List<String> tableType;
   final String description;
   final String image;
-  final List<FavWorkingHour>? openingHours;
+  final List<dynamic>? openingHours;
   final bool bookingStatus;
-    final List<String> gallery;
-   final List<Attende> attendes;
+  final List<String> gallery;
+  final List<Attende> attendes;
   final List<UpcomingEvent> upcomingEvents;
 
   const FavDetailsArguments({
@@ -25,6 +25,6 @@ class FavDetailsArguments {
     required this.bookingStatus,
     required this.gallery,
     required this.attendes,
-    required this.upcomingEvents
+    required this.upcomingEvents,
   });
 }

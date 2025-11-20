@@ -194,6 +194,9 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                   ObjectFactory().prefs.setCustomerAuthToken(
                     token: state.googleLoginResponse.token,
                   );
+                    ObjectFactory().prefs.setCustomerUserMail(
+                      customerUserMail: state.googleLoginResponse.user!.email,
+                    );
                   ObjectFactory().prefs.setUserId(
                     userId: state.googleLoginResponse.user!.id.toString(),
                   );
@@ -245,6 +248,9 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                   ObjectFactory().prefs.setCustomerAuthToken(
                     token: state.appleLoginRequestResponse.token,
                   );
+                  ObjectFactory().prefs.setCustomerUserMail(
+                      customerUserMail: state.appleLoginRequestResponse.user!.email,
+                    );
                   ObjectFactory().prefs.setUserId(
                     userId: state.appleLoginRequestResponse.user!.id.toString(),
                   );

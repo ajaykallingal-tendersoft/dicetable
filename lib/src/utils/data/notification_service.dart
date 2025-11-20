@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -21,6 +23,7 @@ class NotificationServices {
       FlutterLocalNotificationsPlugin();
 
   bool _isInitialized = false;
+  bool _interactionHandlersRegistered = false;
 
   // Set to track shown notifications and prevent duplicates
   final Set<String> _shownNotifications = <String>{};
@@ -57,6 +60,7 @@ class NotificationServices {
 
       // Setup foreground message handling
       _setupForegroundMessageHandling();
+      await _listenForNotificationInteractions();
 
       _isInitialized = true;
     } catch (e) {
@@ -66,42 +70,120 @@ class NotificationServices {
     }
   }
 
-  void _handleNotificationTap(NotificationResponse response) {
+  Future<void> _listenForNotificationInteractions() async {
+    if (_interactionHandlersRegistered) return;
+
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      if (kDebugMode) {
+        print('Notification interaction from background state');
+      }
+      unawaited(
+        _handleNotificationNavigation(
+          payload: Map<String, dynamic>.from(message.data),
+          persistIfNoContext: true,
+        ),
+      );
+    });
+
+    final RemoteMessage? initialMessage = await messaging.getInitialMessage();
+    if (initialMessage != null) {
+      if (kDebugMode) {
+        print('Notification interaction from terminated state detected');
+      }
+      _persistPendingNavigation(Map<String, dynamic>.from(initialMessage.data));
+    }
+
+    _interactionHandlersRegistered = true;
+  }
+
+  Future<void> _handleNotificationNavigation({
+    Map<String, dynamic>? payload,
+    bool persistIfNoContext = true,
+  }) async {
+    final bool navigated = _navigateBasedOnUserType();
+    if (navigated) {
+      await ObjectFactory().prefs.clearPendingNotificationNavigation();
+      return;
+    }
+
+    if (persistIfNoContext) {
+      _persistPendingNavigation(payload);
+    }
+  }
+
+  void _persistPendingNavigation(Map<String, dynamic>? payload) {
+    ObjectFactory().prefs.setPendingNotificationNavigation(true);
+    ObjectFactory().prefs.setPendingNotificationPayload(payload);
+  }
+
+  Future<bool> handlePendingNotificationNavigation() async {
+    final shouldNavigate =
+        ObjectFactory().prefs.getPendingNotificationNavigation() ?? false;
+
+    if (!shouldNavigate) {
+      return false;
+    }
+
+    final payload = ObjectFactory().prefs.getPendingNotificationPayload();
+    final bool navigated = _navigateBasedOnUserType();
+
+    if (navigated) {
+      await ObjectFactory().prefs.clearPendingNotificationNavigation();
+      return true;
+    }
+
+    _persistPendingNavigation(payload);
+    return false;
+  }
+
+  Future<void> _handleNotificationTap(NotificationResponse response) async {
     if (kDebugMode) {
       print('Notification tapped: ${response.payload}');
     }
-
-    // Navigation logic based on user type and login status
-    _navigateBasedOnUserType();
+    Map<String, dynamic>? payload;
+    if (response.payload != null && response.payload!.isNotEmpty) {
+      try {
+        payload = Map<String, dynamic>.from(jsonDecode(response.payload!));
+      } catch (e) {
+        if (kDebugMode) {
+          print('Failed to decode notification payload: $e');
+        }
+      }
+    }
+    await _handleNotificationNavigation(payload: payload);
   }
 
-  void _navigateBasedOnUserType() {
+  bool _navigateBasedOnUserType() {
     final isLoggedIn = ObjectFactory().prefs.isLoggedIn() == true;
     final isCustomerLoggedIn =
         ObjectFactory().prefs.isCustomerLoggedIn() == true;
-    final rememberDecision =
-        ObjectFactory().prefs.getRememberDecision() ?? false;
-    final userCategory = ObjectFactory().prefs.getUserDecisionName();
-
     ObjectFactory().prefs.setNavigationSource('notification_tap');
 
-    if (isLoggedIn || isCustomerLoggedIn) {
-      _navigateToRoute('/notification');
-    } else {
-      // First launch or no remembered category; show category selection
-      _navigateToRoute('/category');
-    }
+    final String route =
+        (isLoggedIn || isCustomerLoggedIn) ? '/notification' : '/category';
+
+    return _navigateToRoute(route);
   }
 
-  void _navigateToRoute(String route) {
+  bool _navigateToRoute(String route) {
     final context = navigatorKey.currentContext;
-    if (context != null) {
-      context.go(route);
-    } else {
+    if (context == null) {
       if (kDebugMode) {
         print('Navigation context not available for route: $route');
       }
+      return false;
     }
+
+    final router = GoRouter.of(context);
+    try {
+      router.push(route);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Failed to push route $route, falling back to go. Error: $e');
+      }
+      router.go(route);
+    }
+    return true;
   }
 
   // Initialize local notifications plugin
@@ -114,7 +196,7 @@ class NotificationServices {
           requestAlertPermission: true,
           requestSoundPermission: true,
           requestCriticalPermission: false,
-          requestBadgePermission: false
+          requestBadgePermission: false,
         );
 
     const InitializationSettings initializationSettings =
@@ -187,15 +269,7 @@ class NotificationServices {
       }
     });
 
-    // iOS specific: Handle when notification is received while app is in foreground
-    if (Platform.isIOS) {
-      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-        if (kDebugMode) {
-          print('A new onMessageOpenedApp event was published!');
-        }
-        // Handle notification tap when app is opened from background
-      });
-    }
+    // Notification tap interactions handled in _listenForNotificationInteractions
   }
 
   // Setup Android notification channel
@@ -207,7 +281,7 @@ class NotificationServices {
         description: 'This channel is used for important notifications.',
         importance: Importance.high,
         playSound: true,
-        showBadge: false, 
+        showBadge: false,
       );
 
       _flutterLocalNotificationsPlugin
@@ -297,7 +371,10 @@ class NotificationServices {
               playSound: true,
               ticker: 'ticker',
               icon: '@mipmap/launcher_icon',
-              styleInformation: BigTextStyleInformation(''),
+              styleInformation: BigTextStyleInformation(
+                message.notification?.body ?? '',
+                contentTitle: message.notification?.title,
+              ),
             );
 
         NotificationDetails notificationDetails = NotificationDetails(
@@ -309,7 +386,7 @@ class NotificationServices {
           message.notification?.title ?? 'New Notification',
           message.notification?.body ?? 'You have a new message',
           notificationDetails,
-          payload: message.data.toString(),
+          payload: message.data.isEmpty ? null : jsonEncode(message.data),
         );
       } else if (Platform.isIOS) {
         // iOS specific notification details
@@ -332,7 +409,7 @@ class NotificationServices {
           message.notification?.title ?? 'New Notification',
           message.notification?.body ?? 'You have a new message',
           notificationDetails,
-          payload: message.data.toString(),
+          payload: message.data.isEmpty ? null : jsonEncode(message.data),
         );
       }
 

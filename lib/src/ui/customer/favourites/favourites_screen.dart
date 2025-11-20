@@ -149,25 +149,33 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                                     ? badges.Badge(
                                       position: badges.BadgePosition.topEnd(
                                         top: 0,
-                                        end: -12,
+                                        end: -2,
                                       ),
                                       badgeAnimation:
                                           badges.BadgeAnimation.slide(),
                                       showBadge: true,
                                       badgeStyle: badges.BadgeStyle(
                                         shape: badges.BadgeShape.circle,
-                                        borderRadius: BorderRadius.circular(
-                                          10.r,
-                                        ),
+                                        // borderRadius: BorderRadius.circular(
+                                        //   10.r,
+                                        // ),
                                         badgeColor: Colors.red,
-                                        padding: EdgeInsets.symmetric(
-                                          horizontal: 4.w,
-                                          vertical: 2.h,
-                                        ),
+                                        padding: EdgeInsets.all(4),
                                       ),
                                       badgeContent: Text(
-                                        controller.notificationBadgeAmount.value
-                                            .toString(),
+                                        // Logic: If greater than 99, show "99+", otherwise show number
+                                        int.parse(
+                                                  controller
+                                                      .notificationBadgeAmount
+                                                      .value
+                                                      .toString(),
+                                                ) >
+                                                99
+                                            ? "99+"
+                                            : controller
+                                                .notificationBadgeAmount
+                                                .value
+                                                .toString(),
                                         style: TextStyle(
                                           color: Colors.white,
                                           fontSize: 10.sp,

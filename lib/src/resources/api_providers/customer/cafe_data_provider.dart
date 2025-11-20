@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:soloseaters/src/model/customer/cafe/add_favourite_request.dart';
 import 'package:soloseaters/src/model/customer/cafe/cafe_list_request.dart';
 import 'package:soloseaters/src/model/customer/cafe/cafe_list_response.dart';
@@ -143,23 +141,31 @@ class CafeDataProvider {
       }
       return null;
     } on DioException catch (e) {
-
-      if (e.response!.statusCode == 500) {
+      final statusCode = e.response?.statusCode;
+      if (statusCode == null) {
         return StateModel.error(
             "The server isn't responding! Please try again later.");
-      } else if (e.response!.statusCode == 401) {
-        return StateModel.error(
-            "UnAuthorized error");
-      } else if (e.type.name == "connectionError") {
-        return StateModel.error(
-            "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-      }else if(e.response == null) {
+      } else if (statusCode == 500) {
         return StateModel.error(
             "The server isn't responding! Please try again later.");
+      } else if (statusCode == 401) {
+        return StateModel.error("UnAuthorized error");
+      } else if (statusCode == 408) {
+        return StateModel.error(
+            "Your request took too long to process. Please try again later.");
+      } else if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout ||
+          e.type == DioExceptionType.sendTimeout) {
+        return StateModel.error(
+            "The request timed out. Please check your connection and try again.");
+      } else if (e.type == DioExceptionType.connectionError ||
+          e.type == DioExceptionType.unknown) {
+        return StateModel.error(
+            "Connection error. Please check your internet connection and try again.");
       }
-
     }
-    return null;
+    return StateModel.error(
+        "Unexpected error occurred. Please try again later.");
   }
 
   ///GetFilterOptions
@@ -171,21 +177,19 @@ class CafeDataProvider {
         print(response.toString());
         return StateModel<GetFilterOptionsResponse>.success(
             GetFilterOptionsResponse.fromJson(response.data));
-      } else {
-        return null;
-      }    }  on DioException catch (e) {
-      if (e.response != null && e.response!.statusCode == 500) {
+      }
+      return null;
+    } on DioException catch (e) {
+      final statusCode = e.response?.statusCode;
+      if (statusCode == 500) {
         return StateModel.error(
             "The server isn't responding! Please try again later.");
-      } else if (e.response != null && e.response!.statusCode == 401) {
-        return StateModel.error(
-            "UnAuthorized error");
-      }else if(e.response == null) {
-        return StateModel.error(
-            "The server isn't responding! Please try again later.");
+      } else if (statusCode == 401) {
+        return StateModel.error("UnAuthorized error");
       }
     }
-    return null;
+    return StateModel.error(
+        "The server isn't responding! Please try again later.");
   }
 
 }

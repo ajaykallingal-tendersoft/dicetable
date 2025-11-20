@@ -16,6 +16,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
+import 'package:soloseaters/src/utils/data/auth_session_manager.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:responsive_framework/responsive_framework.dart';
@@ -158,10 +159,10 @@ class _CafeListScreenState extends State<CafeListScreen> {
                           Text(
                             "SOLO SEATERS",
                             style: GoogleFonts.montserrat(
-                                    color: AppColors.primaryWhiteColor,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: isTabletOrLarger ? 28.sp : 24.sp,
-                                  ),
+                              color: AppColors.primaryWhiteColor,
+                              fontWeight: FontWeight.bold,
+                              fontSize: isTabletOrLarger ? 28.sp : 24.sp,
+                            ),
                           ),
                           isGuest
                               ? SizedBox.shrink()
@@ -177,40 +178,44 @@ class _CafeListScreenState extends State<CafeListScreen> {
                                       ? badges.Badge(
                                         position: badges.BadgePosition.topEnd(
                                           top: 0,
-                                          end: -12,
+                                          end: -2,
                                         ),
                                         badgeAnimation:
                                             badges.BadgeAnimation.slide(),
                                         showBadge: true,
                                         badgeStyle: badges.BadgeStyle(
                                           shape: badges.BadgeShape.circle,
-                                          borderRadius: BorderRadius.circular(
-                                            10.r,
-                                          ),
+                                         
                                           badgeColor: Colors.red,
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: 6.w,
-                                            vertical: 2.h,
-                                          ),
+                                          padding: EdgeInsets.all(4),
                                         ),
                                         badgeContent: Text(
-                                          controller
-                                              .notificationBadgeAmount
-                                              .value
-                                              .toString(),
+                                          // Logic: If greater than 99, show "99+", otherwise show number
+                                          int.parse(
+                                                    controller
+                                                        .notificationBadgeAmount
+                                                        .value
+                                                        .toString(),
+                                                  ) >
+                                                  99
+                                              ? "99+"
+                                              : controller
+                                                  .notificationBadgeAmount
+                                                  .value
+                                                  .toString(),
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontSize: 10.sp,
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
-                                        child:  Icon(
+                                        child: Icon(
                                           Icons.notifications_outlined,
                                           color: AppColors.primaryWhiteColor,
                                           size: 28.w,
                                         ),
                                       )
-                                      :  Icon(
+                                      : Icon(
                                         Icons.notifications_outlined,
                                         color: AppColors.primaryWhiteColor,
                                         size: 28.w,
@@ -270,6 +275,27 @@ class _CafeListScreenState extends State<CafeListScreen> {
                           "Unauthorized access",
                         )) {
                           EasyLoading.dismiss();
+                          if (AuthSessionManager.consumeRefreshFailureFlag()) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              SignOut().logout(context);
+                              Fluttertoast.showToast(
+                                fontSize: 14.sp,
+                                backgroundColor: AppColors.primaryWhiteColor,
+                                textColor: AppColors.appRedColor,
+                                gravity: ToastGravity.BOTTOM,
+                                msg:
+                                    "Your session has expired. Please sign in again.",
+                              );
+                            });
+                          }
+                        }
+                      }
+                    }
+                    if (state is CafeListError) {
+                      if (state.errorMessage.contains("UnAuthorized") ||
+                          state.errorMessage.contains("status code of 401")) {
+                        EasyLoading.dismiss();
+                        if (AuthSessionManager.consumeRefreshFailureFlag()) {
                           WidgetsBinding.instance.addPostFrameCallback((_) {
                             SignOut().logout(context);
                             Fluttertoast.showToast(
@@ -278,27 +304,10 @@ class _CafeListScreenState extends State<CafeListScreen> {
                               textColor: AppColors.appRedColor,
                               gravity: ToastGravity.BOTTOM,
                               msg:
-                              "Your session has expired. Please sign in again.",
+                                  "Your session has expired. Please sign in again.",
                             );
                           });
                         }
-                      }
-                    }
-                    if (state is CafeListError) {
-                      if (state.errorMessage.contains("UnAuthorized") ||
-                          state.errorMessage.contains("status code of 401")) {
-                        EasyLoading.dismiss();
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          SignOut().logout(context);
-                          Fluttertoast.showToast(
-                            fontSize: 14.sp,
-                            backgroundColor: AppColors.primaryWhiteColor,
-                            textColor: AppColors.appRedColor,
-                            gravity: ToastGravity.BOTTOM,
-                            msg:
-                            "Your session has expired. Please sign in again.",
-                          );
-                        });
                       }
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
@@ -389,7 +398,7 @@ class _CafeListScreenState extends State<CafeListScreen> {
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
-                             
+
                               Gap(16),
                               ElevatedButton(
                                 onPressed: () {

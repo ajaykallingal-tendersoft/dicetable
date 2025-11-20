@@ -5,6 +5,7 @@ import 'dart:ui' as ui;
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/ui/customer/home/bloc/customer_home_bloc.dart';
+import 'package:soloseaters/src/utils/data/auth_session_manager.dart';
 import 'package:soloseaters/src/utils/data/sign_out.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
@@ -192,8 +193,9 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
             }
             if (state is CafeSearchSuccess) {
               if (state.response.status == false) {
-                if (state.response.message!.contains("Unauthorized") ||
-                    state.response.message!.contains("status code of 401")) {
+                if ((state.response.message!.contains("Unauthorized") ||
+                        state.response.message!.contains("status code of 401")) &&
+                    AuthSessionManager.consumeRefreshFailureFlag()) {
                   EasyLoading.dismiss();
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     SignOut().logout(context);

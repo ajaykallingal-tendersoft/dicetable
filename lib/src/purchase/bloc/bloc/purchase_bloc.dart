@@ -1,4 +1,4 @@
-// lib/src/features/customer/payment_plan/bloc/payment_plan_bloc.dart
+// lib/src/purchase/bloc/payment_plan_bloc.dart
 
 import 'dart:async';
 import 'package:flutter/foundation.dart';
@@ -17,9 +17,9 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
   PaymentPlanBloc({
     required PaymentService paymentService,
     required PaymentRepository paymentRepository,
-  }) : _paymentService = paymentService,
-       _paymentRepository = paymentRepository,
-       super(const PaymentPlanState()) {
+  })  : _paymentService = paymentService,
+        _paymentRepository = paymentRepository,
+        super(const PaymentPlanState()) {
     on<InitializePaymentEvent>(_onInitialize);
     on<LoadProductsEvent>(_onLoadProducts);
     on<SelectPlanEvent>(_onSelectPlan);
@@ -68,21 +68,22 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
       final userData = await _paymentRepository.getUserSubscriptionData();
       print("DEBUG USER DATA: $userData");
 
+      final determinedUserType = userData['userType'] as UserType;
+      print("✅ Determined user type: $determinedUserType");
 
       emit(
         state.copyWith(
           status: PaymentPlanStatus.initial,
-          userType: userData['userType'] as UserType,
+          userType: determinedUserType,
           isPremium: userData['isPremium'] as bool,
           trialStartDate: userData['trialStartDate'] as DateTime?,
           trialEndDate: userData['trialEndDate'] as DateTime?,
-          subscriptionExpiryDate:
-              userData['subscriptionExpiryDate'] as DateTime?,
+          subscriptionExpiryDate: userData['subscriptionExpiryDate'] as DateTime?,
           currentSubscriptionId: userData['currentSubscriptionId'] as String?,
         ),
       );
 
-      // Auto-load products
+      // Auto-load products (will be filtered based on user type)
       add(const LoadProductsEvent());
     } catch (e) {
       emit(
@@ -101,9 +102,9 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
     try {
       emit(state.copyWith(status: PaymentPlanStatus.loading));
 
-      final products = await _paymentService.loadProducts();
+      final allProducts = await _paymentService.loadProducts();
 
-      if (products.isEmpty) {
+      if (allProducts.isEmpty) {
         emit(
           state.copyWith(
             status: PaymentPlanStatus.purchaseFailed,
@@ -114,10 +115,40 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         return;
       }
 
+      // Filter products based on user type
+      List<ProductDetails> filteredProducts;
+
+      if (state.isVenueUser) {
+        // Venue users should only see venue yearly plan
+        filteredProducts = allProducts.where(
+          (product) => product.id == PaymentService.venueYearlyId,
+        ).toList();
+        print('✅ Filtered products for venue user: ${filteredProducts.length} product(s)');
+      } else {
+        // Public users see public plans (monthly and yearly)
+        filteredProducts = allProducts.where(
+          (product) =>
+              product.id == PaymentService.monthlyPublicId ||
+              product.id == PaymentService.yearlyPublicId,
+        ).toList();
+        print('✅ Filtered products for public user: ${filteredProducts.length} product(s)');
+      }
+
+      if (filteredProducts.isEmpty) {
+        emit(
+          state.copyWith(
+            status: PaymentPlanStatus.purchaseFailed,
+            errorMessage:
+                'No subscription plans available for your account type.',
+          ),
+        );
+        return;
+      }
+
       emit(
         state.copyWith(
           status: PaymentPlanStatus.productsLoaded,
-          products: products,
+          products: filteredProducts,
         ),
       );
     } catch (e) {
@@ -200,8 +231,15 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
     for (final purchaseDetails in event.purchaseDetailsList) {
       if (purchaseDetails.status == PurchaseStatus.purchased ||
           purchaseDetails.status == PurchaseStatus.restored) {
-        // Verify the purchase
-        add(VerifyPurchaseEvent(purchaseDetails));
+        // Build the verification payload using PaymentService helper.
+        final payload = _paymentService.extractVerificationPayload(purchaseDetails);
+
+        // Optionally fill runtime values (package/bundle id) if you have them available
+        // e.g. payload['package_name'] = 'com.your.app';
+        // or add the user's id/email for backend correlation if required.
+
+        // Dispatch verify event with both purchaseDetails and payload
+        add(VerifyPurchaseEvent(purchaseDetails, payload));
       } else if (purchaseDetails.status == PurchaseStatus.error) {
         emit(
           state.copyWith(
@@ -242,17 +280,18 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
       emit(state.copyWith(status: PaymentPlanStatus.verifying));
 
       final purchaseDetails = event.purchaseDetails;
+      final payload = Map<String, dynamic>.from(event.verificationPayload);
+
+      // If you have runtime info like package/bundle id, attach it here.
+      // Example:
+      // payload['package_name'] = 'com.your.app';
+      // payload['bundle_id'] = 'com.your.app';
 
       bool verified = true;
 
       // Skip backend verification in fake mode
       if (!kDebugMode) {
-        verified = await _paymentRepository.verifyPurchase(
-          productId: purchaseDetails.productID,
-          purchaseToken:
-              purchaseDetails.verificationData.serverVerificationData,
-          platform: purchaseDetails.verificationData.source,
-        );
+        verified = await _paymentRepository.verifyPurchase(payload);
       }
 
       if (!verified) {
@@ -267,22 +306,6 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         return;
       }
 
-      // Verify purchase with backend
-      // final verified = await _paymentRepository.verifyPurchase(
-      //   productId: purchaseDetails.productID,
-      //   purchaseToken: purchaseDetails.verificationData.serverVerificationData,
-      //   platform: purchaseDetails.verificationData.source,
-      // );
-
-      // if (!verified) {
-      //   emit(state.copyWith(
-      //     status: PaymentPlanStatus.purchaseFailed,
-      //     errorMessage: 'Purchase verification failed. Please contact support.',
-      //     isProcessing: false,
-      //   ));
-      //   return;
-      // }
-
       // Determine user type based on product
       UserType newUserType = state.userType;
       bool isPremium = true;
@@ -293,7 +316,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         newUserType = UserType.publicPaid;
       }
 
-      // Update subscription status
+      // Update subscription status (local + backend update)
       await _paymentRepository.updateSubscriptionStatus(
         productId: purchaseDetails.productID,
         isActive: true,

@@ -185,107 +185,32 @@ class _EnhancedAvailableDaysDialogState
     return allOpenDaysSelected && allHaveOnlyDefaults && totalSelectedDays > 0;
   }
 
-  /*void _initializeDaySelections() {
-    daySelections.clear();
-
-    for (var day in widget.availableDays) {
-      final hasDefaultTiming = day.timings != null && day.timings!.isNotEmpty;
-
-      // Default open–close from API or fallback
-      final defaultOpen = _normalizeTime(
-        hasDefaultTiming ? day.timings!.first.open : "10:00:00",
-      );
-      final defaultClose = _normalizeTime(
-        hasDefaultTiming ? day.timings!.first.close : "22:00:00",
-      );
-
-      // Check if API already has events for this day
-      final initialDay = widget.initialSelectedDays?.firstWhere(
-        (d) => d.day?.toLowerCase() == day.day?.toLowerCase(),
-        orElse: () => AvailableDay(),
-      );
-
-      // Identify event (custom) slots — differ from default open/close
-      final List<Timing> apiCustomSlots = [];
-      if (initialDay != null && (initialDay.timings ?? []).isNotEmpty) {
-        for (var t in initialDay.timings!) {
-          final open = _normalizeTime(t.open);
-          final close = _normalizeTime(t.close);
-          if (open != defaultOpen || close != defaultClose) {
-            apiCustomSlots.add(t);
-          }
-        }
-      }
-
-      // Compose time slots for UI (default first, then events)
-      final List<TimeSlot> slots = [
-        TimeSlot(from: defaultOpen, to: defaultClose, isDefault: true),
-        ...apiCustomSlots.map(
-          (t) => TimeSlot(
-            from: _normalizeTime(t.open),
-            to: _normalizeTime(t.close),
-            isDefault: false,
-          ),
-        ),
-      ];
-      // ✅ Determine if all days have only default open-close slots
-      final isDefaultOnly = (day.timings ?? []).every(
-        (t) =>
-            _normalizeTime(t.open) == defaultOpen &&
-            _normalizeTime(t.close) == defaultClose,
-      );
-
-      final bool hasEventSlots = !isDefaultOnly;
-
-      // Build selection object
-      daySelections[day.day!.toLowerCase()] = DaySelection(
-        isSelected: true, // Mark all valid days as selected
-        isExpanded: hasEventSlots,
-        cafeOpenTime: defaultOpen,
-        cafeCloseTime: defaultClose,
-        timeSlots: slots,
-      );
-
-      // After loop, determine if ALL days are default (no custom slots)
-      if (widget.initialSelectedDays != null &&
-          widget.initialSelectedDays!.isNotEmpty &&
-          widget.initialSelectedDays!.every(
-            (d) => (d.timings ?? []).every(
-              (t) =>
-                  _normalizeTime(t.open) ==
-                      _normalizeTime(
-                        widget.availableDays
-                            .firstWhere(
-                              (ad) =>
-                                  ad.day?.toLowerCase() == d.day?.toLowerCase(),
-                            )
-                            .timings!
-                            .first
-                            .open,
-                      ) &&
-                  _normalizeTime(t.close) ==
-                      _normalizeTime(
-                        widget.availableDays
-                            .firstWhere(
-                              (ad) =>
-                                  ad.day?.toLowerCase() == d.day?.toLowerCase(),
-                            )
-                            .timings!
-                            .first
-                            .close,
-                      ),
-            ),
-          )) {  
-        setState(() => alwaysAvailable = true);
-      }
-
-    }
-  }*/
-
   String _capitalizeFirstLetter(String text) {
+    final map = {
+      'mon': 'Monday',
+      'tue': 'Tuesday',
+      'wed': 'Wednesday',
+      'thu': 'Thursday',
+      'fri': 'Friday',
+      'sat': 'Saturday',
+      'sun': 'Sunday',
+    };
+
+    final key = text.toLowerCase();
+
+    // If it matches a day, return full name, else fallback to your original logic
+    if (map.containsKey(key)) {
+      return map[key]!;
+    }
+
     if (text.isEmpty) return text;
     return "${text[0].toUpperCase()}${text.substring(1).toLowerCase()}";
   }
+
+  // String _capitalizeFirstLetter(String text) {
+  //   if (text.isEmpty) return text;
+  //   return "${text[0].toUpperCase()}${text.substring(1).toLowerCase()}";
+  // }
 
   void _toggleAlwaysAvailable(bool value) {
     setState(() {
@@ -401,52 +326,59 @@ class _EnhancedAvailableDaysDialogState
     }
   }
 
- void _addTimeSlot(String day) {
-  final selection = daySelections[day]!;
-  final openMins = _timeToMinutes(_normalizeTime(selection.cafeOpenTime));
-  final closeMins = _timeToMinutes(_normalizeTime(selection.cafeCloseTime));
+  void _addTimeSlot(String day) {
+    final selection = daySelections[day]!;
+    final openMins = _timeToMinutes(_normalizeTime(selection.cafeOpenTime));
+    final closeMins = _timeToMinutes(_normalizeTime(selection.cafeCloseTime));
 
-  // Get all existing custom slots sorted by start time
-  final userSlots = selection.timeSlots.where((s) => !s.isDefault).toList()
-    ..sort((a, b) => _timeToMinutes(a.from).compareTo(_timeToMinutes(b.from)));
+    // Get all existing custom slots sorted by start time
+    final userSlots =
+        selection.timeSlots.where((s) => !s.isDefault).toList()..sort(
+          (a, b) => _timeToMinutes(a.from).compareTo(_timeToMinutes(b.from)),
+        );
 
-  // ✅ FIX: Find the latest end time among all custom slots
-  int nextStartMin = openMins;
-  for (final slot in userSlots) {
-    final slotEnd = _timeToMinutes(slot.to);
-    // Always update to the latest end time (no early break)
-    if (slotEnd > nextStartMin) {
-      nextStartMin = slotEnd;
+    // ✅ FIX: Find the latest end time among all custom slots
+    int nextStartMin = openMins;
+    for (final slot in userSlots) {
+      final slotEnd = _timeToMinutes(slot.to);
+      // Always update to the latest end time (no early break)
+      if (slotEnd > nextStartMin) {
+        nextStartMin = slotEnd;
+      }
+    }
+
+    print('🔍 Next available start: $nextStartMin minutes');
+    print(
+      '🔍 Existing slots: ${userSlots.map((s) => '${s.from}-${s.to}').toList()}',
+    );
+
+    // Calculate remaining time
+    final remainingTime = closeMins - nextStartMin;
+
+    if (remainingTime < 15) {
+      Fluttertoast.showToast(msg: 'Not enough time left to create a new slot.');
+      return;
+    }
+
+    // Create a slot with remaining time or max 60 minutes
+    final nextEndMin =
+        nextStartMin + (remainingTime >= 60 ? 60 : remainingTime);
+
+    final newStart =
+        '${(nextStartMin ~/ 60).toString().padLeft(2, '0')}:${(nextStartMin % 60).toString().padLeft(2, '0')}:00';
+    final newEnd =
+        '${(nextEndMin ~/ 60).toString().padLeft(2, '0')}:${(nextEndMin % 60).toString().padLeft(2, '0')}:00';
+
+    print('🔍 Adding new slot: $newStart - $newEnd');
+
+    if (_validateNewSlot(day, newStart, newEnd)) {
+      setState(() {
+        selection.timeSlots.add(
+          TimeSlot(from: newStart, to: newEnd, isDefault: false),
+        );
+      });
     }
   }
-
-  print('🔍 Next available start: $nextStartMin minutes');
-  print('🔍 Existing slots: ${userSlots.map((s) => '${s.from}-${s.to}').toList()}');
-
-  // Calculate remaining time
-  final remainingTime = closeMins - nextStartMin;
-
-  if (remainingTime < 15) {
-    Fluttertoast.showToast(msg: 'Not enough time left to create a new slot.');
-    return;
-  }
-
-  // Create a slot with remaining time or max 60 minutes
-  final nextEndMin = nextStartMin + (remainingTime >= 60 ? 60 : remainingTime);
-
-  final newStart = '${(nextStartMin ~/ 60).toString().padLeft(2, '0')}:${(nextStartMin % 60).toString().padLeft(2, '0')}:00';
-  final newEnd = '${(nextEndMin ~/ 60).toString().padLeft(2, '0')}:${(nextEndMin % 60).toString().padLeft(2, '0')}:00';
-
-  print('🔍 Adding new slot: $newStart - $newEnd');
-
-  if (_validateNewSlot(day, newStart, newEnd)) {
-    setState(() {
-      selection.timeSlots.add(
-        TimeSlot(from: newStart, to: newEnd, isDefault: false),
-      );
-    });
-  }
-}
 
   void _removeTimeSlot(String day, int index) {
     setState(() {
@@ -485,7 +417,6 @@ class _EnhancedAvailableDaysDialogState
 
         return null;
       }
-      
 
       return '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}:00';
     }
@@ -493,355 +424,181 @@ class _EnhancedAvailableDaysDialogState
   }
 
   /// Validate that a new event slot is inside café hours and non-overlapping
-bool _validateNewSlot(String day, String newStart, String newEnd) {
-  final selection = daySelections[day]!;
-  final open = _normalizeTime(selection.cafeOpenTime);
-  final close = _normalizeTime(selection.cafeCloseTime);
-  newStart = _normalizeTime(newStart);
-  newEnd = _normalizeTime(newEnd);
-
-  final newStartMins = _timeToMinutes(newStart);
-  final newEndMins = _timeToMinutes(newEnd);
-  final openMins = _timeToMinutes(open);
-  final closeMins = _timeToMinutes(close);
-
-  // Validate: must lie inside the default café hours
-  if (newStartMins < openMins || newEndMins > closeMins) {
-    Fluttertoast.showToast(
-      msg: 'Time slot must be within café hours $open - $close',
-    );
-    return false;
-  }
-
-  // Validate: start must be before end
-  if (newEndMins <= newStartMins) {
-    Fluttertoast.showToast(msg: 'End time must be after start time');
-    return false;
-  }
-
-  // ✅ FIX: Only check overlap with OTHER CUSTOM slots (skip default)
-  // Adjacent slots are OK (one ends at 11:00 AM, next starts at 11:00 AM)
-  for (final slot in selection.timeSlots) {
-    if (slot.isDefault) continue; // Skip the default café hours slot
-    
-    final existingStart = _timeToMinutes(slot.from);
-    final existingEnd = _timeToMinutes(slot.to);
-
-    // ✅ TRUE OVERLAP: New slot must start STRICTLY BEFORE existing ends
-    //    AND end STRICTLY AFTER existing starts (not equal)
-    final overlaps = (newStartMins < existingEnd && newEndMins > existingStart);
-
-    if (overlaps) {
-      Fluttertoast.showToast(
-        msg: 'Time slot overlaps with an existing one (${slot.from} - ${slot.to})',
-      );
-      return false;
-    }
-  }
-
-  // Prevent duplication
-  final duplicateExists = selection.timeSlots.any(
-    (s) =>
-        !s.isDefault &&
-        _normalizeTime(s.from) == newStart &&
-        _normalizeTime(s.to) == newEnd,
-  );
-  if (duplicateExists) {
-    Fluttertoast.showToast(msg: 'This time slot already exists');
-    return false;
-  }
-
-  return true;
-}
-
-
-  /// Validate that a new event slot is inside café hours and non-overlapping
-  // bool _validateNewSlot(String day, String newStart, String newEnd) {
-  //   final selection = daySelections[day]!;
-  //   final open = _normalizeTime(selection.cafeOpenTime);
-  //   final close = _normalizeTime(selection.cafeCloseTime);
-  //   newStart = _normalizeTime(newStart);
-  //   newEnd = _normalizeTime(newEnd);
-
-  //   final newStartMins = _timeToMinutes(newStart);
-  //   final newEndMins = _timeToMinutes(newEnd);
-  //   final openMins = _timeToMinutes(open);
-  //   final closeMins = _timeToMinutes(close);
-
-  //   // Validate: must lie inside the default café hours
-  //   if (newStartMins < openMins || newEndMins > closeMins) {
-  //     Fluttertoast.showToast(
-  //       msg: 'Time slot must be within café hours $open - $close',
-  //     );
-
-  //     return false;
-  //   }
-
-  //   // Validate: start must be before end
-  //   if (newEndMins <= newStartMins) {
-  //     Fluttertoast.showToast(msg: 'End time must be after start time');
-
-  //     return false;
-  //   }
-
-  //   //  Prevent overlap with existing event-created slots (ignore default)
-  //   for (final slot in selection.timeSlots) {
-  //     if (slot.isDefault) continue; // skip café hours
-  //     final existingStart = _timeToMinutes(slot.from);
-  //     final existingEnd = _timeToMinutes(slot.to);
-
-  //     // Overlap condition
-  //     final overlaps =
-  //         (newStartMins < existingEnd && newEndMins > existingStart);
-
-  //     if (overlaps) {
-  //       Fluttertoast.showToast(
-  //         msg:
-  //             'Time slot overlaps with an existing one (${slot.from} - ${slot.to})',
-  //       );
-
-  //       return false;
-  //     }
-  //   }
-
-  //   //  Prevent duplication
-  //   final duplicateExists = selection.timeSlots.any(
-  //     (s) =>
-  //         !s.isDefault &&
-  //         _normalizeTime(s.from) == newStart &&
-  //         _normalizeTime(s.to) == newEnd,
-  //   );
-  //   if (duplicateExists) {
-  //     Fluttertoast.showToast(msg: 'This time slot already exists');
-  //     return false;
-  //   }
-
-  //   return true;
-  // }
-
-  // bool _validateEditedSlot(
-  //   String day,
-  //   String newStart,
-  //   String newEnd,
-  //   int currentIndex,
-  // ) {
-  //   final selection = daySelections[day]!;
-  //   final open = _normalizeTime(selection.cafeOpenTime);
-  //   final close = _normalizeTime(selection.cafeCloseTime);
-
-  //   final newStartMins = _timeToMinutes(_normalizeTime(newStart));
-  //   final newEndMins = _timeToMinutes(_normalizeTime(newEnd));
-  //   final openMins = _timeToMinutes(open);
-  //   final closeMins = _timeToMinutes(close);
-
-  //   // Inside open–close
-  //   if (newStartMins < openMins || newEndMins > closeMins) {
-  //     Fluttertoast.showToast(
-  //       msg: 'Time must be within café hours ($open - $close)',
-  //     );
-  //     return false;
-  //   }
-
-  //   // Start before end
-  //   if (newEndMins <= newStartMins) {
-  //     Fluttertoast.showToast(msg: 'End time must be after start time');
-  //     return false;
-  //   }
-
-  //   // Prevent overlap with other non-default slots (ignore self)
-  //   for (int i = 0; i < selection.timeSlots.length; i++) {
-  //     if (i == currentIndex) continue;
-  //     final s = selection.timeSlots[i];
-  //     if (s.isDefault) continue;
-
-  //     final sStart = _timeToMinutes(_normalizeTime(s.from));
-  //     final sEnd = _timeToMinutes(_normalizeTime(s.to));
-
-  //     final overlaps = newStartMins < sEnd && newEndMins > sStart;
-  //     if (overlaps) {
-  //       Fluttertoast.showToast(
-  //         msg: 'This time overlaps with another slot (${s.from} - ${s.to})',
-  //       );
-  //       return false;
-  //     }
-  //   }
-
-  //   return true;
-  // }
-
-bool _validateEditedSlot(
-  String day,
-  String newStart,
-  String newEnd,
-  int currentIndex,
-) {
-  final selection = daySelections[day]!;
-  final open = _normalizeTime(selection.cafeOpenTime);
-  final close = _normalizeTime(selection.cafeCloseTime);
-
-  final newStartMins = _timeToMinutes(_normalizeTime(newStart));
-  final newEndMins = _timeToMinutes(_normalizeTime(newEnd));
-  final openMins = _timeToMinutes(open);
-  final closeMins = _timeToMinutes(close);
-
-  // Inside open–close
-  if (newStartMins < openMins || newEndMins > closeMins) {
-    Fluttertoast.showToast(
-      msg: 'Time must be within café hours ($open - $close)',
-    );
-    return false;
-  }
-
-  // Start before end
-  if (newEndMins <= newStartMins) {
-    Fluttertoast.showToast(msg: 'End time must be after start time');
-    return false;
-  }
-
-  // ✅ FIX: Prevent overlap with other non-default slots (ignore self AND default)
-  // Adjacent slots are OK
-  for (int i = 0; i < selection.timeSlots.length; i++) {
-    if (i == currentIndex) continue; // Skip self
-    final s = selection.timeSlots[i];
-    if (s.isDefault) continue; // Skip the default café hours slot
-
-    final sStart = _timeToMinutes(_normalizeTime(s.from));
-    final sEnd = _timeToMinutes(_normalizeTime(s.to));
-
-    // ✅ TRUE OVERLAP check
-    final overlaps = newStartMins < sEnd && newEndMins > sStart;
-    if (overlaps) {
-      Fluttertoast.showToast(
-        msg: 'This time overlaps with another slot (${s.from} - ${s.to})',
-      );
-      return false;
-    }
-  }
-
-  return true;
-}
-
- bool _validateAllSlots() {
-  for (final entry in daySelections.entries) {
-    final selection = entry.value;
-    if (!selection.isSelected) continue;
-
+  bool _validateNewSlot(String day, String newStart, String newEnd) {
+    final selection = daySelections[day]!;
     final open = _normalizeTime(selection.cafeOpenTime);
     final close = _normalizeTime(selection.cafeCloseTime);
+    newStart = _normalizeTime(newStart);
+    newEnd = _normalizeTime(newEnd);
+
+    final newStartMins = _timeToMinutes(newStart);
+    final newEndMins = _timeToMinutes(newEnd);
     final openMins = _timeToMinutes(open);
     final closeMins = _timeToMinutes(close);
 
+    // Validate: must lie inside the default café hours
+    if (newStartMins < openMins || newEndMins > closeMins) {
+      Fluttertoast.showToast(
+        msg: 'Time slot must be within café hours $open - $close',
+      );
+      return false;
+    }
+
+    // Validate: start must be before end
+    if (newEndMins <= newStartMins) {
+      Fluttertoast.showToast(msg: 'End time must be after start time');
+      return false;
+    }
+
+    // ✅ FIX: Only check overlap with OTHER CUSTOM slots (skip default)
+    // Adjacent slots are OK (one ends at 11:00 AM, next starts at 11:00 AM)
+    for (final slot in selection.timeSlots) {
+      if (slot.isDefault) continue; // Skip the default café hours slot
+
+      final existingStart = _timeToMinutes(slot.from);
+      final existingEnd = _timeToMinutes(slot.to);
+
+      // ✅ TRUE OVERLAP: New slot must start STRICTLY BEFORE existing ends
+      //    AND end STRICTLY AFTER existing starts (not equal)
+      final overlaps =
+          (newStartMins < existingEnd && newEndMins > existingStart);
+
+      if (overlaps) {
+        Fluttertoast.showToast(
+          msg:
+              'Time slot overlaps with an existing one (${slot.from} - ${slot.to})',
+        );
+        return false;
+      }
+    }
+
+    // Prevent duplication
+    final duplicateExists = selection.timeSlots.any(
+      (s) =>
+          !s.isDefault &&
+          _normalizeTime(s.from) == newStart &&
+          _normalizeTime(s.to) == newEnd,
+    );
+    if (duplicateExists) {
+      Fluttertoast.showToast(msg: 'This time slot already exists');
+      return false;
+    }
+
+    return true;
+  }
+
+  bool _validateEditedSlot(
+    String day,
+    String newStart,
+    String newEnd,
+    int currentIndex,
+  ) {
+    final selection = daySelections[day]!;
+    final open = _normalizeTime(selection.cafeOpenTime);
+    final close = _normalizeTime(selection.cafeCloseTime);
+
+    final newStartMins = _timeToMinutes(_normalizeTime(newStart));
+    final newEndMins = _timeToMinutes(_normalizeTime(newEnd));
+    final openMins = _timeToMinutes(open);
+    final closeMins = _timeToMinutes(close);
+
+    // Inside open–close
+    if (newStartMins < openMins || newEndMins > closeMins) {
+      Fluttertoast.showToast(
+        msg: 'Time must be within café hours ($open - $close)',
+      );
+      return false;
+    }
+
+    // Start before end
+    if (newEndMins <= newStartMins) {
+      Fluttertoast.showToast(msg: 'End time must be after start time');
+      return false;
+    }
+
+    // ✅ FIX: Prevent overlap with other non-default slots (ignore self AND default)
+    // Adjacent slots are OK
     for (int i = 0; i < selection.timeSlots.length; i++) {
-      final slot = selection.timeSlots[i];
-      if (slot.isDefault) continue; // Skip default slot validation
+      if (i == currentIndex) continue; // Skip self
+      final s = selection.timeSlots[i];
+      if (s.isDefault) continue; // Skip the default café hours slot
 
-      final startMins = _timeToMinutes(_normalizeTime(slot.from));
-      final endMins = _timeToMinutes(_normalizeTime(slot.to));
+      final sStart = _timeToMinutes(_normalizeTime(s.from));
+      final sEnd = _timeToMinutes(_normalizeTime(s.to));
 
-      // Invalid order
-      if (endMins <= startMins) {
+      // ✅ TRUE OVERLAP check
+      final overlaps = newStartMins < sEnd && newEndMins > sStart;
+      if (overlaps) {
         Fluttertoast.showToast(
-          msg:
-              '${_capitalizeFirstLetter(entry.key)} has invalid time range (${slot.from} - ${slot.to})',
+          msg: 'This time overlaps with another slot (${s.from} - ${s.to})',
         );
         return false;
       }
+    }
 
-      // Outside default café hours
-      if (startMins < openMins || endMins > closeMins) {
-        Fluttertoast.showToast(
-          msg:
-              '${_capitalizeFirstLetter(entry.key)} slot must be within café hours ($open - $close)',
-        );
-        return false;
-      }
+    return true;
+  }
 
-      // ✅ FIX: Overlap check - only compare with OTHER custom slots
-      // Adjacent slots are OK
-      for (int j = 0; j < selection.timeSlots.length; j++) {
-        if (i == j) continue; // Skip self
-        final other = selection.timeSlots[j];
-        if (other.isDefault) continue; // Skip default slot
+  bool _validateAllSlots() {
+    for (final entry in daySelections.entries) {
+      final selection = entry.value;
+      if (!selection.isSelected) continue;
 
-        final otherStart = _timeToMinutes(_normalizeTime(other.from));
-        final otherEnd = _timeToMinutes(_normalizeTime(other.to));
+      final open = _normalizeTime(selection.cafeOpenTime);
+      final close = _normalizeTime(selection.cafeCloseTime);
+      final openMins = _timeToMinutes(open);
+      final closeMins = _timeToMinutes(close);
 
-        // ✅ TRUE OVERLAP check
-        final overlaps = startMins < otherEnd && endMins > otherStart;
+      for (int i = 0; i < selection.timeSlots.length; i++) {
+        final slot = selection.timeSlots[i];
+        if (slot.isDefault) continue; // Skip default slot validation
 
-        if (overlaps) {
+        final startMins = _timeToMinutes(_normalizeTime(slot.from));
+        final endMins = _timeToMinutes(_normalizeTime(slot.to));
+
+        // Invalid order
+        if (endMins <= startMins) {
           Fluttertoast.showToast(
             msg:
-                '${_capitalizeFirstLetter(entry.key)} has overlapping slots (${slot.from} - ${slot.to}) and (${other.from} - ${other.to})',
+                '${_capitalizeFirstLetter(entry.key)} has invalid time range (${slot.from} - ${slot.to})',
           );
           return false;
         }
+
+        // Outside default café hours
+        if (startMins < openMins || endMins > closeMins) {
+          Fluttertoast.showToast(
+            msg:
+                '${_capitalizeFirstLetter(entry.key)} slot must be within café hours ($open - $close)',
+          );
+          return false;
+        }
+
+        // ✅ FIX: Overlap check - only compare with OTHER custom slots
+        // Adjacent slots are OK
+        for (int j = 0; j < selection.timeSlots.length; j++) {
+          if (i == j) continue; // Skip self
+          final other = selection.timeSlots[j];
+          if (other.isDefault) continue; // Skip default slot
+
+          final otherStart = _timeToMinutes(_normalizeTime(other.from));
+          final otherEnd = _timeToMinutes(_normalizeTime(other.to));
+
+          // ✅ TRUE OVERLAP check
+          final overlaps = startMins < otherEnd && endMins > otherStart;
+
+          if (overlaps) {
+            Fluttertoast.showToast(
+              msg:
+                  '${_capitalizeFirstLetter(entry.key)} has overlapping slots (${slot.from} - ${slot.to}) and (${other.from} - ${other.to})',
+            );
+            return false;
+          }
+        }
       }
     }
+    return true;
   }
-  return true;
-}
-  // bool _validateAllSlots() {
-  //   for (final entry in daySelections.entries) {
-  //     final selection = entry.value;
-  //     if (!selection.isSelected) continue;
-
-  //     final open = _normalizeTime(selection.cafeOpenTime);
-  //     final close = _normalizeTime(selection.cafeCloseTime);
-  //     final openMins = _timeToMinutes(open);
-  //     final closeMins = _timeToMinutes(close);
-
-  //     for (int i = 0; i < selection.timeSlots.length; i++) {
-  //       final slot = selection.timeSlots[i];
-  //       if (slot.isDefault) continue;
-
-  //       final startMins = _timeToMinutes(_normalizeTime(slot.from));
-  //       final endMins = _timeToMinutes(_normalizeTime(slot.to));
-
-  //       // Invalid order
-  //       if (endMins <= startMins) {
-  //         Fluttertoast.showToast(
-  //           msg:
-  //               '${_capitalizeFirstLetter(entry.key)} has invalid time range (${slot.from} - ${slot.to})',
-  //         );
-
-  //         return false;
-  //       }
-
-  //       // Outside default café hours
-  //       if (startMins < openMins || endMins > closeMins) {
-  //         Fluttertoast.showToast(
-  //           msg:
-  //               '${_capitalizeFirstLetter(entry.key)} slot must be within café hours ($open - $close)',
-  //         );
-
-  //         return false;
-  //       }
-
-  //       // Overlap check (ignore itself)
-  //       for (int j = 0; j < selection.timeSlots.length; j++) {
-  //         if (i == j) continue;
-  //         final other = selection.timeSlots[j];
-  //         if (other.isDefault) continue;
-
-  //         final otherStart = _timeToMinutes(_normalizeTime(other.from));
-  //         final otherEnd = _timeToMinutes(_normalizeTime(other.to));
-
-  //         final overlaps = startMins < otherEnd && endMins > otherStart;
-
-  //         if (overlaps) {
-  //           Fluttertoast.showToast(
-  //             msg:
-  //                 '${_capitalizeFirstLetter(entry.key)} has overlapping slots (${slot.from} - ${slot.to}) and (${other.from} - ${other.to})',
-  //           );
-
-  //           return false;
-  //         }
-  //       }
-  //     }
-  //   }
-  //   return true;
-  // }
 
   TimeOfDay _parseTime(String time) {
     final clean = _normalizeTime(time);
@@ -933,6 +690,35 @@ bool _validateEditedSlot(
     });
 
     return selected;
+  }
+
+  // Add this helper
+  String _fullDayName(String day) {
+    switch (day.toLowerCase()) {
+      case 'mon':
+      case 'monday':
+        return 'Monday';
+      case 'tue':
+      case 'tuesday':
+        return 'Tuesday';
+      case 'wed':
+      case 'wednesday':
+        return 'Wednesday';
+      case 'thu':
+      case 'thursday':
+        return 'Thursday';
+      case 'fri':
+      case 'friday':
+        return 'Friday';
+      case 'sat':
+      case 'saturday':
+        return 'Saturday';
+      case 'sun':
+      case 'sunday':
+        return 'Sunday';
+      default:
+        return day;
+    }
   }
 
   @override

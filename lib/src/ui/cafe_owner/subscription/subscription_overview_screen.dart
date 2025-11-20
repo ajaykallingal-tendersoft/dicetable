@@ -1,5 +1,6 @@
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/ui/cafe_owner/subscription/widget/subscription_overview_card.dart';
+import 'package:soloseaters/src/utils/data/auth_session_manager.dart';
 import 'package:soloseaters/src/utils/data/sign_out.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -44,8 +45,9 @@ class _SubscriptionOverviewScreenState
             backgroundColor: AppColors.primaryWhiteColor,
             textColor: AppColors.appRedColor,
           );
-          if (state.errorMessage.contains("UnAuthorized") ||
-              state.errorMessage.contains("status code of 401") ) {
+          if ((state.errorMessage.contains("UnAuthorized") ||
+                  state.errorMessage.contains("status code of 401")) &&
+              AuthSessionManager.consumeRefreshFailureFlag()) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               SignOut().logout(context);
               Fluttertoast.showToast(
@@ -54,7 +56,7 @@ class _SubscriptionOverviewScreenState
                 textColor: AppColors.appRedColor,
                 gravity: ToastGravity.BOTTOM,
                 msg:
-                "Your session has expired. Please sign in again.",
+                    "Your session has expired. Please sign in again.",
               );
             });
           }

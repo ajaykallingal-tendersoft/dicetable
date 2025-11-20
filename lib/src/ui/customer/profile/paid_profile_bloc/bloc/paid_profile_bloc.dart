@@ -15,12 +15,11 @@ import 'package:soloseaters/src/ui/customer/profile/paid_profile_bloc/bloc/paid_
 import 'package:soloseaters/src/ui/customer/profile/paid_profile_bloc/bloc/paid_profile_state.dart';
 import 'package:soloseaters/src/utils/extension/state_model_extension.dart';
 
-
 class PaidProfileBloc extends Bloc<PaidProfileEvent, PaidProfileState> {
   final CustomerProfileDataProvider customerProfileDataProvider;
 
   PaidProfileBloc({required this.customerProfileDataProvider})
-      : super(PaidProfileState()) {
+    : super(PaidProfileState()) {
     on<GetPaidProfileEvent>(_onGetPaidProfile);
     on<UpdatePaidProfileEvent>(_onUpdatePaidProfile);
     on<AddBusinessImagesEvent>(_onAddBusinessImages);
@@ -74,7 +73,8 @@ class PaidProfileBloc extends Bloc<PaidProfileEvent, PaidProfileState> {
           state.copyWith(
             selectedProfileImage: compressed,
             hasUnsavedChanges: true,
-            errorMessage: null,
+            errorMessage: null, // ✅ Clear error message
+            clearErrorMessage: true,
           ),
         );
       }
@@ -87,10 +87,7 @@ class PaidProfileBloc extends Bloc<PaidProfileEvent, PaidProfileState> {
     GetPaidProfileEvent event,
     Emitter<PaidProfileState> emit,
   ) async {
-    emit(state.copyWith(
-      isLoading: true, 
-      clearErrorMessage: true,
-    ));
+    emit(state.copyWith(isLoading: true, clearErrorMessage: true));
 
     try {
       final StateModel? stateModel =
@@ -99,30 +96,74 @@ class PaidProfileBloc extends Bloc<PaidProfileEvent, PaidProfileState> {
       if (stateModel is SuccessState<CustomerPaidProfileResponse>) {
         final profile = stateModel.value;
 
+        // Get static preferences
+        final staticPreferences = PreferenceConstants.getStaticPreferences();
+
         // Build preference map: preference_id -> isSelected
         Map<int, bool> initialPreferences = {};
         final apiPreferences = profile.data?.myPreferences ?? [];
-        
-        for (var pref in apiPreferences) {
-          if (pref.id != null) {
-            initialPreferences[pref.id!] = pref.isPreferences ?? false;
+        final apiPreferencesIds = profile.data?.myPreferencesIds ?? [];
+
+        // Initialize all static preferences
+        for (var staticPref in staticPreferences) {
+          if (staticPref.id != null) {
+            // Check if this preference exists in API response with isPreferences: true
+            final apiPref = apiPreferences.firstWhere(
+              (p) => p.id == staticPref.id,
+              orElse:
+                  () => MyPreference(id: staticPref.id, isPreferences: false),
+            );
+
+            // Only mark as selected if BOTH conditions are true:
+            // 1. ID exists in my_preferences_ids array
+            // 2. isPreferences is true in the API response
+            final isInIds = apiPreferencesIds.contains(staticPref.id);
+            final isPreferenceTrue = apiPref.isPreferences ?? false;
+
+            initialPreferences[staticPref.id!] = isInIds && isPreferenceTrue;
           }
         }
 
         // Build venue notification map: venue_id -> isEnabled
         Map<int, bool> initialVenueNotifications = {};
         final favoriteVenues = profile.data?.favoriteVenues ?? [];
-        
+
         for (var venue in favoriteVenues) {
           if (venue.id != null) {
             initialVenueNotifications[venue.id!] = venue.notification ?? false;
           }
         }
 
+        // Create a new profile with static preferences merged with API selection state
+        final updatedProfile = profile.copyWith(
+          data: profile.data?.copyWith(
+            myPreferences:
+                staticPreferences.map((staticPref) {
+                  // Find matching API preference
+                  final apiPref = apiPreferences.firstWhere(
+                    (p) => p.id == staticPref.id,
+                    orElse:
+                        () => MyPreference(
+                          id: staticPref.id,
+                          isPreferences: false,
+                        ),
+                  );
+
+                  // Check both conditions
+                  final isInIds = apiPreferencesIds.contains(staticPref.id);
+                  final isPreferenceTrue = apiPref.isPreferences ?? false;
+
+                  return staticPref.copyWith(
+                    isPreferences: isInIds && isPreferenceTrue,
+                  );
+                }).toList(),
+          ),
+        );
+
         emit(
           state.copyWith(
             isLoading: false,
-            profile: profile,
+            profile: updatedProfile,
             clearErrorMessage: true,
             localPreferences: initialPreferences,
             localVenueNotifications: initialVenueNotifications,
@@ -161,6 +202,84 @@ class PaidProfileBloc extends Bloc<PaidProfileEvent, PaidProfileState> {
     }
   }
 
+  // Future<void> _onGetPaidProfile(
+  //   GetPaidProfileEvent event,
+  //   Emitter<PaidProfileState> emit,
+  // ) async {
+  //   emit(state.copyWith(
+  //     isLoading: true,
+  //     clearErrorMessage: true,
+  //   ));
+
+  //   try {
+  //     final StateModel? stateModel =
+  //         await customerProfileDataProvider.getPaidCustomerProfileById();
+
+  //     if (stateModel is SuccessState<CustomerPaidProfileResponse>) {
+  //       final profile = stateModel.value;
+
+  //       // Build preference map: preference_id -> isSelected
+  //       Map<int, bool> initialPreferences = {};
+  //       final apiPreferences = profile.data?.myPreferences ?? [];
+
+  //       for (var pref in apiPreferences) {
+  //         if (pref.id != null) {
+  //           initialPreferences[pref.id!] = pref.isPreferences ?? false;
+  //         }
+  //       }
+
+  //       // Build venue notification map: venue_id -> isEnabled
+  //       Map<int, bool> initialVenueNotifications = {};
+  //       final favoriteVenues = profile.data?.favoriteVenues ?? [];
+
+  //       for (var venue in favoriteVenues) {
+  //         if (venue.id != null) {
+  //           initialVenueNotifications[venue.id!] = venue.notification ?? false;
+  //         }
+  //       }
+
+  //       emit(
+  //         state.copyWith(
+  //           isLoading: false,
+  //           profile: profile,
+  //           clearErrorMessage: true,
+  //           localPreferences: initialPreferences,
+  //           localVenueNotifications: initialVenueNotifications,
+  //           // Reset changes on fresh GET
+  //           selectedBusinessImages: [],
+  //           selectedHobbyImages: [],
+  //           selectedProfileImage: null,
+  //           hasUnsavedChanges: false,
+  //           imageWasJustUploaded: false,
+  //         ),
+  //       );
+  //     } else if (stateModel is ErrorState) {
+  //       emit(
+  //         state.copyWith(
+  //           isLoading: false,
+  //           errorMessage: stateModel.error.msg ?? 'Something went wrong.',
+  //         ),
+  //       );
+  //     } else {
+  //       emit(
+  //         state.copyWith(
+  //           isLoading: false,
+  //           errorMessage: 'Failed to load profile data.',
+  //         ),
+  //       );
+  //     }
+  //   } catch (e, st) {
+  //     print('🔥 Paid Profile Fetch Error: $e');
+  //     print(st);
+  //     emit(
+  //       state.copyWith(
+  //         isLoading: false,
+  //         errorMessage: 'Error loading profile: $e',
+  //       ),
+  //     );
+  //   }
+  // }
+
   Future<void> _onUpdatePaidProfile(
     UpdatePaidProfileEvent event,
     Emitter<PaidProfileState> emit,
@@ -175,15 +294,17 @@ class PaidProfileBloc extends Bloc<PaidProfileEvent, PaidProfileState> {
 
     try {
       // Build the request with IDs
-      final selectedPreferenceIds = state.localPreferences.entries
-          .where((entry) => entry.value == true)
-          .map((entry) => entry.key)
-          .toList();
+      final selectedPreferenceIds =
+          state.localPreferences.entries
+              .where((entry) => entry.value == true)
+              .map((entry) => entry.key)
+              .toList();
 
-      final selectedVenueIds = state.localVenueNotifications.entries
-          .where((entry) => entry.value == true)
-          .map((entry) => entry.key)
-          .toList();
+      final selectedVenueIds =
+          state.localVenueNotifications.entries
+              .where((entry) => entry.value == true)
+              .map((entry) => entry.key)
+              .toList();
 
       final mergedRequest = PaidProfileUpdateRequest(
         aboutMe: event.request.aboutMe,
@@ -221,35 +342,81 @@ class PaidProfileBloc extends Bloc<PaidProfileEvent, PaidProfileState> {
 
         // Small delay to allow backend to process images
         await Future.delayed(const Duration(seconds: 1));
-String? baseImageUrl;
+        String? baseImageUrl;
         // Try to refresh profile data
         try {
           final refreshed =
               await customerProfileDataProvider.getPaidCustomerProfileById();
 
+          // Inside the try block after successful refresh in _onUpdatePaidProfile
           if (refreshed != null && refreshed.isSuccess) {
             final profile = refreshed.data!;
             baseImageUrl = profile.data?.photo;
 
+            // Get static preferences
+            final staticPreferences =
+                PreferenceConstants.getStaticPreferences();
+
             // Rebuild preferences from refreshed data
             Map<int, bool> updatedPreferences = {};
             final apiPreferences = profile.data?.myPreferences ?? [];
-            
-            for (var pref in apiPreferences) {
-              if (pref.id != null) {
-                updatedPreferences[pref.id!] = pref.isPreferences ?? false;
+            final apiPreferencesIds = profile.data?.myPreferencesIds ?? [];
+
+            for (var staticPref in staticPreferences) {
+              if (staticPref.id != null) {
+                // Find matching API preference
+                final apiPref = apiPreferences.firstWhere(
+                  (p) => p.id == staticPref.id,
+                  orElse:
+                      () =>
+                          MyPreference(id: staticPref.id, isPreferences: false),
+                );
+
+                // Check both conditions
+                final isInIds = apiPreferencesIds.contains(staticPref.id);
+                final isPreferenceTrue = apiPref.isPreferences ?? false;
+
+                updatedPreferences[staticPref.id!] =
+                    isInIds && isPreferenceTrue;
               }
             }
 
             // Rebuild venue notifications
             Map<int, bool> updatedVenueNotifications = {};
             final favoriteVenues = profile.data?.favoriteVenues ?? [];
-            
+
             for (var venue in favoriteVenues) {
               if (venue.id != null) {
-                updatedVenueNotifications[venue.id!] = venue.notification ?? false;
+                updatedVenueNotifications[venue.id!] =
+                    venue.notification ?? false;
               }
             }
+
+            // Create updated profile with static preferences
+            final updatedProfile = profile.copyWith(
+              data: profile.data?.copyWith(
+                myPreferences:
+                    staticPreferences.map((staticPref) {
+                      // Find matching API preference
+                      final apiPref = apiPreferences.firstWhere(
+                        (p) => p.id == staticPref.id,
+                        orElse:
+                            () => MyPreference(
+                              id: staticPref.id,
+                              isPreferences: false,
+                            ),
+                      );
+
+                      // Check both conditions
+                      final isInIds = apiPreferencesIds.contains(staticPref.id);
+                      final isPreferenceTrue = apiPref.isPreferences ?? false;
+
+                      return staticPref.copyWith(
+                        isPreferences: isInIds && isPreferenceTrue,
+                      );
+                    }).toList(),
+              ),
+            );
 
             emit(
               state.copyWith(
@@ -257,7 +424,7 @@ String? baseImageUrl;
                 updateSuccess: true,
                 successMessage:
                     stateModel.data?.message ?? 'Profile updated successfully!',
-                profile: profile,
+                profile: updatedProfile,
                 errorMessage: null,
                 localPreferences: updatedPreferences,
                 localVenueNotifications: updatedVenueNotifications,
@@ -265,7 +432,9 @@ String? baseImageUrl;
             );
           } else {
             // Refresh failed but update succeeded
-            print('⚠️ Profile refresh failed after update, keeping current state');
+            print(
+              '⚠️ Profile refresh failed after update, keeping current state',
+            );
             baseImageUrl = state.profile.data?.photo;
             emit(
               state.copyWith(
@@ -292,14 +461,14 @@ String? baseImageUrl;
           );
         }
         if (imageUploaded && baseImageUrl != null && baseImageUrl.isNotEmpty) {
-    try {
-      await DefaultCacheManager().removeFile(baseImageUrl);
-      print('✅ Evicted cache for profile image: $baseImageUrl');
-    } catch (evictError) {
-      print('⚠️ Cache eviction failed: $evictError');
-      // Non-fatal; cache bust fallback still works
-    }
-  }
+          try {
+            await DefaultCacheManager().removeFile(baseImageUrl);
+            print('✅ Evicted cache for profile image: $baseImageUrl');
+          } catch (evictError) {
+            print('⚠️ Cache eviction failed: $evictError');
+            // Non-fatal; cache bust fallback still works
+          }
+        }
 
         return;
       }
@@ -362,9 +531,12 @@ String? baseImageUrl;
 
     // ALWAYS allow up to 2 local images
     if (localCount >= 2) {
-      emit(state.copyWith(
-        errorMessage: 'You can only select up to 2 new business images at a time'
-      ));
+      emit(
+        state.copyWith(
+          errorMessage:
+              'You can only select up to 2 new business images at a time',
+        ),
+      );
       return;
     }
 
@@ -384,7 +556,8 @@ String? baseImageUrl;
           ...compressedImages,
         ],
         hasUnsavedChanges: true,
-        errorMessage: null,
+        errorMessage: null, // ✅ Clear previous errors
+        clearErrorMessage: true,
       ),
     );
   }
@@ -397,9 +570,12 @@ String? baseImageUrl;
 
     // ALWAYS allow up to 2 local images
     if (localCount >= 2) {
-      emit(state.copyWith(
-        errorMessage: 'You can only select up to 2 new hobby images at a time'
-      ));
+      emit(
+        state.copyWith(
+          errorMessage:
+              'You can only select up to 2 new hobby images at a time',
+        ),
+      );
       return;
     }
 
@@ -419,7 +595,8 @@ String? baseImageUrl;
           ...compressedImages,
         ],
         hasUnsavedChanges: true,
-        errorMessage: null,
+        errorMessage: null, // ✅ Clear previous errors
+        clearErrorMessage: true,
       ),
     );
   }
@@ -431,7 +608,12 @@ String? baseImageUrl;
     final updated = List<XFile>.from(state.selectedBusinessImages)
       ..removeAt(event.index);
     emit(
-      state.copyWith(selectedBusinessImages: updated, hasUnsavedChanges: true),
+      state.copyWith(
+        selectedBusinessImages: updated,
+        hasUnsavedChanges: true,
+        errorMessage: null, // ✅ Clear error when removing
+        clearErrorMessage: true,
+      ),
     );
   }
 
@@ -441,20 +623,31 @@ String? baseImageUrl;
   ) {
     final updated = List<XFile>.from(state.selectedHobbyImages)
       ..removeAt(event.index);
-    emit(state.copyWith(selectedHobbyImages: updated, hasUnsavedChanges: true));
+    emit(
+      state.copyWith(
+        selectedHobbyImages: updated,
+        hasUnsavedChanges: true,
+        errorMessage: null, // ✅ Clear error when removing
+        clearErrorMessage: true,
+      ),
+    );
   }
 
   void _onToggleVenueNotification(
     ToggleVenueNotification event,
     Emitter<PaidProfileState> emit,
   ) {
-    final updatedNotifications = Map<int, bool>.from(state.localVenueNotifications);
+    final updatedNotifications = Map<int, bool>.from(
+      state.localVenueNotifications,
+    );
     updatedNotifications[event.venueId] = event.isEnabled;
-    
+
     emit(
       state.copyWith(
         localVenueNotifications: updatedNotifications,
         hasUnsavedChanges: true,
+        errorMessage: null, // ✅ Clear previous errors
+        clearErrorMessage: true,
       ),
     );
   }
@@ -465,11 +658,13 @@ String? baseImageUrl;
   ) {
     final updatedPreferences = Map<int, bool>.from(state.localPreferences);
     updatedPreferences[event.preferenceId] = event.isEnabled;
-    
+
     emit(
       state.copyWith(
         localPreferences: updatedPreferences,
         hasUnsavedChanges: true,
+        errorMessage: null, // ✅ Clear previous errors
+        clearErrorMessage: true,
       ),
     );
   }
@@ -478,7 +673,13 @@ String? baseImageUrl;
     UpdateTextFieldEvent event,
     Emitter<PaidProfileState> emit,
   ) {
-    emit(state.copyWith(hasUnsavedChanges: true));
+    emit(
+      state.copyWith(
+        hasUnsavedChanges: true,
+        errorMessage: null, // ✅ Clear previous errors on text change
+        clearErrorMessage: true,
+      ),
+    );
   }
 
   void _onResetUpdateStatus(
@@ -496,4 +697,23 @@ String? baseImageUrl;
   }
 }
 
+// Add this at the top of your paid_profile_bloc.dart file or create a new constants.dart file
 
+class PreferenceConstants {
+  static const List<Map<String, dynamic>> staticPreferences = [
+    {"id": 1, "name": "Business Networking"},
+    {"id": 2, "name": "Social Solos"},
+    {"id": 3, "name": "Solo Singles"},
+    {"id": 4, "name": "Prime Time - Over 60's"},
+  ];
+
+  static List<MyPreference> getStaticPreferences() {
+    return staticPreferences.map((pref) {
+      return MyPreference(
+        id: pref['id'] as int,
+        name: pref['name'] as String,
+        isPreferences: false, // Default to false
+      );
+    }).toList();
+  }
+}

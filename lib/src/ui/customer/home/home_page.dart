@@ -20,7 +20,6 @@ import 'package:responsive_framework/responsive_framework.dart';
 import 'package:badges/badges.dart' as badges;
 import 'package:auto_size_text/auto_size_text.dart';
 
-
 class CustomerHomePage extends StatefulWidget {
   const CustomerHomePage({super.key});
 
@@ -40,7 +39,6 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
     latitude = ObjectFactory().prefs.getLatitude().toString();
     longitude = ObjectFactory().prefs.getLongitude().toString();
     _performSearch();
-
   }
 
   void _performSearch() {
@@ -127,10 +125,10 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                             AutoSizeText(
                               "SOLO SEATERS",
                               style: GoogleFonts.montserrat(
-                                    color: AppColors.primaryWhiteColor,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: isTabletOrLarger ? 28.sp : 24.sp,
-                                  ),
+                                color: AppColors.primaryWhiteColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: isTabletOrLarger ? 28.sp : 24.sp,
+                              ),
                             ),
                             isGuest
                                 ? SizedBox.shrink()
@@ -146,43 +144,54 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                                                   .value >
                                               0
                                           ? badges.Badge(
-                                            position: badges.BadgePosition.topEnd(
+                                            position: badges
+                                                .BadgePosition.topEnd(
                                               top: 0,
-                                              end: -9,
-                                  
+                                              end: -2,
                                             ),
                                             badgeAnimation:
                                                 badges.BadgeAnimation.slide(),
-                                            showBadge: true,
+                                            showBadge:
+                                                true, // You might want to check if value > 0 here
                                             badgeStyle: badges.BadgeStyle(
-                                              shape: badges.BadgeShape.circle,
-                                              borderRadius: BorderRadius.circular(
-                                                10.r,
-                                              ),
+                                              shape:
+                                                  badges
+                                                      .BadgeShape
+                                                      .circle, // STRICTLY CIRCLE
                                               badgeColor: Colors.red,
-                                              padding: EdgeInsets.symmetric(
-                                                horizontal: 4.w,
-                                                vertical: 2.h,
-                                              ),
+                                              padding: EdgeInsets.all(
+                                                4.sp,
+                                              ), // Use .all for circles to keep aspect ratio
+                                              elevation: 0,
                                             ),
                                             badgeContent: Text(
-                                              controller
-                                                  .notificationBadgeAmount
-                                                  .value
-                                                  .toString(),
+                                              // Logic: If greater than 99, show "99+", otherwise show number
+                                              int.parse(
+                                                        controller
+                                                            .notificationBadgeAmount
+                                                            .value
+                                                            .toString(),
+                                                      ) >
+                                                      99
+                                                  ? "99+"
+                                                  : controller
+                                                      .notificationBadgeAmount
+                                                      .value
+                                                      .toString(),
                                               style: TextStyle(
                                                 color: Colors.white,
                                                 fontSize: 10.sp,
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
-                                            child:  Icon(
+                                            child: Icon(
                                               Icons.notifications_outlined,
-                                              color: AppColors.primaryWhiteColor,
+                                              color:
+                                                  AppColors.primaryWhiteColor,
                                               size: 28.w,
                                             ),
                                           )
-                                          :  Icon(
+                                          : Icon(
                                             Icons.notifications_outlined,
                                             color: AppColors.primaryWhiteColor,
                                             size: 28.w,
@@ -225,7 +234,6 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                 } else {
                   EasyLoading.dismiss();
                 }
-               
               },
               builder: (context, state) {
                 return SliverToBoxAdapter(
