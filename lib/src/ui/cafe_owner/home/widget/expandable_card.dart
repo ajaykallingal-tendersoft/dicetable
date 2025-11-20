@@ -31,7 +31,7 @@ class ExpandableCard extends StatefulWidget {
 
 class _ExpandableCardState extends State<ExpandableCard> {
   late TextEditingController _promoController;
-  List<AvailableDay> selectedDays = []; // Local state for selected days
+  List<AvailableDay> selectedDays = [];
   late int? cafeId;
   List<Color> iconColor = [
     AppColors.tableTypeLogoColor1,
@@ -85,51 +85,50 @@ class _ExpandableCardState extends State<ExpandableCard> {
   }
 
   Future<void> showUpgradePopup(BuildContext context) async {
-    // You would typically call showDialog here
     await showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => const UpgradePopup(),
     );
   }
+
   Widget _buildCollapsedAttendeesButton(BuildContext context) {
-  final card = widget.card;
+    final card = widget.card;
 
-  if (!card.hasBookings || card.attendees.isEmpty) {
-    return const SizedBox.shrink();
+    if (!card.hasBookings || card.attendees.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return InkWell(
+      onTap: () {
+        context.push(
+          '/attendees',
+          extra: AttendeesArguments(
+            tableId: card.id,
+            tableTypeName: card.title,
+            attendees: card.attendees,
+            bookingDate: card.attendees.first.bookingDate?.toString(),
+          ),
+        );
+      },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
+        decoration: BoxDecoration(
+          color: AppColors.primary,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Text(
+          "View Attendees",
+          style: GoogleFonts.montserrat(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    );
   }
-
-  return InkWell(
-    onTap: () {
-      context.push(
-        '/attendees',
-        extra: AttendeesArguments(
-          tableId: card.id,
-          tableTypeName: card.title,
-          attendees: card.attendees,
-          bookingDate: card.attendees.first.bookingDate?.toString(),
-        ),
-      );
-    },
-    borderRadius: BorderRadius.circular(20),
-    child: Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
-      decoration: BoxDecoration(
-        color: AppColors.primary,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        "View Attendees",
-        style: GoogleFonts.montserrat(
-          fontSize: 12,
-          fontWeight: FontWeight.w600,
-          color: Colors.white,
-        ),
-      ),
-    ),
-  );
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -212,406 +211,305 @@ class _ExpandableCardState extends State<ExpandableCard> {
                 ],
               ),
               const Gap(10),
-             // DESCRIPTION + CHECKMARK ROW
-Row(
-  crossAxisAlignment: CrossAxisAlignment.start,
-  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-  children: [
-    Expanded(
-      child: Text(
-        card.description!.isNotEmpty
-            ? card.description!
-            : (card.description ?? 'No description available'),
-        style: Theme.of(context).textTheme.bodySmall!.copyWith(
-              color: AppColors.shadowColor,
-              fontWeight: FontWeight.w400,
-              fontSize: 11.sp,
-            ),
-        softWrap: true,
-      ),
-    ),
-    const SizedBox(width: 8),
-    GestureDetector(
-      onTap: card.selectedDays.isNotEmpty
-          ? null
-          : () {
-              context.read<HomeBloc>().add(
-                    ToggleCheckEvent(widget.index),
-                  );
-            },
-      child: Container(
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(
-            color: AppColors.unSelectedColor,
-            width: 2,
-          ),
-          color: AppColors.unSelectedColor,
-        ),
-        child: Icon(
-          Icons.check,
-          size: 17,
-          color: card.isSelected ? AppColors.primary : Colors.transparent,
-        ),
-      ),
-    ),
-  ],
-),
-
-const Gap(10),
-
-// AVAILABILITY + EDIT BUTTON (collapsed-only)
-Row(
-  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  children: [
-    // LEFT SIDE: Availability timings
-    Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        card.isSelected && selectedDays.isNotEmpty
-            ? Column(
+              Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: (() {
-                  final dayOrder = {
-                    'mon': 1,
-                    'tue': 2,
-                    'wed': 3,
-                    'thu': 4,
-                    'fri': 5,
-                    'sat': 6,
-                    'sun': 7,
-                  };
-
-                  final sortedDays = [...selectedDays]..sort((a, b) {
-                    final orderA = dayOrder[a.day?.toLowerCase() ?? ''] ?? 99;
-                    final orderB = dayOrder[b.day?.toLowerCase() ?? ''] ?? 99;
-                    return orderA.compareTo(orderB);
-                  });
-
-                  List<Widget> displayWidgets = [];
-
-                  for (var d in sortedDays) {
-                    final timings = d.timings ?? [];
-                    for (var t in timings) {
-                      displayWidgets.add(
-                        Text(
-                          "${capitalizeFirstLetter(d.day ?? '')}: ${_formatTime(t.open)} - ${_formatTime(t.close)}",
-                          style: GoogleFonts.roboto(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w600,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Expanded(
+                    child: Text(
+                      card.description!.isNotEmpty
+                          ? card.description!
+                          : (card.description ?? 'No description available'),
+                      style: Theme.of(context).textTheme.bodySmall!.copyWith(
                             color: AppColors.shadowColor,
+                            fontWeight: FontWeight.w400,
+                            fontSize: 11.sp,
                           ),
+                      softWrap: true,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: card.selectedDays.isNotEmpty
+                        ? null
+                        : () {
+                            context.read<HomeBloc>().add(
+                                  ToggleCheckEvent(widget.index),
+                                );
+                          },
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: AppColors.unSelectedColor,
+                          width: 2,
                         ),
-                      );
-                    }
-                  }
-
-                  if (displayWidgets.isEmpty) {
-                    return [const SizedBox.shrink()];
-                  }
-
-                  return [
-                    Text(
-                      'Available',
-                      style: GoogleFonts.roboto(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primary,
+                        color: AppColors.unSelectedColor,
+                      ),
+                      child: Icon(
+                        Icons.check,
+                        size: 17,
+                        color: card.isSelected ? AppColors.primary : Colors.transparent,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    ...displayWidgets,
-                  ];
-                })(),
-              )
-            : const SizedBox.shrink(),
-      ],
-    ),
+                  ),
+                ],
+              ),
+              const Gap(10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      card.isSelected && selectedDays.isNotEmpty
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: (() {
+                                final dayOrder = {
+                                  'mon': 1,
+                                  'tue': 2,
+                                  'wed': 3,
+                                  'thu': 4,
+                                  'fri': 5,
+                                  'sat': 6,
+                                  'sun': 7,
+                                };
 
-    // RIGHT SIDE: Edit (collapsed only)
-    // if (!card.isExpanded)
-    //   BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
-    //     builder: (context, paymentState) {
-    //       return ElevatedButton.icon(
-    //         style: ElevatedButton.styleFrom(
-    //           shape: RoundedRectangleBorder(
-    //             borderRadius: BorderRadius.circular(13),
-    //             side: const BorderSide(
-    //               color: Color(0xFF5B6369),
-    //               width: 1,
-    //             ),
-    //           ),
-    //         ),
-    //         onPressed: () {
-    //           context.read<HomeBloc>().add(
-    //                 ToggleExpandEvent(widget.index),
-    //               );
-    //         },
-    //         label: const Text(
-    //           'Edit',
-    //           style: TextStyle(
-    //             fontSize: 9,
-    //             color: Color(0xFF5B6369),
-    //           ),
-    //         ),
-    //         icon: const Icon(
-    //           Icons.edit,
-    //           size: 15,
-    //           color: Color(0xFF5B6369),
-    //         ),
-    //       );
-    //     },
-    //   ),
-  ],
-),
+                                final sortedDays = [...selectedDays]..sort((a, b) {
+                                  final orderA = dayOrder[a.day?.toLowerCase() ?? ''] ?? 99;
+                                  final orderB = dayOrder[b.day?.toLowerCase() ?? ''] ?? 99;
+                                  return orderA.compareTo(orderB);
+                                });
 
-// ADD THE COLLAPSED BUTTON ROW BELOW TIMINGS
-if (!card.isExpanded)
-  Padding(
-    padding: const EdgeInsets.only(top: 10),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        // Collapsed "View Attendees"
-        if (widget.card.hasBookings && widget.card.attendees.isNotEmpty)
-          _buildAttendeesButton(context, state)
-        else
-          const SizedBox.shrink(),
+                                List<Widget> displayWidgets = [];
 
-        // Edit button (reuse same builder)
-        BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
-          builder: (context, paymentState) {
-            return ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(13),
-                  side: const BorderSide(
-                    color: Color(0xFF5B6369),
-                    width: 1,
+                                for (var d in sortedDays) {
+                                  final timings = d.timings ?? [];
+                                  for (var t in timings) {
+                                    displayWidgets.add(
+                                      Text(
+                                        "${capitalizeFirstLetter(d.day ?? '')}: ${_formatTime(t.open)} - ${_formatTime(t.close)}",
+                                        style: GoogleFonts.roboto(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppColors.shadowColor,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                }
+
+                                if (displayWidgets.isEmpty) {
+                                  return [const SizedBox.shrink()];
+                                }
+
+                                return [
+                                  Text(
+                                    'Available',
+                                    style: GoogleFonts.roboto(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.primary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  ...displayWidgets,
+                                ];
+                              })(),
+                            )
+                          : const SizedBox.shrink(),
+                    ],
+                  ),
+                ],
+              ),
+              if (!card.isExpanded)
+                Padding(
+                  padding: const EdgeInsets.only(top: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Gated View Attendees button
+                      if (widget.card.hasBookings && widget.card.attendees.isNotEmpty)
+                        BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
+                          builder: (context, paymentState) {
+                            // Check if venue user without premium access
+                            final needsUpgrade = paymentState.isVenueUser && 
+                                !paymentState.canAccessPremiumFeatures;
+                            
+                            return InkWell(
+                              onTap: () {
+                                if (needsUpgrade) {
+                                  // Show upgrade popup
+                                  showUpgradePopup(context);
+                                } else {
+                                  // Navigate to attendees
+                                  context.push(
+                                    '/attendees',
+                                    extra: AttendeesArguments(
+                                      tableId: widget.card.id,
+                                      tableTypeName: widget.card.title,
+                                      attendees: widget.card.attendees,
+                                      bookingDate: widget.card.attendees.first.bookingDate?.toString(),
+                                    ),
+                                  );
+                                }
+                              },
+                              borderRadius: BorderRadius.circular(20),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
+                                decoration: BoxDecoration(
+                                  color: needsUpgrade 
+                                      ? AppColors.textPrimaryGrey 
+                                      : AppColors.primary,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    if (needsUpgrade)
+                                      Padding(
+                                        padding: const EdgeInsets.only(right: 6),
+                                        child: Icon(
+                                          Icons.lock_outline,
+                                          size: 14,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    Text(
+                                      "View Attendees",
+                                      style: GoogleFonts.montserrat(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        )
+                      else
+                        const SizedBox.shrink(),
+
+                      // Gated Edit button
+                      BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
+                        builder: (context, paymentState) {
+                          // Check if venue user without premium access
+                          final needsUpgrade = paymentState.isVenueUser && 
+                              !paymentState.canAccessPremiumFeatures;
+                          
+                          return ElevatedButton.icon(
+                            style: ElevatedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(13),
+                                side: BorderSide(
+                                  color: needsUpgrade 
+                                      ? AppColors.textPrimaryGrey 
+                                      : const Color(0xFF5B6369),
+                                  width: 1,
+                                ),
+                              ),
+                              backgroundColor: needsUpgrade 
+                                  ? AppColors.textPrimaryGrey.withOpacity(0.1) 
+                                  : null,
+                            ),
+                            onPressed: () {
+                              if (needsUpgrade) {
+                                // Show upgrade popup
+                                showUpgradePopup(context);
+                              } else {
+                                // Toggle expand as normal
+                                context.read<HomeBloc>().add(
+                                  ToggleExpandEvent(widget.index),
+                                );
+                              }
+                            },
+                            label: Text(
+                              'Edit',
+                              style: TextStyle(
+                                fontSize: 9,
+                                color: needsUpgrade 
+                                    ? AppColors.textPrimaryGrey 
+                                    : const Color(0xFF5B6369),
+                              ),
+                            ),
+                            icon: Icon(
+                              needsUpgrade ? Icons.lock_outline : Icons.edit,
+                              size: 15,
+                              color: needsUpgrade 
+                                  ? AppColors.textPrimaryGrey 
+                                  : const Color(0xFF5B6369),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              onPressed: () {
-                context.read<HomeBloc>().add(ToggleExpandEvent(widget.index));
-              },
-              label: const Text(
-                'Edit',
-                style: TextStyle(
-                  fontSize: 9,
-                  color: Color(0xFF5B6369),
-                ),
-              ),
-              icon: const Icon(
-                Icons.edit,
-                size: 15,
-                color: Color(0xFF5B6369),
-              ),
-            );
-          },
-        ),
-      ],
-    ),
-  ),
-
-// EXPANDED UI
-if (card.isExpanded) ...[
-  Column(
-    children: [
-      const Gap(10),
-      TextField(
-        key: ValueKey('promoTextField_${card.id}'),
-        style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-              color: AppColors.timeTextColor,
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
-        controller: _promoController,
-        maxLines: 5,
-        keyboardType: TextInputType.text,
-        decoration: InputDecoration(
-          hintText: "Write your promo here",
-          filled: true,
-          fillColor: AppColors.primaryWhiteColor,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      ),
-      const Gap(10),
-      BlocBuilder<HomeBloc, HomeState>(
-        builder: (context, state) {
-          if (state is HomeLoaded) {
-            final card = state.cards[widget.index];
-            return AvailableDaysMultiSelectField(
-              tableTypeName: card.title,
-              availableDays: card.availableDays,
-              initialSelectedDays: card.selectedDays,
-              card: card,
-              cardIndex: widget.index,
-              onChanged: (days) {
-                setState(() => selectedDays = days);
-                context.read<HomeBloc>().add(
-                      UpdateSelectedDaysEvent(widget.index, days),
-                    );
-              },
-            );
-          }
-          return const SizedBox();
-        },
-      ),
-      const Gap(10),
-      Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          if (widget.card.hasBookings &&
-              widget.card.attendees.isNotEmpty)
-            _buildAttendeesButton(context, state)
-          else
-            const SizedBox.shrink(),
-
-          _buildSaveButton(context, state),
-        ],
-      ),
-    ],
-  ),
-],
-
-              /*
-               // ✅ UPDATED: Wrap expanded content in payment gate
               if (card.isExpanded) ...[
-                BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
-                  builder: (context, paymentState) {
-                    // If venue owner without premium, show locked overlay
-                    if (paymentState.isVenueUser && 
-                        !paymentState.canAccessPremiumFeatures) {
-                      return Container(
-                        margin: const EdgeInsets.only(top: 10),
-                        padding: const EdgeInsets.all(40),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: Colors.grey.withOpacity(0.3),
-                          ),
-                        ),
-                        child: Center(
-                          child: Column(
-                            children: [
-                              const Icon(
-                                Icons.lock_outline,
-                                size: 48,
-                                color: Colors.grey,
-                              ),
-                              const SizedBox(height: 16),
-                              const Text(
-                                'Premium Feature Locked',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.grey,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              const Text(
-                                'Subscribe to edit table details',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                              const SizedBox(height: 20),
-                              ElevatedButton(
-                                onPressed: () async {
-                                  await showDialog(
-                                    context: context,
-                                    builder: (context) => const VenueUpgradeDialog(),
-                                  );
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.primary,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 32,
-                                    vertical: 12,
-                                  ),
-                                ),
-                                child: const Text('Upgrade Now'),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    }
-                    
-                    // If has access, show normal expanded content
-                    return Column(
-                      children: [
-                        const Gap(10),
-                        TextField(
-                          key: ValueKey('promoTextField_${card.id}'),
-                          style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                Column(
+                  children: [
+                    const Gap(10),
+                    TextField(
+                      key: ValueKey('promoTextField_${card.id}'),
+                      style: Theme.of(context).textTheme.bodyMedium!.copyWith(
                             color: AppColors.timeTextColor,
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
                           ),
-                          controller: _promoController,
-                          maxLines: 5,
-                          keyboardType: TextInputType.text,
-                          decoration: InputDecoration(
-                            hintText: "Write your promo here",
-                            filled: true,
-                            fillColor: AppColors.primaryWhiteColor,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
+                      controller: _promoController,
+                      maxLines: 5,
+                      keyboardType: TextInputType.text,
+                      decoration: InputDecoration(
+                        hintText: "Write your promo here",
+                        filled: true,
+                        fillColor: AppColors.primaryWhiteColor,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                        const Gap(10),
-                        BlocBuilder<HomeBloc, HomeState>(
-                          builder: (context, state) {
-                            if (state is HomeLoading) {
-                              EasyLoading.show();
-                            }
-                            if (state is HomeLoaded) {
-                              EasyLoading.dismiss();
-                              final card = state.cards[widget.index];
-                              return AvailableDaysMultiSelectField(
-                                tableTypeName: card.title,
-                                availableDays: card.availableDays,
-                                initialSelectedDays: card.selectedDays,
-                                card: card,
-                                cardIndex: widget.index,
-                                onChanged: (days) {
-                                  setState(() {
-                                    selectedDays = days;
-                                  });
-                                  context.read<HomeBloc>().add(
+                      ),
+                    ),
+                    const Gap(10),
+                    BlocBuilder<HomeBloc, HomeState>(
+                      builder: (context, state) {
+                        if (state is HomeLoaded) {
+                          final card = state.cards[widget.index];
+                          return AvailableDaysMultiSelectField(
+                            tableTypeName: card.title,
+                            availableDays: card.availableDays,
+                            initialSelectedDays: card.selectedDays,
+                            card: card,
+                            cardIndex: widget.index,
+                            onChanged: (days) {
+                              setState(() => selectedDays = days);
+                              context.read<HomeBloc>().add(
                                     UpdateSelectedDaysEvent(widget.index, days),
                                   );
-                                },
-                              );
-                            }
-                            return const SizedBox();
-                          },
-                        ),
-                        const Gap(10),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            if (widget.card.hasBookings &&
-                                widget.card.attendees.isNotEmpty)
-                              _buildAttendeesButton(context, state)
-                            else
-                              const SizedBox.shrink(),
-                            _buildSaveButton(context, state),
-                          ],
-                        ),
+                            },
+                          );
+                        }
+                        return const SizedBox();
+                      },
+                    ),
+                    const Gap(10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        if (widget.card.hasBookings &&
+                            widget.card.attendees.isNotEmpty)
+                          _buildAttendeesButton(context, state)
+                        else
+                          const SizedBox.shrink(),
+
+                        _buildSaveButton(context, state),
                       ],
-                    );
-                  },
+                    ),
+                  ],
                 ),
-              ],*/
+              ],
             ],
           ),
         );
@@ -651,7 +549,6 @@ if (card.isExpanded) ...[
     );
   }
 
-  ///Attendees Button
   Widget _buildAttendeesButton(BuildContext context, HomeState state) {
     if (state is! HomeLoaded) {
       return const SizedBox.shrink();
@@ -667,47 +564,73 @@ if (card.isExpanded) ...[
 
     final firstAttendee = currentCard.attendees.first;
 
-    return InkWell(
-      onTap: () {
-        context.push(
-          '/attendees',
-          extra: AttendeesArguments(
-            tableId: currentCard.id,
-            tableTypeName: currentCard.title,
-            attendees: currentCard.attendees,
-            bookingDate: firstAttendee.bookingDate?.toString(),
+    return BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
+      builder: (context, paymentState) {
+        final needsUpgrade = paymentState.isVenueUser && 
+            !paymentState.canAccessPremiumFeatures;
+        
+        return InkWell(
+          onTap: () {
+            if (needsUpgrade) {
+              showUpgradePopup(context);
+            } else {
+              context.push(
+                '/attendees',
+                extra: AttendeesArguments(
+                  tableId: currentCard.id,
+                  tableTypeName: currentCard.title,
+                  attendees: currentCard.attendees,
+                  bookingDate: firstAttendee.bookingDate?.toString(),
+                ),
+              );
+            }
+          },
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            height: 26.h,
+            padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 9),
+            decoration: BoxDecoration(
+              color: needsUpgrade 
+                  ? AppColors.textPrimaryGrey 
+                  : AppColors.primary,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: needsUpgrade 
+                      ? AppColors.textPrimaryGrey 
+                      : AppColors.primary,
+                  blurRadius: 1,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Center(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (needsUpgrade)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: Icon(
+                        Icons.lock_outline,
+                        size: 12,
+                        color: Colors.white,
+                      ),
+                    ),
+                  Text(
+                    'View Attendees',
+                    style: GoogleFonts.montserrat(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         );
       },
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        height: 26.h,
-        // width: 102.w,
-        padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 9),
-        decoration: BoxDecoration(
-          color: AppColors.primary,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary,
-              blurRadius: 1,
-              offset: const Offset(0, 3),
-            ),
-          ],
-        ),
-        child: Center(
-          child: Text(
-            'View Attendees',
-            style: GoogleFonts.montserrat(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            
-            
-          ),
-          ),
-        ),
-      ),
     );
   }
 
@@ -721,7 +644,6 @@ if (card.isExpanded) ...[
               : () {
                 print('Selected days being sent: $selectedDays');
 
-                // existing BLoC updates
                 context.read<HomeBloc>().add(
                   UpdatePromoTextEvent(widget.index, _promoController.text),
                 );
@@ -753,7 +675,6 @@ if (card.isExpanded) ...[
                 final text = _promoController.text.trim();
                 final moreInfos = (text.isNotEmpty) ? [text] : <String>[];
 
-                // Get updated card from BLoC instead of recalculating locally 🚀
                 final homeState = context.read<HomeBloc>().state;
                 bool finalAlwaysAvailable = false;
                 if (homeState is HomeLoaded) {
@@ -761,7 +682,6 @@ if (card.isExpanded) ...[
                   finalAlwaysAvailable = updatedCard.isAlwaysAvailable;
                 }
 
-                // Prepare API data as before
                 final allCafeDays = widget.card.availableDays;
                 final selectedDayNames =
                     selectedDays.map((d) => d.day?.toLowerCase() ?? '').toSet();
@@ -819,8 +739,7 @@ if (card.isExpanded) ...[
                       diceTableId: diceTableIds,
                       moreInfo: moreInfos,
                       availableDays: availableDaysForApi,
-                      alwaysAvailable:
-                          finalAlwaysAvailable, // ✅ latest flag from BLoC
+                      alwaysAvailable: finalAlwaysAvailable,
                     ),
                   ),
                 );
@@ -833,7 +752,6 @@ if (card.isExpanded) ...[
     );
   }
 }
-
 // Replace your existing AvailableDaysMultiSelectField class with this updated version
 
 class AvailableDaysMultiSelectField extends StatefulWidget {

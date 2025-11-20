@@ -862,7 +862,7 @@ class _EnhancedAvailableDaysDialogState
                         ],
                       ),
                       Gap(8),
-
+              
                       ...widget.availableDays.map((day) {
                         return _buildDayTile(
                           day.day!.toLowerCase(),
@@ -1045,7 +1045,7 @@ class _EnhancedAvailableDaysDialogState
       ),
       child: Column(
         children: [
-          InkWell(
+          GestureDetector(
             onTap: () => _toggleExpand(day),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -1053,22 +1053,26 @@ class _EnhancedAvailableDaysDialogState
                 children: [
                   GestureDetector(
                     onTap: () => _toggleDay(day),
-                    child: Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryWhiteColor,
-                        border: Border.all(color: AppColors.primary, width: 2),
-                        borderRadius: BorderRadius.circular(4),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: AppColors.primaryWhiteColor,
+                          border: Border.all(color: AppColors.primary, width: 2),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child:
+                            selection.isSelected
+                                ? 
+                                SvgPicture.asset(
+                                  Assets.CHECK,
+                                  fit: BoxFit.scaleDown,
+                                  height: 10,
+                                )
+                                : null,
                       ),
-                      child:
-                          selection.isSelected
-                              ? SvgPicture.asset(
-                                Assets.CHECK,
-                                fit: BoxFit.scaleDown,
-                                height: 10,
-                              )
-                              : null,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -1204,4 +1208,15 @@ class TimeSlot {
   bool isDefault;
 
   TimeSlot({required this.from, required this.to, required this.isDefault});
+}
+class NoGlowScrollBehavior extends ScrollBehavior {
+  @override
+  Widget buildOverscrollIndicator(
+    BuildContext context,
+    Widget child,
+    ScrollableDetails details,
+  ) {
+    // Returns the child widget directly, effectively removing the glow effect.
+    return child;
+  }
 }

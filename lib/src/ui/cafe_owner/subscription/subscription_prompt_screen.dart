@@ -1,24 +1,23 @@
-import 'package:soloseaters/src/common/elevated_button_widget.dart';
-import 'package:soloseaters/src/constants/app_colors.dart';
-import 'package:soloseaters/src/model/cafe_owner/subscription/subscription_start_request.dart';
-import 'package:soloseaters/src/ui/cafe_owner/subscription/bloc/subscription_bloc.dart';
-import 'package:soloseaters/src/ui/cafe_owner/subscription/widget/gradient.dart';
-import 'package:soloseaters/src/utils/data/object_factory.dart';
-import 'package:soloseaters/src/purchase/bloc/bloc/purchase_bloc.dart';
-import 'package:soloseaters/src/purchase/bloc/bloc/purchase_event.dart';
-import 'package:soloseaters/src/purchase/bloc/bloc/purchase_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
-
-import '../../../model/cafe_owner/subscription/initial_subscription_plan_response.dart';
+import 'package:soloseaters/src/common/elevated_button_widget.dart';
+import 'package:soloseaters/src/constants/app_colors.dart';
+import 'package:soloseaters/src/model/cafe_owner/subscription/initial_subscription_plan_response.dart';
+import 'package:soloseaters/src/model/cafe_owner/subscription/subscription_start_request.dart';
+import 'package:soloseaters/src/purchase/bloc/bloc/purchase_bloc.dart';
+import 'package:soloseaters/src/purchase/bloc/bloc/purchase_event.dart';
+import 'package:soloseaters/src/purchase/bloc/bloc/purchase_state.dart';
+import 'package:soloseaters/src/ui/cafe_owner/subscription/bloc/subscription_bloc.dart';
+import 'package:soloseaters/src/ui/cafe_owner/subscription/widget/gradient.dart';
+import 'package:soloseaters/src/utils/data/object_factory.dart';
 
 class SubscriptionPromptScreen extends StatefulWidget {
   const SubscriptionPromptScreen({super.key});
@@ -37,6 +36,17 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
 
   DateTime? currentBackPressTime;
   
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Initialize payment system
+      context.read<PaymentPlanBloc>().add(const InitializePaymentEvent());
+      // Fetch subscription data
+      context.read<SubscriptionBloc>().add(FetchInitialSubscription());
+    });
+  }
+
   Future<bool> onWillPop() {
     DateTime now = DateTime.now();
     if (currentBackPressTime == null ||
@@ -53,14 +63,6 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
     }
     SystemNavigator.pop();
     return Future.value(true);
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<SubscriptionBloc>().add(FetchInitialSubscription());
-    });
   }
 
   Widget _buildSubscriptionContent(
@@ -157,8 +159,7 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                                     ).bodyMedium!.copyWith(
                                       color: AppColors.tertiary,
                                       fontWeight: FontWeight.w700,
-                                      fontSize:
-                                          14.sp, // Using .sp for responsive font size
+                                      fontSize: 14.sp,
                                     ),
                                   ),
                                   TextSpan(
@@ -168,59 +169,48 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                                     ).bodyMedium!.copyWith(
                                       color: AppColors.tertiary,
                                       fontWeight: FontWeight.w700,
-                                      fontSize:
-                                          14.sp, // Using .sp for responsive font size
+                                      fontSize: 14.sp,
                                     ),
                                   ),
                                 ],
                               ),
                             ),
-                            SizedBox(
-                              height: 10.h,
-                            ), // Using .h for responsive height
+                            SizedBox(height: 10.h),
                             TextField(
                               style: Theme.of(
                                 context,
                               ).textTheme.bodyMedium!.copyWith(
                                 color: AppColors.hintColor,
                                 fontWeight: FontWeight.w600,
-                                fontSize:
-                                    14.sp, // Using .sp for responsive font size
+                                fontSize: 14.sp,
                               ),
                               decoration: InputDecoration(
                                 hintText: 'Enter Promo Code',
                                 hintStyle: TextStyle(
                                   color: AppColors.textPrimaryGrey,
                                   fontWeight: FontWeight.w600,
-                                  fontSize:
-                                      14.sp, // Using .sp for responsive font size
+                                  fontSize: 14.sp,
                                 ),
                                 contentPadding: EdgeInsets.symmetric(
                                   horizontal: 16.w,
-                                ), // Using .w for responsive width
+                                ),
                                 border: OutlineInputBorder(
                                   borderSide: BorderSide(
                                     color: AppColors.borderColor1,
                                   ),
-                                  borderRadius: BorderRadius.circular(
-                                    10.r,
-                                  ), // Using .r for responsive radius
+                                  borderRadius: BorderRadius.circular(10.r),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
                                     color: AppColors.borderColor1,
                                   ),
-                                  borderRadius: BorderRadius.circular(
-                                    10.r,
-                                  ), // Using .r for responsive radius
+                                  borderRadius: BorderRadius.circular(10.r),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
                                     color: AppColors.borderColor1,
                                   ),
-                                  borderRadius: BorderRadius.circular(
-                                    10.r,
-                                  ), // Using .r for responsive radius
+                                  borderRadius: BorderRadius.circular(10.r),
                                 ),
                               ),
                             ),
@@ -301,7 +291,7 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
             BlocConsumer<PaymentPlanBloc, PaymentPlanState>(
               listener: (context, paymentState) {
                 if (paymentState.status == PaymentPlanStatus.purchaseSuccess) {
-                  // After successful purchase, sync with backend
+                  // After successful trial start, sync with backend
                   context.read<SubscriptionBloc>().add(
                     StartSubscriptionEvent(
                       subscriptionStartRequest: SubscriptionStartRequest(
@@ -326,25 +316,12 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                     context.read<PaymentPlanBloc>().add(
                       const StartVenueTrialEvent(),
                     );
-                    
-                    // Also sync with backend
-                    context.read<SubscriptionBloc>().add(
-                      StartSubscriptionEvent(
-                        subscriptionStartRequest: SubscriptionStartRequest(
-                          cafeId: cafeId,
-                          subscriptionTypeId: subscriptionTypeId,
-                          paymentMethod: paymentMethod,
-                          amount: amount,
-                          autoRenew: true,
-                        ),
-                      ),
-                    );
                   },
                   child: ElevatedButtonWidget(
                     height: 70.h,
                     width: MediaQuery.of(context).size.width,
                     iconEnabled: false,
-                    iconLabel: isProcessing ? "PROCESSING..." : "START FREE TRAIL",
+                    iconLabel: isProcessing ? "PROCESSING..." : "START FREE TRIAL",
                     color: isProcessing 
                         ? AppColors.textPrimaryGrey 
                         : AppColors.primary,
@@ -364,121 +341,117 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        height: double.infinity,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              AppColors.primary,
-              AppColors.primary,
-              AppColors.secondary,
-              AppColors.tertiary,
-            ],
-            stops: [0.0, 0.5, 0.75, 1.0],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
+    return WillPopScope(
+      onWillPop: onWillPop,
+      child: Scaffold(
+        body: Container(
+          height: double.infinity,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.primary,
+                AppColors.primary,
+                AppColors.secondary,
+                AppColors.tertiary,
+              ],
+              stops: [0.0, 0.5, 0.75, 1.0],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
           ),
-        ),
-        child: BlocListener<PaymentPlanBloc, PaymentPlanState>(
-          listener: (context, paymentState) {
-            if (paymentState.status == PaymentPlanStatus.purchaseSuccess) {
-              EasyLoading.dismiss();
-              Fluttertoast.showToast(
-                fontSize: 14.sp,
-                backgroundColor: AppColors.appGreenColor,
-                textColor: AppColors.primaryWhiteColor,
-                gravity: ToastGravity.BOTTOM,
-                msg: 'Trial started successfully!',
-              );
-              // Navigate to home after successful trial start
-              Future.delayed(const Duration(seconds: 1), () {
-                if (context.mounted) {
-                  context.go('/home');
-                }
-              });
-            } else if (paymentState.status == PaymentPlanStatus.purchaseFailed) {
-              EasyLoading.dismiss();
-              Fluttertoast.showToast(
-                fontSize: 14.sp,
-                backgroundColor: AppColors.appRedColor,
-                textColor: AppColors.primaryWhiteColor,
-                gravity: ToastGravity.BOTTOM,
-                msg: paymentState.errorMessage ?? 'Failed to start trial',
-              );
-            }
-          },
-          child: BlocConsumer<SubscriptionBloc, SubscriptionState>(
-            listener: (context, state) {
-              if (state is InitialSubscriptionLoading) {
-                EasyLoading.show();
-              }
-              if (state is StartSubscriptionLoading) {
-                EasyLoading.show();
-              }
-              if (state is InitialSubscriptionLoaded) {
-                EasyLoading.dismiss();
-              }
-              if (state is StartSubscriptionLoaded) {
-                EasyLoading.dismiss();
-                if (state.subscriptionStartResponse.status == false &&
-                    state.subscriptionStartResponse.message ==
-                        "This cafe already has an active subscription.") {
-                  Fluttertoast.showToast(
-                    fontSize: 14.sp,
-                    backgroundColor: AppColors.primaryWhiteColor,
-                    textColor: AppColors.appGreenColor,
-                    gravity: ToastGravity.BOTTOM,
-                      msg: state.subscriptionStartResponse.message?.toString() ??
-                          "Your subscription was successful.",
-                  );
-                  context.go('/home');
-                } else if (state.subscriptionStartResponse.status == true) {
-                  Fluttertoast.showToast(
-                    fontSize: 14.sp,
-                    backgroundColor: AppColors.primaryWhiteColor,
-                    textColor: AppColors.appGreenColor,
-                    gravity: ToastGravity.BOTTOM,
-                    msg: "Your subscription was successful.",
-                  );
-                  context.go('/home');
-                }
-              }
-              if (state is StartSubscriptionError) {
+          child: BlocListener<PaymentPlanBloc, PaymentPlanState>(
+            listener: (context, paymentState) {
+              if (paymentState.status == PaymentPlanStatus.purchaseSuccess) {
                 EasyLoading.dismiss();
                 Fluttertoast.showToast(
                   fontSize: 14.sp,
-                  backgroundColor: AppColors.primaryWhiteColor,
-                  textColor: AppColors.appGreenColor,
+                  backgroundColor: AppColors.appGreenColor,
+                  textColor: AppColors.primaryWhiteColor,
                   gravity: ToastGravity.BOTTOM,
-                  msg: state.errorMessage,
+                  msg: 'Trial started successfully!',
+                );
+              } else if (paymentState.status == PaymentPlanStatus.purchaseFailed) {
+                EasyLoading.dismiss();
+                Fluttertoast.showToast(
+                  fontSize: 14.sp,
+                  backgroundColor: AppColors.appRedColor,
+                  textColor: AppColors.primaryWhiteColor,
+                  gravity: ToastGravity.BOTTOM,
+                  msg: paymentState.errorMessage ?? 'Failed to start trial',
                 );
               }
             },
-            builder: (context, state) {
-            if (state is InitialSubscriptionLoading ||
-                state is StartSubscriptionLoading) {
-             return GradientBackGround();
-            }
-            if (state is InitialSubscriptionLoaded &&
-                state.initialSubscriptionPlanResponse.message ==
-                    "Subscription type found!" &&
-                state.initialSubscriptionPlanResponse.data != null) {
-              initialData = state.initialSubscriptionPlanResponse;
-              return _buildSubscriptionContent(
-                context,
-                state.initialSubscriptionPlanResponse,
-              );
-            }
-            if (state is StartSubscriptionError && initialData != null) {
-              return _buildSubscriptionContent(context, initialData!);
-            }
-            return GradientBackGround();
-            },
+            child: BlocConsumer<SubscriptionBloc, SubscriptionState>(
+              listener: (context, state) {
+                if (state is InitialSubscriptionLoading) {
+                  EasyLoading.show();
+                }
+                if (state is StartSubscriptionLoading) {
+                  EasyLoading.show();
+                }
+                if (state is InitialSubscriptionLoaded) {
+                  EasyLoading.dismiss();
+                }
+                if (state is StartSubscriptionLoaded) {
+                  EasyLoading.dismiss();
+                  if (state.subscriptionStartResponse.status == false &&
+                      state.subscriptionStartResponse.message ==
+                          "This cafe already has an active subscription.") {
+                    Fluttertoast.showToast(
+                      fontSize: 14.sp,
+                      backgroundColor: AppColors.primaryWhiteColor,
+                      textColor: AppColors.appGreenColor,
+                      gravity: ToastGravity.BOTTOM,
+                        msg: state.subscriptionStartResponse.message?.toString() ??
+                            "Your subscription was successful.",
+                    );
+                    context.go('/home');
+                  } else if (state.subscriptionStartResponse.status == true) {
+                    Fluttertoast.showToast(
+                      fontSize: 14.sp,
+                      backgroundColor: AppColors.primaryWhiteColor,
+                      textColor: AppColors.appGreenColor,
+                      gravity: ToastGravity.BOTTOM,
+                      msg: "Your subscription was successful.",
+                    );
+                    context.go('/home');
+                  }
+                }
+                if (state is StartSubscriptionError) {
+                  EasyLoading.dismiss();
+                  Fluttertoast.showToast(
+                    fontSize: 14.sp,
+                    backgroundColor: AppColors.primaryWhiteColor,
+                    textColor: AppColors.appGreenColor,
+                    gravity: ToastGravity.BOTTOM,
+                    msg: state.errorMessage,
+                  );
+                }
+              },
+              builder: (context, state) {
+              if (state is InitialSubscriptionLoading ||
+                  state is StartSubscriptionLoading) {
+               return GradientBackGround();
+              }
+              if (state is InitialSubscriptionLoaded &&
+                  state.initialSubscriptionPlanResponse.message ==
+                      "Subscription type found!" &&
+                  state.initialSubscriptionPlanResponse.data != null) {
+                initialData = state.initialSubscriptionPlanResponse;
+                return _buildSubscriptionContent(
+                  context,
+                  state.initialSubscriptionPlanResponse,
+                );
+              }
+              if (state is StartSubscriptionError && initialData != null) {
+                return _buildSubscriptionContent(context, initialData!);
+              }
+              return GradientBackGround();
+              },
+            ),
           ),
         ),
       ),
     );
   }
 }
-

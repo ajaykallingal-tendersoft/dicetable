@@ -184,7 +184,6 @@ class AttendeesScreen extends StatelessWidget {
               child: Divider(color: AppColors.dividerColor, height: 1),
             ),
 
-          // Description or additional info
           if ((attendee.additionalInfo ?? '').isNotEmpty &&
               attendee.isPaidUser == 1) ...[
             const SizedBox(height: 12),
