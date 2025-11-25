@@ -43,6 +43,8 @@ class CafeListBloc extends Bloc<CafeListEvent, CafeListState> {
     on<FilterOptionsEvent>(_onGetFilterOptions);
     on<FiltersUpdateEvent>(_onUpdateFilters);
     on<FiltersClearEvent>(_onClearFilters);
+    on<RefreshCafeDetailsEvent>(_onRefreshCafeDetails);
+    
   }
 
   Future<void> _onGetCafeList(
@@ -257,53 +259,6 @@ class CafeListBloc extends Bloc<CafeListEvent, CafeListState> {
     }
   }
 
-  // Future<void> _onToggleFavorite(
-  //     ToggleFavoriteEvent event,
-  //     Emitter<CafeListState> emit,
-  //     ) async {
-  //   final currentState = state;
-  //   if (currentState is! CafeListLoaded) return;
-  //
-  //   final cafe = currentState.cafeListResponse.cafes![event.cafeIndex];
-  //   final cafeId = cafe.id!;
-  //   final isFavorite = cafe.favourites!;
-  //
-  //   emit(FavoriteToggleLoading(
-  //     cafeListResponse: currentState.cafeListResponse,
-  //     toggledCafeIndex: event.cafeIndex,
-  //   ));
-  //
-  //   try {
-  //     StateModel? result;
-  //
-  //     if (isFavorite) {
-  //       result = await cafeDataProvider.removeFavourite(RemoveFavouriteRequest(cafeId: cafeId));
-  //     } else {
-  //       result = await cafeDataProvider.addFavourite(AddFavouriteRequest(cafeId: cafeId));
-  //     }
-  //
-  //     if (result is SuccessState) {
-  //       final updatedCafes = List<Cafe>.from(currentState.cafeListResponse.cafes!);
-  //       updatedCafes[event.cafeIndex] = updatedCafes[event.cafeIndex].copyWith(
-  //         favourites: !isFavorite,
-  //       );
-  //
-  //       final updatedResponse = currentState.cafeListResponse.copyWith(
-  //         cafes: updatedCafes,
-  //       );
-  //
-  //       emit(CafeListLoaded(cafeListResponse: updatedResponse));
-  //     } else if (result is ErrorState) {
-  //       emit(CafeListLoaded(cafeListResponse: currentState.cafeListResponse));
-  //
-  //     }
-  //   } catch (e, stackTrace) {
-  //     print('Toggle Favorite Error: $e');
-  //     print('StackTrace: $stackTrace');
-  //
-  //     emit(CafeListLoaded(cafeListResponse: currentState.cafeListResponse));
-  //   }
-  // }
 
   Future<void> _onGetFilterOptions(
     FilterOptionsEvent event,
@@ -332,6 +287,63 @@ class CafeListBloc extends Bloc<CafeListEvent, CafeListState> {
       emit(FilterError(e.toString()));
     }
   }
+
+Future<void> _onRefreshCafeDetails(
+  RefreshCafeDetailsEvent event,
+  Emitter<CafeListState> emit,
+) async {
+  final currentState = state;
+
+  try {
+    final StateModel? stateModel = await cafeDataProvider.getCafeList(
+      event.cafeListRequest,
+    );
+
+    if (stateModel is SuccessState) {
+      final response = stateModel.value as CafeListResponse;
+      final int? targetCafeId = int.tryParse(event.cafeId.toString());
+
+      if (targetCafeId != null) {
+        // Find the specific updated cafe in the new response
+        Cafe? updatedCafe;
+        try {
+          updatedCafe = response.cafes?.firstWhere((c) => c.id == targetCafeId);
+        } on StateError {
+          // firstWhere throws StateError if no element is found; treat that as not found.
+          updatedCafe = null;
+        }
+
+        // If the previous state was a loaded list, update that list
+        if (currentState is CafeListLoaded && updatedCafe != null) {
+          final existingCafes =
+              List<Cafe>.from(currentState.cafeListResponse.cafes!);
+          final index = existingCafes.indexWhere((c) => c.id == targetCafeId);
+
+          if (index != -1) {
+            existingCafes[index] = updatedCafe;
+
+            // Emit the CafeListLoaded state with the updated list.
+            // This is the key change to keep the list screen updated.
+            emit(CafeListLoaded(
+              cafeListResponse:
+                  currentState.cafeListResponse.copyWith(cafes: existingCafes),
+            ));
+          }
+        }
+
+        // Emit the single detail state for the details screen to update attendees
+        if (updatedCafe != null) {
+          emit(SingleCafeDetailsLoaded(cafe: updatedCafe));
+        }
+      }
+    } else if (stateModel is ErrorState) {
+      emit(SingleCafeDetailsError(errorMessage: stateModel.msg));
+    }
+  } catch (e, stackTrace) {
+    print('RefreshCafeDetails Error: $e');
+    emit(SingleCafeDetailsError(errorMessage: e.toString()));
+  }
+}
 
   void _onUpdateFilters(FiltersUpdateEvent event, Emitter<CafeListState> emit) {
     _selectedTableTypes = Set.from(event.selectedTableTypes);

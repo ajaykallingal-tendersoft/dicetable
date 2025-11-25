@@ -1,9 +1,12 @@
 // lib/src/purchase/services/purchase_service.dart
 
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
+import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 
 class PaymentService {
   // ====== REAL product IDs (already defined by you) ======
@@ -162,25 +165,54 @@ class PaymentService {
   //  PURCHASE PRODUCT (FAKE IN DEBUG / REAL IN RELEASE)
   // =====================================================
 
-  Future<String?> purchaseProduct(ProductDetails productDetails) async {
-    try {
-      if (kDebugMode) {
-        await _simulateFakePurchase(productDetails);
-        return null;
-      }
-
-      // REAL purchase flow
-      final PurchaseParam param = PurchaseParam(productDetails: productDetails);
-
-      // NOTE: Some platforms may require different buy* calls; keep this as-is if your products are configured as non-consumable/subscriptions.
-      await _inAppPurchase.buyNonConsumable(purchaseParam: param);
-
+ Future<String?> purchaseProduct(ProductDetails productDetails) async {
+  try {
+    // -----------------------------
+    // 1. Handle local fake purchases
+    // -----------------------------
+    if (kDebugMode) {
+      await _simulateFakePurchase(productDetails);
       return null;
-    } catch (e) {
-      print("❌ Error during purchase: $e");
-      return e.toString();
     }
+
+    // -----------------------------
+    // 2. Build platform-specific params
+    // -----------------------------
+    late PurchaseParam purchaseParam;
+
+    if (Platform.isAndroid) {
+      // For future upgrade/downgrade support:
+      // pass ChangeSubscriptionParam(oldPurchaseDetails: ...)
+      purchaseParam = GooglePlayPurchaseParam(productDetails: productDetails);
+    } else {
+      purchaseParam = PurchaseParam(productDetails: productDetails);
+    }
+
+    // -----------------------------
+    // 3. Start the purchase flow
+    // -----------------------------
+    final bool started = await _inAppPurchase.buyNonConsumable(
+      purchaseParam: purchaseParam,
+    );
+
+    if (!started) {
+      return 'Failed to start purchase flow';
+    }
+
+    // -----------------------------
+    // 4. purchaseStream will deliver:
+    //    - pending
+    //    - error
+    //    - purchased/restored
+    //    BLoC handles verification.
+    // -----------------------------
+    return null; // success
+  } catch (e, st) {
+    print('❌ purchaseProduct error: $e\n$st');
+    return e.toString();
   }
+}
+
 
   // =====================================================
   //  HELPER: BUILD VERIFICATION PAYLOAD (Option A)
@@ -192,56 +224,83 @@ class PaymentService {
   /// - For Android: purchase.verificationData.serverVerificationData typically contains the purchase token.
   ///   localVerificationData often contains raw JSON.
   /// - For iOS: purchase.verificationData.serverVerificationData is the base64 receipt.
-  Map<String, dynamic> extractVerificationPayload(PurchaseDetails purchase) {
-    // determine platform more reliably than using verificationData.source
-    final isIOS = defaultTargetPlatform == TargetPlatform.iOS;
-    final isAndroid = defaultTargetPlatform == TargetPlatform.android;
+Map<String, dynamic> extractVerificationPayload(PurchaseDetails purchase) {
+  final ver = purchase.verificationData;
 
-    // Common fields
-    final Map<String, dynamic> payload = <String, dynamic>{
-      'product_id': purchase.productID,
-    };
+  // Determine platform safely
+  final bool isIOS = defaultTargetPlatform == TargetPlatform.iOS;
+  final bool isAndroid = defaultTargetPlatform == TargetPlatform.android;
 
-    // Purchase ID (orderId / transactionId) if present
-    if (purchase.purchaseID != null) {
-      payload['order_id'] = purchase.purchaseID;
+  // ---------------------------
+  // Common purchase fields
+  // ---------------------------
+  final Map<String, dynamic> payload = <String, dynamic>{
+    'product_id': purchase.productID,
+    'order_id': purchase.purchaseID,
+    'transaction_date': purchase.transactionDate,
+    'status': purchase.status.toString(),
+    'verification_data': {
+      'local_verification_data': ver.localVerificationData,
+      'server_verification_data': ver.serverVerificationData,
+      'source': ver.source, // google_play / app_store
     }
+  };
 
-    // Platform-specific fields
-    if (isAndroid) {
-      payload.addAll({
-        'platform': 'android',
-        // serverVerificationData holds the token on Android (BillingClient)
-        'purchase_token': purchase.verificationData.serverVerificationData,
-        // local verification data contains raw JSON string on Android
-        'original_json': purchase.verificationData.localVerificationData,
-        // package_name should be supplied from runtime or app config
-        // keep null here; BLoC or repository can add the package name before send
-        'package_name': null,
-        // signature may be available in localVerificationData if you parse it
-        'signature': null,
-      });
-    } else if (isIOS) {
-      payload.addAll({
-        'platform': 'ios',
-        // Apple requires the receipt base64
-        'receipt_data': purchase.verificationData.serverVerificationData,
-        // transaction identifiers
-        'transaction_id': purchase.purchaseID,
-        'original_transaction_id': null,
-        'bundle_id': null,
-      });
-    } else {
-      // Unknown platform: still include the serverVerificationData as fallback
-      payload.addAll({
-        'platform': purchase.verificationData.source ?? 'unknown',
-        'purchase_token': purchase.verificationData.serverVerificationData,
-        'original_json': purchase.verificationData.localVerificationData,
-      });
-    }
+  // ---------------------------------------------------------
+  // ANDROID (Google Play Billing)
+  // serverVerificationData = purchaseToken
+  // localVerificationData  = originalJson
+  // ---------------------------------------------------------
+  if (isAndroid && purchase is GooglePlayPurchaseDetails) {
+    final billing = purchase.billingClientPurchase;
+
+    payload.addAll({
+      'platform': 'android',
+      'purchase_token': ver.serverVerificationData, // raw token
+      'original_json': ver.localVerificationData,   // raw JSON
+      'signature': billing?.signature,
+      'package_name': billing?.packageName,
+      'developer_payload': billing?.developerPayload,
+      'acknowledged': billing?.isAcknowledged,
+      'auto_renewing': billing?.isAutoRenewing,
+      'platform_original_json': billing?.originalJson,
+    });
 
     return payload;
   }
+
+  // ---------------------------------------------------------
+  // iOS (StoreKit)
+  // serverVerificationData = base64 receipt
+  // ---------------------------------------------------------
+  if (isIOS && purchase is AppStorePurchaseDetails) {
+    final tx = purchase.skPaymentTransaction;
+
+    payload.addAll({
+      'platform': 'ios',
+      'receipt_data': ver.serverVerificationData,
+      'transaction_id': purchase.purchaseID,
+      'original_transaction_id': tx?.originalTransaction?.transactionIdentifier,
+      'bundle_id': null, // backend will validate receipt and extract this
+      'platform_transaction_identifier': tx?.transactionIdentifier,
+      'platform_transaction_state': tx?.transactionState?.index,
+    });
+
+    return payload;
+  }
+
+  // ---------------------------------------------------------
+  // Fallback (Web/Fake/Beta devices)
+  // ---------------------------------------------------------
+  payload.addAll({
+    'platform': ver.source ?? 'unknown',
+    'purchase_token': ver.serverVerificationData,
+    'original_json': ver.localVerificationData,
+  });
+
+  return payload;
+}
+
 
   // =====================================================
   // REAL PURCHASE STREAM HANDLER (RELEASE ONLY)

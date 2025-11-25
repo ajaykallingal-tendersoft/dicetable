@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/constants/assets.dart';
@@ -9,9 +10,15 @@ import 'package:soloseaters/src/purchase/bloc/bloc/purchase_bloc.dart';
 import 'package:soloseaters/src/purchase/bloc/bloc/purchase_event.dart';
 import 'package:soloseaters/src/purchase/bloc/bloc/purchase_state.dart';
 
-class ChoosePlanScreen extends StatelessWidget {
+class ChoosePlanScreen extends StatefulWidget {
   const ChoosePlanScreen({super.key});
 
+  @override
+  State<ChoosePlanScreen> createState() => _ChoosePlanScreenState();
+}
+
+class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
+  
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -95,7 +102,11 @@ class ChoosePlanScreen extends StatelessWidget {
                     ),
                   ),
                   backgroundColor: Colors.green,
-                  duration: const Duration(seconds: 2),
+                  behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 3),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
                 ),
               );
             }
@@ -109,7 +120,11 @@ class ChoosePlanScreen extends StatelessWidget {
                       color: AppColors.primaryWhiteColor,
                     ),
                   ),
-                  duration: const Duration(seconds: 2),
+                  behavior: SnackBarBehavior.floating,
+              duration: const Duration(seconds: 3),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
                 ),
               );
             }
@@ -238,33 +253,37 @@ class ChoosePlanScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildTrialInfoCard(PaymentPlanState state) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 24),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.secondary.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.secondary, width: 1),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.access_time, color: AppColors.secondary, size: 24),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              'Trial ends in ${state.daysRemainingInTrial} days',
-              style: GoogleFonts.montserrat(
-                color: AppColors.primaryWhiteColor,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  // Widget _buildTrialInfoCard(PaymentPlanState state) {
+  //   // ✅ Only show the trial info card if the user is specifically a venue user in a trial.
+  //   // This prevents it from showing for public users.
+  //   if (state.userType != UserType.venueTrial || !state.isInTrial) return const SizedBox.shrink();
+
+  //   return Container(
+  //     margin: const EdgeInsets.only(bottom: 24),
+  //     padding: const EdgeInsets.all(16),
+  //     decoration: BoxDecoration(
+  //       color: AppColors.secondary,
+  //       borderRadius: BorderRadius.circular(12),
+  //       border: Border.all(color: AppColors.secondary, width: 1),
+  //     ),
+  //     child: Row(
+  //       children: [
+  //         const Icon(Icons.access_time, color: AppColors.secondary, size: 24),
+  //         const SizedBox(width: 12),
+  //         Expanded(
+  //           child: Text(
+  //             'Trial ends in ${state.daysRemainingInTrial} days',
+  //             style: GoogleFonts.montserrat(
+  //               color: AppColors.primaryWhiteColor,
+  //               fontSize: 14,
+  //               fontWeight: FontWeight.w500,
+  //             ),
+  //           ),
+  //         ),
+  //       ],
+  //     ),
+  //   );
+  // }
 
   Widget _buildFeaturesCard(BuildContext context) {
     const Color cardColor = AppColors.signUpContainerColor;
@@ -585,8 +604,9 @@ class ChoosePlanScreen extends StatelessWidget {
             actions: [
               TextButton(
                 onPressed: () {
-                  Navigator.of(dialogContext).pop(); // Close dialog
-                  Navigator.of(context).pop(); // Go back
+                  dialogContext.pop(); // Close dialog
+                  context.pop(); // Go back
+                  context.pop();
                 },
                 child: Text(
                   'Continue',

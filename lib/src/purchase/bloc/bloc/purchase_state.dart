@@ -118,11 +118,11 @@ class PaymentPlanState extends Equatable {
   }
 
   bool get canAccessPremiumFeatures {
-    // User has access if:
-    // 1. They have an active premium subscription (isPremium flag is true)
-    // 2. They are in trial period (trial hasn't expired)
-    // 3. They have an active subscription (subscription expiry date is in the future)
-    return isPremium || isInTrialPeriod || isSubscriptionActive;
+    final hasPremium = isPremium == true;
+   final trialEnd = trialEndDate;
+
+    final inTrial = trialEnd != null && DateTime.now().isBefore(trialEnd);
+    return hasPremium || inTrial;
   }
   
   /// Check if user has active subscription (trial or paid)

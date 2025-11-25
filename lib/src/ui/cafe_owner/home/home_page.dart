@@ -1,9 +1,11 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:badges/badges.dart' as badges;
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:soloseaters/src/ui/cafe_owner/notification/bloc/notification_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/ui/cafe_owner/home/bloc/home_bloc.dart';
-import 'package:soloseaters/src/ui/cafe_owner/notification/bloc/notification_bloc.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/count_controller.dart';
 import 'package:soloseaters/src/utils/data/auth_session_manager.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
@@ -11,7 +13,6 @@ import 'package:soloseaters/src/utils/data/sign_out.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
@@ -117,7 +118,16 @@ class _HomePageState extends State<HomePage> {
                                             position: badges
                                                 .BadgePosition.topEnd(
                                               top: 0,
-                                              end: -5,
+                                              end:
+                                                  int.parse(
+                                                            controller
+                                                                .notificationBadgeAmount
+                                                                .value
+                                                                .toString(),
+                                                          ) >
+                                                          99
+                                                      ? -12
+                                                      : -2,
                                             ),
                                             badgeAnimation:
                                                 badges.BadgeAnimation.slide(),
@@ -126,7 +136,7 @@ class _HomePageState extends State<HomePage> {
                                               shape: badges.BadgeShape.circle,
 
                                               badgeColor: Colors.red,
-                                              padding: EdgeInsets.all(4),
+                                              padding: EdgeInsets.all(6),
                                             ),
                                             badgeContent: Text(
                                               // Logic: If greater than 99, show "99+", otherwise show number
@@ -186,8 +196,26 @@ class _HomePageState extends State<HomePage> {
             SliverPadding(
               padding: const EdgeInsets.only(bottom: 20),
               sliver: BlocConsumer<HomeBloc, HomeState>(
+                buildWhen: (previous, current) {
+                  // Rebuild only when the list data changes or an error occurs.
+                  // This prevents the list from disappearing during a refresh.
+                  return current is HomeLoaded ||
+                      current is HomeError ||
+                      current is HomeLoading && previous is! HomeLoaded;
+                },
                 builder: (context, state) {
-                  // ✅ Always show content if available (even during loading)
+                  // Initial loading state: Show shimmer placeholders.
+                  if (state is HomeLoading && !_initialLoadComplete) {
+                    return SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) => _buildShimmerCard(),
+                        childCount: 3, // Show 3 shimmer cards
+                      ),
+                    );
+                  }
+
+                  // Data loaded state: Show the actual cards.
+                  // This will also persist during a refresh because of `buildWhen`.
                   if (state is HomeLoaded) {
                     return AnimationLimiter(
                       child: SliverList(
@@ -208,6 +236,7 @@ class _HomePageState extends State<HomePage> {
                     );
                   }
 
+                  // Error state: Show an error message with a retry button.
                   if (state is HomeError) {
                     return SliverFillRemaining(
                       child: Center(
@@ -243,18 +272,13 @@ class _HomePageState extends State<HomePage> {
                     );
                   }
 
-                  // ✅ Show empty space during initial load (EasyLoading will overlay)
+                  // Fallback for any other state.
                   return const SliverToBoxAdapter(child: SizedBox.shrink());
                 },
                 listener: (BuildContext context, HomeState state) {
-                  // ✅ Show EasyLoading for ALL loading states
-                  if (state is HomeLoading) {
-                    EasyLoading.show();
-                  }
-
-                  if (state is DiceTableUpdateLoading) {
-                    EasyLoading.show();
-                  }
+                  // We no longer need EasyLoading for the home screen itself,
+                  // but we can keep it for specific actions like updating a table.
+                  if (state is DiceTableUpdateLoading) EasyLoading.show();
 
                   if (state is HomeLoaded) {
                     EasyLoading.dismiss();
@@ -281,7 +305,7 @@ class _HomePageState extends State<HomePage> {
                   }
 
                   if (state is HomeError) {
-                    EasyLoading.dismiss();
+                    EasyLoading.dismiss(); // Dismiss any active loaders on error
 
                     if ((state.errorMessage.contains("Unauthorized") ||
                             state.errorMessage.contains("status code of 401") ||
@@ -310,6 +334,43 @@ class _HomePageState extends State<HomePage> {
                   }
                 },
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // A new widget to build a single shimmer placeholder card.
+  Widget _buildShimmerCard() {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[800]!,
+      highlightColor: Colors.grey[700]!,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.black.withOpacity(0.2),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(width: 150, height: 24, color: AppColors.primaryWhiteColor),
+                Container(width: 24, height: 24, color: AppColors.primaryWhiteColor),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Container(width: double.infinity, height: 18, color: AppColors.primaryWhiteColor),
+            const SizedBox(height: 8),
+            Container(width: 200, height: 18, color: AppColors.primaryWhiteColor),
+            const SizedBox(height: 16),
+            Align(
+              alignment: Alignment.bottomRight,
+              child: Container(width: 80, height: 30, color: AppColors.primaryWhiteColor),
             ),
           ],
         ),

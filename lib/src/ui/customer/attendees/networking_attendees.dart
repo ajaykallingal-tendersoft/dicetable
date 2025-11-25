@@ -1,7 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -9,13 +11,21 @@ import 'package:lottie/lottie.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/constants/assets.dart';
 import 'package:soloseaters/src/model/cafe_owner/home/venue_owner_home_screen_response.dart';
+import 'package:soloseaters/src/model/customer/cafe/cafe_list_request.dart';
 import 'package:soloseaters/src/model/customer/cafe/cafe_list_response.dart';
+import 'package:soloseaters/src/ui/customer/cafe_list/bloc/cafe_list_bloc.dart';
 import 'package:soloseaters/src/ui/customer/cafe_list/components/cafe_details_arguments.dart';
+import 'package:soloseaters/src/utils/data/object_factory.dart';
 
 class NetworkingAttendeesScreen extends StatefulWidget {
   final CafeDetailsArguments arguments;
+  final bool? shouldRefresh; // New parameter to indicate if we need to refresh
 
-  const NetworkingAttendeesScreen({super.key, required this.arguments});
+  const NetworkingAttendeesScreen({
+    super.key,
+    required this.arguments,
+    this.shouldRefresh = false,
+  });
 
   @override
   State<NetworkingAttendeesScreen> createState() =>
@@ -23,12 +33,62 @@ class NetworkingAttendeesScreen extends StatefulWidget {
 }
 
 class _NetworkingAttendeesScreenState extends State<NetworkingAttendeesScreen> {
+  late final String latitude;
+  late final String longitude;
   int _currentPage = 0;
+  List<Attende> _currentAttendees = [];
+  bool _isRefreshing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    latitude = ObjectFactory().prefs.getLatitude().toString();
+    longitude = ObjectFactory().prefs.getLongitude().toString();
+
+    // Initialize with the passed attendees
+    _currentAttendees = widget.arguments.attendes;
+
+    // Only fetch if shouldRefresh is true (after booking success)
+    if (widget.shouldRefresh == true) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _fetchUpdatedCafeDetails();
+      });
+    }
+  }
+
+  void _fetchUpdatedCafeDetails() {
+    final double? lat = latitude != null ? double.tryParse(latitude) : 0.0;
+    final double? lon = longitude != null ? double.tryParse(longitude) : 0.0;
+    final isGuest = ObjectFactory().prefs.isGuestUser() == true;
+    final deviceToken =
+        isGuest ? ObjectFactory().prefs.getDeviceID() ?? '' : '';
+
+    setState(() {
+      _isRefreshing = true;
+    });
+
+    if (lat != null && lon != null) {
+      context.read<CafeListBloc>().add(
+        RefreshCafeDetailsEvent(
+          cafeId: widget.arguments.id,
+          cafeListRequest: CafeListRequest(
+            latitude: lat,
+            longitude: lon,
+            diceTableFilter: [],
+            accommodationsFilter: [],
+            openTime: "",
+            closeTime: "",
+            search: "",
+            deviceToken: deviceToken,
+          ),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final attendees = widget.arguments.attendes;
     return Container(
-      // Gradient background matching the image's overall color blend
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [
@@ -50,6 +110,7 @@ class _NetworkingAttendeesScreenState extends State<NetworkingAttendeesScreen> {
           leading: IconButton(
             icon: const Icon(Icons.arrow_back, color: Colors.white),
             onPressed: () {
+              
               context.pop();
             },
           ),
@@ -62,30 +123,88 @@ class _NetworkingAttendeesScreenState extends State<NetworkingAttendeesScreen> {
             ),
           ),
         ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child:
-              attendees.isEmpty
-                  ? _buildEmptyAttendeesUI(context) // SHOW ONLY EMPTY UI
-                  : Column(
-                    children: [
-                      _buildVenueImageCard(),
-                      const SizedBox(height: 20),
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: attendees.length,
-                        itemBuilder: (context, index) {
-                          final attendee = attendees[index];
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 16.0),
-                            child: _buildAttendeeCard(attendee),
-                          );
-                        },
+        body: BlocListener<CafeListBloc, CafeListState>(
+          listener: (context, state) {
+            if (state is SingleCafeDetailsLoaded) {
+              setState(() {
+                _isRefreshing = false;
+                // Update attendees from the refreshed cafe data
+                _currentAttendees = state.cafe.attendes ?? [];
+              });
+            } else if (state is SingleCafeDetailsError) {
+              setState(() {
+                _isRefreshing = false;
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Failed to refresh attendees'),
+                  backgroundColor: AppColors.appRedColor,
+                  behavior: SnackBarBehavior.floating,
+                  duration: const Duration(seconds: 2),
+                ),
+              );
+            }
+          },
+          child: RefreshIndicator(
+            onRefresh: () async {
+              _fetchUpdatedCafeDetails();
+              // Wait for the refresh to complete
+              await Future.delayed(Duration(seconds: 2));
+            },
+            child: SingleChildScrollView(
+              physics: AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              child:
+                  _isRefreshing
+                      ? _buildLoadingUI()
+                      : _currentAttendees.isEmpty
+                      ? _buildEmptyAttendeesUI(context)
+                      : Column(
+                        children: [
+                          _buildVenueImageCard(),
+                          const SizedBox(height: 20),
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: _currentAttendees.length,
+                            itemBuilder: (context, index) {
+                              final attendee = _currentAttendees[index];
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 16.0),
+                                child: _buildAttendeeCard(attendee),
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 30),
+                        ],
                       ),
-                      const SizedBox(height: 30),
-                    ],
-                  ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLoadingUI() {
+    return SizedBox(
+      height: MediaQuery.sizeOf(context).height * 0.7,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              "Loading attendees...",
+              style: GoogleFonts.montserrat(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -95,8 +214,8 @@ class _NetworkingAttendeesScreenState extends State<NetworkingAttendeesScreen> {
     return Center(
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white, // white background
-          borderRadius: BorderRadius.circular(24), // smooth rounded corners
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.08),
@@ -105,13 +224,11 @@ class _NetworkingAttendeesScreenState extends State<NetworkingAttendeesScreen> {
             ),
           ],
         ),
-        // spacing from screen edges
         padding: EdgeInsets.all(8),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(15),
-          child: SizedBox(
-            height: 220, // or ScreenUtil: 220.h
-            width: double.infinity,
+          child: AspectRatio(
+            aspectRatio: 4 / 3,
             child: PageView.builder(
               itemCount: widget.arguments.gallery.length,
               onPageChanged: (index) => setState(() => _currentPage = index),
@@ -153,7 +270,6 @@ class _NetworkingAttendeesScreenState extends State<NetworkingAttendeesScreen> {
 
   Widget _buildAttendeeCard(Attende attende) {
     final imageUrl = attende.profilePhoto ?? "";
-    print("Attentee Photo: ${attende.profilePhoto}");
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -173,7 +289,6 @@ class _NetworkingAttendeesScreenState extends State<NetworkingAttendeesScreen> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Profile Photo
               ClipRRect(
                 borderRadius: BorderRadius.circular(28),
                 child:
@@ -184,24 +299,17 @@ class _NetworkingAttendeesScreenState extends State<NetworkingAttendeesScreen> {
                           height: 56,
                           fit: BoxFit.cover,
                           placeholder:
-                              (context, url) => _buildPlaceholder(
-                                attende.name!,
-                              ), // Show initials while loading
+                              (context, url) =>
+                                  _buildPlaceholder(attende.name!),
                           errorWidget:
-                              (context, url, error) => _buildPlaceholder(
-                                attende.name!,
-                              ), // Show initials on error
-                          fadeInDuration: Duration(
-                            milliseconds: 400,
-                          ), // Smooth fade-in effect
+                              (context, url, error) =>
+                                  _buildPlaceholder(attende.name!),
+                          fadeInDuration: Duration(milliseconds: 400),
                           fadeOutDuration: Duration(milliseconds: 200),
                         )
                         : _buildPlaceholder(attende.name!),
               ),
-
               const SizedBox(width: 12),
-
-              // Name and Info
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -254,36 +362,35 @@ class _NetworkingAttendeesScreenState extends State<NetworkingAttendeesScreen> {
       ),
     );
   }
-}
 
-Widget _buildEmptyAttendeesUI(BuildContext context) {
-  return SizedBox(
-    height: MediaQuery.sizeOf(context).height,
-    width: MediaQuery.sizeOf(context).width,
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Text(
-          "No attendees found!",
-          style: GoogleFonts.montserrat(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
+  Widget _buildEmptyAttendeesUI(BuildContext context) {
+    return SizedBox(
+      height: MediaQuery.sizeOf(context).height * 0.7,
+      width: MediaQuery.sizeOf(context).width,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            "No attendees found!",
+            style: GoogleFonts.montserrat(
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              color: Colors.white,
+            ),
           ),
-        ),
-        const Gap(8),
-        Text(
-          "Once people start joining this event,\nyou can view them.",
-          textAlign: TextAlign.center,
-          style: GoogleFonts.montserrat(
-            fontSize: 14,
-            fontWeight: FontWeight.w400,
-            color: Colors.white.withOpacity(0.9),
+          const Gap(8),
+          Text(
+            "Once people start joining this event,\nyou can view them.",
+            textAlign: TextAlign.center,
+            style: GoogleFonts.montserrat(
+              fontSize: 14,
+              fontWeight: FontWeight.w400,
+              color: Colors.white.withOpacity(0.9),
+            ),
           ),
-        ),
-        const Gap(150),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
+  }
 }

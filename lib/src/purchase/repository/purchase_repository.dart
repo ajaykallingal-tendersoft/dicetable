@@ -275,6 +275,11 @@ class PaymentRepository {
             (subscriptionExpiryDate != null && !subscriptionExpired)) {
           userType = UserType.publicPaid;
         } else {
+          // ✅ Public users do not have trials.
+          // Clear any stray trial data for this user type.
+          trialStartDate = null;
+          trialEndDate = null;
+
           userType = UserType.publicFree;
         }
       } else {

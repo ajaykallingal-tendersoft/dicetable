@@ -125,7 +125,13 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                           ? badges.Badge(
                             position: badges.BadgePosition.topEnd(
                               top: 0,
-                              end: -2,
+                              end: int.parse(
+                                          controller
+                                              .notificationBadgeAmount
+                                              .value
+                                              .toString(),
+                                        ) >
+                                        99 ? -12 :-2,
                             ),
                             badgeAnimation: badges.BadgeAnimation.slide(),
                             showBadge: true,
@@ -232,18 +238,26 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                                     BlocBuilder<
                                       PaymentPlanBloc,
                                       PaymentPlanState
-                                    >(
+                                    >(                                      
                                       builder: (context, paymentState) {
-                                        // Premium gating temporarily disabled to allow open access.
+                                        final bool hasAccess = paymentState.canAccessPremiumFeatures;
                                         return ElevatedButton(
                                           onPressed: () {
-                                            context.push(
-                                              '/paid_profile',
-                                              extra: {
-                                                "name":
-                                                    nameController.text.trim(),
-                                              },
-                                            );
+                                            if (!hasAccess) {
+                                              // User is NOT premium, redirect to the payment plan screen.
+                                              context.push('/payment_plan');
+                                              return;
+                                            }
+                                            // User IS premium, proceed to the paid profile screen.
+                                            else {
+                                              context.push(
+                                                '/paid_profile',
+                                                extra: {
+                                                  "name":
+                                                      nameController.text.trim(),
+                                                },
+                                              );
+                                            }
                                           },
                                           style: ElevatedButton.styleFrom(
                                             // Match Container color

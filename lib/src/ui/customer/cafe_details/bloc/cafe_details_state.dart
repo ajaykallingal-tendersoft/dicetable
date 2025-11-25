@@ -46,3 +46,4 @@ final class WithdrawBookingError extends CafeDetailsState {
   @override
   List<Object> get props => [errorMessage];
 }
+

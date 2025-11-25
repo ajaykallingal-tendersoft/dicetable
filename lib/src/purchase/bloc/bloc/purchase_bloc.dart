@@ -10,14 +10,14 @@ import 'package:soloseaters/src/purchase/repository/purchase_repository.dart';
 import 'package:soloseaters/src/purchase/services/purchase_service.dart';
 
 class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
-  final PaymentService _paymentService;
+  final PaymentService paymentService;
   final PaymentRepository _paymentRepository;
   StreamSubscription<List<PurchaseDetails>>? _purchaseSubscription;
 
   PaymentPlanBloc({
     required PaymentService paymentService,
     required PaymentRepository paymentRepository,
-  })  : _paymentService = paymentService,
+  })  : paymentService = paymentService,
         _paymentRepository = paymentRepository,
         super(const PaymentPlanState()) {
     on<InitializePaymentEvent>(_onInitialize);
@@ -42,7 +42,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
       emit(state.copyWith(status: PaymentPlanStatus.loading));
 
       // Initialize payment service
-      final isAvailable = await _paymentService.initialize();
+      final isAvailable = await paymentService.initialize();
 
       if (!isAvailable) {
         emit(
@@ -55,7 +55,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
       }
 
       // Listen to purchase stream
-      _purchaseSubscription = _paymentService.purchaseStream.listen(
+      _purchaseSubscription = paymentService.purchaseStream.listen(
         (purchaseDetailsList) {
           add(HandlePurchaseUpdateEvent(purchaseDetailsList));
         },
@@ -102,7 +102,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
     try {
       emit(state.copyWith(status: PaymentPlanStatus.loading));
 
-      final allProducts = await _paymentService.loadProducts();
+      final allProducts = await paymentService.loadProducts();
 
       if (allProducts.isEmpty) {
         emit(
@@ -187,6 +187,14 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
     Emitter<PaymentPlanState> emit,
   ) async {
     try {
+       // Prevent multiple purchase attempts while one is already running.
+    if (state.isProcessing == true) {
+      emit(state.copyWith(
+        status: PaymentPlanStatus.purchaseFailed,
+        errorMessage: 'Purchase already in progress',
+      ));
+      return;
+    }
       emit(
         state.copyWith(
           status: PaymentPlanStatus.purchasing,
@@ -201,7 +209,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         orElse: () => throw Exception("Product not found: ${event.productId}"),
       );
 
-      final errorMessage = await _paymentService.purchaseProduct(product);
+      final errorMessage = await paymentService.purchaseProduct(product);
 
       if (errorMessage != null) {
         emit(
@@ -232,7 +240,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
       if (purchaseDetails.status == PurchaseStatus.purchased ||
           purchaseDetails.status == PurchaseStatus.restored) {
         // Build the verification payload using PaymentService helper.
-        final payload = _paymentService.extractVerificationPayload(purchaseDetails);
+        final payload = paymentService.extractVerificationPayload(purchaseDetails);
 
         // Optionally fill runtime values (package/bundle id) if you have them available
         // e.g. payload['package_name'] = 'com.your.app';
@@ -357,7 +365,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         state.copyWith(status: PaymentPlanStatus.loading, isProcessing: true),
       );
 
-      await _paymentService.restorePurchases();
+      await paymentService.restorePurchases();
 
       emit(
         state.copyWith(
@@ -451,7 +459,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
   @override
   Future<void> close() {
     _purchaseSubscription?.cancel();
-    _paymentService.dispose();
+    paymentService.dispose();
     return super.close();
   }
 }

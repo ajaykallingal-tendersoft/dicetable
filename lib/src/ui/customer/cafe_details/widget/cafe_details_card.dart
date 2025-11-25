@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/constants/assets.dart';
 import 'package:soloseaters/src/purchase/bloc/bloc/purchase_bloc.dart';
@@ -11,6 +12,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
 import 'package:lottie/lottie.dart';
 import 'package:soloseaters/src/model/customer/cafe/cafe_list_response.dart';
+import 'package:soloseaters/src/ui/customer/cafe_details/bloc/cafe_details_bloc.dart';
+import 'package:soloseaters/src/ui/customer/cafe_list/bloc/cafe_list_bloc.dart';
 import 'package:soloseaters/src/ui/customer/cafe_list/components/cafe_details_arguments.dart';
 
 class CafeDetailsCard extends StatefulWidget {
@@ -150,49 +153,92 @@ class _CafeDetailsCardState extends State<CafeDetailsCard> {
                   fontSize: 16.sp,
                 ),
               ),
+
               BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
                 builder: (context, paymentState) {
-                  // Premium gating temporarily disabled to allow attendee list access for all users.
-                  return InkWell(
-                    onTap: () {
-                      context.push(
-                        '/networking_attendees',
-                        extra: CafeDetailsArguments(
-                          from: "CafeList",
-                          name: widget.name,
-                          tableType: widget.tableType,
-                          description: widget.description,
-                          image: widget.image,
-                          openingHours: widget.openingHours ?? [],
-                          id: widget.id.toString(),
-                          bookingStatus: widget.bookingStatus,
-                          gallery: widget.gallery,
-                          attendes: widget.attendes ?? [],
-                          upcomingEvents: widget.upcomingEvents ?? [],
+                  final bool isPremium = paymentState.isPremium == true;
+
+                  return BlocBuilder<CafeListBloc, CafeListState>(
+                    builder: (context, cafeListState) {
+                      // Check if we have fresh data from a successful refresh
+                      bool shouldRefresh = false;
+                      List<Attende> latestAttendees = widget.attendes ?? [];
+                      // Convert widget.id to int for type-safe comparison
+                      final int? widgetIdInt = int.tryParse(
+                        widget.id.toString(),
+                      );
+
+                      if (cafeListState is SingleCafeDetailsLoaded &&
+                          widgetIdInt != null) {
+                        // Compare as integers
+                        if (cafeListState.cafe.id == widgetIdInt) {
+                          print(
+                            '✅ Using refreshed attendees data for cafe ${cafeListState.cafe.name}',
+                          );
+                          latestAttendees = cafeListState.cafe.attendes ?? [];
+                          shouldRefresh = false;
+                        }
+                      }
+
+                      return ElevatedButton(
+                        onPressed: () {
+                          if (!isPremium) {
+                            // User NOT premium → redirect to ChoosePlan
+                            context.push('/payment_plan');
+                            return;
+                          }
+                          print('🚀 Navigating to attendees screen');
+                          print(
+                            '📊 Attendees count: ${latestAttendees.length}',
+                          );
+
+                          // Navigate with Map containing both arguments and shouldRefresh flag
+                          context.push(
+                            '/networking_attendees',
+                            extra: {
+                              'arguments': CafeDetailsArguments(
+                                from: "CafeList",
+                                name: widget.name,
+                                tableType: widget.tableType,
+                                description: widget.description,
+                                image: widget.image,
+                                openingHours: widget.openingHours ?? [],
+                                id: widget.id.toString(),
+                                bookingStatus: widget.bookingStatus,
+                                gallery: widget.gallery,
+                                attendes: latestAttendees,
+                                upcomingEvents: widget.upcomingEvents ?? [],
+                              ),
+                              'shouldRefresh': shouldRefresh,
+                            },
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(18),
+                          ),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 5,
+                          ),
+                          minimumSize: Size(102.h, 26.h),
+                        ),
+                        child: Text(
+                          'View Attendees',
+                          style: GoogleFonts.roboto(
+                            color: AppColors.primaryWhiteColor,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       );
                     },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        'View Attendees',
-                        style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                          color: AppColors.primaryWhiteColor,
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
                   );
                 },
               ),
+
+          
             ],
           ),
 

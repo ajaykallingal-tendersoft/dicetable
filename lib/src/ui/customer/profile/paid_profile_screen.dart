@@ -315,15 +315,6 @@ class _PadiProfileScreenState extends State<PadiProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Text(
-                    //   hasLocalImages
-                    //       ? 'Business Photos (${localImages.length} new selected)'
-                    //       : 'Business Photos (${apiImages.length} saved)',
-                    //   style: GoogleFonts.roboto(
-                    //     color: AppColors.primaryWhiteColor.withOpacity(0.7),
-                    //     fontSize: 12.sp,
-                    //   ),
-                    // ),
                     if (hasLocalImages && hasApiImages)
                       Text(
                         'New images will replace existing ones',
@@ -374,15 +365,6 @@ class _PadiProfileScreenState extends State<PadiProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Text(
-                    //   hasLocalImages
-                    //       ? 'Hobby Photos (${localImages.length} new selected)'
-                    //       : 'Hobby Photos (${apiImages.length} saved)',
-                    //   style: GoogleFonts.roboto(
-                    //     color: AppColors.primaryWhiteColor.withOpacity(0.7),
-                    //     fontSize: 12.sp,
-                    //   ),
-                    // ),
                     if (hasLocalImages && hasApiImages)
                       Text(
                         'New images will replace existing ones',
@@ -493,25 +475,30 @@ class _PadiProfileScreenState extends State<PadiProfileScreen> {
                       ),
             ),
             // Badge for image type
-            Positioned(
-              top: 6,
-              left: 6,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: isLocal ? Colors.blue.shade700 : Colors.black54,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  isLocal ? 'New' : 'Saved',
-                  style: GoogleFonts.roboto(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w600,
+            isLocal
+                ? Positioned(
+                  top: 6,
+                  left: 6,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isLocal ? Colors.blue.shade700 : Colors.black54,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      'New',
+                      style: GoogleFonts.roboto(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-            ),
+                )
+                : SizedBox.shrink(),
             // Remove button (only for newly added local images)
             if (isLocal)
               Positioned(
@@ -550,6 +537,103 @@ class _PadiProfileScreenState extends State<PadiProfileScreen> {
     );
   }
 
+  /// Helper method to pick single image with permission handling
+  Future<void> _pickSingleImage(BuildContext context) async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final picked = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 80,
+      );
+
+      if (picked != null) {
+        if (!context.mounted) return;
+        context.read<PaidProfileBloc>().add(
+          UpdateProfileImageEvent(XFile(picked.path)),
+        );
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+
+      // Show error snackbar
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Failed to pick image. Please check permissions in settings.',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: AppColors.appRedColor,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    }
+  }
+
+  /// Helper method to pick multiple images with permission handling
+  Future<void> _pickMultipleImages(
+    BuildContext context, {
+    required bool isBusiness,
+  }) async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final picked = await picker.pickMultiImage(imageQuality: 80);
+
+      if (picked.isNotEmpty) {
+        if (!context.mounted) return;
+
+        if (isBusiness) {
+          context.read<PaidProfileBloc>().add(AddBusinessImagesEvent(picked));
+        } else {
+          context.read<PaidProfileBloc>().add(AddHobbyImagesEvent(picked));
+        }
+      }
+    } catch (e) {
+      if (!context.mounted) return;
+
+      // Show error snackbar
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'Failed to pick images. Please check permissions in settings.',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: AppColors.appRedColor,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    }
+  }
+
   Widget _buildUploadButton(
     BuildContext context, {
     required bool isBusiness,
@@ -561,22 +645,10 @@ class _PadiProfileScreenState extends State<PadiProfileScreen> {
         onTap:
             isDisabled
                 ? null
-                : () async {
-                  final ImagePicker picker = ImagePicker();
-                  final picked = await picker.pickMultiImage();
-
-                  if (picked.isNotEmpty) {
-                    if (isBusiness) {
-                      context.read<PaidProfileBloc>().add(
-                        AddBusinessImagesEvent(picked),
-                      );
-                    } else {
-                      context.read<PaidProfileBloc>().add(
-                        AddHobbyImagesEvent(picked),
-                      );
-                    }
-                  }
-                },
+                : () => _pickMultipleImages(
+                  context,
+                  isBusiness: isBusiness,
+                ), // Updated
         borderRadius: BorderRadius.circular(50.r),
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
@@ -592,8 +664,7 @@ class _PadiProfileScreenState extends State<PadiProfileScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Image.asset(
-                Assets
-                    .UPLOAD, // Replace with your actual upload icon asset path
+                Assets.UPLOAD,
                 width: 18.w,
                 height: 18.h,
                 color: isDisabled ? Colors.grey : AppColors.primaryWhiteColor,
@@ -761,10 +832,9 @@ class _PadiProfileScreenState extends State<PadiProfileScreen> {
               const SizedBox(width: 8),
               Text(
                 venue.name ?? 'Unknown Venue',
-
                 style: GoogleFonts.montserrat(
                   color: AppColors.primaryWhiteColor,
-                  fontSize: 15.sp,
+                  fontSize: 12.sp,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -789,24 +859,29 @@ class _PadiProfileScreenState extends State<PadiProfileScreen> {
 
     final isEnabled = hasChanges && !state.updateSuccess;
 
-    return ElevatedButton(
-      style: ElevatedButton.styleFrom(
-        minimumSize: Size(double.infinity, 55.h),
-        backgroundColor:
-            isEnabled
-                ? AppColors.primaryWhiteColor
-                : AppColors.disabledColor.withOpacity(0.3),
-        foregroundColor: isEnabled ? AppColors.primary : Colors.white38,
-        elevation: isEnabled ? 2 : 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      ),
-      onPressed: isEnabled ? () => _onSaveProfile(context, state) : null,
-      child: Text(
-        "APPLY PROFILE CHANGES",
-        style: GoogleFonts.montserrat(
-          fontSize: 16.sp,
-          fontWeight: FontWeight.w600,
-          color: isEnabled ? AppColors.primary : Colors.white38,
+    return Center(
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          padding: EdgeInsets.all(12),
+          minimumSize: Size(223.w, 37.h),
+          backgroundColor:
+              isEnabled
+                  ? AppColors.primaryWhiteColor
+                  : AppColors.disabledColor.withOpacity(0.3),
+          foregroundColor: isEnabled ? AppColors.primary : Colors.white38,
+          elevation: isEnabled ? 2 : 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+        ),
+        onPressed: isEnabled ? () => _onSaveProfile(context, state) : null,
+        child: Text(
+          "APPLY PROFILE CHANGES",
+          style: GoogleFonts.montserrat(
+            fontSize: 12.sp,
+            fontWeight: FontWeight.w600,
+            color: isEnabled ? AppColors.primary : Colors.white38,
+          ),
         ),
       ),
     );
@@ -909,7 +984,7 @@ class _PadiProfileScreenState extends State<PadiProfileScreen> {
                     Gap(60.h),
                     Text(
                       "Serious Networker",
-                      style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                      style: GoogleFonts.montserrat(
                         color: AppColors.primaryWhiteColor,
                         fontSize: 22.sp,
                         fontWeight: FontWeight.w600,
@@ -918,9 +993,10 @@ class _PadiProfileScreenState extends State<PadiProfileScreen> {
                     SizedBox(height: 4.h),
                     Text(
                       widget.profileData["name"] ?? "",
-                      style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                        color: AppColors.primaryWhiteColor.withOpacity(0.8),
-                        fontSize: 12.sp,
+                      style: GoogleFonts.montserrat(
+                        color: AppColors.primaryWhiteColor,
+                        fontSize: 14.sp,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ],
@@ -1021,17 +1097,7 @@ class _PadiProfileScreenState extends State<PadiProfileScreen> {
                           ],
                         ),
                         child: InkWell(
-                          onTap: () async {
-                            final picker = ImagePicker();
-                            final picked = await picker.pickImage(
-                              source: ImageSource.gallery,
-                            );
-                            if (picked != null) {
-                              context.read<PaidProfileBloc>().add(
-                                UpdateProfileImageEvent(XFile(picked.path)),
-                              );
-                            }
-                          },
+                          onTap: () => _pickSingleImage(context), //Updated
                           child: SvgPicture.asset(
                             'assets/svg/camera-icon.svg',
                             fit: BoxFit.scaleDown,

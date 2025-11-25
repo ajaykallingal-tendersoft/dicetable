@@ -123,6 +123,11 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                   SnackBar(
                     content: Text(state.message),
                     backgroundColor: AppColors.appRedColor,
+                    behavior: SnackBarBehavior.floating,
+                    duration: const Duration(seconds: 3),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 );
               }
@@ -156,6 +161,11 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                     SnackBar(
                       content: Text(state.loginRequestResponse.message!),
                       backgroundColor: AppColors.appRedColor,
+                      behavior: SnackBarBehavior.floating,
+                      duration: const Duration(seconds: 3),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                   );
                 }
@@ -182,6 +192,11 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                   SnackBar(
                     content: Text(state.message),
                     backgroundColor: AppColors.appRedColor,
+                    behavior: SnackBarBehavior.floating,
+                    duration: const Duration(seconds: 3),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 );
               }
@@ -194,9 +209,9 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                   ObjectFactory().prefs.setCustomerAuthToken(
                     token: state.googleLoginResponse.token,
                   );
-                    ObjectFactory().prefs.setCustomerUserMail(
-                      customerUserMail: state.googleLoginResponse.user!.email,
-                    );
+                  ObjectFactory().prefs.setCustomerUserMail(
+                    customerUserMail: state.googleLoginResponse.user!.email,
+                  );
                   ObjectFactory().prefs.setUserId(
                     userId: state.googleLoginResponse.user!.id.toString(),
                   );
@@ -249,8 +264,9 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                     token: state.appleLoginRequestResponse.token,
                   );
                   ObjectFactory().prefs.setCustomerUserMail(
-                      customerUserMail: state.appleLoginRequestResponse.user!.email,
-                    );
+                    customerUserMail:
+                        state.appleLoginRequestResponse.user!.email,
+                  );
                   ObjectFactory().prefs.setUserId(
                     userId: state.appleLoginRequestResponse.user!.id.toString(),
                   );
@@ -320,11 +336,16 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         backgroundColor: AppColors.primary,
+
                         content: Text(
                           'Press again to quit',
                           style: TextStyle(color: AppColors.primaryWhiteColor),
                         ),
-                        duration: Duration(seconds: 2),
+                        behavior: SnackBarBehavior.floating,
+                        duration: const Duration(seconds: 2),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                     );
                     return false;
@@ -777,7 +798,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                                                           color:
                                                               AppColors
                                                                   .primaryWhiteColor,
-                                                          fontSize: 16.sp,
+                                                          fontSize: 16,
                                                         ),
                                                   ),
                                                 ),

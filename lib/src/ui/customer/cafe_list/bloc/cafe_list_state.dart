@@ -117,3 +117,26 @@ class FilterClear extends CafeListState {
   @override
   List<Object> get props => [];
 }
+
+final class SingleCafeDetailsLoading extends CafeListState {
+  @override
+  List<Object> get props => [];
+}
+
+final class SingleCafeDetailsLoaded extends CafeListState {
+  final Cafe cafe;
+
+  const SingleCafeDetailsLoaded({required this.cafe});
+
+  @override
+  List<Object> get props => [cafe];
+}
+
+final class SingleCafeDetailsError extends CafeListState {
+  final String errorMessage;
+
+  const SingleCafeDetailsError({required this.errorMessage});
+
+  @override
+  List<Object> get props => [errorMessage];
+}

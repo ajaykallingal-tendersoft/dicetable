@@ -5,10 +5,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:soloseaters/src/common/elevated_button_widget.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/model/customer/booking/withdraw_booking_request.dart';
+import 'package:soloseaters/src/model/customer/cafe/cafe_list_request.dart';
 import 'package:soloseaters/src/model/customer/cafe/cafe_list_response.dart';
 import 'package:soloseaters/src/model/customer/cafe/favourite_list_response.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/bloc/notification_bloc.dart';
 import 'package:soloseaters/src/ui/customer/cafe_details/widget/cafe_details_card.dart';
+import 'package:soloseaters/src/ui/customer/cafe_list/bloc/cafe_list_bloc.dart';
 import 'package:soloseaters/src/ui/customer/cafe_list/components/cafe_details_arguments.dart';
 import 'package:soloseaters/src/ui/customer/favourites/widget/fav_details_argument.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
@@ -142,7 +144,44 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
               SnackBar(
                 content: Text(state.bookingRequestResponse.message!),
                 backgroundColor: AppColors.appGreenColor,
+                behavior: SnackBarBehavior.floating,
                 duration: const Duration(seconds: 3),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            );
+
+            final double? lat = double.tryParse(
+              ObjectFactory().prefs.getLatitude().toString(),
+            );
+            final double? lon = double.tryParse(
+              ObjectFactory().prefs.getLongitude().toString(),
+            );
+            final isGuest = ObjectFactory().prefs.isGuestUser() == true;
+            final deviceToken =
+                isGuest ? ObjectFactory().prefs.getDeviceID() ?? '' : '';
+
+            context.read<CafeListBloc>().add(
+              RefreshCafeDetailsEvent(
+                cafeId: _id,
+                cafeListRequest: CafeListRequest(
+                  latitude: lat ?? 0.0,
+                  longitude: lon ?? 0.0,
+                  // Pass the *Active* filters from the Bloc so the API request is correct
+                  diceTableFilter:
+                      context.read<CafeListBloc>().selectedTableTypes.toList(),
+                  accommodationsFilter:
+                      context.read<CafeListBloc>().selectedVenueTypes.toList(),
+                  openTime: context.read<CafeListBloc>().openTime.format(
+                    context,
+                  ),
+                  closeTime: context.read<CafeListBloc>().closeTime.format(
+                    context,
+                  ),
+                  search: "",
+                  deviceToken: deviceToken,
+                ),
               ),
             );
           } else {
@@ -150,23 +189,28 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
               SnackBar(
                 content: Text('Booking failed. Please try again later.'),
                 backgroundColor: AppColors.appRedColor,
+                behavior: SnackBarBehavior.floating,
                 duration: const Duration(seconds: 3),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
             );
           }
         } else if (state is CafeBookingError) {
           if (_isLoadingDialogShown) {
-            Navigator.of(
-              context,
-              rootNavigator: true,
-            ).pop(); // Dismiss the loading dialog
+            Navigator.of(context, rootNavigator: true).pop();
             _isLoadingDialogShown = false;
           }
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text("Something went wrong! Please try again later."),
               backgroundColor: AppColors.appRedColor,
+              behavior: SnackBarBehavior.floating,
               duration: const Duration(seconds: 3),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
           );
         } else if (state is WithdrawBookingLoading) {
@@ -176,10 +220,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
           }
         } else if (state is WithdrawBookingLoaded) {
           if (_isLoadingDialogShown) {
-            Navigator.of(
-              context,
-              rootNavigator: true,
-            ).pop(); // Dismiss the loading dialog
+            Navigator.of(context, rootNavigator: true).pop();
             _isLoadingDialogShown = false;
           }
           if (state.withdrawBookingResponse.status == true) {
@@ -190,7 +231,49 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
               SnackBar(
                 content: Text(state.withdrawBookingResponse.message!),
                 backgroundColor: AppColors.appGreenColor,
+                behavior: SnackBarBehavior.floating,
                 duration: const Duration(seconds: 3),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            );
+
+            // ALSO REFRESH AFTER WITHDRAW TO UPDATE ATTENDEES LIST
+            final double? lat = double.tryParse(
+              ObjectFactory().prefs.getLatitude().toString(),
+            );
+            final double? lon = double.tryParse(
+              ObjectFactory().prefs.getLongitude().toString(),
+            );
+            final isGuest = ObjectFactory().prefs.isGuestUser() == true;
+            final deviceToken =
+                isGuest ? ObjectFactory().prefs.getDeviceID() ?? '' : '';
+
+            // Debug logging
+            print('🔄 Triggering refresh for cafe ID: $_id');
+            print('📍 Location: lat=$lat, lon=$lon');
+
+            context.read<CafeListBloc>().add(
+              RefreshCafeDetailsEvent(
+                cafeId: _id.toString(),
+                cafeListRequest: CafeListRequest(
+                  latitude: lat ?? 0.0,
+                  longitude: lon ?? 0.0,
+                  // Pass active filters here too
+                  diceTableFilter:
+                      context.read<CafeListBloc>().selectedTableTypes.toList(),
+                  accommodationsFilter:
+                      context.read<CafeListBloc>().selectedVenueTypes.toList(),
+                  openTime: context.read<CafeListBloc>().openTime.format(
+                    context,
+                  ),
+                  closeTime: context.read<CafeListBloc>().closeTime.format(
+                    context,
+                  ),
+                  search: "",
+                  deviceToken: deviceToken,
+                ),
               ),
             );
           } else {
@@ -198,23 +281,28 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
               SnackBar(
                 content: Text('Withdrawal failed.Please try again later.'),
                 backgroundColor: AppColors.appRedColor,
+                behavior: SnackBarBehavior.floating,
                 duration: const Duration(seconds: 3),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
             );
           }
         } else if (state is WithdrawBookingError) {
           if (_isLoadingDialogShown) {
-            Navigator.of(
-              context,
-              rootNavigator: true,
-            ).pop(); // Dismiss the loading dialog
+            Navigator.of(context, rootNavigator: true).pop();
             _isLoadingDialogShown = false;
           }
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Withdrawal failed.Please try again later.'),
               backgroundColor: AppColors.appRedColor,
+              behavior: SnackBarBehavior.floating,
               duration: const Duration(seconds: 3),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
           );
         }
@@ -248,7 +336,16 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                             ? badges.Badge(
                               position: badges.BadgePosition.topEnd(
                                 top: 0,
-                                end: -2,
+                                end:
+                                    int.parse(
+                                              controller
+                                                  .notificationBadgeAmount
+                                                  .value
+                                                  .toString(),
+                                            ) >
+                                            99
+                                        ? -12
+                                        : -2,
                               ),
                               badgeAnimation: badges.BadgeAnimation.slide(),
                               showBadge: true,
@@ -262,8 +359,16 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                                 ),
                               ),
                               badgeContent: Text(
-                                controller.notificationBadgeAmount.value
-                                    .toString(),
+                                int.parse(
+                                          controller
+                                              .notificationBadgeAmount
+                                              .value
+                                              .toString(),
+                                        ) >
+                                        99
+                                    ? "99+"
+                                    : controller.notificationBadgeAmount.value
+                                        .toString(),
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 10.sp,
@@ -932,7 +1037,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.now(),
-      initialEntryMode: TimePickerEntryMode.input, // <-- for 24 hour input
+      initialEntryMode: TimePickerEntryMode.dial,
       builder: (BuildContext context, Widget? child) {
         return Theme(
           data: Theme.of(context).copyWith(

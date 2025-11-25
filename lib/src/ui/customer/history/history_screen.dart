@@ -86,7 +86,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         ? badges.Badge(
                           position: badges.BadgePosition.topEnd(
                             top: 0,
-                            end: -2,
+                            end: int.parse(
+                                          controller
+                                              .notificationBadgeAmount
+                                              .value
+                                              .toString(),
+                                        ) >
+                                        99 ? -12 :-2,
                           ),
                           badgeAnimation: badges.BadgeAnimation.slide(),
                           showBadge: true,

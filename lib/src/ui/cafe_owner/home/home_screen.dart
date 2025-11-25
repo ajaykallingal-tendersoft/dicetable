@@ -178,13 +178,23 @@ PreferredSizeWidget? _buildAppBar(
                 child: Obx(() {
                   return controller.notificationBadgeAmount.value > 0
                       ? badges.Badge(
-                        position: badges.BadgePosition.topEnd(top: 0, end: -2),
+                        position: badges.BadgePosition.topEnd(
+                          top: 0,
+                          end:
+                              int.parse(
+                                        controller.notificationBadgeAmount.value
+                                            .toString(),
+                                      ) >
+                                      99
+                                  ? -12
+                                  : -2,
+                        ),
                         badgeAnimation: badges.BadgeAnimation.slide(),
                         showBadge: true,
                         badgeStyle: badges.BadgeStyle(
                           shape: badges.BadgeShape.circle,
                           badgeColor: Colors.red,
-                          padding: EdgeInsets.all(4),
+                          padding: EdgeInsets.all(6),
                         ),
                         badgeContent: Text(
                           // Logic: If greater than 99, show "99+", otherwise show number

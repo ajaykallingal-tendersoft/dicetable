@@ -141,7 +141,12 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                   SnackBar(
                     content: Text(firstErrorMessage ?? 'Something went wrong'),
                     backgroundColor: AppColors.appRedColor,
+
+                    behavior: SnackBarBehavior.floating,
                     duration: const Duration(seconds: 3),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 );
               }
@@ -195,7 +200,11 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                   SnackBar(
                     content: Text(firstErrorMessage ?? 'Something went wrong'),
                     backgroundColor: AppColors.appRedColor,
+                    behavior: SnackBarBehavior.floating,
                     duration: const Duration(seconds: 3),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 );
               }
@@ -247,7 +256,11 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                   SnackBar(
                     content: Text(firstErrorMessage ?? 'Something went wrong'),
                     backgroundColor: AppColors.appRedColor,
+                    behavior: SnackBarBehavior.floating,
                     duration: const Duration(seconds: 3),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 );
               }
@@ -285,7 +298,11 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
               SnackBar(
                 content: Text(state.errorMessage ?? 'Something went wrong'),
                 backgroundColor: AppColors.appRedColor,
+                behavior: SnackBarBehavior.floating,
                 duration: const Duration(seconds: 3),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
             );
           }
@@ -305,7 +322,11 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                       : "Something went wrong.",
                 ),
                 backgroundColor: AppColors.appRedColor,
-                duration: const Duration(seconds: 2),
+                behavior: SnackBarBehavior.floating,
+                duration: const Duration(seconds: 3),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
             );
           }
@@ -592,13 +613,19 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                                       ScaffoldMessenger.of(
                                         context,
                                       ).showSnackBar(
-                                        const SnackBar(
+                                        SnackBar(
                                           content: Text(
                                             'Please fill all required fields before submitting.',
                                           ),
                                           backgroundColor:
                                               AppColors.appRedColor,
-                                          duration: Duration(seconds: 2),
+                                          behavior: SnackBarBehavior.floating,
+                                          duration: const Duration(seconds: 3),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                          ),
                                         ),
                                       );
                                     }

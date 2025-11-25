@@ -1,3 +1,4 @@
+import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -6,6 +7,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as path;
+import 'package:permission_handler/permission_handler.dart';
 import 'package:soloseaters/src/model/customer/profile/customer_paid_profile_request.dart';
 import 'package:soloseaters/src/model/customer/profile/customer_paid_profile_response.dart';
 import 'package:soloseaters/src/model/customer/profile/customer_paid_profile_update_response.dart';
@@ -62,18 +64,55 @@ class PaidProfileBloc extends Bloc<PaidProfileEvent, PaidProfileState> {
     }
   }
 
+    /// Request appropriate permission for image access
+  Future<bool> _requestImagePermission() async {
+    if (!Platform.isAndroid) {
+      // iOS handles permission automatically via Info.plist
+      return true;
+    }
+
+    Permission permission;
+    if (await _isAndroid13OrHigher()) {
+      permission = Permission.photos;
+    } else {
+      permission = Permission.storage;
+    }
+
+    final permissionStatus = await permission.request();
+    return permissionStatus.isGranted;
+  }
+
+
+    /// Check if device is Android 13 or higher
+  Future<bool> _isAndroid13OrHigher() async {
+    if (!Platform.isAndroid) return false;
+    
+    final deviceInfoPlugin = DeviceInfoPlugin();
+    final androidInfo = await deviceInfoPlugin.androidInfo;
+    
+    return androidInfo.version.sdkInt >= 33;
+  }
+
   Future<void> _onUpdateProfileImage(
     UpdateProfileImageEvent event,
     Emitter<PaidProfileState> emit,
   ) async {
     try {
+       // Check permission first
+      final hasPermission = await _requestImagePermission();
+      if (!hasPermission) {
+        emit(state.copyWith(
+          errorMessage: 'Photo access permission denied. Please enable it in settings.',
+        ));
+        return;
+      }
       final compressed = await _compressImage(event.image);
       if (compressed != null) {
         emit(
           state.copyWith(
             selectedProfileImage: compressed,
             hasUnsavedChanges: true,
-            errorMessage: null, // ✅ Clear error message
+            errorMessage: null, //Clear error message
             clearErrorMessage: true,
           ),
         );
@@ -201,84 +240,6 @@ class PaidProfileBloc extends Bloc<PaidProfileEvent, PaidProfileState> {
       );
     }
   }
-
-  // Future<void> _onGetPaidProfile(
-  //   GetPaidProfileEvent event,
-  //   Emitter<PaidProfileState> emit,
-  // ) async {
-  //   emit(state.copyWith(
-  //     isLoading: true,
-  //     clearErrorMessage: true,
-  //   ));
-
-  //   try {
-  //     final StateModel? stateModel =
-  //         await customerProfileDataProvider.getPaidCustomerProfileById();
-
-  //     if (stateModel is SuccessState<CustomerPaidProfileResponse>) {
-  //       final profile = stateModel.value;
-
-  //       // Build preference map: preference_id -> isSelected
-  //       Map<int, bool> initialPreferences = {};
-  //       final apiPreferences = profile.data?.myPreferences ?? [];
-
-  //       for (var pref in apiPreferences) {
-  //         if (pref.id != null) {
-  //           initialPreferences[pref.id!] = pref.isPreferences ?? false;
-  //         }
-  //       }
-
-  //       // Build venue notification map: venue_id -> isEnabled
-  //       Map<int, bool> initialVenueNotifications = {};
-  //       final favoriteVenues = profile.data?.favoriteVenues ?? [];
-
-  //       for (var venue in favoriteVenues) {
-  //         if (venue.id != null) {
-  //           initialVenueNotifications[venue.id!] = venue.notification ?? false;
-  //         }
-  //       }
-
-  //       emit(
-  //         state.copyWith(
-  //           isLoading: false,
-  //           profile: profile,
-  //           clearErrorMessage: true,
-  //           localPreferences: initialPreferences,
-  //           localVenueNotifications: initialVenueNotifications,
-  //           // Reset changes on fresh GET
-  //           selectedBusinessImages: [],
-  //           selectedHobbyImages: [],
-  //           selectedProfileImage: null,
-  //           hasUnsavedChanges: false,
-  //           imageWasJustUploaded: false,
-  //         ),
-  //       );
-  //     } else if (stateModel is ErrorState) {
-  //       emit(
-  //         state.copyWith(
-  //           isLoading: false,
-  //           errorMessage: stateModel.error.msg ?? 'Something went wrong.',
-  //         ),
-  //       );
-  //     } else {
-  //       emit(
-  //         state.copyWith(
-  //           isLoading: false,
-  //           errorMessage: 'Failed to load profile data.',
-  //         ),
-  //       );
-  //     }
-  //   } catch (e, st) {
-  //     print('🔥 Paid Profile Fetch Error: $e');
-  //     print(st);
-  //     emit(
-  //       state.copyWith(
-  //         isLoading: false,
-  //         errorMessage: 'Error loading profile: $e',
-  //       ),
-  //     );
-  //   }
-  // }
 
   Future<void> _onUpdatePaidProfile(
     UpdatePaidProfileEvent event,
@@ -527,6 +488,17 @@ class PaidProfileBloc extends Bloc<PaidProfileEvent, PaidProfileState> {
     AddBusinessImagesEvent event,
     Emitter<PaidProfileState> emit,
   ) async {
+    try {
+       // Check permission first
+      final hasPermission = await _requestImagePermission();
+      if (!hasPermission) {
+        emit(
+          state.copyWith(
+            errorMessage: 'Photo access permission denied. Please enable it in settings.',
+          ),
+        );
+        return;
+      }
     final localCount = state.selectedBusinessImages.length;
 
     // ALWAYS allow up to 2 local images
@@ -556,16 +528,34 @@ class PaidProfileBloc extends Bloc<PaidProfileEvent, PaidProfileState> {
           ...compressedImages,
         ],
         hasUnsavedChanges: true,
-        errorMessage: null, // ✅ Clear previous errors
+        errorMessage: null, //  Clear previous errors
         clearErrorMessage: true,
       ),
     );
+  } catch (e) {
+      emit(
+        state.copyWith(
+          errorMessage: 'Failed to add business images',
+        ),
+      );
+    }
   }
 
   Future<void> _onAddHobbyImages(
     AddHobbyImagesEvent event,
     Emitter<PaidProfileState> emit,
   ) async {
+    try {
+         // Check permission first
+      final hasPermission = await _requestImagePermission();
+      if (!hasPermission) {
+        emit(
+          state.copyWith(
+            errorMessage: 'Photo access permission denied. Please enable it in settings.',
+          ),
+        );
+        return;
+      }
     final localCount = state.selectedHobbyImages.length;
 
     // ALWAYS allow up to 2 local images
@@ -595,10 +585,17 @@ class PaidProfileBloc extends Bloc<PaidProfileEvent, PaidProfileState> {
           ...compressedImages,
         ],
         hasUnsavedChanges: true,
-        errorMessage: null, // ✅ Clear previous errors
+        errorMessage: null, //  Clear previous errors
         clearErrorMessage: true,
       ),
     );
+  } catch (e) {
+      emit(
+        state.copyWith(
+          errorMessage: 'Failed to add hobby images',
+        ),
+      );
+    } 
   }
 
   void _onRemoveBusinessImage(
@@ -611,7 +608,7 @@ class PaidProfileBloc extends Bloc<PaidProfileEvent, PaidProfileState> {
       state.copyWith(
         selectedBusinessImages: updated,
         hasUnsavedChanges: true,
-        errorMessage: null, // ✅ Clear error when removing
+        errorMessage: null, //  Clear error when removing
         clearErrorMessage: true,
       ),
     );
@@ -627,7 +624,7 @@ class PaidProfileBloc extends Bloc<PaidProfileEvent, PaidProfileState> {
       state.copyWith(
         selectedHobbyImages: updated,
         hasUnsavedChanges: true,
-        errorMessage: null, // ✅ Clear error when removing
+        errorMessage: null, //  Clear error when removing
         clearErrorMessage: true,
       ),
     );
@@ -646,7 +643,7 @@ class PaidProfileBloc extends Bloc<PaidProfileEvent, PaidProfileState> {
       state.copyWith(
         localVenueNotifications: updatedNotifications,
         hasUnsavedChanges: true,
-        errorMessage: null, // ✅ Clear previous errors
+        errorMessage: null, //  Clear previous errors
         clearErrorMessage: true,
       ),
     );
@@ -663,7 +660,7 @@ class PaidProfileBloc extends Bloc<PaidProfileEvent, PaidProfileState> {
       state.copyWith(
         localPreferences: updatedPreferences,
         hasUnsavedChanges: true,
-        errorMessage: null, // ✅ Clear previous errors
+        errorMessage: null, //  Clear previous errors
         clearErrorMessage: true,
       ),
     );
@@ -676,7 +673,7 @@ class PaidProfileBloc extends Bloc<PaidProfileEvent, PaidProfileState> {
     emit(
       state.copyWith(
         hasUnsavedChanges: true,
-        errorMessage: null, // ✅ Clear previous errors on text change
+        errorMessage: null, //  Clear previous errors on text change
         clearErrorMessage: true,
       ),
     );

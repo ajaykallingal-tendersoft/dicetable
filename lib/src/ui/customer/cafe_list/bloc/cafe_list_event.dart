@@ -55,3 +55,18 @@ class FiltersClearEvent extends CafeListEvent {
   @override
   List<Object> get props => [];
 }
+
+// Add this new event to your cafe_list_event.dart file
+
+class RefreshCafeDetailsEvent extends CafeListEvent {
+  final String cafeId;
+  final CafeListRequest cafeListRequest;
+
+  const RefreshCafeDetailsEvent({
+    required this.cafeId,
+    required this.cafeListRequest,
+  });
+
+  @override
+  List<Object> get props => [cafeId, cafeListRequest];
+}

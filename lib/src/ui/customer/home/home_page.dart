@@ -1,6 +1,7 @@
 import 'package:google_fonts/google_fonts.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/model/customer/cafe/cafe_search_request.dart';
+import 'package:soloseaters/src/purchase/bloc/bloc/purchase_event.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/count_controller.dart';
 import 'package:soloseaters/src/ui/customer/home/widget/cafe_marker_map_widget.dart';
 import 'package:soloseaters/src/ui/customer/home/widget/cafe_search_bar.dart';
@@ -15,6 +16,7 @@ import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:go_router/go_router.dart';
 import 'package:gap/gap.dart';
+import 'package:soloseaters/src/purchase/bloc/bloc/purchase_bloc.dart';
 import 'bloc/customer_home_bloc.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'package:badges/badges.dart' as badges;
@@ -39,6 +41,12 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
     latitude = ObjectFactory().prefs.getLatitude().toString();
     longitude = ObjectFactory().prefs.getLongitude().toString();
     _performSearch();
+
+    // ✅ Trigger subscription check on home page load.
+    // This ensures the payment state is correct after a hot restart.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<PaymentPlanBloc>().add(const CheckSubscriptionStatusEvent());
+    });
   }
 
   void _performSearch() {
@@ -147,7 +155,13 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                                             position: badges
                                                 .BadgePosition.topEnd(
                                               top: 0,
-                                              end: -2,
+                                             end: int.parse(
+                                          controller
+                                              .notificationBadgeAmount
+                                              .value
+                                              .toString(),
+                                        ) >
+                                        99 ? -12 :-2,
                                             ),
                                             badgeAnimation:
                                                 badges.BadgeAnimation.slide(),

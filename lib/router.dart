@@ -611,10 +611,21 @@ class AppRouter {
                   Animation<double> secondaryAnimation,
                   Widget child,
                 ) {
-                  return FadeTransition(
-                    opacity: CurveTween(
-                      curve: Curves.easeInToLinear,
-                    ).animate(animation),
+                  // Define the offset animation: start from (0, 1) [off the bottom]
+                  // and animate to (0, 0) [final position].
+                  const begin = Offset(0.0, 1.0);
+                  const end = Offset.zero;
+
+                  // Use a curve for a smoother effect (Curves.easeOut is common)
+                  const curve = Curves.easeOut;
+
+                  var tween = Tween(
+                    begin: begin,
+                    end: end,
+                  ).chain(CurveTween(curve: curve));
+
+                  return SlideTransition(
+                    position: animation.drive(tween),
                     child: child,
                   );
                 },
@@ -624,10 +635,17 @@ class AppRouter {
           GoRoute(
             path: 'networking_attendees',
             pageBuilder: (BuildContext context, GoRouterState state) {
+              // Extract the arguments and shouldRefresh flag from the extra Map
+              final extraData = state.extra as Map<String, dynamic>;
+              final arguments = extraData['arguments'] as CafeDetailsArguments;
+              final shouldRefresh =
+                  extraData['shouldRefresh'] as bool? ?? false;
+
               return CustomTransitionPage<void>(
                 key: state.pageKey,
                 child: NetworkingAttendeesScreen(
-                  arguments: state.extra as CafeDetailsArguments,
+                  arguments: arguments,
+                  shouldRefresh: shouldRefresh,
                 ),
                 transitionDuration: const Duration(milliseconds: 300),
                 transitionsBuilder: (
@@ -636,10 +654,17 @@ class AppRouter {
                   Animation<double> secondaryAnimation,
                   Widget child,
                 ) {
-                  return FadeTransition(
-                    opacity: CurveTween(
-                      curve: Curves.easeInToLinear,
-                    ).animate(animation),
+                  const begin = Offset(0.0, 1.0);
+                  const end = Offset.zero;
+                  const curve = Curves.easeOut;
+
+                  var tween = Tween(
+                    begin: begin,
+                    end: end,
+                  ).chain(CurveTween(curve: curve));
+
+                  return SlideTransition(
+                    position: animation.drive(tween),
                     child: child,
                   );
                 },
@@ -682,19 +707,30 @@ class AppRouter {
                       )..add(
                         GetPaidProfileEvent(),
                       ), // if you have an initial event
-                  child: PadiProfileScreen(profileData: state.extra as Map<String, dynamic>),
+                  child: PadiProfileScreen(
+                    profileData: state.extra as Map<String, dynamic>,
+                  ),
                 ),
-                transitionDuration: const Duration(milliseconds: 300),
+                transitionDuration: const Duration(milliseconds: 500),
+                // ... inside your go_router configuration
                 transitionsBuilder: (
                   BuildContext context,
                   Animation<double> animation,
                   Animation<double> secondaryAnimation,
                   Widget child,
                 ) {
-                  return FadeTransition(
-                    opacity: CurveTween(
-                      curve: Curves.easeInToLinear,
-                    ).animate(animation),
+                  const begin = Offset(1.0, 0.0);
+                  const end = Offset.zero;
+
+                  const curve = Curves.easeInOut;
+
+                  var tween = Tween(
+                    begin: begin,
+                    end: end,
+                  ).chain(CurveTween(curve: curve));
+
+                  return SlideTransition(
+                    position: animation.drive(tween),
                     child: child,
                   );
                 },

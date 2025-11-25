@@ -33,6 +33,7 @@ class _CafeListScreenState extends State<CafeListScreen> {
   late final String longitude;
   final CounterController controller = Get.find<CounterController>();
   final isGuest = ObjectFactory().prefs.isGuestUser() == true;
+  bool _isInitialLoad = true;
 
   @override
   void initState() {
@@ -178,7 +179,13 @@ class _CafeListScreenState extends State<CafeListScreen> {
                                       ? badges.Badge(
                                         position: badges.BadgePosition.topEnd(
                                           top: 0,
-                                          end: -2,
+                                          end: int.parse(
+                                          controller
+                                              .notificationBadgeAmount
+                                              .value
+                                              .toString(),
+                                        ) >
+                                        99 ? -12 :-2,
                                         ),
                                         badgeAnimation:
                                             badges.BadgeAnimation.slide(),
@@ -267,7 +274,10 @@ class _CafeListScreenState extends State<CafeListScreen> {
             SliverPadding(
               padding: EdgeInsets.only(bottom: 10, top: 0),
               sliver: SliverToBoxAdapter(
-                child: BlocConsumer<CafeListBloc, CafeListState>(
+                child: BlocConsumer<CafeListBloc, CafeListState>(                  
+                  buildWhen: (previous, current) {
+                    return current is CafeListLoaded || current is FavoriteToggleLoading || current is CafeListLoading || current is CafeListError || current is CafeListInitial;
+                  },
                   listener: (context, state) {
                     if (state is CafeListLoaded) {
                       if (state.cafeListResponse.status == false) {
