@@ -87,90 +87,202 @@ class ProfileDataProvider {
   }
 
   ///ProfileUpdate
-  Future<StateModel<dynamic>> profileUpdateById(ProfileUpdateRequest request) async {
-    print("loginUser called with: $request");
-    try {
-      final response = await ObjectFactory().apiClient.profileUpdateById(request);
-      // ignore: unused_local_variable
-      // String jsonR = jsonEncode(request);
-      // print("Request Payload:");
-      // print(jsonR);
-      // print("Response status code: ${response.statusCode}");
-      // print("Response data: ${response.data}");
-      if (response.data != null) {
+  
 
-        if (response.statusCode == 200) {
-          print(response);
-          final updateProfileResponse = ProfileUpdateResponse.fromJson(response.data);
-          return StateModel.success(updateProfileResponse);
-        }
+String _extractErrorMessage(dynamic error) {
+  if (error == null) return "Unknown error";
 
-        else {
+  if (error is String) return error;
 
-          final errorResponse = ProfileUpdateResponse.fromJson(response.data);
+  if (error is List) return error.join(", ");
 
-          if (response.statusCode == 422 && errorResponse.errors != null) {
-            String errorMessage = "Validation failed: ";
-            errorResponse.errors!.forEach((key, value) {
-              if (value is List) {
-                errorMessage += value.join(", ");
-              } else if (value is String) {
-                errorMessage += value.first;
-              }
-            });
-            return StateModel.error(errorMessage);
-          }
-
-          else if (errorResponse.errors != null) {
-            return StateModel.error(errorResponse.errors!);
-          } else if (errorResponse.message != null) {
-            return StateModel.error(errorResponse.message!);
-          } else {
-            return StateModel.error("Error: ${response.statusCode}");
-          }
-        }
-      } else {
-        return StateModel.error("Invalid response from server");
-      }
-    } on DioException catch (e) {
-      if (e.response != null) {
-        // Try to parse the error response
-        try {
-          final errorResponse = ProfileUpdateResponse.fromJson(e.response!.data);
-
-          if (errorResponse.errors != null) {
-            return StateModel.error(errorResponse.errors!);
-          } else if (errorResponse.message != null) {
-            return StateModel.error(errorResponse.message!);
-          }
-        } catch (_) {
-
-        }
-
-        // Status code based error handling
-        if (e.response!.statusCode == 500) {
-          return StateModel.error("The server isn't responding! Please try again later.");
-        } else if (e.response!.statusCode == 408) {
-          return StateModel.error("Request timed out. Please try again later.");
-        } else if (e.response!.statusCode == 401) {
-          return StateModel.error("UnAuthorized error");
-        } else if (e.response!.statusCode == 403) {
-          return StateModel.error("Email not verified");
-        } else if (e.response!.statusCode == 422) {
-          return StateModel.error("Validation failed. Please check your inputs.");
-        } else {
-          return StateModel.error("Error: ${e.response!.statusCode}");
-        }
-      } else if (e.type.name == "connectionError") {
-        return StateModel.error("Connection refused. Please check your internet connection.");
-      }
-
-      // Generic error fallback
-      return StateModel.error("An unexpected error occurred: ${e.message ?? e.toString()}");
-    } catch (e) {
-      return StateModel.error("An unexpected error occurred: ${e.toString()}");
-    }
+  if (error is Map<String, dynamic>) {
+    return error.entries
+        .map((e) => "${e.key}: ${(e.value as List).join(", ")}")
+        .join(" | ");
   }
+
+  if (error is MapEntry) {
+    return "${error.key}: ${(error.value as List).join(", ")}";
+  }
+
+  return error.toString();
+}
+
+///ProfileUpdate
+Future<StateModel<dynamic>> profileUpdateById(
+  ProfileUpdateRequest request,
+) async {
+  print("loginUser called with: $request");
+
+  try {
+    final response =
+        await ObjectFactory().apiClient.profileUpdateById(request);
+
+    if (response.data != null) {
+      if (response.statusCode == 200) {
+        print(response);
+        final updateProfileResponse =
+            ProfileUpdateResponse.fromJson(response.data);
+
+        return StateModel.success(updateProfileResponse);
+      } else {
+        final errorResponse = ProfileUpdateResponse.fromJson(response.data);
+
+        // 422 validation
+        if (response.statusCode == 422 && errorResponse.errors != null) {
+          final msg = _extractErrorMessage(errorResponse.errors!);
+          return StateModel.error(msg);
+        }
+
+        // Other error with "errors" field
+        else if (errorResponse.errors != null) {
+          final msg = _extractErrorMessage(errorResponse.errors!);
+          return StateModel.error(msg);
+        }
+
+        // Normal message
+        else if (errorResponse.message != null) {
+          return StateModel.error(errorResponse.message!);
+        }
+
+        // Fallback
+        else {
+          return StateModel.error("Error: ${response.statusCode}");
+        }
+      }
+    } else {
+      return StateModel.error("Invalid response from server");
+    }
+  } on DioException catch (e) {
+    if (e.response != null) {
+      try {
+        final errorResponse =
+            ProfileUpdateResponse.fromJson(e.response!.data);
+
+        if (errorResponse.errors != null) {
+          final msg = _extractErrorMessage(errorResponse.errors!);
+          return StateModel.error(msg);
+        } else if (errorResponse.message != null) {
+          return StateModel.error(errorResponse.message!);
+        }
+      } catch (_) {}
+
+      // Status Code Handling
+      if (e.response!.statusCode == 500) {
+        return StateModel.error(
+            "The server isn't responding! Please try again later.");
+      } else if (e.response!.statusCode == 408) {
+        return StateModel.error("Request timed out. Please try again later.");
+      } else if (e.response!.statusCode == 401) {
+        return StateModel.error("UnAuthorized error");
+      } else if (e.response!.statusCode == 403) {
+        return StateModel.error("Email not verified");
+      } else if (e.response!.statusCode == 422) {
+        return StateModel.error("Validation failed. Please check your inputs.");
+      } else {
+        return StateModel.error("Error: ${e.response!.statusCode}");
+      }
+    } else if (e.type.name == "connectionError") {
+      return StateModel.error(
+          "Connection refused. Please check your internet connection.");
+    }
+
+    return StateModel.error(
+        "An unexpected error occurred: ${e.message ?? e.toString()}");
+  } catch (e) {
+    return StateModel.error(
+        "An unexpected error occurred: ${e.toString()}");
+  }
+}
+
+
+
+
+  // Future<StateModel<dynamic>> profileUpdateById(ProfileUpdateRequest request) async {
+  //   print("loginUser called with: $request");
+  //   try {
+  //     final response = await ObjectFactory().apiClient.profileUpdateById(request);
+  //     // ignore: unused_local_variable
+  //     // String jsonR = jsonEncode(request);
+  //     // print("Request Payload:");
+  //     // print(jsonR);
+  //     // print("Response status code: ${response.statusCode}");
+  //     // print("Response data: ${response.data}");
+  //     if (response.data != null) {
+
+  //       if (response.statusCode == 200) {
+  //         print(response);
+  //         final updateProfileResponse = ProfileUpdateResponse.fromJson(response.data);
+  //         return StateModel.success(updateProfileResponse);
+  //       }
+
+  //       else {
+
+  //         final errorResponse = ProfileUpdateResponse.fromJson(response.data);
+
+  //         if (response.statusCode == 422 && errorResponse.errors != null) {
+  //           String errorMessage = "Validation failed: ";
+  //           errorResponse.errors!.forEach((key, value) {
+  //             if (value is List) {
+  //               errorMessage += value.join(", ");
+  //             } else if (value is String) {
+  //               errorMessage += value.first;
+  //             }
+  //           });
+  //           return StateModel.error(errorMessage);
+  //         }
+
+  //         else if (errorResponse.errors != null) {
+  //           return StateModel.error(errorResponse.errors!.entries.first);
+  //         } else if (errorResponse.message != null) {
+  //           return StateModel.error(errorResponse.message!);
+  //         } else {
+  //           return StateModel.error("Error: ${response.statusCode}");
+  //         }
+  //       }
+  //     } else {
+  //       return StateModel.error("Invalid response from server");
+  //     }
+  //   } on DioException catch (e) {
+  //     if (e.response != null) {
+  //       // Try to parse the error response
+  //       try {
+  //         final errorResponse = ProfileUpdateResponse.fromJson(e.response!.data);
+
+  //         if (errorResponse.errors != null) {
+  //           return StateModel.error(errorResponse.errors!);
+  //         } else if (errorResponse.message != null) {
+  //           return StateModel.error(errorResponse.message!);
+  //         }
+  //       } catch (_) {
+
+  //       }
+
+  //       // Status code based error handling
+  //       if (e.response!.statusCode == 500) {
+  //         return StateModel.error("The server isn't responding! Please try again later.");
+  //       } else if (e.response!.statusCode == 408) {
+  //         return StateModel.error("Request timed out. Please try again later.");
+  //       } else if (e.response!.statusCode == 401) {
+  //         return StateModel.error("UnAuthorized error");
+  //       } else if (e.response!.statusCode == 403) {
+  //         return StateModel.error("Email not verified");
+  //       } else if (e.response!.statusCode == 422) {
+  //         return StateModel.error("Validation failed. Please check your inputs.");
+  //       } else {
+  //         return StateModel.error("Error: ${e.response!.statusCode}");
+  //       }
+  //     } else if (e.type.name == "connectionError") {
+  //       return StateModel.error("Connection refused. Please check your internet connection.");
+  //     }
+
+  //     // Generic error fallback
+  //     return StateModel.error("An unexpected error occurred: ${e.message ?? e.toString()}");
+  //   } catch (e) {
+  //     return StateModel.error("An unexpected error occurred: ${e.toString()}");
+  //   }
+  // }
 
 
   Future<StateModel?> cafeProfileDelete() async {

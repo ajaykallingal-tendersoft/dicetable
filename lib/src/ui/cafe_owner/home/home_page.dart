@@ -31,12 +31,15 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final CounterController controller = Get.find<CounterController>();
-  bool _initialLoadComplete = false; // ✅ Track if initial data is loaded
+  bool _initialLoadComplete = false; // Track if initial data is loaded
 
   @override
   void initState() {
     super.initState();
-    context.read<HomeBloc>().add(GetHomeDataEvent());
+     WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<HomeBloc>().add(GetHomeDataEvent());
+    });
+    // context.read<HomeBloc>().add(GetHomeDataEvent());
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<NotificationBloc>().add(FetchNotifications());
     });

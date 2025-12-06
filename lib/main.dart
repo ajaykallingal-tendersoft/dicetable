@@ -3,6 +3,7 @@ import 'dart:isolate';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/purchase/repository/purchase_repository.dart';
 import 'package:soloseaters/src/purchase/services/purchase_service.dart';
+import 'package:soloseaters/src/resources/api_providers/iap/iap_data_provider.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/count_controller.dart';
 import 'package:soloseaters/src/utils/data/notification_service.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
@@ -31,8 +32,10 @@ Future<void> main() async {
     WidgetsFlutterBinding.ensureInitialized();
     Get.put(CounterController());
     Bloc.observer = AppBlocObserver();
-      final purchaseService = PaymentService();
-  final purchaseRepository = PaymentRepository();
+    final purchaseService = PaymentService();
+    final purchaseRepository = PaymentRepository(
+      iapDataProvider: IapDataProvider(),
+    );
 
     // Set custom error widget to prevent red screen
     ErrorWidget.builder = (FlutterErrorDetails details) {
@@ -55,7 +58,12 @@ Future<void> main() async {
       DeviceOrientation.portraitUp,
       DeviceOrientation.portraitDown,
     ]).then((_) {
-      runApp(App(purchaseRepository: purchaseRepository, purchaseService: purchaseService,));
+      runApp(
+        App(
+          purchaseRepository: purchaseRepository,
+          purchaseService: purchaseService,
+        ),
+      );
     });
   }, _handleUncaughtError);
 }
@@ -66,7 +74,7 @@ Future<void> _initializeApp() async {
     await Firebase.initializeApp();
 
     // Error handlers (Flutter, PlatformDispatcher, Isolate)
-    
+
     await _setupErrorHandlers();
 
     // App dependencies (prefs, system UI)

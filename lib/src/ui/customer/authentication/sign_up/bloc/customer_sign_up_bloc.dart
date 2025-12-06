@@ -14,14 +14,17 @@ part 'customer_sign_up_state.dart';
 
 class CustomerSignUpBloc
     extends Bloc<CustomerSignUpEvent, CustomerSignUpState> {
-        final bool isGoogleSignUp;
+  final bool isGoogleSignUp;
   final bool isAppleSignUp;
   final AuthDataProvider authDataProvider;
   SignUpFormState _formState;
 
-  CustomerSignUpBloc({required this.authDataProvider,this.isGoogleSignUp = false, this.isAppleSignUp = false})
-    : _formState = SignUpFormState(),
-      super(SignUpFormState()) {
+  CustomerSignUpBloc({
+    required this.authDataProvider,
+    this.isGoogleSignUp = false,
+    this.isAppleSignUp = false,
+  }) : _formState = SignUpFormState(),
+       super(SignUpFormState()) {
     on<UpdateTextField>((event, emit) {
       _formState = event.update(_formState);
       emit(_formState);
@@ -166,6 +169,59 @@ class CustomerSignUpBloc
       final result = await authDataProvider.registerUser(event.signupRequest);
 
       if (result!.isError) {
+        final Object? error = result.error; // <-- Now strongly typed
+        String errorMessage = "Something went wrong.";
+
+        if (error is SignUpRequestResponse) {
+          errorMessage = error.errors?.values.first.first ?? "Signup failed.";
+        } else if (error is String) {
+          errorMessage = error;
+        }
+
+        emit(CustomerSignUpErrorState(errorMessage: errorMessage));
+        emit(_formState);
+        return;
+      }
+
+      if (result.isSuccess) {
+        final response = result.data as SignUpRequestResponse;
+
+        if (response.status == true) {
+          emit(CustomerSignUpSuccessState(signUpRequestResponse: response));
+        } else {
+          final errorMessage =
+              response.errors?.values.first.first ?? "Signup failed";
+          emit(CustomerSignUpErrorState(errorMessage: errorMessage));
+          emit(_formState);
+        }
+      }
+    });
+
+    /*on<SubmitSignUp>((event, emit) async {
+      // Final validation before submission
+      final validatedState = _validateAllFields(
+        _formState.copyWith(
+          name: event.signupRequest.name ?? '',
+          email: event.signupRequest.email ?? '',
+          password: event.signupRequest.password ?? '',
+          confirmPassword: event.signupRequest.passwordConfirmation ?? '',
+          phone: event.signupRequest.phone ?? '',
+          country: event.signupRequest.country ?? '',
+          region: event.signupRequest.region ?? '',
+        ),
+      );
+
+      if (!validatedState.isFormValid) {
+        _formState = validatedState;
+        emit(_formState);
+        return;
+      }
+
+      emit(CustomerSignUpLoadingState());
+
+      final result = await authDataProvider.registerUser(event.signupRequest);
+
+      if (result!.isError) {
         final error = result.error;
         String errorMessage = "Something went wrong.";
 
@@ -189,7 +245,7 @@ class CustomerSignUpBloc
           emit(_formState);
         }
       }
-    });
+    });*/
 
     on<SubmitGoogleSignUp>((
       SubmitGoogleSignUp event,
@@ -221,7 +277,7 @@ class CustomerSignUpBloc
       );
 
       if (result!.isError) {
-        final error = result.error;
+        final Object? error = result.error; // <-- Now strongly typed
         String errorMessage = "Something went wrong.";
 
         if (error is GoogleSignUpRequestResponse) {
@@ -232,6 +288,7 @@ class CustomerSignUpBloc
 
         emit(GoogleSignUpErrorState(errorMessage: errorMessage));
         emit(_formState);
+        return;
       } else if (result.isSuccess) {
         final response = result.data as GoogleSignUpRequestResponse;
 
@@ -273,8 +330,8 @@ class CustomerSignUpBloc
         event.appleSignUpRequest,
       );
 
-      if (result!.isError) {
-        final error = result.error;
+       if (result!.isError) {
+        final Object? error = result.error; // <-- Now strongly typed
         String errorMessage = "Something went wrong.";
 
         if (error is AppleSignUpRequestResponse) {
@@ -285,6 +342,7 @@ class CustomerSignUpBloc
 
         emit(AppleSignUpErrorState(errorMessage: errorMessage));
         emit(_formState);
+        return;
       } else if (result.isSuccess) {
         final response = result.data as AppleSignUpRequestResponse;
 
@@ -434,37 +492,44 @@ class CustomerSignUpBloc
   }
 
   SignUpFormState _validateAllFields(SignUpFormState state) {
-      final bool isPasswordRequired = !isGoogleSignUp && !isAppleSignUp;
-      
-      return state.copyWith(
-        nameError: _validateName(state.name),
-        emailError: _validateEmail(state.email),
+    final bool isPasswordRequired = !isGoogleSignUp && !isAppleSignUp;
+
+    return state.copyWith(
+      nameError: _validateName(state.name),
+      emailError: _validateEmail(state.email),
+      // Only validate passwords if it's not a social sign-up
+      passwordError:
+          isPasswordRequired ? _validatePassword(state.password) : null,
+      confirmPasswordError:
+          isPasswordRequired
+              ? _validateConfirmPassword(state.confirmPassword, state.password)
+              : null,
+      phoneError: _validatePhone(state.phone),
+      countryError: _validateCountry(state.country),
+      regionError: _validateRegion(state.region),
+      passwordStrength:
+          isPasswordRequired
+              ? _calculatePasswordStrength(state.password)
+              : PasswordStrength.none,
+      isFormValid: _isFormValid(state),
+    );
+  }
+
+  bool _isFormValid(SignUpFormState state) {
+    final bool isPasswordRequired = !isGoogleSignUp && !isAppleSignUp;
+
+    return _validateName(state.name) == null &&
+        _validateEmail(state.email) == null &&
         // Only validate passwords if it's not a social sign-up
-        passwordError: isPasswordRequired ? _validatePassword(state.password) : null,
-        confirmPasswordError: isPasswordRequired 
-            ? _validateConfirmPassword(state.confirmPassword, state.password) 
-            : null,
-        phoneError: _validatePhone(state.phone),
-        countryError: _validateCountry(state.country),
-        regionError: _validateRegion(state.region),
-        passwordStrength: isPasswordRequired 
-            ? _calculatePasswordStrength(state.password) 
-            : PasswordStrength.none,
-        isFormValid: _isFormValid(state),
-      );
-    }
-    bool _isFormValid(SignUpFormState state) {
-      final bool isPasswordRequired = !isGoogleSignUp && !isAppleSignUp;
-      
-      return _validateName(state.name) == null &&
-          _validateEmail(state.email) == null &&
-          // Only validate passwords if it's not a social sign-up
-          (!isPasswordRequired || _validatePassword(state.password) == null) &&
-          (!isPasswordRequired || _validateConfirmPassword(state.confirmPassword, state.password) == null) &&
-          _validatePhone(state.phone) == null &&
-          _validateCountry(state.country) == null &&
-          _validateRegion(state.region) == null;
-    }
+        (!isPasswordRequired || _validatePassword(state.password) == null) &&
+        (!isPasswordRequired ||
+            _validateConfirmPassword(state.confirmPassword, state.password) ==
+                null) &&
+        _validatePhone(state.phone) == null &&
+        _validateCountry(state.country) == null &&
+        _validateRegion(state.region) == null;
+  }
+
   // bool _isFormValid(SignUpFormState state) {
   //   return _validateName(state.name) == null &&
   //       _validateEmail(state.email) == null &&

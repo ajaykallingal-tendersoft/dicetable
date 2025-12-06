@@ -63,4 +63,9 @@ class UrlsDiceApp {
   static const String markNotificationAsRead = '/api/notification/read';
   static const String updateNotificationStatus =
       '/api/notification/update-status';
+
+
+  //IAP Endpoints
+  static const String verifyPurchase = '/api/purchase/verify';
+  static const String subscriptionStatus = '/api/purchase/verify-status';
 }

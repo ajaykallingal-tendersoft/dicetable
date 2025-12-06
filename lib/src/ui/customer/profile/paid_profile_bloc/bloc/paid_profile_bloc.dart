@@ -218,7 +218,7 @@ class PaidProfileBloc extends Bloc<PaidProfileEvent, PaidProfileState> {
         emit(
           state.copyWith(
             isLoading: false,
-            errorMessage: stateModel.error.msg ?? 'Something went wrong.',
+            errorMessage: stateModel.error ?? 'Something went wrong.',
           ),
         );
       } else {

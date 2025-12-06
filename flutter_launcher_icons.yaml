@@ -1,6 +1,6 @@
 # flutter pub run flutter_launcher_icons
 flutter_launcher_icons:
-  image_path: "assets/png/app_logo.png"
+  image_path: "assets/png/new_logo.png"
 
   # Android configuration
   android: "launcher_icon"
@@ -8,7 +8,7 @@ flutter_launcher_icons:
 
   # Adaptive icon configuration for Android
   adaptive_icon_background: "#ffffff"  # Your desired background color
-  adaptive_icon_foreground: "assets/png/app_logo.png"
+  adaptive_icon_foreground: "assets/png/new_logo.png"
 
   # iOS configuration
   ios: true

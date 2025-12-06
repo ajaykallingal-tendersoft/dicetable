@@ -1,6 +1,6 @@
 <resources>
     <style name="Theme.SoloSeaters" parent="@android:style/Theme.Light.NoTitleBar">
         <!-- Fallback splash background for Android 11 and below -->
-        <item name="android:windowBackground">@drawable/logo</item>
+        <item name="android:windowBackground">@drawable/native_lp</item>
     </style>
 </resources>

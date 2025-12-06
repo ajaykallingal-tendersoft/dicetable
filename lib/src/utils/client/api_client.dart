@@ -22,6 +22,7 @@ import 'package:soloseaters/src/model/customer/cafe/remove_favourite_request.dar
 import 'package:soloseaters/src/model/customer/guest/guest_user_request.dart';
 import 'package:soloseaters/src/model/customer/profile/customer_paid_profile_request.dart';
 import 'package:soloseaters/src/model/customer/profile/customer_profile_update_request.dart';
+import 'package:soloseaters/src/model/payment/verify_purchase_request.dart';
 import 'package:soloseaters/src/model/verification/otp_verify_request.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/notification_item.dart';
 import 'package:soloseaters/src/utils/data/auth_session_manager.dart';
@@ -387,17 +388,6 @@ class ApiClient {
         },
       ),
     );
-
-    // dioDiceApp.interceptors.add(
-    //   InterceptorsWrapper(
-    //     onRequest: (reqOptions, handler) {
-    //       return handler.next(reqOptions);
-    //     },
-    //     onError: (DioException dioError, handler) {
-    //       return handler.next(dioError);
-    //     },
-    //   ),
-    // );
   }
 
   Future<Response> tokenRefresh() {
@@ -1104,6 +1094,49 @@ class ApiClient {
       ),
     );
   }
+
+  /// Verify purchase with backend
+  Future<Response> verifyPurchase(VerifyPurchaseRequest request) {
+    print('🔐 API: Verifying purchase - ${request.productId}');
+    
+    final userCategory = ObjectFactory().prefs.getUserDecisionName();
+    final isPublicUser = userCategory == "PUBLIC_USER";
+    final token = isPublicUser
+        ? ObjectFactory().prefs.getCustomerAuthToken()
+        : ObjectFactory().prefs.getAuthToken();
+
+    return dioDiceApp.post(
+      UrlsDiceApp.verifyPurchase,
+      data: request.toJson(),
+      options: Options(
+        headers: {
+          "Authorization": token,
+        },
+      ),
+    );
+  }
+
+    /// Fetch subscription status from backend
+  Future<Response> getSubscriptionStatus() {
+    print('🔄 API: Fetching subscription status');
+    
+    final userCategory = ObjectFactory().prefs.getUserDecisionName();
+    final isPublicUser = userCategory == "PUBLIC_USER";
+    final token = isPublicUser
+        ? ObjectFactory().prefs.getCustomerAuthToken()
+        : ObjectFactory().prefs.getAuthToken();
+
+    return dioDiceApp.get(
+      UrlsDiceApp.subscriptionStatus,
+      options: Options(
+        headers: {
+          "Authorization": token,
+        },
+      ),
+    );
+  }
+
+
 }
 
 // Helper class for pending requests during token refresh

@@ -12,6 +12,26 @@ import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:dio/dio.dart';
 
 class CustomerProfileDataProvider {
+
+  String _extractErrorMessage(dynamic error) {
+  if (error == null) return "Unknown error";
+
+  if (error is String) return error;
+
+  if (error is List) return error.join(", ");
+
+  if (error is Map<String, dynamic>) {
+    return error.entries
+        .map((e) => "${e.key}: ${(e.value as List).join(", ")}")
+        .join("\n");
+  }
+
+  if (error is MapEntry) {
+    return "${error.key}: ${(error.value as List).join(", ")}";
+  }
+
+  return error.toString();
+}
   Future<StateModel?> getCustomerProfile() async {
     try {
       final response = await ObjectFactory().apiClient.getCustomerProfile();
@@ -158,7 +178,9 @@ class CustomerProfileDataProvider {
     }
   }
 
- Future<StateModel<PaidProfileUpdateResponse>?> updatePaidCustomerProfile(
+
+
+Future<StateModel<PaidProfileUpdateResponse>?> updatePaidCustomerProfile(
   PaidProfileUpdateRequest request,
 ) async {
   try {
@@ -175,6 +197,7 @@ class CustomerProfileDataProvider {
       } else {
         String msg = parsed.message ?? "Profile update failed.";
 
+        // preserve your logic
         if (parsed.errors != null && parsed.errors!.isNotEmpty) {
           final errorDetails = parsed.errors!.entries
               .map((e) => "${e.key}: ${e.value.join(", ")}")
@@ -182,21 +205,15 @@ class CustomerProfileDataProvider {
           msg = "$msg\n$errorDetails";
         }
 
-        return StateModel.error(
-          PaidProfileUpdateResponse(
-            status: false,
-            message: msg,
-            errors: parsed.errors,
-          ),
-        );
+        // 🔥 fix: convert errors into string
+        final errorMsg = _extractErrorMessage(parsed.errors);
+
+        return StateModel.error(errorMsg);
       }
     }
 
     return StateModel.error(
-      PaidProfileUpdateResponse(
-        status: false,
-        message: "Unexpected status code: ${response.statusCode}",
-      ),
+      "Unexpected status code: ${response.statusCode}",
     );
   } on DioException catch (e) {
     String msg = "Network error occurred.";
@@ -207,16 +224,9 @@ class CustomerProfileDataProvider {
       msg = e.message!;
     }
 
-    return StateModel.error(
-      PaidProfileUpdateResponse(status: false, message: msg),
-    );
+    return StateModel.error(msg);
   } catch (e) {
-    return StateModel.error(
-      PaidProfileUpdateResponse(
-        status: false,
-        message: "Failed to parse response: $e",
-      ),
-    );
+    return StateModel.error("Failed to parse response: $e");
   }
 }
 

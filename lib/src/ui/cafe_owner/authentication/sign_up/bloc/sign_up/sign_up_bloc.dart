@@ -1035,7 +1035,8 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
       final result = await authDataProvider.registerUser(event.signupRequest);
 
       if (result!.isError) {
-        final error = result.error;
+        final Object? error = result.error;
+
         if (error is SignUpRequestResponse) {
           final firstError =
               error.errors?.values.first.first ?? "Signup failed.";
@@ -1045,7 +1046,9 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
         } else {
           emit(SignUpErrorState(errorMessage: "Something went wrong."));
         }
+
         emit(_formState);
+        return;
       } else if (result.isSuccess) {
         final response = result.data as SignUpRequestResponse;
         if (response.status == true) {
@@ -1079,7 +1082,8 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
       );
 
       if (result!.isError) {
-        final error = result.error;
+        final Object? error = result.error;
+
         if (error is GoogleSignUpRequestResponse) {
           final firstError =
               error.errors?.values.first.first ?? "Signup failed.";
@@ -1089,7 +1093,9 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
         } else {
           emit(GoogleSignUpErrorState(errorMessage: "Something went wrong."));
         }
+
         emit(_formState);
+        return;
       } else if (result.isSuccess) {
         final response = result.data as GoogleSignUpRequestResponse;
         if (response.status == true) {
@@ -1122,7 +1128,8 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
       );
 
       if (result!.isError) {
-        final error = result.error;
+        final Object? error = result.error;
+
         if (error is AppleSignUpRequestResponse) {
           final firstError =
               error.errors?.values.first.first ?? "Signup failed.";
@@ -1132,7 +1139,9 @@ class SignUpBloc extends Bloc<SignUpEvent, SignUpState> {
         } else {
           emit(AppleSignUpErrorState(errorMessage: "Something went wrong."));
         }
+
         emit(_formState);
+        return;
       } else if (result.isSuccess) {
         final response = result.data as AppleSignUpRequestResponse;
         if (response.status == true) {

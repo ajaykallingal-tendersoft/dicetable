@@ -11,6 +11,7 @@ import 'package:soloseaters/src/model/customer/guest/guest_signin_response.dart'
 import 'package:soloseaters/src/model/customer/guest/guest_user_request.dart';
 import 'package:soloseaters/src/purchase/repository/purchase_repository.dart';
 import 'package:soloseaters/src/resources/api_providers/auth/auth_data_provider.dart';
+import 'package:soloseaters/src/resources/api_providers/iap/iap_data_provider.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:soloseaters/src/utils/extension/state_model_extension.dart';
 
@@ -24,7 +25,9 @@ class CustomerLoginBloc extends Bloc<CustomerLoginEvent, CustomerLoginState> {
   CustomerLoginBloc({
     required this.authDataProvider,
     PaymentRepository? paymentRepository,
-  }) : paymentRepository = paymentRepository ?? PaymentRepository(),
+  }) : paymentRepository =
+           paymentRepository ??
+           PaymentRepository(iapDataProvider: IapDataProvider()),
        super(const LoginFormState()) {
     on<EmailChanged>(_onEmailChanged);
     on<PasswordChanged>(_onPasswordChanged);

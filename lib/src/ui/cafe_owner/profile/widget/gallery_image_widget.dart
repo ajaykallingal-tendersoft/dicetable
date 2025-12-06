@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 
 class CafeEateryPhotosWidget extends StatelessWidget {
@@ -59,12 +61,15 @@ class CafeEateryPhotosWidget extends StatelessWidget {
                       child: CachedNetworkImage(
                         imageUrl: photoUrls[index],
                         fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          color: AppColors.disabledColor.withOpacity(0.2),
-                          child: const Center(
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                        ),
+                        placeholder:  (context, url) => Shimmer.fromColors(
+                                    baseColor: Color(0xFF003E69),
+                                    highlightColor: Color(0xFF0067AF),
+                                    child: Container(
+                                      width: 170.w,
+                                      height: 170.h,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                         errorWidget: (context, url, error) => Container(
                           color: AppColors.disabledColor.withOpacity(0.3),
                           child: const Icon(

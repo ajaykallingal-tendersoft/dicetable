@@ -2,7 +2,7 @@
     <style name="Theme.SoloSeaters" parent="@android:style/Theme.Light.NoTitleBar">
         <!-- Modern Android 12+ splash screen configuration -->
         <item name="android:windowSplashScreenBackground">@color/white</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@drawable/logo</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/native_sp</item>
         <item name="android:windowSplashScreenIconBackgroundColor">@null</item>
         <!-- item name="android:postSplashScreenTheme">@style/Theme.SoloSeaters</item -->
     </style>

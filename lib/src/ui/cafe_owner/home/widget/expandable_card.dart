@@ -334,8 +334,8 @@ class _ExpandableCardState extends State<ExpandableCard> {
                       if (widget.card.hasBookings && widget.card.attendees.isNotEmpty)
                         BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
                           builder: (context, paymentState) {
-                            // Check if venue user without premium access
-                            final needsUpgrade = paymentState.isVenueUser && 
+                            // A venue user needs to upgrade only if they do NOT have access to premium features.
+                            final needsUpgrade = paymentState.isVenueUser &&
                                 !paymentState.canAccessPremiumFeatures;
                             
                             return InkWell(
@@ -397,8 +397,8 @@ class _ExpandableCardState extends State<ExpandableCard> {
                       // Gated Edit button
                       BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
                         builder: (context, paymentState) {
-                          // Check if venue user without premium access
-                          final needsUpgrade = paymentState.isVenueUser && 
+                          // A venue user needs to upgrade only if they do NOT have access to premium features.
+                          final needsUpgrade = paymentState.isVenueUser &&
                               !paymentState.canAccessPremiumFeatures;
                           
                           return ElevatedButton.icon(
@@ -566,7 +566,8 @@ class _ExpandableCardState extends State<ExpandableCard> {
 
     return BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
       builder: (context, paymentState) {
-        final needsUpgrade = paymentState.isVenueUser && 
+        // A venue user needs to upgrade only if they do NOT have access to premium features.
+        final needsUpgrade = paymentState.isVenueUser &&
             !paymentState.canAccessPremiumFeatures;
         
         return InkWell(

@@ -43,12 +43,12 @@ android {
     }
 
         signingConfigs {
-        // create("release") {
-        //     keyAlias = keystoreProperties["keyAlias"] as String
-        //     keyPassword = keystoreProperties["keyPassword"] as String
-        //     storeFile = keystoreProperties["storeFile"]?.let { file(it) }
-        //     storePassword = keystoreProperties["storePassword"] as String
-        // }
+        create("release") {
+            keyAlias = keystoreProperties["keyAlias"] as String
+            keyPassword = keystoreProperties["keyPassword"] as String
+            storeFile = keystoreProperties["storeFile"]?.let { file(it) }
+            storePassword = keystoreProperties["storePassword"] as String
+        }
     }
 
     buildTypes {
@@ -56,7 +56,7 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
-            // signingConfig = signingConfigs.getByName("release")
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
@@ -76,7 +76,7 @@ dependencies {
     implementation ("com.google.android.material:material:1.12.0")
     implementation("com.google.android.gms:play-services-auth:21.4.0")
     implementation("androidx.core:core-splashscreen:1.0.1")
-    implementation ("com.android.billingclient:billing:6.1.0")
+    // implementation ("com.android.billingclient:billing:6.1.0")
 }
 
 flutter {

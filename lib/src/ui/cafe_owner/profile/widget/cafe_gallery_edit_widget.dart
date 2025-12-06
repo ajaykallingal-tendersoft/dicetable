@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:gap/gap.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:soloseaters/src/constants/assets.dart';
 import '../bloc/profile_bloc.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
@@ -371,7 +373,6 @@ class EditGalleryPhotosWidget extends StatelessWidget {
                   mainAxisSpacing: 12,
                   crossAxisSpacing: 12,
                   childAspectRatio: 1.0,
-                
                 ),
                 itemCount: total,
                 itemBuilder:
@@ -409,8 +410,8 @@ class EditGalleryPhotosWidget extends StatelessWidget {
               onTap: onTakePicture,
             ),
           ] else
-          SizedBox.shrink()
-            /*Center(
+            SizedBox.shrink(),
+          /*Center(
               child: Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
@@ -447,7 +448,6 @@ class EditGalleryPhotosWidget extends StatelessWidget {
       ),
     );
   }
-
 
   // ----------------  GRID ITEM  ----------------
   Widget _buildGalleryItem(BuildContext context, int index) {
@@ -511,7 +511,11 @@ class EditGalleryPhotosWidget extends StatelessWidget {
           child: InkWell(
             onTap: () => onDelete?.call(index, isNetwork),
             // borderRadius: BorderRadius.circular(50),
-            child: Image.asset(Assets.IMG_DELETE, fit: BoxFit.cover,scale: 2.5)
+            child: Image.asset(
+              Assets.IMG_DELETE,
+              fit: BoxFit.cover,
+              scale: 2.5,
+            ),
           ),
         ),
       ],
@@ -597,9 +601,10 @@ class EditGalleryPhotosWidget extends StatelessWidget {
   }*/
 
   // ----------------  HELPERS  ----------------
-  Widget _buildPlaceholder() => Container(
-    color: AppColors.disabledColor.withOpacity(0.2),
-    child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+  Widget _buildPlaceholder() => Shimmer.fromColors(
+    baseColor: Color(0xFF003E69),
+    highlightColor: Color(0xFF0067AF),
+    child: Container(width: 170.w, height: 170.h, color: Colors.white),
   );
 
   Widget _buildErrorWidget() => Container(

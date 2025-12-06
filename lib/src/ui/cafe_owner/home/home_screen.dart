@@ -1,6 +1,9 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:badges/badges.dart' as badges;
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:soloseaters/src/purchase/bloc/bloc/purchase_bloc.dart';
+import 'package:soloseaters/src/purchase/bloc/bloc/purchase_event.dart';
+import 'package:soloseaters/src/ui/cafe_owner/home/bloc/home_bloc.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/bloc/notification_bloc.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/count_controller.dart';
 import 'package:flutter/services.dart';
@@ -59,8 +62,13 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+   
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<NotificationBloc>().add(FetchNotifications());
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<PaymentPlanBloc>().add(InitializePaymentEvent());
     });
   }
 

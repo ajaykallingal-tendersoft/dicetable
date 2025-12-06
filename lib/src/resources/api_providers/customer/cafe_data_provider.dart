@@ -50,13 +50,13 @@ class CafeDataProvider {
         return StateModel<AddToFavouritesResponse>.success(data);
       } else if (response.statusCode == 422) {
         final data = AddToFavouritesResponse.fromJson(response.data);
-        return StateModel<AddToFavouritesResponse>.error(data.message as AddToFavouritesResponse);
+        return StateModel<AddToFavouritesResponse>.error(data.message);
       }
       return null;
     } on DioException catch (e) {
       if (e.response != null && e.response!.statusCode == 422) {
         final data = AddToFavouritesResponse.fromJson(e.response!.data);
-        return StateModel<AddToFavouritesResponse>.error(data.message as AddToFavouritesResponse);
+        return StateModel<AddToFavouritesResponse>.error(data.message);
       } else if (e.response?.statusCode == 500) {
         return StateModel.error("The server isn't responding! Please try again later.");
       } else if (e.response?.statusCode == 408) {
@@ -81,13 +81,13 @@ class CafeDataProvider {
         return StateModel<RemoveFavouritesResponse>.success(data);
       } else if (response.statusCode == 422) {
         final data = RemoveFavouritesResponse.fromJson(response.data);
-        return StateModel<RemoveFavouritesResponse>.error(data.message as RemoveFavouritesResponse);
+        return StateModel<RemoveFavouritesResponse>.error(data.message);
       }
       return null;
     } on DioException catch (e) {
       if (e.response != null && e.response!.statusCode == 422) {
         final data = RemoveFavouritesResponse.fromJson(e.response!.data);
-        return StateModel<RemoveFavouritesResponse>.error(data.message as RemoveFavouritesResponse);
+        return StateModel<RemoveFavouritesResponse>.error(data.message);
       } else if (e.response?.statusCode == 500) {
         return StateModel.error("The server isn't responding! Please try again later.");
       } else if (e.response?.statusCode == 408) {

@@ -12,20 +12,20 @@ enum PaymentPlanStatus {
   purchaseRestored,
   purchaseFailed,
   verifying,
+  verificationFailed, // ✅ NEW
+  needsRestore, // ✅ NEW
   cancelled,
 }
 
-enum UserType {
-  publicFree,
-  publicPaid,
-  venueTrial,
-  venuePaid,
-}
+enum UserType { publicFree, publicPaid, venueTrial, venuePaid }
 
 class PaymentPlanState extends Equatable {
   final PaymentPlanStatus status;
   final List<ProductDetails> products;
+  final List<Map<String, dynamic>>? expandedProducts; // ✅ NEW
   final String? selectedProductId;
+  final String? selectedBasePlanId; // ✅ NEW
+  final String? selectedOfferToken;
   final String? errorMessage;
   final bool isProcessing;
   final UserType userType;
@@ -34,11 +34,17 @@ class PaymentPlanState extends Equatable {
   final DateTime? trialEndDate;
   final DateTime? subscriptionExpiryDate;
   final String? currentSubscriptionId;
+  final PurchaseDetails? pendingPurchase;
+  final Map<String, dynamic>? pendingPayload;
+  final int? verificationAttempts;
 
   const PaymentPlanState({
     this.status = PaymentPlanStatus.initial,
     this.products = const [],
+    this.expandedProducts,
     this.selectedProductId,
+    this.selectedBasePlanId,
+    this.selectedOfferToken,
     this.errorMessage,
     this.isProcessing = false,
     this.userType = UserType.publicFree,
@@ -47,12 +53,18 @@ class PaymentPlanState extends Equatable {
     this.trialEndDate,
     this.subscriptionExpiryDate,
     this.currentSubscriptionId,
+    this.pendingPurchase,
+    this.pendingPayload,
+    this.verificationAttempts,
   });
 
   PaymentPlanState copyWith({
     PaymentPlanStatus? status,
     List<ProductDetails>? products,
+    List<Map<String, dynamic>>? expandedProducts,
     String? selectedProductId,
+    String? selectedBasePlanId,
+    String? selectedOfferToken,
     String? errorMessage,
     bool? isProcessing,
     UserType? userType,
@@ -61,24 +73,34 @@ class PaymentPlanState extends Equatable {
     DateTime? trialEndDate,
     DateTime? subscriptionExpiryDate,
     String? currentSubscriptionId,
+    PurchaseDetails? pendingPurchase,
+    Map<String, dynamic>? pendingPayload,
+    int? verificationAttempts,
     bool clearError = false,
   }) {
     return PaymentPlanState(
       status: status ?? this.status,
       products: products ?? this.products,
+      expandedProducts: expandedProducts ?? this.expandedProducts,
       selectedProductId: selectedProductId ?? this.selectedProductId,
+      selectedBasePlanId: selectedBasePlanId ?? this.selectedBasePlanId,
+      selectedOfferToken: selectedOfferToken ?? this.selectedOfferToken,
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       isProcessing: isProcessing ?? this.isProcessing,
       userType: userType ?? this.userType,
       isPremium: isPremium ?? this.isPremium,
       trialStartDate: trialStartDate ?? this.trialStartDate,
       trialEndDate: trialEndDate ?? this.trialEndDate,
-      subscriptionExpiryDate: subscriptionExpiryDate ?? this.subscriptionExpiryDate,
-      currentSubscriptionId: currentSubscriptionId ?? this.currentSubscriptionId,
+      subscriptionExpiryDate:
+          subscriptionExpiryDate ?? this.subscriptionExpiryDate,
+      currentSubscriptionId:
+          currentSubscriptionId ?? this.currentSubscriptionId,
+      pendingPurchase: pendingPurchase ?? this.pendingPurchase,
+      pendingPayload: pendingPayload ?? this.pendingPayload,
+      verificationAttempts: verificationAttempts ?? this.verificationAttempts,
     );
   }
 
-  // Helper methods
   ProductDetails? getProductById(String productId) {
     try {
       return products.firstWhere((product) => product.id == productId);
@@ -104,13 +126,13 @@ class PaymentPlanState extends Equatable {
     return DateTime.now().isAfter(trialEndDate!);
   }
 
+  bool get isVenueUser {
+    return userType == UserType.venueTrial || userType == UserType.venuePaid;
+  }
+
   bool get isSubscriptionActive {
     if (subscriptionExpiryDate == null) return false;
     return DateTime.now().isBefore(subscriptionExpiryDate!);
-  }
-
-  bool get isVenueUser {
-    return userType == UserType.venueTrial || userType == UserType.venuePaid;
   }
 
   bool get isPublicUser {
@@ -118,14 +140,9 @@ class PaymentPlanState extends Equatable {
   }
 
   bool get canAccessPremiumFeatures {
-    final hasPremium = isPremium == true;
-   final trialEnd = trialEndDate;
-
-    final inTrial = trialEnd != null && DateTime.now().isBefore(trialEnd);
-    return hasPremium || inTrial;
+    return (isPremium == true && isSubscriptionActive) || isInTrialPeriod;
   }
-  
-  /// Check if user has active subscription (trial or paid)
+
   bool get hasActiveSubscription {
     return isSubscriptionActive || isInTrialPeriod;
   }
@@ -138,16 +155,22 @@ class PaymentPlanState extends Equatable {
 
   @override
   List<Object?> get props => [
-        status,
-        products,
-        selectedProductId,
-        errorMessage,
-        isProcessing,
-        userType,
-        isPremium,
-        trialStartDate,
-        trialEndDate,
-        subscriptionExpiryDate,
-        currentSubscriptionId,
-      ];
+    status,
+    products,
+    expandedProducts,
+    selectedProductId,
+    selectedBasePlanId,
+    selectedOfferToken,
+    errorMessage,
+    isProcessing,
+    userType,
+    isPremium,
+    trialStartDate,
+    trialEndDate,
+    subscriptionExpiryDate,
+    currentSubscriptionId,
+    pendingPurchase,
+    pendingPayload,
+    verificationAttempts,
+  ];
 }

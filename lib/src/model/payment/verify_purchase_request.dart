@@ -1,68 +1,38 @@
-// lib/data/models/iap/verify_purchase_request.dart
-
-import 'package:equatable/equatable.dart';
-
-class VerifyPurchaseRequest extends Equatable {
+class VerifyPurchaseRequest {
+  final String purchaseToken;
+  final dynamic productId; // keep as int or string based on your backend
   final String platform;
-  final String productId;
-  final String userType; // ✅ 'venue' or 'public'
-  final String? cafeId;  // ✅ For venue users
-  final String? userId;  // ✅ For public users
-  final String? purchaseToken;
-  final String? receiptData;
-  final String? originalJson;
-  final String? packageName;
-  final String? signature;
-  final String timestamp;
 
-  const VerifyPurchaseRequest({
-    required this.platform,
+  // // Optional Android
+  // final String? packageName;
+  // final String? orderId;
+
+  // // Optional iOS
+  // final String? transactionId;
+  // final String? originalTransactionId;
+
+  VerifyPurchaseRequest({
+    required this.purchaseToken,
     required this.productId,
-    required this.userType,
-    this.cafeId,
-    this.userId,
-    this.purchaseToken,
-    this.receiptData,
-    this.originalJson,
-    this.packageName,
-    this.signature,
-    required this.timestamp,
+    required this.platform,
+    // this.packageName,
+    // this.orderId,
+    // this.transactionId,
+    // this.originalTransactionId,
   });
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> json = {
-      'platform': platform,
-      'product_id': productId,
-      'user_type': userType,
-      'timestamp': timestamp,
+    return {
+      "purchase_token": purchaseToken,
+      "product_id": productId,
+      "platform": platform,
+
+      // optional fields only included if not null
+      // if (packageName != null) "package_name": packageName,
+      // if (orderId != null) "order_id": orderId,
+      // if (transactionId != null) "transaction_id": transactionId,
+      // if (originalTransactionId != null)
+      //   "original_transaction_id": originalTransactionId,
     };
-
-    if (cafeId != null) json['cafe_id'] = cafeId;
-    if (userId != null) json['user_id'] = userId;
-    if (purchaseToken != null) json['purchase_token'] = purchaseToken;
-    if (receiptData != null) json['receipt_data'] = receiptData;
-    if (originalJson != null) json['original_json'] = originalJson;
-    if (packageName != null) json['package_name'] = packageName;
-    if (signature != null) json['signature'] = signature;
-
-    // Remove null values
-    json.removeWhere((key, value) => value == null);
-
-    return json;
   }
-
-  @override
-  List<Object?> get props => [
-        platform,
-        productId,
-        userType,
-        cafeId,
-        userId,
-        purchaseToken,
-        receiptData,
-        originalJson,
-        packageName,
-        signature,
-        timestamp,
-      ];
 }

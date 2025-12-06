@@ -1,25 +1,30 @@
 // lib/src/purchase/bloc/payment_plan_bloc.dart
 
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:soloseaters/src/purchase/bloc/bloc/purchase_event.dart';
 import 'package:soloseaters/src/purchase/bloc/bloc/purchase_state.dart';
 import 'package:soloseaters/src/purchase/repository/purchase_repository.dart';
 import 'package:soloseaters/src/purchase/services/purchase_service.dart';
+import 'package:soloseaters/src/utils/data/object_factory.dart';
 
 class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
   final PaymentService paymentService;
   final PaymentRepository _paymentRepository;
   StreamSubscription<List<PurchaseDetails>>? _purchaseSubscription;
+  // ✅ NEW: Track current user to detect switches
+  String? _currentUserId;
 
   PaymentPlanBloc({
     required PaymentService paymentService,
     required PaymentRepository paymentRepository,
-  })  : paymentService = paymentService,
-        _paymentRepository = paymentRepository,
-        super(const PaymentPlanState()) {
+  }) : paymentService = paymentService,
+       _paymentRepository = paymentRepository,
+       super(const PaymentPlanState()) {
     on<InitializePaymentEvent>(_onInitialize);
     on<LoadProductsEvent>(_onLoadProducts);
     on<SelectPlanEvent>(_onSelectPlan);
@@ -29,9 +34,31 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
     on<VerifyPurchaseEvent>(_onVerifyPurchase);
     on<RestorePurchasesEvent>(_onRestorePurchases);
     on<CheckSubscriptionStatusEvent>(_onCheckSubscriptionStatus);
-    on<StartVenueTrialEvent>(_onStartVenueTrial);
     on<CancelPurchaseEvent>(_onCancelPurchase);
     on<ClearErrorEvent>(_onClearError);
+    on<RetryVerificationEvent>(_onRetryVerification); // NEW
+    on<CheckPendingPurchasesEvent>(_onCheckPendingPurchases); // NEW
+    on<ResetStateEvent>(_onResetState);
+  }
+
+  // ✅ NEW: Reset state completely on user change
+  Future<void> _onResetState(
+    ResetStateEvent event,
+    Emitter<PaymentPlanState> emit,
+  ) async {
+    print('🔄 Resetting PaymentPlanBloc state...');
+
+    // Cancel existing subscriptions
+    await _purchaseSubscription?.cancel();
+    _purchaseSubscription = null;
+
+    // Reset to initial state
+    emit(const PaymentPlanState());
+
+    // Clear current user tracking
+    _currentUserId = null;
+
+    print('✅ PaymentPlanBloc state reset complete');
   }
 
   Future<void> _onInitialize(
@@ -40,8 +67,28 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
   ) async {
     try {
       emit(state.copyWith(status: PaymentPlanStatus.loading));
+      // ✅ NEW: Detect user change and reset if needed
+      final prefs = ObjectFactory().prefs;
+      final newUserId =
+          prefs.getCafeUserId() ??
+          prefs.getUserId() ??
+          prefs.getCustomerUserMail() ??
+          'anonymous';
 
-      // Initialize payment service
+      if (_currentUserId != null && _currentUserId != newUserId) {
+        print(
+          '⚠️ User changed from $_currentUserId to $newUserId - resetting state',
+        );
+        // Cancel old subscription
+        await _purchaseSubscription?.cancel();
+        _purchaseSubscription = null;
+
+        // Reset to initial state before proceeding
+        emit(const PaymentPlanState());
+      }
+
+      _currentUserId = newUserId;
+      print('👤 Current user ID: $_currentUserId');
       final isAvailable = await paymentService.initialize();
 
       if (!isAvailable) {
@@ -54,7 +101,6 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         return;
       }
 
-      // Listen to purchase stream
       _purchaseSubscription = paymentService.purchaseStream.listen(
         (purchaseDetailsList) {
           add(HandlePurchaseUpdateEvent(purchaseDetailsList));
@@ -64,7 +110,6 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         },
       );
 
-      // Load user subscription status
       final userData = await _paymentRepository.getUserSubscriptionData();
       print("DEBUG USER DATA: $userData");
 
@@ -78,13 +123,16 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
           isPremium: userData['isPremium'] as bool,
           trialStartDate: userData['trialStartDate'] as DateTime?,
           trialEndDate: userData['trialEndDate'] as DateTime?,
-          subscriptionExpiryDate: userData['subscriptionExpiryDate'] as DateTime?,
+          subscriptionExpiryDate:
+              userData['subscriptionExpiryDate'] as DateTime?,
           currentSubscriptionId: userData['currentSubscriptionId'] as String?,
         ),
       );
 
-      // Auto-load products (will be filtered based on user type)
       add(const LoadProductsEvent());
+
+      // ✅ NEW: Check for pending purchases after initialization
+      add(const CheckPendingPurchasesEvent());
     } catch (e) {
       emit(
         state.copyWith(
@@ -95,74 +143,233 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
     }
   }
 
-  Future<void> _onLoadProducts(
-    LoadProductsEvent event,
+  // ✅ NEW: Check for pending/unverified purchases
+  Future<void> _onCheckPendingPurchases(
+    CheckPendingPurchasesEvent event,
     Emitter<PaymentPlanState> emit,
   ) async {
     try {
-      emit(state.copyWith(status: PaymentPlanStatus.loading));
+      print('🔍 Checking for pending purchases...');
 
-      final allProducts = await paymentService.loadProducts();
+      // Query past purchases to find any that weren't completed
+      await InAppPurchase.instance.restorePurchases();
 
-      if (allProducts.isEmpty) {
-        emit(
-          state.copyWith(
-            status: PaymentPlanStatus.purchaseFailed,
-            errorMessage:
-                'No subscription plans available. Please try again later.',
-          ),
-        );
-        return;
-      }
-
-      // Filter products based on user type
-      List<ProductDetails> filteredProducts;
-
-      if (state.isVenueUser) {
-        // Venue users should only see venue yearly plan
-        filteredProducts = allProducts.where(
-          (product) => product.id == PaymentService.venueYearlyId,
-        ).toList();
-        print('✅ Filtered products for venue user: ${filteredProducts.length} product(s)');
-      } else {
-        // Public users see public plans (monthly and yearly)
-        filteredProducts = allProducts.where(
-          (product) =>
-              product.id == PaymentService.monthlyPublicId ||
-              product.id == PaymentService.yearlyPublicId,
-        ).toList();
-        print('✅ Filtered products for public user: ${filteredProducts.length} product(s)');
-      }
-
-      if (filteredProducts.isEmpty) {
-        emit(
-          state.copyWith(
-            status: PaymentPlanStatus.purchaseFailed,
-            errorMessage:
-                'No subscription plans available for your account type.',
-          ),
-        );
-        return;
-      }
-
-      emit(
-        state.copyWith(
-          status: PaymentPlanStatus.productsLoaded,
-          products: filteredProducts,
-        ),
-      );
+      // The purchase stream listener will handle any restored purchases
     } catch (e) {
-      emit(
-        state.copyWith(
-          status: PaymentPlanStatus.purchaseFailed,
-          errorMessage: 'Failed to load plans: ${e.toString()}',
-        ),
-      );
+      print('⚠️ Error checking pending purchases: $e');
+      // Don't fail initialization, just log
     }
   }
 
+  // _onLoadProducts fixed version
+
+Future<void> _onLoadProducts(
+  LoadProductsEvent event,
+  Emitter<PaymentPlanState> emit,
+) async {
+  try {
+    emit(state.copyWith(status: PaymentPlanStatus.loading));
+
+    final allProducts = await paymentService.loadProducts();
+
+    if (allProducts.isEmpty) {
+      emit(
+        state.copyWith(
+          status: PaymentPlanStatus.purchaseFailed,
+          errorMessage: 'No subscription plans available.',
+        ),
+      );
+      return;
+    }
+
+    print('📦 Processing products for user type: ${state.userType}');
+    print('📦 Is venue user: ${state.isVenueUser}');
+    print('📦 Total product instances: ${allProducts.length}');
+
+    final Map<String, Map<String, dynamic>> uniqueEntries = {};
+
+    void addExpandedEntry({
+      required ProductDetails product,
+      required String? basePlanId,
+      required String? offerToken,
+      required List? pricingPhases,
+    }) {
+      final key = '${product.id}:${basePlanId ?? 'null'}';
+
+      if (!uniqueEntries.containsKey(key)) {
+        String? formattedPrice;
+        double? rawPrice;
+        String? billingPeriod;
+
+        // ✅ Extract price and billing period from pricing phases
+        if (pricingPhases != null && pricingPhases.isNotEmpty) {
+          try {
+            final phase = pricingPhases.first;
+            
+            if (phase is Map) {
+              formattedPrice = phase['formattedPrice'] as String?;
+              billingPeriod = phase['billingPeriod'] as String?;
+              final priceAmountMicros = phase['priceAmountMicros'] as int?;
+              if (priceAmountMicros != null) {
+                rawPrice = priceAmountMicros / 1000000.0;
+              }
+            } else {
+              // PricingPhaseWrapper object
+              formattedPrice = phase.formattedPrice as String;
+              billingPeriod = phase.billingPeriod as String;
+              rawPrice = phase.priceAmountMicros / 1000000.0;
+            }
+          } catch (e) {
+            print("❌ Error extracting pricing phase: $e");
+          }
+        }
+
+        uniqueEntries[key] = {
+          'product': product,
+          'basePlanId': basePlanId,
+          'offerToken': offerToken,
+          'pricingPhases': pricingPhases,
+          'formattedPrice': formattedPrice ?? product.price,
+          'rawPrice': rawPrice ?? product.rawPrice,
+          'billingPeriod': billingPeriod, // ✅ Store billing period
+        };
+
+        print('  ✅ Added: $key price=$formattedPrice period=$billingPeriod');
+      }
+    }
+
+    if (state.isVenueUser) {
+      final venueProducts =
+          allProducts
+              .where((p) => p.id == PaymentService.venueYearlyProductId)
+              .toList();
+      
+      for (var product in venueProducts) {
+        if (Platform.isAndroid && product is GooglePlayProductDetails) {
+          final offers = product.productDetails.subscriptionOfferDetails;
+          if (offers != null) {
+            for (var offer in offers) {
+              addExpandedEntry(
+                product: product,
+                basePlanId: offer.basePlanId,
+                offerToken: offer.offerIdToken,
+                pricingPhases: offer.pricingPhases,
+              );
+            }
+          } else {
+            addExpandedEntry(
+              product: product,
+              basePlanId: null,
+              offerToken: null,
+              pricingPhases: null,
+            );
+          }
+        } else {
+          addExpandedEntry(
+            product: product,
+            basePlanId: null,
+            offerToken: null,
+            pricingPhases: null,
+          );
+        }
+      }
+    } else {
+      // Public users
+      final publicProducts =
+          allProducts
+              .where((p) => p.id == PaymentService.yearlyPublicProductId)
+              .toList();
+
+      for (var product in publicProducts) {
+        if (Platform.isAndroid && product is GooglePlayProductDetails) {
+          final offers = product.productDetails.subscriptionOfferDetails;
+          if (offers != null) {
+            for (var offer in offers) {
+              addExpandedEntry(
+                product: product,
+                basePlanId: offer.basePlanId,
+                offerToken: offer.offerIdToken,
+                pricingPhases: offer.pricingPhases,
+              );
+            }
+          } else {
+            addExpandedEntry(
+              product: product,
+              basePlanId: null,
+              offerToken: null,
+              pricingPhases: null,
+            );
+          }
+        } else {
+          addExpandedEntry(
+            product: product,
+            basePlanId: null,
+            offerToken: null,
+            pricingPhases: null,
+          );
+        }
+      }
+    }
+
+    if (uniqueEntries.isEmpty) {
+      emit(
+        state.copyWith(
+          status: PaymentPlanStatus.purchaseFailed,
+          errorMessage: 'No subscription plans available.',
+        ),
+      );
+      return;
+    }
+
+    final expandedProductsList = uniqueEntries.values.toList();
+
+    print('✅ Final expanded products: ${expandedProductsList.length}');
+    for (var ep in expandedProductsList) {
+      final prod = ep['product'] as ProductDetails;
+      final basePlan = ep['basePlanId'];
+      final price = ep['formattedPrice']; // ✅ Use stored price
+      print('   ${prod.id}:$basePlan ($price)');
+    }
+
+    // Keep unique ProductDetails
+    final uniqueProducts = <String, ProductDetails>{};
+    for (var entry in expandedProductsList) {
+      final product = entry['product'] as ProductDetails;
+      uniqueProducts[product.id] = product;
+    }
+
+    emit(
+      state.copyWith(
+        status: PaymentPlanStatus.productsLoaded,
+        products: uniqueProducts.values.toList(),
+        expandedProducts: expandedProductsList,
+      ),
+    );
+  } catch (e, st) {
+    print('❌ Error loading products: $e\n$st');
+    emit(
+      state.copyWith(
+        status: PaymentPlanStatus.purchaseFailed,
+        errorMessage: 'Failed to load plans: ${e.toString()}',
+      ),
+    );
+  }
+}
+
   void _onSelectPlan(SelectPlanEvent event, Emitter<PaymentPlanState> emit) {
-    emit(state.copyWith(selectedProductId: event.productId, clearError: true));
+    print('✅ Selecting plan:');
+    print('   Product: ${event.productId}');
+    print('   Base Plan: ${event.basePlanId}');
+    print('   Offer Token: ${event.offerToken}');
+
+    emit(
+      state.copyWith(
+        selectedProductId: event.productId,
+        selectedBasePlanId: event.basePlanId,
+        selectedOfferToken: event.offerToken, // ✅ NEW
+        clearError: true,
+      ),
+    );
   }
 
   Future<void> _onPurchaseSelectedPlan(
@@ -182,19 +389,23 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
     add(PurchaseProductEvent(state.selectedProductId!));
   }
 
+  // Replace _onPurchaseProduct in PaymentPlanBloc
+
   Future<void> _onPurchaseProduct(
     PurchaseProductEvent event,
     Emitter<PaymentPlanState> emit,
   ) async {
     try {
-       // Prevent multiple purchase attempts while one is already running.
-    if (state.isProcessing == true) {
-      emit(state.copyWith(
-        status: PaymentPlanStatus.purchaseFailed,
-        errorMessage: 'Purchase already in progress',
-      ));
-      return;
-    }
+      if (state.isProcessing == true) {
+        emit(
+          state.copyWith(
+            status: PaymentPlanStatus.purchaseFailed,
+            errorMessage: 'Purchase already in progress',
+          ),
+        );
+        return;
+      }
+
       emit(
         state.copyWith(
           status: PaymentPlanStatus.purchasing,
@@ -203,24 +414,81 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         ),
       );
 
-      // FIX: Product ID -> ProductDetails
-      final product = state.products.firstWhere(
-        (p) => p.id == event.productId,
-        orElse: () => throw Exception("Product not found: ${event.productId}"),
+      // ✅ CRITICAL FIX: Find the EXACT product instance that matches
+      // both the product ID AND the selected base plan
+      ProductDetails? targetProduct;
+
+      if (state.selectedBasePlanId != null && state.expandedProducts != null) {
+        // Find the expanded product that matches our selection
+        final matchingExpanded = state.expandedProducts!.firstWhere((ep) {
+          final prod = ep['product'] as ProductDetails;
+          final basePlan = ep['basePlanId'] as String?;
+          return prod.id == event.productId &&
+              basePlan == state.selectedBasePlanId;
+        }, orElse: () => <String, dynamic>{});
+
+        if (matchingExpanded.isNotEmpty) {
+          targetProduct = matchingExpanded['product'] as ProductDetails;
+          print(
+            '✅ Found exact product for base plan: ${state.selectedBasePlanId}',
+          );
+        }
+      }
+
+      // Fallback: use first product with matching ID
+      if (targetProduct == null) {
+        targetProduct = state.products.firstWhere(
+          (p) => p.id == event.productId,
+          orElse:
+              () => throw Exception("Product not found: ${event.productId}"),
+        );
+        print('⚠️ Using fallback product (base plan might not match)');
+      }
+
+      final isVenueTrial =
+          state.isVenueUser &&
+          state.userType == UserType.venueTrial &&
+          !state.isInTrialPeriod;
+
+      print('🛒 Purchasing:');
+      print('   Product: ${targetProduct.id}');
+      print('   Selected base plan: ${state.selectedBasePlanId}');
+      print('   Selected offer token: ${state.selectedOfferToken}');
+      print('   Is venue trial: $isVenueTrial');
+
+      // ✅ Pass the CORRECT product instance and offer token
+      final errorMessage = await paymentService.purchaseProduct(
+        targetProduct, // Use the specific instance
+        isVenueTrial: isVenueTrial,
+        basePlanId: state.selectedBasePlanId,
+        offerToken: state.selectedOfferToken,
       );
 
-      final errorMessage = await paymentService.purchaseProduct(product);
-
       if (errorMessage != null) {
-        emit(
-          state.copyWith(
-            status: PaymentPlanStatus.purchaseFailed,
-            errorMessage: errorMessage,
-            isProcessing: false,
-          ),
-        );
+        if (errorMessage.contains('ITEM_ALREADY_OWNED') ||
+            errorMessage.contains('already subscribed')) {
+          print('⚠️ Item already owned, triggering restore...');
+
+          emit(
+            state.copyWith(
+              status: PaymentPlanStatus.needsRestore,
+              errorMessage:
+                  'You already have an active subscription. Restoring...',
+              isProcessing: false,
+            ),
+          );
+
+          add(const RestorePurchasesEvent());
+        } else {
+          emit(
+            state.copyWith(
+              status: PaymentPlanStatus.purchaseFailed,
+              errorMessage: errorMessage,
+              isProcessing: false,
+            ),
+          );
+        }
       }
-      // Success will be handled by HandlePurchaseUpdateEvent
     } catch (e) {
       emit(
         state.copyWith(
@@ -237,25 +505,50 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
     Emitter<PaymentPlanState> emit,
   ) async {
     for (final purchaseDetails in event.purchaseDetailsList) {
+      print(
+        '📱 Purchase status: ${purchaseDetails.status} for ${purchaseDetails.productID}',
+      );
+
       if (purchaseDetails.status == PurchaseStatus.purchased ||
           purchaseDetails.status == PurchaseStatus.restored) {
-        // Build the verification payload using PaymentService helper.
-        final payload = paymentService.extractVerificationPayload(purchaseDetails);
+        // ✅ Store purchase details for retry capability
+        final payload = paymentService.extractVerificationPayload(
+          purchaseDetails,
+        );
 
-        // Optionally fill runtime values (package/bundle id) if you have them available
-        // e.g. payload['package_name'] = 'com.your.app';
-        // or add the user's id/email for backend correlation if required.
-
-        // Dispatch verify event with both purchaseDetails and payload
-        add(VerifyPurchaseEvent(purchaseDetails, payload));
-      } else if (purchaseDetails.status == PurchaseStatus.error) {
         emit(
           state.copyWith(
-            status: PaymentPlanStatus.purchaseFailed,
-            errorMessage: purchaseDetails.error?.message ?? 'Purchase failed',
-            isProcessing: false,
+            pendingPurchase: purchaseDetails,
+            pendingPayload: payload,
           ),
         );
+
+        add(VerifyPurchaseEvent(purchaseDetails, payload));
+      } else if (purchaseDetails.status == PurchaseStatus.error) {
+        final errorCode = purchaseDetails.error?.code;
+        final errorMessage =
+            purchaseDetails.error?.message ?? 'Purchase failed';
+
+        // ✅ Handle specific error codes
+        if (errorCode == 'ITEM_ALREADY_OWNED') {
+          emit(
+            state.copyWith(
+              status: PaymentPlanStatus.needsRestore,
+              errorMessage:
+                  'You already have an active subscription. Restoring...',
+              isProcessing: false,
+            ),
+          );
+          add(const RestorePurchasesEvent());
+        } else {
+          emit(
+            state.copyWith(
+              status: PaymentPlanStatus.purchaseFailed,
+              errorMessage: errorMessage,
+              isProcessing: false,
+            ),
+          );
+        }
       } else if (purchaseDetails.status == PurchaseStatus.canceled) {
         emit(
           state.copyWith(
@@ -273,14 +566,36 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         );
       }
 
-      // Complete the purchase
-      if (purchaseDetails.pendingCompletePurchase) {
-        await InAppPurchase.instance.completePurchase(purchaseDetails);
-      }
+      // ✅ Only complete purchase AFTER successful verification
+      // Don't complete here - do it in _onVerifyPurchase
     }
   }
 
-  Future<void>  _onVerifyPurchase(
+  // ✅ NEW: Retry verification with exponential backoff
+  Future<void> _onRetryVerification(
+    RetryVerificationEvent event,
+    Emitter<PaymentPlanState> emit,
+  ) async {
+    if (state.pendingPurchase == null || state.pendingPayload == null) {
+      emit(
+        state.copyWith(
+          status: PaymentPlanStatus.purchaseFailed,
+          errorMessage: 'No pending purchase to verify',
+        ),
+      );
+      return;
+    }
+
+    print('🔄 Retrying verification (attempt ${event.attemptNumber})...');
+
+    // Exponential backoff: 2s, 4s, 8s
+    final delay = Duration(seconds: 2 * event.attemptNumber);
+    await Future.delayed(delay);
+
+    add(VerifyPurchaseEvent(state.pendingPurchase!, state.pendingPayload!));
+  }
+
+  Future<void> _onVerifyPurchase(
     VerifyPurchaseEvent event,
     Emitter<PaymentPlanState> emit,
   ) async {
@@ -290,67 +605,124 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
       final purchaseDetails = event.purchaseDetails;
       final payload = Map<String, dynamic>.from(event.verificationPayload);
 
-      // If you have runtime info like package/bundle id, attach it here.
-      // Example:
-      // payload['package_name'] = 'com.your.app';
-      // payload['bundle_id'] = 'com.your.app';
+      Map<String, dynamic> verificationResult = {'valid': true};
 
-      bool verified = true;
-
-      // Skip backend verification in fake mode
       if (!kDebugMode) {
-        verified = await _paymentRepository.verifyPurchase(payload);
+        verificationResult = await _paymentRepository.verifyPurchase(payload);
       }
 
+      final verified = verificationResult['valid'] == true;
+
       if (!verified) {
+        final errorMessage =
+            verificationResult['message'] as String? ??
+            'Purchase verification failed';
+
+        // ✅ Check if this is a server error (500, network issue)
+        final isRetryable =
+            errorMessage.contains('500') ||
+            errorMessage.contains('SQLSTATE') ||
+            errorMessage.contains('network') ||
+            errorMessage.contains('timeout');
+
+        if (isRetryable && (state.verificationAttempts ?? 0) < 3) {
+          print(
+            '⚠️ Verification failed with retryable error, will retry... (attempt ${state.verificationAttempts ?? 0 + 1})',
+          );
+
+          emit(
+            state.copyWith(
+              status: PaymentPlanStatus.verificationFailed,
+              errorMessage:
+                  'Verification failed. Retrying... (${state.verificationAttempts ?? 0 + 1}/3)',
+              verificationAttempts: (state.verificationAttempts ?? 0) + 1,
+            ),
+          );
+
+          // ✅ Retry with backoff
+          add(RetryVerificationEvent(state.verificationAttempts ?? 1));
+          return;
+        }
+
+        // ✅ Max retries exceeded or non-retryable error
         emit(
           state.copyWith(
-            status: PaymentPlanStatus.purchaseFailed,
+            status: PaymentPlanStatus.verificationFailed,
             errorMessage:
-                'Purchase verification failed. Please contact support.',
+                'Unable to verify your purchase. Please contact support with your order ID: ${purchaseDetails.purchaseID}',
             isProcessing: false,
+            verificationAttempts: 0,
           ),
         );
+
+        // ✅ DON'T complete the purchase - let user contact support
+        // The purchase will remain in "pending" state and can be verified later
         return;
       }
 
-      // Determine user type based on product
-      UserType newUserType = state.userType;
-      bool isPremium = true;
-
-      if (purchaseDetails.productID.contains('venue')) {
-        newUserType = UserType.venuePaid;
-      } else {
-        newUserType = UserType.publicPaid;
+      // ✅ SUCCESS: Complete the purchase transaction
+      if (purchaseDetails.pendingCompletePurchase) {
+        await InAppPurchase.instance.completePurchase(purchaseDetails);
+        print('✅ Purchase completed on store');
       }
 
-      // Update subscription status (local + backend update)
-      await _paymentRepository.updateSubscriptionStatus(
-        productId: purchaseDetails.productID,
-        isActive: true,
-        userType: newUserType,
+      // Clear pending purchase info
+      emit(
+        state.copyWith(
+          pendingPurchase: null,
+          pendingPayload: null,
+          verificationAttempts: 0,
+        ),
       );
 
-      // Get updated subscription data
       final userData = await _paymentRepository.getUserSubscriptionData();
 
       emit(
         state.copyWith(
           status: PaymentPlanStatus.purchaseSuccess,
-          isPremium: isPremium,
-          userType: newUserType,
+          isPremium: userData['isPremium'] as bool?,
+          userType: userData['userType'] as UserType?,
+          trialStartDate: userData['trialStartDate'] as DateTime?,
+          trialEndDate: userData['trialEndDate'] as DateTime?,
           subscriptionExpiryDate:
               userData['subscriptionExpiryDate'] as DateTime?,
-          currentSubscriptionId: purchaseDetails.productID,
+          currentSubscriptionId: userData['currentSubscriptionId'] as String?,
           isProcessing: false,
         ),
       );
+
+      print('✅ Purchase verified and state updated');
+      print('   User type: ${userData['userType']}');
+      print('   Is premium: ${userData['isPremium']}');
+      print('   Trial end: ${userData['trialEndDate']}');
     } catch (e) {
+      // ✅ Handle unexpected errors with retry logic
+      final isRetryable =
+          e.toString().contains('SocketException') ||
+          e.toString().contains('TimeoutException') ||
+          e.toString().contains('Connection');
+
+      if (isRetryable && (state.verificationAttempts ?? 0) < 3) {
+        emit(
+          state.copyWith(
+            status: PaymentPlanStatus.verificationFailed,
+            errorMessage:
+                'Connection error. Retrying... (${state.verificationAttempts ?? 0 + 1}/3)',
+            verificationAttempts: (state.verificationAttempts ?? 0) + 1,
+          ),
+        );
+
+        add(RetryVerificationEvent(state.verificationAttempts ?? 1));
+        return;
+      }
+
       emit(
         state.copyWith(
-          status: PaymentPlanStatus.purchaseFailed,
-          errorMessage: 'Verification error: ${e.toString()}',
+          status: PaymentPlanStatus.verificationFailed,
+          errorMessage:
+              'Unable to verify purchase. Please contact support with order ID: ${event.purchaseDetails.purchaseID}',
           isProcessing: false,
+          verificationAttempts: 0,
         ),
       );
     }
@@ -365,11 +737,22 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         state.copyWith(status: PaymentPlanStatus.loading, isProcessing: true),
       );
 
+      print('🔄 Restoring purchases...');
       await paymentService.restorePurchases();
+
+      // ✅ Also fetch subscription status from backend
+      final userData = await _paymentRepository.getUserSubscriptionData();
 
       emit(
         state.copyWith(
           status: PaymentPlanStatus.purchaseRestored,
+          isPremium: userData['isPremium'] as bool?,
+          userType: userData['userType'] as UserType?,
+          trialStartDate: userData['trialStartDate'] as DateTime?,
+          trialEndDate: userData['trialEndDate'] as DateTime?,
+          subscriptionExpiryDate:
+              userData['subscriptionExpiryDate'] as DateTime?,
+          currentSubscriptionId: userData['currentSubscriptionId'] as String?,
           isProcessing: false,
         ),
       );
@@ -407,34 +790,6 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         state.copyWith(
           errorMessage: 'Failed to check subscription: ${e.toString()}',
         ),
-      );
-    }
-  }
-
-  Future<void> _onStartVenueTrial(
-    StartVenueTrialEvent event,
-    Emitter<PaymentPlanState> emit,
-  ) async {
-    try {
-      final trialStartDate = DateTime.now();
-      final trialEndDate = trialStartDate.add(const Duration(days: 30));
-
-      await _paymentRepository.startVenueTrial(
-        trialStartDate: trialStartDate,
-        trialEndDate: trialEndDate,
-      );
-
-      emit(
-        state.copyWith(
-          userType: UserType.venueTrial,
-          isPremium: false,
-          trialStartDate: trialStartDate,
-          trialEndDate: trialEndDate,
-        ),
-      );
-    } catch (e) {
-      emit(
-        state.copyWith(errorMessage: 'Failed to start trial: ${e.toString()}'),
       );
     }
   }

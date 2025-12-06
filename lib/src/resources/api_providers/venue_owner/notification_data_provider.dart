@@ -90,7 +90,7 @@ class NotificationDataProvider {
           final errorResponse = NotificationReadResponse.fromJson(response.data);
 
           if (errorResponse.message?.isNotEmpty ?? false) {
-            return StateModel.error(errorResponse.message);
+            return StateModel.error(errorResponse.message?? "Error");
           } else {
             return StateModel.error("Error: ${response.statusCode}");
           }
@@ -104,7 +104,7 @@ class NotificationDataProvider {
           final errorResponse = NotificationReadResponse.fromJson(e.response!.data);
 
           if (errorResponse.message?.isNotEmpty ?? false) {
-            return StateModel.error(errorResponse.message);
+            return StateModel.error(errorResponse.message ?? "Error");
           }
         } catch (_) {
           // Silent error while parsing error response
@@ -153,7 +153,7 @@ class NotificationDataProvider {
           final errorResponse = NotificationStatusResponse.fromJson(response.data);
 
           if (errorResponse.message?.isNotEmpty ?? false) {
-            return StateModel.error(errorResponse.message);
+            return StateModel.error(errorResponse.message ?? "Error");
           } else {
             return StateModel.error("Error: ${response.statusCode}");
           }
@@ -167,7 +167,7 @@ class NotificationDataProvider {
           final errorResponse = NotificationStatusResponse.fromJson(e.response!.data);
 
           if (errorResponse.message?.isNotEmpty ?? false) {
-            return StateModel.error(errorResponse.message);
+            return StateModel.error(errorResponse.message ?? "Error");
           }
         } catch (_) {
           // Silent parse error
