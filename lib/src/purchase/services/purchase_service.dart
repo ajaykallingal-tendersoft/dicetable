@@ -13,8 +13,9 @@ class PaymentService {
   static const String venueYearlyProductId = "venue_yearly_plan";
 
   // For iOS: Use product IDs
-  static const String monthlyPublicProductId = "public_monthly_plan";
-  static const String yearlyPublicProductIdIos = "venue_yearly_product";
+  static const String yearlyPublic = "public_yearly";
+  static const String monthlyPublic = "public_monthly";
+  static const String yearlyVenueProductId = "venue_yearly_product";
 
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
   late StreamSubscription<List<PurchaseDetails>> _subscription;
@@ -86,7 +87,7 @@ class PaymentService {
     return [
       // ✅ FIRST: Monthly plan (should appear first)
       ProductDetails(
-        id: monthlyPublicProductId, // ✅ Use monthly ID
+        id: monthlyPublic, // ✅ Use monthly ID
         title: "Public Monthly Plan",
         description: "Monthly subscription for public users",
         price: "\$9.00",
@@ -151,9 +152,9 @@ class PaymentService {
         print('📦 Loading ANDROID parent subscription IDs: $productIds');
       } else if (Platform.isIOS) {
         productIds = {
-          venueYearlyProductId,
-          yearlyPublicProductIdIos,
-          monthlyPublicProductId,
+          yearlyPublic ,
+  monthlyPublic ,
+  yearlyVenueProductId, 
         };
         print('📦 Loading iOS product IDs: $productIds');
       } else {
@@ -226,90 +227,6 @@ class PaymentService {
       rethrow;
     }
   }
-
-  /*Future<List<ProductDetails>> loadProducts({
-    int retryCount = 3,
-    Duration retryDelay = const Duration(seconds: 2),
-  }) async {
-    try {
-      if (kDebugMode) {
-        await Future.delayed(const Duration(milliseconds: 500));
-        _products = _fakeProducts();
-        print("🧪 Loaded FAKE products (${_products.length})");
-        return _products;
-      }
-
-      // Platform-specific product IDs
-      Set<String> productIds;
-      
-      if (Platform.isAndroid) {
-        // Android: Use base plan IDs
-        productIds = {
-          venueYearlyProductId,
-          yearlyPublicProductId,
-          
-        };
-        print('📦 Loading ANDROID base plan IDs: $productIds');
-      } else if (Platform.isIOS) {
-        // iOS: Use product IDs
-        productIds = {
-          venueYearlyProductId,
-          yearlyPublicProductId,
-        };
-        print('📦 Loading iOS product IDs: $productIds');
-      } else {
-        throw Exception('Unsupported platform');
-      }
-
-      ProductDetailsResponse response;
-      int attempt = 0;
-
-      while (true) {
-        attempt++;
-        response = await _inAppPurchase.queryProductDetails(productIds);
-
-        print('📦 queryProductDetails attempt #$attempt');
-        print('  productDetails.length = ${response.productDetails.length}');
-        print('  notFoundIDs = ${response.notFoundIDs}');
-        print('  response.error = ${response.error}');
-
-        if (response.error != null) {
-          if (attempt < retryCount) {
-            print('⚠️ queryProductDetails returned error. Retrying in ${retryDelay.inSeconds * attempt}s');
-            await Future.delayed(retryDelay * attempt);
-            continue;
-          }
-          throw Exception('Store error: ${response.error}');
-        }
-
-        if (response.productDetails.isEmpty) {
-          if (attempt < retryCount) {
-            print('⚠️ queryProductDetails returned empty. notFoundIDs=${response.notFoundIDs}. Retrying...');
-            await Future.delayed(retryDelay * attempt);
-            continue;
-          }
-          throw Exception('No products returned from store. notFoundIDs=${response.notFoundIDs}');
-        }
-
-        _products = response.productDetails;
-        print('✅ Loaded products: ${_products.map((p) => p.id).toList()}');
-        
-        // Log product details for debugging
-        for (var product in _products) {
-          print('  Product: ${product.id}');
-          print('    Title: ${product.title}');
-          print('    Price: ${product.price}');
-          print('    Description: ${product.description}');
-        }
-        
-        return _products;
-      }
-    } catch (e, st) {
-      print('❌ Error loading products: $e\n$st');
-      rethrow;
-    }
-  }
-  */
 
   // =====================================================
   //  FAKE PURCHASE SIMULATOR
@@ -442,175 +359,6 @@ class PaymentService {
       return e.toString();
     }
   }
-
-  // Future<String?> purchaseProduct(
-  //   ProductDetails productDetails, {
-  //   PurchaseDetails? oldPurchaseDetails,
-  //   bool isVenueTrial = false,
-  //   String? basePlanId,
-  //   String? offerToken,
-  // }) async {
-  //   try {
-  //     if (kDebugMode) {
-  //       await _simulateFakePurchase(productDetails);
-  //       return null;
-  //     }
-
-  //     print('🛒 Starting purchase:');
-  //     print('  Product ID: ${productDetails.id}');
-  //     print('  Product Title: ${productDetails.title}');
-  //     print('  Base Plan ID: $basePlanId');
-  //     print('  Offer Token: $offerToken');
-
-  //     late PurchaseParam purchaseParam;
-
-  //     if (Platform.isAndroid) {
-  //       if (productDetails is! GooglePlayProductDetails) {
-  //         return 'Invalid product type for Android';
-  //       }
-
-  //       // Log available offers in this product instance
-  //       final offers = productDetails.productDetails.subscriptionOfferDetails;
-  //       if (offers != null) {
-  //         print('  📦 This product instance has ${offers.length} offer(s):');
-  //         for (var offer in offers) {
-  //           print('    - Base Plan: ${offer.basePlanId}');
-  //           print('      Offer Token: ${offer.offerIdToken}');
-  //           if (offer.pricingPhases.isNotEmpty) {
-  //             print('      Price: ${offer.pricingPhases.first.formattedPrice}');
-  //           }
-  //         }
-  //       }
-
-  //       if (oldPurchaseDetails != null &&
-  //           oldPurchaseDetails is GooglePlayPurchaseDetails) {
-  //         // Upgrade/Downgrade scenario
-  //         print('🔄 Upgrade/downgrade subscription');
-
-  //         purchaseParam = GooglePlayPurchaseParam(
-  //           productDetails: productDetails,
-  //           changeSubscriptionParam: ChangeSubscriptionParam(
-  //             oldPurchaseDetails: oldPurchaseDetails,
-  //             replacementMode: ReplacementMode.withTimeProration,
-  //           ),
-  //         );
-  //       } else {
-  //         // ✅ NEW PURCHASE: Simply use the productDetails as-is
-  //         // Since we passed the CORRECT instance from the bloc,
-  //         // it already contains the right offer information
-  //         print('📦 New subscription purchase');
-
-  //         purchaseParam = GooglePlayPurchaseParam(
-  //           productDetails: productDetails,
-  //           applicationUserName: null,
-  //         );
-  //       }
-  //     } else if (Platform.isIOS) {
-  //       // iOS handles subscriptions automatically
-  //       purchaseParam = PurchaseParam(
-  //         productDetails: productDetails,
-  //         applicationUserName: null,
-  //       );
-  //     } else {
-  //       return 'Unsupported platform';
-  //     }
-
-  //     // Start the purchase flow
-  //     print('🚀 Initiating purchase with Google Play Billing...');
-  //     print('   Using product: ${productDetails.id}');
-  //     print('   Product price: ${productDetails.price}');
-
-  //     final bool started = await _inAppPurchase.buyNonConsumable(
-  //       purchaseParam: purchaseParam,
-  //     );
-
-  //     if (!started) {
-  //       print('❌ Purchase flow failed to start');
-  //       return 'Failed to start purchase flow';
-  //     }
-
-  //     print('✅ Purchase flow started successfully');
-  //     print('   Google Play should show: ${productDetails.price}');
-  //     return null;
-  //   } catch (e, st) {
-  //     print('❌ purchaseProduct error: $e\n$st');
-  //     return e.toString();
-  //   }
-  // }
-
-  /*Future<String?> purchaseProduct(
-    ProductDetails productDetails, {
-    PurchaseDetails? oldPurchaseDetails,
-    bool isVenueTrial = false,
-  }) async {
-    try {
-      if (kDebugMode) {
-        await _simulateFakePurchase(productDetails);
-        return null;
-      }
-
-      late PurchaseParam purchaseParam;
-
-      if (Platform.isAndroid) {
-        GooglePlayPurchaseParam? googleParam;
-
-        // Check if this is venue trial purchase
-        if (isVenueTrial && productDetails.id == venueYearlyProductId) {
-          // print('🎁 Initiating venue trial purchase with offer: $venueYearlyTrialOfferId');
-          
-          googleParam = GooglePlayPurchaseParam(
-            productDetails: productDetails,
-            applicationUserName: null, // Optional: Add user ID for tracking
-          );
-          
-          // For trials, you may need to specify the offer token
-          // This depends on how your offers are configured in Google Play Console
-        } else if (oldPurchaseDetails != null && 
-                   oldPurchaseDetails is GooglePlayPurchaseDetails) {
-          // Upgrade/Downgrade existing subscription
-          print('🔄 Upgrading/downgrading subscription');
-          googleParam = GooglePlayPurchaseParam(
-            productDetails: productDetails,
-            changeSubscriptionParam: ChangeSubscriptionParam(
-              oldPurchaseDetails: oldPurchaseDetails,
-              replacementMode: ReplacementMode.withTimeProration,
-            ),
-          );
-        } else {
-          // Standard new purchase
-          googleParam = GooglePlayPurchaseParam(
-            productDetails: productDetails,
-          );
-        }
-
-        purchaseParam = googleParam;
-      } else if (Platform.isIOS) {
-        // iOS handles trials and upgrades automatically via App Store
-        purchaseParam = PurchaseParam(
-          productDetails: productDetails,
-          applicationUserName: null, // Optional: Add user ID
-        );
-      } else {
-        return 'Unsupported platform';
-      }
-
-      // Start the purchase flow (use buyNonConsumable for subscriptions)
-      final bool started = await _inAppPurchase.buyNonConsumable(
-        purchaseParam: purchaseParam,
-      );
-
-      if (!started) {
-        return 'Failed to start purchase flow';
-      }
-
-      print('✅ Purchase flow started successfully');
-      return null;
-    } catch (e, st) {
-      print('❌ purchaseProduct error: $e\n$st');
-      return e.toString();
-    }
-  }*/
-
   // =====================================================
   // HELPER: BUILD VERIFICATION PAYLOAD
   // =====================================================
