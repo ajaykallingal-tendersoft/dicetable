@@ -134,6 +134,182 @@ class PaymentService {
   // COMPLETE REPLACEMENT for loadProducts in PaymentService
 
   Future<List<ProductDetails>> loadProducts({
+  int retryCount = 3,
+  Duration retryDelay = const Duration(seconds: 2),
+}) async {
+  try {
+    if (kDebugMode) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      _products = _fakeProducts();
+      print("🧪 Loaded FAKE products (${_products.length})");
+      return _products;
+    }
+
+    Set<String> productIds;
+
+    if (Platform.isAndroid) {
+      productIds = {venueYearlyProductId, yearlyPublicProductId};
+      print('📦 Loading ANDROID parent subscription IDs: $productIds');
+    } else if (Platform.isIOS) {
+      productIds = {
+        yearlyPublic,
+        monthlyPublic,
+        yearlyVenueProductId,
+      };
+      print('');
+      print('═══════════════════════════════════════════');
+      print('🍎 iOS IAP - LOADING PRODUCTS');
+      print('═══════════════════════════════════════════');
+      print('📤 Requesting Product IDs:');
+      for (var id in productIds) {
+        print('   • "$id"');
+      }
+      print('');
+    } else {
+      throw Exception('Unsupported platform');
+    }
+
+    ProductDetailsResponse response;
+    int attempt = 0;
+
+    while (true) {
+      attempt++;
+      
+      if (Platform.isIOS) {
+        print('⏳ Querying App Store (Attempt #$attempt)...');
+      } else {
+        print('📦 queryProductDetails attempt #$attempt');
+      }
+      
+      response = await _inAppPurchase.queryProductDetails(productIds);
+
+      if (Platform.isAndroid) {
+        print('  productDetails.length = ${response.productDetails.length}');
+        print('  notFoundIDs = ${response.notFoundIDs}');
+      } else if (Platform.isIOS) {
+        print('');
+        print('📥 App Store Response:');
+        print('   Products Found: ${response.productDetails.length}');
+        print('   Products Not Found: ${response.notFoundIDs.length}');
+        
+        if (response.notFoundIDs.isNotEmpty) {
+          print('');
+          print('⚠️ MISSING PRODUCTS:');
+          for (var id in response.notFoundIDs) {
+            print('   ❌ "$id" not in StoreKit Configuration');
+          }
+        }
+      }
+
+      if (response.error != null) {
+        print('⚠️ Store error: ${response.error}');
+        if (attempt < retryCount) {
+          print('   Retrying in ${(retryDelay * attempt).inSeconds}s...');
+          await Future.delayed(retryDelay * attempt);
+          continue;
+        }
+        throw Exception('Store error: ${response.error}');
+      }
+
+      if (response.productDetails.isEmpty) {
+        if (Platform.isIOS) {
+          print('⚠️ No products returned!');
+          print('   Possible causes:');
+          print('   1. StoreKit Configuration not selected in scheme');
+          print('   2. Product IDs mismatch');
+          print('   3. StoreKit file not in project');
+        }
+        
+        if (attempt < retryCount) {
+          print('   Retrying in ${(retryDelay * attempt).inSeconds}s...');
+          await Future.delayed(retryDelay * attempt);
+          continue;
+        }
+        throw Exception('No products returned.');
+      }
+
+      // ✅ CRITICAL: Keep ALL instances, don't deduplicate
+      // Each instance represents a different base plan
+      _products = response.productDetails;
+
+      if (Platform.isIOS) {
+        print('');
+        print('✅ PRODUCTS SUCCESSFULLY LOADED:');
+        
+        for (var i = 0; i < _products.length; i++) {
+          final product = _products[i];
+          
+          // Detect fake products
+          final isFake = product.id.toLowerCase().contains('fake') ||
+              product.title.toLowerCase().contains('fake') ||
+              product.price == '\$0.00' ||
+              product.price == '0';
+          
+          if (isFake) {
+            print('');
+            print('   🚨 FAKE PRODUCT DETECTED!');
+            print('   ❌ Product ID: "${product.id}"');
+            print('      Title: ${product.title}');
+            print('      Price: ${product.price}');
+            print('');
+            print('   ⚠️ This means StoreKit Configuration is NOT loaded!');
+            print('   Fix: Edit Scheme → Run → Options → StoreKit Configuration');
+            print('');
+          } else {
+            print('');
+            print('   ✅ Product ${i + 1}/${_products.length}:');
+            print('      ID: "${product.id}"');
+            print('      Title: ${product.title}');
+            print('      Price: ${product.price}');
+            print('      Description: ${product.description}');
+            
+            // iOS specific details
+            if (product is AppStoreProductDetails) {
+              print('      Currency: ${product.currencyCode}');
+              print('      Raw Price: ${product.rawPrice}');
+            }
+          }
+        }
+        
+        print('');
+        print('═══════════════════════════════════════════');
+        print('');
+      } else {
+        // Android logging (existing)
+        print('✅ Loaded ${_products.length} product instance(s)');
+
+        for (var i = 0; i < _products.length; i++) {
+          final product = _products[i];
+          print('  Instance $i: ${product.id}');
+          print('    Price: ${product.price}');
+
+          if (product is GooglePlayProductDetails) {
+            final offers = product.productDetails.subscriptionOfferDetails;
+            if (offers != null && offers.isNotEmpty) {
+              print('    Offers in this instance: ${offers.length}');
+              for (var offer in offers) {
+                print('      - Base Plan: ${offer.basePlanId}');
+                print('        Offer Token: ${offer.offerIdToken}');
+                if (offer.pricingPhases.isNotEmpty) {
+                  print(
+                    '        Price: ${offer.pricingPhases.first.formattedPrice}',
+                  );
+                }
+              }
+            }
+          }
+        }
+      }
+
+      return _products;
+    }
+  } catch (e, st) {
+    print('❌ Error loading products: $e\n$st');
+    rethrow;
+  }
+}
+
+  /*Future<List<ProductDetails>> loadProducts({
     int retryCount = 3,
     Duration retryDelay = const Duration(seconds: 2),
   }) async {
@@ -226,7 +402,7 @@ class PaymentService {
       print('❌ Error loading products: $e\n$st');
       rethrow;
     }
-  }
+  }*/
 
   // =====================================================
   //  FAKE PURCHASE SIMULATOR

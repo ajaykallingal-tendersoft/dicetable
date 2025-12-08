@@ -34,7 +34,11 @@
     {
       "id" : "B863209E",
       "localizations" : [
-
+        {
+          "description" : "Annual subscription for venue owners with premium features",
+          "displayName" : "Venue Annual Subscription",
+          "locale" : "en_US"
+        }
       ],
       "name" : "Venue Annual Subscription",
       "subscriptions" : [
@@ -75,7 +79,11 @@
     {
       "id" : "A6646146",
       "localizations" : [
-
+        {
+          "description" : "Annual and Monthly subscription with premium features",
+          "displayName" : "Public Subscription",
+          "locale" : "en_US"
+        }
       ],
       "name" : "Public Subscription",
       "subscriptions" : [
