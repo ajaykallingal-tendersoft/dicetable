@@ -39,9 +39,145 @@ class PaymentRepository {
   /// ========================================
   /// VERIFY PURCHASE WITH BACKEND
   /// ========================================
-  /// 
-  
+  ///
+
   Future<Map<String, dynamic>> verifyPurchase(
+    Map<String, dynamic> payload,
+  ) async {
+    try {
+      print('🔐 Repository: Verifying purchase payload: $payload');
+
+      // Normalize platform field if backend expects 'ios'/'android'
+      final platformRaw = (payload['platform']?.toString() ?? '').toLowerCase();
+      String platform;
+      if (platformRaw == 'appstore' || platformRaw == 'ios') {
+        platform = 'ios';
+      } else if (platformRaw == 'googleplay' || platformRaw == 'android') {
+        platform = 'android';
+      } else {
+        // If missing or unknown, try to detect from payload structure:
+        if ((payload['receipt_data'] ?? '').toString().isNotEmpty) {
+          platform = 'ios';
+        } else {
+          platform = 'android';
+        }
+      }
+
+      // Ensure we always send the platform key to backend
+      final verificationPayload = Map<String, dynamic>.from(payload);
+      verificationPayload['platform'] = platform;
+
+      // Ensure purchase token is in the field the backend expects.
+      // Many backends accept either 'purchase_token' (android) or 'receipt_data' (ios).
+      final purchaseToken =
+          verificationPayload['purchase_token'] ??
+          verificationPayload['receipt_data'] ??
+          '';
+
+      // Build request object the _iapDataProvider expects
+      final request = VerifyPurchaseRequest(
+        purchaseToken: purchaseToken,
+        productId: verificationPayload['product_id'],
+        platform: verificationPayload['platform'],
+        // keep comment: optional fields can be provided if backend accepts them
+        // packageName: verificationPayload['package_name'],
+        // orderId: verificationPayload['order_id'],
+        // transactionId: verificationPayload['transaction_id'],
+        // originalTransactionId: verificationPayload['original_transaction_id'],
+      );
+
+      final prefs = ObjectFactory().prefs;
+
+      if (kDebugMode) {
+        print('🧪 DEBUG MODE: Simulating successful verification');
+        await cacheBackendSubscriptionState(
+          isPaidUser: true,
+          subscriptionExpiryDate: DateTime.now().add(const Duration(days: 365)),
+          currentSubscriptionId: verificationPayload['product_id'] as String?,
+          trialStartDate: DateTime.now(),
+          trialEndDate: DateTime.now().add(const Duration(days: 30)),
+          isVenueUser: prefs.isLoggedIn() == true,
+        );
+
+        return {
+          'valid': true,
+          'message': 'DEBUG: Bypassed backend verification',
+          'has_active_subscription': true,
+          'is_venue_user': prefs.isLoggedIn() == true,
+          'trial_start_date': DateTime.now().toIso8601String(),
+          'trial_end_date':
+              DateTime.now().add(const Duration(days: 30)).toIso8601String(),
+          'subscription_expiry_date':
+              DateTime.now().add(const Duration(days: 365)).toIso8601String(),
+          'current_subscription_id': verificationPayload['product_id'],
+        };
+      }
+
+      // Debug logging before calling API
+      print('📤 Verifying purchase - ${verificationPayload['product_id']}');
+      print('   Platform: ${verificationPayload['platform']}');
+      print('   Purchase token length: ${purchaseToken.toString().length}');
+
+      final stateModel = await _iapDataProvider.verifyPurchase(request);
+
+      if (stateModel == null) {
+        print('❌ Repository: verifyPurchase returned null stateModel');
+        return {'valid': false, 'message': 'Verification failed'};
+      }
+
+      if (stateModel.isSuccess) {
+        final response = stateModel.data!;
+        print('✅ Purchase verified: ${response.valid}');
+
+        if (response.valid) {
+          await cacheBackendSubscriptionState(
+            isPaidUser: response.hasActiveSubscription,
+            subscriptionExpiryDate:
+                response.subscriptionExpiryDate != null
+                    ? DateTime.tryParse(response.subscriptionExpiryDate!)
+                    : null,
+            currentSubscriptionId: response.currentSubscriptionId,
+            trialStartDate:
+                response.trialStartDate != null
+                    ? DateTime.tryParse(response.trialStartDate!)
+                    : null,
+            trialEndDate:
+                response.trialEndDate != null
+                    ? DateTime.tryParse(response.trialEndDate!)
+                    : null,
+            isVenueUser: response.isVenueUser,
+          );
+
+          return {
+            'valid': true,
+            'has_active_subscription': response.hasActiveSubscription,
+            'is_venue_user': response.isVenueUser,
+            'trial_start_date': response.trialStartDate,
+            'trial_end_date': response.trialEndDate,
+            'subscription_expiry_date': response.subscriptionExpiryDate,
+            'current_subscription_id': response.currentSubscriptionId,
+          };
+        }
+
+        return {
+          'valid': false,
+          'message': response.message ?? 'Verification failed',
+        };
+      }
+
+      // not success
+      print('❌ Repository: stateModel indicate failure: ${stateModel.error}');
+      return {
+        'valid': false,
+        'message': stateModel.error ?? 'Verification failed',
+      };
+    } catch (e, st) {
+      print('❌ Repository: verifyPurchase exception: $e\n$st');
+      return {'valid': false, 'message': 'Error: ${e.toString()}'};
+    }
+  }
+
+  /* Future<Map<String, dynamic>> verifyPurchase(
   Map<String, dynamic> payload,
 ) async {
   try {
@@ -152,8 +288,7 @@ class PaymentRepository {
   } catch (e) {
     return {'valid': false, 'message': 'Error: ${e.toString()}'};
   }
-}
-
+}*/
 
   /// ========================================
   /// FETCH SUBSCRIPTION STATUS FROM BACKEND

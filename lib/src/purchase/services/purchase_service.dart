@@ -151,11 +151,7 @@ class PaymentService {
         productIds = {venueYearlyProductId, yearlyPublicProductId};
         print('📦 Loading ANDROID parent subscription IDs: $productIds');
       } else if (Platform.isIOS) {
-        productIds = {
-          yearlyPublic ,
-  monthlyPublic ,
-  yearlyVenueProductId, 
-        };
+        productIds = {yearlyPublic, monthlyPublic, yearlyVenueProductId};
         print('📦 Loading iOS product IDs: $productIds');
       } else {
         throw Exception('Unsupported platform');
@@ -365,6 +361,79 @@ class PaymentService {
 
   Map<String, dynamic> extractVerificationPayload(PurchaseDetails purchase) {
     final ver = purchase.verificationData;
+    // keep using defaultTargetPlatform as your file did originally
+    final bool isIOS = defaultTargetPlatform == TargetPlatform.iOS;
+    final bool isAndroid = defaultTargetPlatform == TargetPlatform.android;
+
+    // base payload (always include platform)
+    final String resolvedPlatform =
+        isIOS
+            ? 'ios'
+            : (isAndroid
+                ? 'android'
+                : (ver.source?.toLowerCase() ?? 'unknown'));
+
+    final Map<String, dynamic> payload = <String, dynamic>{
+      'product_id': purchase.productID,
+      'order_id': purchase.purchaseID ?? '0',
+      'transaction_date': purchase.transactionDate,
+      'status': purchase.status.toString(),
+      'platform': resolvedPlatform, // <-- IMPORTANT: backend expects this
+      'verification_data': {
+        'local_verification_data': ver.localVerificationData,
+        'server_verification_data': ver.serverVerificationData,
+        'source': ver.source,
+      },
+    };
+
+    // ---------------- ANDROID ----------------
+    if (isAndroid && purchase is GooglePlayPurchaseDetails) {
+      final billing = purchase.billingClientPurchase;
+
+      payload.addAll({
+        // platform already included above
+        'purchase_token': ver.serverVerificationData ?? '',
+        'original_json': ver.localVerificationData ?? '',
+        // keep optional additional Android fields to help backend if it needs them
+        'package_name': billing?.packageName,
+        'order_id': purchase.purchaseID ?? billing?.orderId,
+        // add signature if available in localVerificationData (some backends expect 'signature')
+        'signature': ver.localVerificationData,
+      });
+
+      return payload;
+    }
+
+    // ---------------- iOS ----------------
+    if (isIOS && purchase is AppStorePurchaseDetails) {
+      final tx = purchase.skPaymentTransaction;
+
+      payload.addAll({
+        // platform already included above
+        // many backends expect 'receipt_data' for iOS App Store receipt validation
+        'receipt_data': ver.serverVerificationData ?? '',
+        'purchase_token':
+            ver.serverVerificationData ?? '', // keep both names to be safe
+        'transaction_id': purchase.purchaseID,
+        'original_transaction_id':
+            tx?.originalTransaction?.transactionIdentifier,
+      });
+
+      return payload;
+    }
+
+    // ---------------- FALLBACK ----------------
+    payload.addAll({
+      'purchase_token':
+          ver.serverVerificationData ?? ver.localVerificationData ?? '',
+      'original_json': ver.localVerificationData ?? '',
+    });
+
+    return payload;
+  }
+
+  /*Map<String, dynamic> extractVerificationPayload(PurchaseDetails purchase) {
+    final ver = purchase.verificationData;
     final bool isIOS = defaultTargetPlatform == TargetPlatform.iOS;
     final bool isAndroid = defaultTargetPlatform == TargetPlatform.android;
 
@@ -422,7 +491,7 @@ class PaymentService {
     });
 
     return payload;
-  }
+  }*/
   // =====================================================
   // PURCHASE STREAM HANDLER
   // =====================================================
