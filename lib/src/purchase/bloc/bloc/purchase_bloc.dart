@@ -164,11 +164,227 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
   // _onLoadProducts fixed version
 
   Future<void> _onLoadProducts(
-    LoadProductsEvent event,
-    Emitter<PaymentPlanState> emit,
-  ) async {
-    try {
-      emit(state.copyWith(status: PaymentPlanStatus.loading));
+  LoadProductsEvent event,
+  Emitter<PaymentPlanState> emit,
+) async {
+  try {
+    emit(state.copyWith(status: PaymentPlanStatus.loading));
+
+    final allProducts = await paymentService.loadProducts();
+
+    if (allProducts.isEmpty) {
+      emit(
+        state.copyWith(
+          status: PaymentPlanStatus.purchaseFailed,
+          errorMessage: 'No subscription plans available.',
+        ),
+      );
+      return;
+    }
+
+    print('📦 Processing products for user type: ${state.userType}');
+    print('📦 Is venue user: ${state.isVenueUser}');
+    print('📦 Total product instances: ${allProducts.length}');
+
+    final Map<String, Map<String, dynamic>> uniqueEntries = {};
+
+    void addExpandedEntry({
+      required ProductDetails product,
+      required String? basePlanId,
+      required String? offerToken,
+      required List? pricingPhases,
+    }) {
+      final key = '${product.id}:${basePlanId ?? 'null'}';
+
+      if (!uniqueEntries.containsKey(key)) {
+        String? formattedPrice;
+        double? rawPrice;
+        String? billingPeriod;
+
+        // Extract price and billing period from pricing phases
+        if (pricingPhases != null && pricingPhases.isNotEmpty) {
+          try {
+            final phase = pricingPhases.first;
+            
+            if (phase is Map) {
+              formattedPrice = phase['formattedPrice'] as String?;
+              billingPeriod = phase['billingPeriod'] as String?;
+              final priceAmountMicros = phase['priceAmountMicros'] as int?;
+              if (priceAmountMicros != null) {
+                rawPrice = priceAmountMicros / 1000000.0;
+              }
+            } else {
+              // PricingPhaseWrapper object
+              formattedPrice = phase.formattedPrice as String;
+              billingPeriod = phase.billingPeriod as String;
+              rawPrice = phase.priceAmountMicros / 1000000.0;
+            }
+          } catch (e) {
+            print("❌ Error extracting pricing phase: $e");
+          }
+        }
+
+        uniqueEntries[key] = {
+          'product': product,
+          'basePlanId': basePlanId,
+          'offerToken': offerToken,
+          'pricingPhases': pricingPhases,
+          'formattedPrice': formattedPrice ?? product.price,
+          'rawPrice': rawPrice ?? product.rawPrice,
+          'billingPeriod': billingPeriod,
+        };
+
+        print('  ✅ Added: $key price=$formattedPrice period=$billingPeriod');
+      }
+    }
+
+    // ✅ FIXED: Platform-specific product filtering
+    if (state.isVenueUser) {
+      // Filter for venue products using platform-specific constants
+      final venueProducts = allProducts.where((p) {
+        if (Platform.isAndroid) {
+          return p.id == PaymentService.venueYearlyProductId; // "venue_yearly_plan"
+        } else {
+          return p.id == PaymentService.yearlyVenueProductId; // "venue_yearly_product"
+        }
+      }).toList();
+      
+      print('📦 Found ${venueProducts.length} venue products for ${Platform.isAndroid ? "Android" : "iOS"}');
+      
+      for (var product in venueProducts) {
+        if (Platform.isAndroid && product is GooglePlayProductDetails) {
+          final offers = product.productDetails.subscriptionOfferDetails;
+          if (offers != null) {
+            for (var offer in offers) {
+              addExpandedEntry(
+                product: product,
+                basePlanId: offer.basePlanId,
+                offerToken: offer.offerIdToken,
+                pricingPhases: offer.pricingPhases,
+              );
+            }
+          } else {
+            addExpandedEntry(
+              product: product,
+              basePlanId: null,
+              offerToken: null,
+              pricingPhases: null,
+            );
+          }
+        } else {
+          // iOS products
+          addExpandedEntry(
+            product: product,
+            basePlanId: null,
+            offerToken: null,
+            pricingPhases: null,
+          );
+        }
+      }
+    } else {
+      // ✅ FIXED: Platform-specific filtering for public products
+      final publicProducts = allProducts.where((p) {
+        if (Platform.isAndroid) {
+          return p.id == PaymentService.yearlyPublicProductId; // "public_yearly_plan"
+        } else {
+          // iOS has both yearly and monthly
+          return p.id == PaymentService.yearlyPublic ||  // "public_yearly"
+                 p.id == PaymentService.monthlyPublic;   // "public_monthly"
+        }
+      }).toList();
+
+      print('📦 Found ${publicProducts.length} public products for ${Platform.isAndroid ? "Android" : "iOS"}');
+
+      for (var product in publicProducts) {
+        if (Platform.isAndroid && product is GooglePlayProductDetails) {
+          final offers = product.productDetails.subscriptionOfferDetails;
+          if (offers != null) {
+            for (var offer in offers) {
+              addExpandedEntry(
+                product: product,
+                basePlanId: offer.basePlanId,
+                offerToken: offer.offerIdToken,
+                pricingPhases: offer.pricingPhases,
+              );
+            }
+          } else {
+            addExpandedEntry(
+              product: product,
+              basePlanId: null,
+              offerToken: null,
+              pricingPhases: null,
+            );
+          }
+        } else {
+          // iOS products
+          addExpandedEntry(
+            product: product,
+            basePlanId: null,
+            offerToken: null,
+            pricingPhases: null,
+          );
+        }
+      }
+    }
+
+    if (uniqueEntries.isEmpty) {
+      print('❌ No products matched the filter criteria!');
+      print('   User type: ${state.userType}');
+      print('   Is venue: ${state.isVenueUser}');
+      print('   Product IDs received: ${allProducts.map((p) => p.id).toList()}');
+      print('   Looking for venue: ${PaymentService.yearlyVenueProductId}');
+      print('   Looking for public: ${PaymentService.yearlyPublic}, ${PaymentService.monthlyPublic}');
+      
+      emit(
+        state.copyWith(
+          status: PaymentPlanStatus.purchaseFailed,
+          errorMessage: 'No subscription plans available.',
+        ),
+      );
+      return;
+    }
+
+    final expandedProductsList = uniqueEntries.values.toList();
+
+    print('✅ Final expanded products: ${expandedProductsList.length}');
+    for (var ep in expandedProductsList) {
+      final prod = ep['product'] as ProductDetails;
+      final basePlan = ep['basePlanId'];
+      final price = ep['formattedPrice'];
+      print('   ${prod.id}:$basePlan ($price)');
+    }
+
+    // Keep unique ProductDetails
+    final uniqueProducts = <String, ProductDetails>{};
+    for (var entry in expandedProductsList) {
+      final product = entry['product'] as ProductDetails;
+      uniqueProducts[product.id] = product;
+    }
+
+    emit(
+      state.copyWith(
+        status: PaymentPlanStatus.productsLoaded,
+        products: uniqueProducts.values.toList(),
+        expandedProducts: expandedProductsList,
+      ),
+    );
+  } catch (e, st) {
+    print('❌ Error loading products: $e\n$st');
+    emit(
+      state.copyWith(
+        status: PaymentPlanStatus.purchaseFailed,
+        errorMessage: 'Failed to load plans: ${e.toString()}',
+      ),
+    );
+  }
+}
+
+/*Future<void> _onLoadProducts(
+  LoadProductsEvent event,
+  Emitter<PaymentPlanState> emit,
+) async {
+  try {
+    emit(state.copyWith(status: PaymentPlanStatus.loading));
 
       final allProducts = await paymentService.loadProducts();
 
@@ -338,23 +554,23 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         uniqueProducts[product.id] = product;
       }
 
-      emit(
-        state.copyWith(
-          status: PaymentPlanStatus.productsLoaded,
-          products: uniqueProducts.values.toList(),
-          expandedProducts: expandedProductsList,
-        ),
-      );
-    } catch (e, st) {
-      print('❌ Error loading products: $e\n$st');
-      emit(
-        state.copyWith(
-          status: PaymentPlanStatus.purchaseFailed,
-          errorMessage: 'Failed to load plans: ${e.toString()}',
-        ),
-      );
-    }
+    emit(
+      state.copyWith(
+        status: PaymentPlanStatus.productsLoaded,
+        products: uniqueProducts.values.toList(),
+        expandedProducts: expandedProductsList,
+      ),
+    );
+  } catch (e, st) {
+    print('❌ Error loading products: $e\n$st');
+    emit(
+      state.copyWith(
+        status: PaymentPlanStatus.purchaseFailed,
+        errorMessage: 'Failed to load plans: ${e.toString()}',
+      ),
+    );
   }
+}*/
 
   void _onSelectPlan(SelectPlanEvent event, Emitter<PaymentPlanState> emit) {
     print('✅ Selecting plan:');
