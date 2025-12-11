@@ -221,22 +221,23 @@ class _ExpandableCardState extends State<ExpandableCard> {
                           ? card.description!
                           : (card.description ?? 'No description available'),
                       style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                            color: AppColors.shadowColor,
-                            fontWeight: FontWeight.w400,
-                            fontSize: 11.sp,
-                          ),
+                        color: AppColors.shadowColor,
+                        fontWeight: FontWeight.w400,
+                        fontSize: 11.sp,
+                      ),
                       softWrap: true,
                     ),
                   ),
                   const SizedBox(width: 8),
                   GestureDetector(
-                    onTap: card.selectedDays.isNotEmpty
-                        ? null
-                        : () {
-                            context.read<HomeBloc>().add(
-                                  ToggleCheckEvent(widget.index),
-                                );
-                          },
+                    onTap:
+                        card.selectedDays.isNotEmpty
+                            ? null
+                            : () {
+                              context.read<HomeBloc>().add(
+                                ToggleCheckEvent(widget.index),
+                              );
+                            },
                     child: Container(
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
@@ -250,7 +251,10 @@ class _ExpandableCardState extends State<ExpandableCard> {
                       child: Icon(
                         Icons.check,
                         size: 17,
-                        color: card.isSelected ? AppColors.primary : Colors.transparent,
+                        color:
+                            card.isSelected
+                                ? AppColors.primary
+                                : Colors.transparent,
                       ),
                     ),
                   ),
@@ -265,60 +269,68 @@ class _ExpandableCardState extends State<ExpandableCard> {
                     children: [
                       card.isSelected && selectedDays.isNotEmpty
                           ? Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: (() {
-                                final dayOrder = {
-                                  'mon': 1,
-                                  'tue': 2,
-                                  'wed': 3,
-                                  'thu': 4,
-                                  'fri': 5,
-                                  'sat': 6,
-                                  'sun': 7,
-                                };
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children:
+                                (() {
+                                  final dayOrder = {
+                                    'mon': 1,
+                                    'tue': 2,
+                                    'wed': 3,
+                                    'thu': 4,
+                                    'fri': 5,
+                                    'sat': 6,
+                                    'sun': 7,
+                                  };
 
-                                final sortedDays = [...selectedDays]..sort((a, b) {
-                                  final orderA = dayOrder[a.day?.toLowerCase() ?? ''] ?? 99;
-                                  final orderB = dayOrder[b.day?.toLowerCase() ?? ''] ?? 99;
-                                  return orderA.compareTo(orderB);
-                                });
+                                  final sortedDays = [...selectedDays]..sort((
+                                    a,
+                                    b,
+                                  ) {
+                                    final orderA =
+                                        dayOrder[a.day?.toLowerCase() ?? ''] ??
+                                        99;
+                                    final orderB =
+                                        dayOrder[b.day?.toLowerCase() ?? ''] ??
+                                        99;
+                                    return orderA.compareTo(orderB);
+                                  });
 
-                                List<Widget> displayWidgets = [];
+                                  List<Widget> displayWidgets = [];
 
-                                for (var d in sortedDays) {
-                                  final timings = d.timings ?? [];
-                                  for (var t in timings) {
-                                    displayWidgets.add(
-                                      Text(
-                                        "${capitalizeFirstLetter(d.day ?? '')}: ${_formatTime(t.open)} - ${_formatTime(t.close)}",
-                                        style: GoogleFonts.roboto(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w600,
-                                          color: AppColors.shadowColor,
+                                  for (var d in sortedDays) {
+                                    final timings = d.timings ?? [];
+                                    for (var t in timings) {
+                                      displayWidgets.add(
+                                        Text(
+                                          "${capitalizeFirstLetter(d.day ?? '')}: ${_formatTime(t.open)} - ${_formatTime(t.close)}",
+                                          style: GoogleFonts.roboto(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppColors.shadowColor,
+                                          ),
                                         ),
-                                      ),
-                                    );
+                                      );
+                                    }
                                   }
-                                }
 
-                                if (displayWidgets.isEmpty) {
-                                  return [const SizedBox.shrink()];
-                                }
+                                  if (displayWidgets.isEmpty) {
+                                    return [const SizedBox.shrink()];
+                                  }
 
-                                return [
-                                  Text(
-                                    'Available',
-                                    style: GoogleFonts.roboto(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.primary,
+                                  return [
+                                    Text(
+                                      'Available',
+                                      style: GoogleFonts.roboto(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.primary,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  ...displayWidgets,
-                                ];
-                              })(),
-                            )
+                                    const SizedBox(height: 4),
+                                    ...displayWidgets,
+                                  ];
+                                })(),
+                          )
                           : const SizedBox.shrink(),
                     ],
                   ),
@@ -331,15 +343,19 @@ class _ExpandableCardState extends State<ExpandableCard> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       // Gated View Attendees button
-                      if (widget.card.hasBookings && widget.card.attendees.isNotEmpty)
+                      if (widget.card.hasBookings &&
+                          widget.card.attendees.isNotEmpty)
                         BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
                           builder: (context, paymentState) {
-                            // A venue user needs to upgrade only if they do NOT have access to premium features.
-                            // final needsUpgrade = paymentState.isVenueUser &&
-                            //     !paymentState.canAccessPremiumFeatures;
-                            // final needsUpgrade = !paymentState.canAccessPremiumFeatures;
-                            final needsUpgrade = !paymentState.premiumOverride;
-                            
+                            // ✅ Log debug info when building
+                            print(paymentState.debugPremiumAccess());
+                            // 🔑 KEY FIX: Premium users should NOT need upgrade
+                            final bool hasPremiumAccess =
+                                paymentState.premiumOverride ||
+                                paymentState.canAccessPremiumFeatures;
+
+                            final bool needsUpgrade = !hasPremiumAccess;
+
                             return InkWell(
                               onTap: () {
                                 if (needsUpgrade) {
@@ -353,18 +369,28 @@ class _ExpandableCardState extends State<ExpandableCard> {
                                       tableId: widget.card.id,
                                       tableTypeName: widget.card.title,
                                       attendees: widget.card.attendees,
-                                      bookingDate: widget.card.attendees.first.bookingDate?.toString(),
+                                      bookingDate:
+                                          widget
+                                              .card
+                                              .attendees
+                                              .first
+                                              .bookingDate
+                                              ?.toString(),
                                     ),
                                   );
                                 }
                               },
                               borderRadius: BorderRadius.circular(20),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 14),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
+                                  horizontal: 14,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: needsUpgrade 
-                                      ? AppColors.textPrimaryGrey 
-                                      : AppColors.primary,
+                                  color:
+                                      needsUpgrade
+                                          ? AppColors.textPrimaryGrey
+                                          : AppColors.primary,
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Row(
@@ -372,7 +398,9 @@ class _ExpandableCardState extends State<ExpandableCard> {
                                   children: [
                                     if (needsUpgrade)
                                       Padding(
-                                        padding: const EdgeInsets.only(right: 6),
+                                        padding: const EdgeInsets.only(
+                                          right: 6,
+                                        ),
                                         child: Icon(
                                           Icons.lock_outline,
                                           size: 14,
@@ -399,25 +427,33 @@ class _ExpandableCardState extends State<ExpandableCard> {
                       // Gated Edit button
                       BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
                         builder: (context, paymentState) {
-                          // A venue user needs to upgrade only if they do NOT have access to premium features.
-                          // final needsUpgrade = paymentState.isVenueUser &&
-                          //     !paymentState.canAccessPremiumFeatures;
-                          final needsUpgrade = !paymentState.premiumOverride;
-                          
+                          // ✅ Log debug info when building
+                          print(paymentState.debugPremiumAccess());
+                          // 🔑 KEY FIX: Premium users should NOT need upgrade
+                          final bool hasPremiumAccess =
+                              paymentState.premiumOverride ||
+                              paymentState.canAccessPremiumFeatures;
+
+                          final bool needsUpgrade = !hasPremiumAccess;
+
                           return ElevatedButton.icon(
                             style: ElevatedButton.styleFrom(
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(13),
                                 side: BorderSide(
-                                  color: needsUpgrade 
-                                      ? AppColors.textPrimaryGrey 
-                                      : const Color(0xFF5B6369),
+                                  color:
+                                      needsUpgrade
+                                          ? AppColors.textPrimaryGrey
+                                          : const Color(0xFF5B6369),
                                   width: 1,
                                 ),
                               ),
-                              backgroundColor: needsUpgrade 
-                                  ? AppColors.textPrimaryGrey.withOpacity(0.1) 
-                                  : null,
+                              backgroundColor:
+                                  needsUpgrade
+                                      ? AppColors.textPrimaryGrey.withOpacity(
+                                        0.1,
+                                      )
+                                      : null,
                             ),
                             onPressed: () {
                               if (needsUpgrade) {
@@ -434,17 +470,19 @@ class _ExpandableCardState extends State<ExpandableCard> {
                               'Edit',
                               style: TextStyle(
                                 fontSize: 9,
-                                color: needsUpgrade 
-                                    ? AppColors.textPrimaryGrey 
-                                    : const Color(0xFF5B6369),
+                                color:
+                                    needsUpgrade
+                                        ? AppColors.textPrimaryGrey
+                                        : const Color(0xFF5B6369),
                               ),
                             ),
                             icon: Icon(
                               needsUpgrade ? Icons.lock_outline : Icons.edit,
                               size: 15,
-                              color: needsUpgrade 
-                                  ? AppColors.textPrimaryGrey 
-                                  : const Color(0xFF5B6369),
+                              color:
+                                  needsUpgrade
+                                      ? AppColors.textPrimaryGrey
+                                      : const Color(0xFF5B6369),
                             ),
                           );
                         },
@@ -459,10 +497,10 @@ class _ExpandableCardState extends State<ExpandableCard> {
                     TextField(
                       key: ValueKey('promoTextField_${card.id}'),
                       style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-                            color: AppColors.timeTextColor,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
-                          ),
+                        color: AppColors.timeTextColor,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
                       controller: _promoController,
                       maxLines: 5,
                       keyboardType: TextInputType.text,
@@ -489,8 +527,8 @@ class _ExpandableCardState extends State<ExpandableCard> {
                             onChanged: (days) {
                               setState(() => selectedDays = days);
                               context.read<HomeBloc>().add(
-                                    UpdateSelectedDaysEvent(widget.index, days),
-                                  );
+                                UpdateSelectedDaysEvent(widget.index, days),
+                              );
                             },
                           );
                         }
@@ -569,11 +607,15 @@ class _ExpandableCardState extends State<ExpandableCard> {
 
     return BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
       builder: (context, paymentState) {
-        // A venue user needs to upgrade only if they do NOT have access to premium features.
-        final needsUpgrade = paymentState.premiumOverride;
-        // paymentState.isVenueUser &&
-        //     !paymentState.canAccessPremiumFeatures;
-        
+        // ✅ Log debug info when building
+        print(paymentState.debugPremiumAccess());
+        // 🔑 KEY FIX: Premium users should NOT need upgrade
+        final bool hasPremiumAccess =
+            paymentState.premiumOverride ||
+            paymentState.canAccessPremiumFeatures;
+
+        final bool needsUpgrade = !hasPremiumAccess;
+
         return InkWell(
           onTap: () {
             if (needsUpgrade) {
@@ -595,15 +637,15 @@ class _ExpandableCardState extends State<ExpandableCard> {
             height: 26.h,
             padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 9),
             decoration: BoxDecoration(
-              color: needsUpgrade 
-                  ? AppColors.textPrimaryGrey 
-                  : AppColors.primary,
+              color:
+                  needsUpgrade ? AppColors.textPrimaryGrey : AppColors.primary,
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: needsUpgrade 
-                      ? AppColors.textPrimaryGrey 
-                      : AppColors.primary,
+                  color:
+                      needsUpgrade
+                          ? AppColors.textPrimaryGrey
+                          : AppColors.primary,
                   blurRadius: 1,
                   offset: const Offset(0, 3),
                 ),

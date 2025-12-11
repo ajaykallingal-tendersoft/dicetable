@@ -28,6 +28,7 @@ class PaymentRepository {
   // NEW: Keys to store the latest purchase token/platform for status requests
   static const String _latestPurchaseTokenKey = 'latest_purchase_token';
   static const String _latestPurchasePlatformKey = 'latest_purchase_platform';
+  static const String _premiumOverrideKey = 'premium_override';
 
   String _currentUserScope() {
     final prefs = ObjectFactory().prefs;
@@ -60,251 +61,288 @@ class PaymentRepository {
   ///
   // Updated verifyPurchase method in PaymentRepository
 
- Future<Map<String, dynamic>> verifyPurchase(
-  Map<String, dynamic> payload,
-) async {
-  try {
-    print('🔍 Repository: Verifying purchase payload: $payload');
-    
-    // Normalize platform field
-    final platformRaw = (payload['platform']?.toString() ?? '').toLowerCase();
-    String platform;
-    if (platformRaw == 'appstore' || platformRaw == 'ios') {
-      platform = 'ios';
-    } else if (platformRaw == 'googleplay' || platformRaw == 'android') {
-      platform = 'android';
-    } else {
-      if ((payload['receipt_data'] ?? '').toString().isNotEmpty) {
+  Future<Map<String, dynamic>> verifyPurchase(
+    Map<String, dynamic> payload,
+  ) async {
+    try {
+      print('🔍 Repository: Verifying purchase payload: $payload');
+
+      // Normalize platform field
+      final platformRaw = (payload['platform']?.toString() ?? '').toLowerCase();
+      String platform;
+      if (platformRaw == 'appstore' || platformRaw == 'ios') {
         platform = 'ios';
-      } else {
+      } else if (platformRaw == 'googleplay' || platformRaw == 'android') {
         platform = 'android';
+      } else {
+        if ((payload['receipt_data'] ?? '').toString().isNotEmpty) {
+          platform = 'ios';
+        } else {
+          platform = 'android';
+        }
       }
-    }
 
-    final verificationPayload = Map<String, dynamic>.from(payload);
-    verificationPayload['platform'] = platform;
-    
-    final purchaseToken =
-        verificationPayload['purchase_token'] ??
-        verificationPayload['receipt_data'] ??
-        '';
-    
-    final productId = verificationPayload['product_id'] as String?;
-    
-    final request = VerifyPurchaseRequest(
-      purchaseToken: purchaseToken,
-      productId: productId,
-      platform: platform,
-    );
-    
-    final prefs = ObjectFactory().prefs;
+      final verificationPayload = Map<String, dynamic>.from(payload);
+      verificationPayload['platform'] = platform;
 
-    // ✅ DEBUG MODE SIMULATION
-    if (kDebugMode) {
-      print('🧪 DEBUG MODE: Simulating successful verification');
-      
-      final isVenueUser = prefs.isLoggedIn() == true;
-      final trialStart = DateTime.now();
-      final trialEnd = DateTime.now().add(const Duration(minutes: 30));
-      final subscriptionExpiry = DateTime.now().add(const Duration(days: 365));
-      
-      await cacheBackendSubscriptionState(
-        isPaidUser: true,
-        subscriptionExpiryDate: subscriptionExpiry,
-        currentSubscriptionId: productId,
-        trialStartDate: trialStart,
-        trialEndDate: trialEnd,
-        isVenueUser: isVenueUser,
-      );
-      
-      await cacheLatestPurchaseDetails(
-        purchaseToken: 'FAKE_TOKEN',
+      final purchaseToken =
+          verificationPayload['purchase_token'] ??
+          verificationPayload['receipt_data'] ??
+          '';
+
+      final productId = verificationPayload['product_id'] as String?;
+
+      final request = VerifyPurchaseRequest(
+        purchaseToken: purchaseToken,
+        productId: productId,
         platform: platform,
       );
-      
-      return {
-        'valid': true,
-        'message': 'DEBUG: Bypassed backend verification',
-        'has_active_subscription': true,
-        'is_venue_user': isVenueUser,
-        'trial_start_date': trialStart.toIso8601String(),
-        'trial_end_date': trialEnd.toIso8601String(),
-        'subscription_expiry_date': subscriptionExpiry.toIso8601String(),
-        'current_subscription_id': productId,
-      };
-    }
 
-    print('📤 Verifying purchase - $productId');
-    print('   Platform: $platform');
-    print('   Purchase token length: ${purchaseToken.toString().length}');
+      final prefs = ObjectFactory().prefs;
 
-    // ✅ CALL API
-    final stateModel = await _iapDataProvider.verifyPurchase(request);
-    
-    if (stateModel == null) {
-      print('❌ Repository: verifyPurchase returned null stateModel');
-      return {'valid': false, 'message': 'Verification failed'};
-    }
+      // ✅ DEBUG MODE SIMULATION
+      if (kDebugMode) {
+        print('🧪 DEBUG MODE: Simulating successful verification');
 
-    if (stateModel.isSuccess) {
-      final response = stateModel.data!;
-      print('✅ Purchase verification response received');
-      print('   Success: ${response.success}');
-      print('   Message: ${response.message}');
-      
-      // ✅ Treat "already verified" as success
-      final isAlreadyVerified =
-          response.message?.toLowerCase().contains('already verified') ??
-          false;
-
-      if (response.valid || isAlreadyVerified) {
-        print(
-          '✅ Verification successful ${isAlreadyVerified ? "(already verified)" : ""}',
+        final isVenueUser = prefs.isLoggedIn() == true;
+        final trialStart = DateTime.now();
+        final trialEnd = DateTime.now().add(const Duration(minutes: 30));
+        final subscriptionExpiry = DateTime.now().add(
+          const Duration(days: 365),
         );
-        
-        // ✅ CRITICAL: Extract data from verificationData
-        final verificationData = response.verificationData;
-        
-        if (verificationData == null) {
-          print('⚠️ Missing verification_data in response');
-          return {'valid': false, 'message': 'Invalid response format'};
-        }
 
-        // Determine subscription status from verification_data
-        final subscriptionState = verificationData.subscriptionState?.toUpperCase() ?? '';
-        final hasActiveSubscription = subscriptionState == 'SUBSCRIPTION_STATE_ACTIVE';
-        
-        // Determine if venue user from product ID
-        final responseProductId = verificationData.productId ?? productId ?? '';
-        final isVenueUser = responseProductId.toLowerCase().contains('venue');
-        
-        print('   Has active subscription: $hasActiveSubscription');
-        print('   Is venue user: $isVenueUser');
-        print('   Product ID: $responseProductId');
-        print('   Subscription state: $subscriptionState');
+        await cacheBackendSubscriptionState(
+          isPaidUser: true,
+          subscriptionExpiryDate: subscriptionExpiry,
+          currentSubscriptionId: productId,
+          trialStartDate: trialStart,
+          trialEndDate: trialEnd,
+          isVenueUser: isVenueUser,
+        );
 
-        // ✅ Cache the token and platform for future status requests
         await cacheLatestPurchaseDetails(
-          purchaseToken: purchaseToken,
+          purchaseToken: 'FAKE_TOKEN',
           platform: platform,
         );
 
-        // Parse dates from verification data
-        DateTime? subscriptionExpiryDate;
-        DateTime? trialStartDate;
-        DateTime? trialEndDate;
-
-        // Parse expiry_time (subscription end date)
-        if (verificationData.expiryTime != null) {
-          try {
-            subscriptionExpiryDate = DateTime.parse(
-              _fixDateFormat(verificationData.expiryTime!),
-            );
-            print('   Subscription expiry: $subscriptionExpiryDate');
-          } catch (e) {
-            print('⚠️ Failed to parse expiry date: $e');
-          }
-        }
-
-        // Parse start_time (subscription start date)
-        if (verificationData.startTime != null) {
-          try {
-            trialStartDate = DateTime.parse(
-              _fixDateFormat(verificationData.startTime!),
-            );
-            print('   Subscription start: $trialStartDate');
-          } catch (e) {
-            print('⚠️ Failed to parse start date: $e');
-          }
-        }
-
-        // ✅ For venue users: Check if they're in a trial period OR have active subscription
-        // The backend returns actual subscription validity period in start_time/expiry_time
-        // For test accounts, this could be 30 minutes; for real accounts, it's 1 year
-        if (isVenueUser && trialStartDate != null && subscriptionExpiryDate != null) {
-          final now = DateTime.now();
-          final isActive = now.isBefore(subscriptionExpiryDate);
-          
-          if (isActive) {
-            final duration = subscriptionExpiryDate.difference(trialStartDate);
-            print('   Subscription duration: ${duration.inDays} days (${duration.inMinutes} minutes)');
-            print('   Subscription is ACTIVE');
-            
-            // Set trial end date to subscription expiry for venue users
-            // This handles both trial and full subscription periods
-            trialEndDate = subscriptionExpiryDate;
-          } else {
-            print('   Subscription EXPIRED');
-            trialEndDate = null;
-          }
-        }
-
-        // ✅ Cache the subscription state with correct data
-        await cacheBackendSubscriptionState(
-          isPaidUser: hasActiveSubscription,
-          subscriptionExpiryDate: subscriptionExpiryDate,
-          currentSubscriptionId: responseProductId,
-          trialStartDate: trialStartDate,
-          trialEndDate: trialEndDate,
-          isVenueUser: isVenueUser,
-        );
-        
-        // ✅ Return all necessary fields for the BLoC
         return {
           'valid': true,
-          'has_active_subscription': hasActiveSubscription,
+          'message': 'DEBUG: Bypassed backend verification',
+          'has_active_subscription': true,
           'is_venue_user': isVenueUser,
-          'trial_start_date': verificationData.startTime,
-          'trial_end_date': verificationData.expiryTime, // For venue, this is subscription expiry
-          'subscription_expiry_date': verificationData.expiryTime,
-          'current_subscription_id': responseProductId,
-          'in_trial': isVenueUser && trialStartDate != null && trialEndDate != null,
+          'trial_start_date': trialStart.toIso8601String(),
+          'trial_end_date': trialEnd.toIso8601String(),
+          'subscription_expiry_date': subscriptionExpiry.toIso8601String(),
+          'current_subscription_id': productId,
         };
       }
 
-      return {
-        'valid': false,
-        'message': response.message ?? 'Verification failed',
-      };
-    }
+      print('📤 Verifying purchase - $productId');
+      print('   Platform: $platform');
+      print('   Purchase token length: ${purchaseToken.toString().length}');
 
-    // Not success
-    print('❌ Repository: stateModel indicates failure: ${stateModel.error}');
-    
-    // Check if error contains "already verified" or duplicate constraint
-    final errorMessage = stateModel.error ?? '';
-    if (errorMessage.contains('already verified') ||
-        errorMessage.contains('Duplicate entry') ||
-        errorMessage.contains('purchases_purchase_token_unique')) {
-      print(
-        'ℹ️ Duplicate/Already verified error - returning success',
-      );
-      return {'valid': true, 'message': 'Purchase already verified'};
-    }
+      // ✅ CALL API
+      final stateModel = await _iapDataProvider.verifyPurchase(request);
 
-    return {'valid': false, 'message': errorMessage};
-  } catch (e, st) {
-    print('❌ Repository: verifyPurchase exception: $e\n$st');
-    
-    // Check exception message for duplicate/already verified
-    final errorMessage = e.toString();
-    if (errorMessage.contains('already verified') ||
-        errorMessage.contains('Duplicate entry') ||
-        errorMessage.contains('purchases_purchase_token_unique')) {
-      print('ℹ️ Exception indicates duplicate - treating as success');
-      return {'valid': true, 'message': 'Purchase already verified'};
-    }
+      if (stateModel == null) {
+        print('❌ Repository: verifyPurchase returned null stateModel');
+        return {'valid': false, 'message': 'Verification failed'};
+      }
 
-    return {'valid': false, 'message': 'Error: ${e.toString()}'};
+      if (stateModel.isSuccess) {
+        final response = stateModel.data!;
+        print('✅ Purchase verification response received');
+        print('   Success: ${response.success}');
+        print('   Message: ${response.message}');
+
+        // ✅ Treat "already verified" as success
+        final isAlreadyVerified =
+            response.message?.toLowerCase().contains('already verified') ??
+            false;
+
+        if (response.valid || isAlreadyVerified) {
+          print(
+            '✅ Verification successful ${isAlreadyVerified ? "(already verified)" : ""}',
+          );
+
+          // ✅ CRITICAL: Extract data from verificationData
+          final verificationData = response.verificationData;
+
+          // ✅ FIX: If already verified but no verification_data, use cached data
+          if (verificationData == null) {
+            print(
+              '⚠️ Missing verification_data in response (already verified)',
+            );
+            print('📖 Using cached subscription data instead');
+
+            // Get cached data
+            final cachedData = await getUserSubscriptionData();
+
+            // Return success with cached data + premiumOverride
+            return {
+              'valid': true,
+              'message': 'Purchase already verified (using cache)',
+              'has_active_subscription':
+                  cachedData['isPremium'] as bool? ?? true,
+              'is_venue_user':
+                  (cachedData['userType'] as UserType?) == UserType.venuePaid ||
+                  (cachedData['userType'] as UserType?) == UserType.venueTrial,
+              'trial_start_date': cachedData['trialStartDate']?.toString(),
+              'trial_end_date': cachedData['trialEndDate']?.toString(),
+              'subscription_expiry_date':
+                  cachedData['subscriptionExpiryDate']?.toString(),
+              'current_subscription_id':
+                  cachedData['currentSubscriptionId'] as String?,
+              'premium_override': true, // ✅ Force premium access
+            };
+          }
+
+          // Determine subscription status from verification_data
+          final subscriptionState =
+              verificationData.subscriptionState?.toUpperCase() ?? '';
+          final hasActiveSubscription =
+              subscriptionState == 'SUBSCRIPTION_STATE_ACTIVE';
+
+          // Determine if venue user from product ID
+          final responseProductId =
+              verificationData.productId ?? productId ?? '';
+          final isVenueUser = responseProductId.toLowerCase().contains('venue');
+
+          print('   Has active subscription: $hasActiveSubscription');
+          print('   Is venue user: $isVenueUser');
+          print('   Product ID: $responseProductId');
+          print('   Subscription state: $subscriptionState');
+
+          // ✅ Cache the token and platform for future status requests
+          await cacheLatestPurchaseDetails(
+            purchaseToken: purchaseToken,
+            platform: platform,
+          );
+
+          // Parse dates from verification data
+          DateTime? subscriptionExpiryDate;
+          DateTime? trialStartDate;
+          DateTime? trialEndDate;
+
+          // Parse expiry_time (subscription end date)
+          if (verificationData.expiryTime != null) {
+            try {
+              subscriptionExpiryDate = DateTime.parse(
+                _fixDateFormat(verificationData.expiryTime!),
+              );
+              print('   Subscription expiry: $subscriptionExpiryDate');
+            } catch (e) {
+              print('⚠️ Failed to parse expiry date: $e');
+            }
+          }
+
+          // Parse start_time (subscription start date)
+          if (verificationData.startTime != null) {
+            try {
+              trialStartDate = DateTime.parse(
+                _fixDateFormat(verificationData.startTime!),
+              );
+              print('   Subscription start: $trialStartDate');
+            } catch (e) {
+              print('⚠️ Failed to parse start date: $e');
+            }
+          }
+
+          // ✅ For venue users: Check if they're in a trial period OR have active subscription
+          // The backend returns actual subscription validity period in start_time/expiry_time
+          // For test accounts, this could be 30 minutes; for real accounts, it's 1 year
+          if (isVenueUser &&
+              trialStartDate != null &&
+              subscriptionExpiryDate != null) {
+            final now = DateTime.now();
+            final isActive = now.isBefore(subscriptionExpiryDate);
+
+            if (isActive) {
+              final duration = subscriptionExpiryDate.difference(
+                trialStartDate,
+              );
+              print(
+                '   Subscription duration: ${duration.inDays} days (${duration.inMinutes} minutes)',
+              );
+              print('   Subscription is ACTIVE');
+
+              // Set trial end date to subscription expiry for venue users
+              // This handles both trial and full subscription periods
+              trialEndDate = subscriptionExpiryDate;
+            } else {
+              print('   Subscription EXPIRED');
+              trialEndDate = null;
+            }
+          }
+
+          // ✅ Cache the subscription state with correct data
+          await cacheBackendSubscriptionState(
+            isPaidUser: hasActiveSubscription,
+            subscriptionExpiryDate: subscriptionExpiryDate,
+            currentSubscriptionId: responseProductId,
+            trialStartDate: trialStartDate,
+            trialEndDate: trialEndDate,
+            isVenueUser: isVenueUser,
+            premiumOverride: true,
+          );
+
+          // ✅ Return all necessary fields for the BLoC
+          return {
+            'valid': true,
+            'has_active_subscription': hasActiveSubscription,
+            'is_venue_user': isVenueUser,
+            'trial_start_date': verificationData.startTime,
+            'trial_end_date':
+                verificationData
+                    .expiryTime, // For venue, this is subscription expiry
+            'subscription_expiry_date': verificationData.expiryTime,
+            'current_subscription_id': responseProductId,
+            'in_trial':
+                isVenueUser && trialStartDate != null && trialEndDate != null,
+          };
+        }
+
+        return {
+          'valid': false,
+          'message': response.message ?? 'Verification failed',
+        };
+      }
+
+      // Not success
+      print('❌ Repository: stateModel indicates failure: ${stateModel.error}');
+
+      // Check if error contains "already verified" or duplicate constraint
+      final errorMessage = stateModel.error ?? '';
+      if (errorMessage.contains('already verified') ||
+          errorMessage.contains('Duplicate entry') ||
+          errorMessage.contains('purchases_purchase_token_unique')) {
+        print('ℹ️ Duplicate/Already verified error - returning success');
+        return {'valid': true, 'message': 'Purchase already verified'};
+      }
+
+      return {'valid': false, 'message': errorMessage};
+    } catch (e, st) {
+      print('❌ Repository: verifyPurchase exception: $e\n$st');
+
+      // Check exception message for duplicate/already verified
+      final errorMessage = e.toString();
+      if (errorMessage.contains('already verified') ||
+          errorMessage.contains('Duplicate entry') ||
+          errorMessage.contains('purchases_purchase_token_unique')) {
+        print('ℹ️ Exception indicates duplicate - treating as success');
+        return {'valid': true, 'message': 'Purchase already verified'};
+      }
+
+      return {'valid': false, 'message': 'Error: ${e.toString()}'};
+    }
   }
-}
 
-String _fixDateFormat(String input) {
-  if (input.contains(' ') && !input.contains('T')) {
-    return input.replaceFirst(' ', 'T');
+  String _fixDateFormat(String input) {
+    if (input.contains(' ') && !input.contains('T')) {
+      return input.replaceFirst(' ', 'T');
+    }
+    return input;
   }
-  return input;
-}
 
   /// ========================================
   /// FETCH SUBSCRIPTION STATUS FROM BACKEND
@@ -443,6 +481,7 @@ String _fixDateFormat(String input) {
     DateTime? trialStartDate,
     DateTime? trialEndDate,
     String? currentSubscriptionId,
+    bool? premiumOverride,
   }) async {
     final prefs = await SharedPreferences.getInstance();
     final hasActiveSubscription = isPaidUser || subscriptionStatus == true;
@@ -455,6 +494,12 @@ String _fixDateFormat(String input) {
                 : UserType.publicFree);
     await prefs.setBool(_scopedKey(_isPremiumKey), hasActiveSubscription);
     await prefs.setString(_scopedKey(_userTypeKey), resolvedUserType.name);
+
+    // ✅ Store premiumOverride flag
+    if (premiumOverride != null) {
+      await prefs.setBool(_scopedKey(_premiumOverrideKey), premiumOverride);
+      print('💾 Cached premiumOverride: $premiumOverride');
+    }
 
     if (subscriptionExpiryDate != null) {
       await prefs.setString(
@@ -504,6 +549,9 @@ String _fixDateFormat(String input) {
           ObjectFactory().prefs.isCustomerLoggedIn() == true;
       final userTypeStr = prefs.getString(_scopedKey(_userTypeKey));
       bool isPremium = prefs.getBool(_scopedKey(_isPremiumKey)) ?? false;
+
+      bool premiumOverride =
+          prefs.getBool(_scopedKey(_premiumOverrideKey)) ?? false;
       final currentSubscriptionId = prefs.getString(
         _scopedKey(_currentSubscriptionIdKey),
       );
@@ -519,42 +567,67 @@ String _fixDateFormat(String input) {
       final subscriptionExpiryStr = prefs.getString(
         _scopedKey(_subscriptionExpiryKey),
       );
-      DateTime? trialStartDate =
-          trialStartStr != null ? DateTime.parse(trialStartStr) : null;
-      DateTime? trialEndDate =
-          trialEndStr != null ? DateTime.parse(trialEndStr) : null;
-      DateTime? subscriptionExpiryDate =
-          subscriptionExpiryStr != null
-              ? DateTime.parse(subscriptionExpiryStr)
-              : null;
+      // DateTime? trialStartDate =
+      //     trialStartStr != null ? DateTime.parse(trialStartStr) : null;
+      // DateTime? trialEndDate =
+      //     trialEndStr != null ? DateTime.parse(trialEndStr) : null;
+      // DateTime? subscriptionExpiryDate =
+      //     subscriptionExpiryStr != null
+      //         ? DateTime.parse(subscriptionExpiryStr)
+      //         : null;
+      // ✅ Use safe parsing
+      DateTime? trialStartDate = _safeParseDateTimeFromBackend(trialStartStr);
+      DateTime? trialEndDate = _safeParseDateTimeFromBackend(trialEndStr);
+      DateTime? subscriptionExpiryDate = _safeParseDateTimeFromBackend(
+        subscriptionExpiryStr,
+      );
 
       bool subscriptionExpired = false;
       if (subscriptionExpiryDate != null) {
         subscriptionExpired = DateTime.now().isAfter(subscriptionExpiryDate);
         if (subscriptionExpired) {
+          // ⚠️ IMPORTANT: Do NOT clear premiumOverride here!
+          // premiumOverride is set by backend verification and should persist
+          // even if local expiry date suggests subscription expired.
+          // This is critical for test subscriptions (30 min expiry) and
+          // ensures access is only revoked by explicit backend rejection.
           await prefs.setBool(_scopedKey(_isPremiumKey), false);
           isPremium = false;
+          // premiumOverride stays as-is (not cleared)
         }
       }
 
       bool trialExpired = false;
       if (trialEndDate != null) {
         trialExpired = DateTime.now().isAfter(trialEndDate);
+        if (trialExpired) {
+          print('⚠️ Trial period expired');
+        }
       }
 
       UserType userType;
 
       if (isVenueLoggedIn) {
-        final hasActiveSubscription =
-            isPremium && subscriptionExpiryDate != null && !subscriptionExpired;
-        final isInTrial = trialEndDate != null && !trialExpired;
-
-        if (hasActiveSubscription) {
+        // ✅ CRITICAL FIX: Check premiumOverride first
+        if (premiumOverride) {
+          // If premiumOverride is set, user has premium access
           userType = UserType.venuePaid;
-        } else if (isInTrial) {
-          userType = UserType.venueTrial;
+          isPremium = true; // Ensure isPremium is also true
+          print('✅ Premium override active - granting venuePaid status');
         } else {
-          userType = UserType.venueTrial;
+          final hasActiveSubscription =
+              isPremium &&
+              subscriptionExpiryDate != null &&
+              !subscriptionExpired;
+          final isInTrial = trialEndDate != null && !trialExpired;
+
+          if (hasActiveSubscription) {
+            userType = UserType.venuePaid;
+          } else if (isInTrial) {
+            userType = UserType.venueTrial;
+          } else {
+            userType = UserType.venueTrial;
+          }
         }
       } else if (isCustomerLoggedIn) {
         final hasActiveSubscription = isPremium && !subscriptionExpired;
@@ -573,6 +646,12 @@ String _fixDateFormat(String input) {
                 )
                 : UserType.publicFree;
       }
+      print('📖 Loaded from cache:');
+      print('   userType: $userType');
+      print('   isPremium: $isPremium');
+      print('   premiumOverride: $premiumOverride'); // ✅ Log it
+      print('   subscriptionExpiry: $subscriptionExpiryDate');
+      print('   trialEnd: $trialEndDate');
 
       return {
         'userType': userType,
@@ -583,6 +662,7 @@ String _fixDateFormat(String input) {
         'currentSubscriptionId': currentSubscriptionId,
         'latestPurchaseToken': latestPurchaseToken,
         'latestPurchasePlatform': latestPurchasePlatform,
+        'premiumOverride': premiumOverride,
       };
     } catch (e) {
       final isVenueLoggedIn = ObjectFactory().prefs.isLoggedIn() == true;
@@ -601,6 +681,7 @@ String _fixDateFormat(String input) {
         'currentSubscriptionId': null,
         'latestPurchaseToken': null,
         'latestPurchasePlatform': null,
+        'premiumOverride': false,
       };
     }
   }
@@ -633,5 +714,44 @@ String _fixDateFormat(String input) {
     // NEW: Clear new cache keys
     await prefs.remove(_scopedKey(_latestPurchaseTokenKey));
     await prefs.remove(_scopedKey(_latestPurchasePlatformKey));
+    await prefs.remove(_scopedKey(_premiumOverrideKey));
   }
+}
+
+DateTime? _safeParseDateTimeFromBackend(String? dateStr) {
+  if (dateStr == null || dateStr.isEmpty) return null;
+
+  try {
+    // First, normalize the format by replacing space with 'T'
+    String normalized = dateStr.trim();
+
+    // Handle format: "2025-12-11 07:18:08" -> "2025-12-11T07:18:08"
+    if (normalized.contains(' ') && !normalized.contains('T')) {
+      normalized = normalized.replaceFirst(' ', 'T');
+    }
+
+    // Handle fractional seconds: "2025-12-11T07:18:08.000000Z"
+    // DateTime.parse handles this automatically
+
+    // Parse with timezone awareness
+    final parsed = DateTime.parse(normalized);
+
+    // If it's in UTC (ends with Z), convert to local
+    if (dateStr.endsWith('Z') || dateStr.endsWith('+00:00')) {
+      return parsed.toLocal();
+    }
+
+    return parsed;
+  } catch (e) {
+    print('⚠️ Failed to parse DateTime from "$dateStr": $e');
+    return null;
+  }
+}
+
+// 🔧 UPDATE: Replace the _fixDateFormat function with this more robust version
+String _fixDateFormat(String input) {
+  if (input.contains(' ') && !input.contains('T')) {
+    return input.replaceFirst(' ', 'T');
+  }
+  return input;
 }

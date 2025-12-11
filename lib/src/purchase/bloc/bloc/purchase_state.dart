@@ -187,4 +187,43 @@ class PaymentPlanState extends Equatable {
     selectedOfferId,
     premiumOverride,
   ];
+  String debugPremiumAccess() {
+    final buffer = StringBuffer();
+    buffer.writeln('\n🔍 PREMIUM ACCESS DEBUG:');
+    buffer.writeln('├─ premiumOverride: $premiumOverride');
+    buffer.writeln('├─ isPremium: $isPremium');
+    buffer.writeln('├─ userType: $userType');
+    buffer.writeln('├─ subscriptionExpiryDate: $subscriptionExpiryDate');
+    buffer.writeln('├─ trialEndDate: $trialEndDate');
+    buffer.writeln('├─ isSubscriptionActive: $isSubscriptionActive');
+    buffer.writeln('├─ isInTrialPeriod: $isInTrialPeriod');
+    buffer.writeln('├─ canAccessPremiumFeatures: $canAccessPremiumFeatures');
+
+    if (subscriptionExpiryDate != null) {
+      final now = DateTime.now();
+      final diff = subscriptionExpiryDate!.difference(now);
+      buffer.writeln(
+        '├─ Time until expiry: ${diff.inMinutes} minutes (${diff.inHours} hours)',
+      );
+    }
+
+    if (trialEndDate != null) {
+      final now = DateTime.now();
+      final diff = trialEndDate!.difference(now);
+      buffer.writeln(
+        '├─ Time until trial end: ${diff.inMinutes} minutes (${diff.inHours} hours)',
+      );
+    }
+
+    buffer.write('└─ RESULT: ');
+    if (premiumOverride) {
+      buffer.writeln('GRANTED (override) ✅');
+    } else if (canAccessPremiumFeatures) {
+      buffer.writeln('GRANTED (computed) ✅');
+    } else {
+      buffer.writeln('DENIED ❌');
+    }
+
+    return buffer.toString();
+  }
 }
