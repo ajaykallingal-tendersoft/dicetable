@@ -22,6 +22,7 @@ import 'package:soloseaters/src/model/customer/cafe/remove_favourite_request.dar
 import 'package:soloseaters/src/model/customer/guest/guest_user_request.dart';
 import 'package:soloseaters/src/model/customer/profile/customer_paid_profile_request.dart';
 import 'package:soloseaters/src/model/customer/profile/customer_profile_update_request.dart';
+import 'package:soloseaters/src/model/payment/subscription_status_request.dart';
 import 'package:soloseaters/src/model/payment/verify_purchase_request.dart';
 import 'package:soloseaters/src/model/verification/otp_verify_request.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/notification_item.dart';
@@ -1117,17 +1118,18 @@ class ApiClient {
   }
 
     /// Fetch subscription status from backend
-  Future<Response> getSubscriptionStatus() {
+  Future<Response> getSubscriptionStatus(SubscriptionStatusRequest request) {
     print('🔄 API: Fetching subscription status');
-    
+
     final userCategory = ObjectFactory().prefs.getUserDecisionName();
     final isPublicUser = userCategory == "PUBLIC_USER";
     final token = isPublicUser
         ? ObjectFactory().prefs.getCustomerAuthToken()
         : ObjectFactory().prefs.getAuthToken();
 
-    return dioDiceApp.get(
+    return dioDiceApp.post(
       UrlsDiceApp.subscriptionStatus,
+      data: request.toJson(),
       options: Options(
         headers: {
           "Authorization": token,

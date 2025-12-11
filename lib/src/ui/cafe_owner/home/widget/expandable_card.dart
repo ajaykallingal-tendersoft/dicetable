@@ -335,8 +335,10 @@ class _ExpandableCardState extends State<ExpandableCard> {
                         BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
                           builder: (context, paymentState) {
                             // A venue user needs to upgrade only if they do NOT have access to premium features.
-                            final needsUpgrade = paymentState.isVenueUser &&
-                                !paymentState.canAccessPremiumFeatures;
+                            // final needsUpgrade = paymentState.isVenueUser &&
+                            //     !paymentState.canAccessPremiumFeatures;
+                            // final needsUpgrade = !paymentState.canAccessPremiumFeatures;
+                            final needsUpgrade = !paymentState.premiumOverride;
                             
                             return InkWell(
                               onTap: () {
@@ -398,8 +400,9 @@ class _ExpandableCardState extends State<ExpandableCard> {
                       BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
                         builder: (context, paymentState) {
                           // A venue user needs to upgrade only if they do NOT have access to premium features.
-                          final needsUpgrade = paymentState.isVenueUser &&
-                              !paymentState.canAccessPremiumFeatures;
+                          // final needsUpgrade = paymentState.isVenueUser &&
+                          //     !paymentState.canAccessPremiumFeatures;
+                          final needsUpgrade = !paymentState.premiumOverride;
                           
                           return ElevatedButton.icon(
                             style: ElevatedButton.styleFrom(
@@ -567,8 +570,9 @@ class _ExpandableCardState extends State<ExpandableCard> {
     return BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
       builder: (context, paymentState) {
         // A venue user needs to upgrade only if they do NOT have access to premium features.
-        final needsUpgrade = paymentState.isVenueUser &&
-            !paymentState.canAccessPremiumFeatures;
+        final needsUpgrade = paymentState.premiumOverride;
+        // paymentState.isVenueUser &&
+        //     !paymentState.canAccessPremiumFeatures;
         
         return InkWell(
           onTap: () {

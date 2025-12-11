@@ -37,6 +37,8 @@ class PaymentPlanState extends Equatable {
   final PurchaseDetails? pendingPurchase;
   final Map<String, dynamic>? pendingPayload;
   final int? verificationAttempts;
+  final String? selectedOfferId;
+  final bool premiumOverride;
 
   const PaymentPlanState({
     this.status = PaymentPlanStatus.initial,
@@ -56,6 +58,8 @@ class PaymentPlanState extends Equatable {
     this.pendingPurchase,
     this.pendingPayload,
     this.verificationAttempts,
+    this.selectedOfferId,
+    this.premiumOverride = false,
   });
 
   PaymentPlanState copyWith({
@@ -77,6 +81,8 @@ class PaymentPlanState extends Equatable {
     Map<String, dynamic>? pendingPayload,
     int? verificationAttempts,
     bool clearError = false,
+    String? selectedOfferId,
+    bool? premiumOverride,
   }) {
     return PaymentPlanState(
       status: status ?? this.status,
@@ -98,6 +104,8 @@ class PaymentPlanState extends Equatable {
       pendingPurchase: pendingPurchase ?? this.pendingPurchase,
       pendingPayload: pendingPayload ?? this.pendingPayload,
       verificationAttempts: verificationAttempts ?? this.verificationAttempts,
+      selectedOfferId: selectedOfferId ?? this.selectedOfferId,
+      premiumOverride: premiumOverride ?? this.premiumOverride,
     );
   }
 
@@ -140,6 +148,10 @@ class PaymentPlanState extends Equatable {
   }
 
   bool get canAccessPremiumFeatures {
+    // If explicitly overridden (after purchase/restore)
+    if (premiumOverride == true) return true;
+
+    // Fallback computed rule
     return (isPremium == true && isSubscriptionActive) || isInTrialPeriod;
   }
 
@@ -172,5 +184,7 @@ class PaymentPlanState extends Equatable {
     pendingPurchase,
     pendingPayload,
     verificationAttempts,
+    selectedOfferId,
+    premiumOverride,
   ];
 }

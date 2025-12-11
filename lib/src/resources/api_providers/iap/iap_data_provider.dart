@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:soloseaters/src/model/payment/subscription_status_request.dart';
 import 'package:soloseaters/src/model/payment/subscription_status_response.dart';
 import 'package:soloseaters/src/model/payment/verify_purchase_request.dart';
 import 'package:soloseaters/src/model/payment/verify_purchase_response.dart';
@@ -9,6 +10,8 @@ class IapDataProvider {
   /// Generic dio → readable error mapper
   StateModel<T> _handleDioError<T>(DioException e) {
     print('❌ Dio Error: ${e.message}');
+    print('❌ Dio Error Type: ${e.type}');
+    print('❌ Dio Error Response: ${e.response}');
 
     final status = e.response?.statusCode;
 
@@ -19,9 +22,15 @@ class IapDataProvider {
     if (status == 401) {
       return StateModel.error("Unauthorized. Please login again.");
     }
+     if (status == 409) {
+      // Handle conflicts, like "already verified"
+      // We can pass a special success state or a specific error message
+      return StateModel.error("Purchase has already been verified.");
+    }
+
 
     if (e.type == DioExceptionType.connectionError ||
-        e.type == DioExceptionType.unknown) {
+        e.type == DioExceptionType.unknown || e.type == DioExceptionType.connectionTimeout) {
       return StateModel.error(
         "Connection error. Check your internet connection.",
       );
@@ -29,6 +38,12 @@ class IapDataProvider {
 
     if (e.response == null) {
       return StateModel.error("Unable to reach server. Try again later.");
+    }
+
+    // Try to get a more specific error from the response body
+    final responseData = e.response?.data;
+    if (responseData is Map<String, dynamic> && responseData.containsKey('message')) {
+      return StateModel.error(responseData['message']);
     }
 
     return StateModel.error(e.message ?? "Something went wrong.");
@@ -44,8 +59,9 @@ class IapDataProvider {
         return parser(json);
       }
       return null;
-    } catch (e) {
+    } catch (e,stacktrace) {
       print('❌ JSON Parse Error: $e');
+      print('❌ Stacktrace: $stacktrace');
       return null;
     }
   }
@@ -61,17 +77,22 @@ class IapDataProvider {
 
       print('✅ Raw verify response: ${response.data}');
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         final parsed = _safeParse(
           response.data,
           (json) => VerifyPurchaseResponse.fromJson(json),
         );
 
         if (parsed == null) {
-          return StateModel.error("Invalid server response.");
+          return StateModel.error("Invalid server response format.");
         }
 
         if (parsed.valid) {
+          return StateModel.success(parsed);
+        }
+
+        // Check for "already verified" message from a successful response
+        if (parsed.message?.toLowerCase().contains('already verified') == true) {
           return StateModel.success(parsed);
         }
 
@@ -84,17 +105,20 @@ class IapDataProvider {
     } on DioException catch (e) {
       return _handleDioError(e);
     } catch (e) {
-      print("❌ Unexpected error: $e");
+      print("❌ Unexpected error in verifyPurchase: $e");
       return StateModel.error("Unexpected error: ${e.toString()}");
     }
   }
 
   /// Fetch subscription status
-  Future<StateModel<SubscriptionStatusResponse>> getSubscriptionStatus() async {
+  Future<StateModel<SubscriptionStatusResponse>> getSubscriptionStatus(
+    SubscriptionStatusRequest request,
+  ) async {
     try {
       print('📡 Fetching subscription status');
 
-      final response = await ObjectFactory().apiClient.getSubscriptionStatus();
+      final response =
+          await ObjectFactory().apiClient.getSubscriptionStatus(request);
 
       print('✅ Raw subscription response: ${response.data}');
 
@@ -105,14 +129,15 @@ class IapDataProvider {
         );
 
         if (parsed == null) {
-          return StateModel.error("Invalid server response.");
+          return StateModel.error("Invalid server response format.");
         }
 
-        if (parsed.status) {
+        if (parsed.success == true) {
           return StateModel.success(parsed);
         }
 
-        return StateModel.error(parsed.message ?? "Failed to fetch subscription");
+        return StateModel.error(
+            parsed.message ?? "Failed to fetch subscription");
       }
 
       return StateModel.error(
@@ -121,7 +146,7 @@ class IapDataProvider {
     } on DioException catch (e) {
       return _handleDioError(e);
     } catch (e) {
-      print("❌ Unexpected error: $e");
+      print("❌ Unexpected error in getSubscriptionStatus: $e");
       return StateModel.error("Unexpected error: ${e.toString()}");
     }
   }

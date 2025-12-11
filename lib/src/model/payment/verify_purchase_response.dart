@@ -11,11 +11,13 @@ String verifyPurchaseResponseToJson(VerifyPurchaseResponse data) =>
 class VerifyPurchaseResponse {
   final bool? success;
   final String? message;
+  final Purchase? purchase; // ✅ Added purchase field
   final VerificationData? verificationData;
 
   VerifyPurchaseResponse({
     this.success,
     this.message,
+    this.purchase,
     this.verificationData,
   });
 
@@ -25,45 +27,64 @@ class VerifyPurchaseResponse {
   bool get hasActiveSubscription {
     if (verificationData == null) return false;
     // Check if subscription is active based on state
-    final state = verificationData!.subscriptionState?.toLowerCase();
-    return state == 'active' || 
-           state == 'subscription_state_active' ||
+    final state = verificationData!.subscriptionState?.toUpperCase() ?? '';
+    return state == 'SUBSCRIPTION_STATE_ACTIVE' || 
+           state == 'ACTIVE' ||
            state == '1';
   }
 
-  String? get currentSubscriptionId => verificationData?.productId;
+  String? get currentSubscriptionId => 
+      verificationData?.productId ?? purchase?.productId;
   
   String? get subscriptionExpiryDate => verificationData?.expiryTime;
   
   String? get trialStartDate => verificationData?.startTime;
   
-  String? get trialEndDate {
-    // If there's a trial, expiry time might represent trial end
-    // This depends on your backend logic
-    return verificationData?.expiryTime;
-  }
+  // ✅ For venue users: expiry_time represents subscription end (trial or full subscription)
+  // For test accounts, this might be 30 minutes; for production, it's 1 year
+  String? get trialEndDate => verificationData?.expiryTime;
 
   bool get isVenueUser {
     // Determine based on product ID
-    final productId = verificationData?.productId?.toLowerCase() ?? '';
+    final productId = 
+        verificationData?.productId?.toLowerCase() ?? 
+        purchase?.productId?.toLowerCase() ?? 
+        '';
     return productId.contains('venue');
   }
 
   bool get inTrial {
-    // Check if in trial period based on offer details or tags
-    final offerTags = verificationData?.offerTags;
-    if (offerTags is List) {
-      return offerTags.any((tag) => 
-        tag.toString().toLowerCase().contains('trial')
-      );
+    // For venue users, check if subscription is currently active
+    if (verificationData?.startTime != null && 
+        verificationData?.expiryTime != null) {
+      try {
+        final expiry = DateTime.parse(_fixDateFormat(verificationData!.expiryTime!));
+        final now = DateTime.now();
+        
+        // Active if current time is before expiry
+        return now.isBefore(expiry);
+      } catch (e) {
+        return false;
+      }
     }
+    
     return false;
+  }
+
+  String _fixDateFormat(String input) {
+    if (input.contains(' ') && !input.contains('T')) {
+      return input.replaceFirst(' ', 'T');
+    }
+    return input;
   }
 
   factory VerifyPurchaseResponse.fromJson(Map<String, dynamic> json) =>
       VerifyPurchaseResponse(
         success: json["success"],
         message: json["message"],
+        purchase: json["purchase"] == null
+            ? null
+            : Purchase.fromJson(json["purchase"]),
         verificationData: json["verification_data"] == null
             ? null
             : VerificationData.fromJson(json["verification_data"]),
@@ -72,7 +93,53 @@ class VerifyPurchaseResponse {
   Map<String, dynamic> toJson() => {
         "success": success,
         "message": message,
+        "purchase": purchase?.toJson(),
         "verification_data": verificationData?.toJson(),
+      };
+}
+
+// ✅ Added Purchase class to match backend response
+class Purchase {
+  final int? id;
+  final int? userId;
+  final String? productId;
+  final String? purchaseToken;
+  final String? platform;
+  final String? status;
+  final String? createdAt;
+  final String? updatedAt;
+
+  Purchase({
+    this.id,
+    this.userId,
+    this.productId,
+    this.purchaseToken,
+    this.platform,
+    this.status,
+    this.createdAt,
+    this.updatedAt,
+  });
+
+  factory Purchase.fromJson(Map<String, dynamic> json) => Purchase(
+        id: json["id"],
+        userId: json["user_id"],
+        productId: json["product_id"],
+        purchaseToken: json["purchase_token"],
+        platform: json["platform"],
+        status: json["status"],
+        createdAt: json["created_at"],
+        updatedAt: json["updated_at"],
+      );
+
+  Map<String, dynamic> toJson() => {
+        "id": id,
+        "user_id": userId,
+        "product_id": productId,
+        "purchase_token": purchaseToken,
+        "platform": platform,
+        "status": status,
+        "created_at": createdAt,
+        "updated_at": updatedAt,
       };
 }
 
@@ -148,6 +215,8 @@ class VerificationData {
         "raw": raw?.toJson(),
       };
 }
+
+// ... rest of the classes remain the same (Raw, CanceledStateContext, LineItem, etc.)
 
 class Raw {
   final String? acknowledgementState;
