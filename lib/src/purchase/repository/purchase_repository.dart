@@ -372,15 +372,29 @@ class PaymentRepository {
       if ((userId == null && cafeId == null) ||
           currentSubscriptionId == null ||
           latestPurchaseToken == null) {
-        print(
-          'ℹ️ Not authenticated or missing active purchase data in cache. Returning cache.',
-        );
+        // ✅ FIX: Better logging to explain why API call is skipped
+        if (userId == null && cafeId == null) {
+          print('ℹ️ Not authenticated - returning cache.');
+        } else if (latestPurchaseToken == null) {
+          print('⚠️ Authenticated but missing purchase token.');
+          print('   This may indicate:');
+          print('   1. Fresh login after logout (cache was cleared)');
+          print('   2. User has not made a purchase yet');
+          print('   3. Restored purchase has not been processed yet');
+          print(
+            '   → Returning cached data. Restored purchases will trigger verification.',
+          );
+        } else if (currentSubscriptionId == null) {
+          print(
+            '⚠️ Authenticated but missing subscription ID - returning cache.',
+          );
+        }
+
         return cachedData; // Return existing cached or default data
       }
 
-      if (kDebugMode) {
-        return await getUserSubscriptionData();
-      }
+      // ✅ REMOVED: Debug mode bypass - backend API should work in all modes
+      // This was preventing subscription status from being fetched after logout/login
 
       // CONSTRUCT THE REQUEST
       final request = SubscriptionStatusRequest(
@@ -450,6 +464,8 @@ class PaymentRepository {
                   ? DateTime.tryParse(verificationData.expiryTime!)
                   : null,
           'currentSubscriptionId': verificationData.productId,
+          'premiumOverride':
+              hasActiveSub, // ✅ ADD: Set premium override when subscription is active
         };
         await cacheBackendSubscriptionState(
           isPaidUser: hasActiveSub,
@@ -458,6 +474,7 @@ class PaymentRepository {
           trialStartDate: result['trialStartDate'] as DateTime?,
           trialEndDate: result['trialEndDate'] as DateTime?,
           currentSubscriptionId: result['currentSubscriptionId'] as String?,
+          premiumOverride: hasActiveSub, // ✅ ADD: Cache premium override
         );
         return result;
       }

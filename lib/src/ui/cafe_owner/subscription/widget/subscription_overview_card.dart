@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/model/cafe_owner/subscription/subscription_overview_response.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/sign_up/widget/custom_switch.dart';
+import 'package:soloseaters/src/ui/cafe_owner/subscription/widget/subscription_upgrade_popup.dart';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -30,6 +31,15 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
   bool _isExpanded = false;
   bool isAutoRenewOn = true;
   final TextEditingController _discountController = TextEditingController();
+
+  // ✅ Show upgrade popup for subscription renewal
+  Future<void> showUpgradePopup(BuildContext context) async {
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const UpgradePopup(),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -197,7 +207,7 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                               height: containerHeight,
                               width: containerWidth,
                               decoration: BoxDecoration(
-                                color: AppColors.premiumPlanColor,
+                                color: status == "Active" ? AppColors.premiumPlanColor : AppColors.freeUserBadgeTextColor,
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Row(
@@ -209,17 +219,18 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                                       'assets/png/premium-plan.png',
                                       fit: BoxFit.contain,
                                       height: containerHeight * 0.6,
+                                      color: status == "Active" ?  AppColors.premiumPlanTextColor : AppColors.freeUserBadgeTextColor,
                                     ),
                                   ),
                                   SizedBox(width: basePadding * 0.3),
                                   Flexible(
                                     flex: 3,
                                     child: AutoSizeText(
-                                      planName,
+                                      status == "Active" ? "Premium" : "Free",
                                       style: Theme.of(
                                         context,
                                       ).textTheme.bodyMedium!.copyWith(
-                                        color: AppColors.premiumPlanTextColor,
+                                        color: status == "Active" ? AppColors.premiumPlanTextColor : AppColors.freeUserBadgeTextColor,
                                         fontSize: getScaledFontSize(16),
                                         fontWeight: FontWeight.w600,
                                       ),
@@ -351,70 +362,33 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                                       width: finalButtonWidth,
                                       height: buttonHeight,
                                       child: ElevatedButton(
-                                        onPressed: () {
-                                          showDialog(
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              return AlertDialog(
-                                                title: Text(
-                                                  'Feature Unavailable',
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .titleMedium!
-                                                      .copyWith(
-                                                        color:
-                                                            AppColors.primary,
-                                                        fontSize: 16.sp,
-                                                      ),
-                                                ),
-                                                content: Text(
-                                                  'This feature is coming in a future update.',
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .bodyMedium!
-                                                      .copyWith(
-                                                        color:
-                                                            AppColors
-                                                                .textPrimaryGrey,
-                                                        fontSize: 14.sp,
-                                                      ),
-                                                ),
-                                                actions: [
-                                                  TextButton(
-                                                    onPressed: () {
-                                                      Navigator.of(
-                                                        context,
-                                                      ).pop();
-                                                    },
-                                                    child: Text(
-                                                      'OK',
-                                                      style: Theme.of(context)
-                                                          .textTheme
-                                                          .bodyMedium!
-                                                          .copyWith(
-                                                            color:
-                                                                AppColors
-                                                                    .primary,
-                                                            fontSize: 14.sp,
-                                                          ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              );
-                                            },
-                                          );
-                                        },
+                                        onPressed:
+                                            isActive
+                                                ? null // ✅ Disable when subscription is active
+                                                : () {
+                                                  // ✅ Show upgrade popup when expired
+                                                  showUpgradePopup(context);
+                                                },
                                         style: ElevatedButton.styleFrom(
-                                          backgroundColor: AppColors.primary,
+                                          backgroundColor:
+                                              isActive
+                                                  ? AppColors
+                                                      .textPrimaryGrey // Gray when disabled
+                                                  : AppColors
+                                                      .primary, // Primary when enabled
                                           padding: EdgeInsets.symmetric(
                                             vertical: basePadding * 0.3,
                                             horizontal: basePadding * 0.2,
                                           ),
+                                          disabledBackgroundColor:
+                                              AppColors.textPrimaryGrey,
                                         ),
                                         child: FittedBox(
                                           fit: BoxFit.scaleDown,
                                           child: Text(
-                                            'RENEW NOW',
+                                            isActive
+                                                ? 'ACTIVE' // ✅ Show ACTIVE when subscription is active
+                                                : 'RENEW NOW', // ✅ Show RENEW NOW when expired
                                             textAlign: TextAlign.center,
                                             style: Theme.of(
                                               context,

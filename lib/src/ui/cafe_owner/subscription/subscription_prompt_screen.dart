@@ -537,10 +537,10 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
           children: [
             Gap(30),
             SvgPicture.asset(
-              'assets/svg/free-icon.svg',
-              height: 123,
-              width: 123,
-            )
+                  'assets/svg/free-icon.svg',
+                  height: 123,
+                  width: 123,
+                )
                 .animate()
                 .scale(
                   begin: const Offset(0.7, 0.7),
@@ -584,23 +584,23 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                             Text(
                               'Start With A Free 1-Month Trial,\nThen \$ ${data.data!.amount} Per Year!',
                               textAlign: TextAlign.center,
-                              style: TextTheme.of(context)
-                                  .labelMedium!
-                                  .copyWith(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18.sp,
-                                  ),
+                              style: TextTheme.of(
+                                context,
+                              ).labelMedium!.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18.sp,
+                              ),
                             ),
                             SizedBox(height: 10.h),
                             Text(
                               'Enjoy all premium features for ${data.data!.trialDuration} ${data.data!.trialType},\nabsolutely free!',
                               textAlign: TextAlign.center,
                               style: TextTheme.of(context).bodySmall!.copyWith(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 12.sp,
-                                  ),
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 12.sp,
+                              ),
                             ),
                             SizedBox(height: 20.h),
                             // RichText(
@@ -689,15 +689,13 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                           children: [
                             Text(
                               'Continue After Trial',
-                              style:
-                                  TextTheme.of(context).bodyMedium!.copyWith(
-                                        decoration: TextDecoration.underline,
-                                        decorationColor:
-                                            AppColors.textPrimaryGrey,
-                                        color: AppColors.timeTextColor,
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 12.sp,
-                                      ),
+                              style: TextTheme.of(context).bodyMedium!.copyWith(
+                                decoration: TextDecoration.underline,
+                                decorationColor: AppColors.textPrimaryGrey,
+                                color: AppColors.timeTextColor,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 12.sp,
+                              ),
                             ),
                             SizedBox(height: 5.h),
                             Text.rich(
@@ -705,23 +703,23 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                                 children: [
                                   TextSpan(
                                     text: '\$${data.data!.amount}',
-                                    style: TextTheme.of(context)
-                                        .bodyLarge!
-                                        .copyWith(
-                                          color: AppColors.primary,
-                                          fontSize: 24.sp,
-                                        ),
+                                    style: TextTheme.of(
+                                      context,
+                                    ).bodyLarge!.copyWith(
+                                      color: AppColors.primary,
+                                      fontSize: 24.sp,
+                                    ),
                                   ),
                                   TextSpan(
                                     text: ' / ${data.data!.type}',
-                                    style: TextTheme.of(context)
-                                        .bodyMedium!
-                                        .copyWith(
-                                          color: AppColors
-                                              .subscriptionPriceSubColor,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 14.sp,
-                                        ),
+                                    style: TextTheme.of(
+                                      context,
+                                    ).bodyMedium!.copyWith(
+                                      color:
+                                          AppColors.subscriptionPriceSubColor,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 14.sp,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -730,12 +728,11 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                             Text(
                               'Get all the benefits for just \$${data.data!.amount} ${data.data!.type}.',
                               textAlign: TextAlign.center,
-                              style:
-                                  TextTheme.of(context).bodyMedium!.copyWith(
-                                        color: AppColors.primary,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 12.sp,
-                                      ),
+                              style: TextTheme.of(context).bodyMedium!.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12.sp,
+                              ),
                             ),
                           ],
                         ),
@@ -754,32 +751,33 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                   showDialog(
                     context: context,
                     barrierDismissible: false,
-                    builder: (context) => AlertDialog(
-                      title: const Text('Verification Issue'),
-                      content: Text(
-                        paymentState.errorMessage ??
-                            'Unable to verify your purchase. Please contact support.',
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            // User can try again or contact support
-                          },
-                          child: const Text('Contact Support'),
+                    builder:
+                        (context) => AlertDialog(
+                          title: const Text('Verification Issue'),
+                          content: Text(
+                            paymentState.errorMessage ??
+                                'Unable to verify your purchase. Please contact support.',
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                // User can try again or contact support
+                              },
+                              child: const Text('Contact Support'),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                // Trigger restore to re-check
+                                context.read<PaymentPlanBloc>().add(
+                                  const RestorePurchasesEvent(),
+                                );
+                              },
+                              child: const Text('Retry'),
+                            ),
+                          ],
                         ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            // Trigger restore to re-check
-                            context
-                                .read<PaymentPlanBloc>()
-                                .add(const RestorePurchasesEvent());
-                          },
-                          child: const Text('Retry'),
-                        ),
-                      ],
-                    ),
                   );
                 }
 
@@ -788,61 +786,60 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                   EasyLoading.show(status: 'Restoring subscription...');
                 }
 
-                if (paymentState.status ==
-                    PaymentPlanStatus.purchaseSuccess) {
+                if (paymentState.status == PaymentPlanStatus.purchaseSuccess) {
                   context.read<SubscriptionBloc>().add(
-                        StartSubscriptionEvent(
-                          subscriptionStartRequest: SubscriptionStartRequest(
-                            cafeId: cafeId,
-                            subscriptionTypeId: subscriptionTypeId,
-                            paymentMethod: paymentMethod,
-                            amount: amount,
-                            autoRenew: true,
-                          ),
-                        ),
-                      );
+                    StartSubscriptionEvent(
+                      subscriptionStartRequest: SubscriptionStartRequest(
+                        cafeId: cafeId,
+                        subscriptionTypeId: subscriptionTypeId,
+                        paymentMethod: paymentMethod,
+                        amount: amount,
+                        autoRenew: true,
+                      ),
+                    ),
+                  );
                 }
               },
               builder: (context, paymentState) {
                 final isProcessing = paymentState.isProcessing;
-                final isRetrying = paymentState.status ==
-                    PaymentPlanStatus.verificationFailed &&
+                final isRetrying =
+                    paymentState.status ==
+                        PaymentPlanStatus.verificationFailed &&
                     (paymentState.verificationAttempts ?? 0) > 0;
 
                 return InkWell(
                   splashColor: AppColors.secondary,
                   splashFactory: InkRipple.splashFactory,
-                  onTap: isProcessing
-                      ? null
-                      : () {
-                          final bloc = context.read<PaymentPlanBloc>();
-                          final products = bloc.state.products;
+                  onTap:
+                      isProcessing
+                          ? null
+                          : () {
+                            final bloc = context.read<PaymentPlanBloc>();
+                            final products = bloc.state.products;
 
-                          if (products.isNotEmpty) {
-                            final plan = products.first;
-                            bloc
-                              ..add(SelectPlanEvent(plan.id))
-                              ..add(PurchaseProductEvent(plan.id));
-                          }
-                        },
+                            if (products.isNotEmpty) {
+                              final plan = products.first;
+                              bloc
+                                ..add(SelectPlanEvent(plan.id))
+                                ..add(PurchaseProductEvent(plan.id));
+                            }
+                          },
                   child: ElevatedButtonWidget(
                     height: 70.h,
                     width: MediaQuery.of(context).size.width,
                     iconEnabled: false,
-                    iconLabel: isRetrying
-                        ? "VERIFYING... (${paymentState.verificationAttempts}/3)"
-                        : (isProcessing
-                            ? "PROCESSING..."
-                            : "START FREE TRIAL"),
+                    iconLabel:
+                        isRetrying
+                            ? "VERIFYING... (${paymentState.verificationAttempts}/3)"
+                            : (isProcessing
+                                ? "PROCESSING..."
+                                : "START FREE TRIAL"),
                     color: AppColors.primary,
                     textColor: AppColors.primaryWhiteColor,
                   ),
                 );
               },
-            )
-                .animate()
-                .fadeIn(duration: 450.ms)
-                .slideY(begin: 0.2, delay: 600.ms),
+            ).animate().fadeIn(duration: 450.ms).slideY(begin: 0.2, delay: 600.ms),
           ],
         ),
       ),
@@ -871,6 +868,11 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
           ),
           child: BlocListener<PaymentPlanBloc, PaymentPlanState>(
             listener: (context, paymentState) {
+              // ✅ Debug logging to track state changes
+              print('💳 Payment State: ${paymentState.status}');
+              print('💳 Premium Override: ${paymentState.premiumOverride}');
+              print('💳 Is Premium: ${paymentState.isPremium}');
+
               if (paymentState.status == PaymentPlanStatus.purchaseSuccess) {
                 EasyLoading.dismiss();
                 Fluttertoast.showToast(
@@ -922,7 +924,7 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
 
                   final msg =
                       state.subscriptionStartResponse.message?.toString() ??
-                          "Your subscription was successful.";
+                      "Your subscription was successful.";
 
                   Fluttertoast.showToast(
                     fontSize: 14.sp,
@@ -932,7 +934,20 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                     msg: msg,
                   );
 
-                  context.go('/home');
+                  // ✅ CRITICAL: Refresh subscription status from backend to update cache
+                  // This ensures premiumOverride and all subscription data is properly synced
+                  print('🔄 Refreshing subscription status from backend...');
+                  context.read<PaymentPlanBloc>().add(
+                    const CheckSubscriptionStatusEvent(),
+                  );
+
+                  // ✅ Navigate after a short delay to ensure state is synced
+                  Future.delayed(const Duration(milliseconds: 500), () {
+                    if (mounted) {
+                      print('✅ Navigating to home with synced state');
+                      context.go('/home');
+                    }
+                  });
                 }
 
                 if (state is StartSubscriptionError) {

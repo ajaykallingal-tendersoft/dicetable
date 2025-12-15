@@ -15,7 +15,7 @@ import 'object_factory.dart';
 //   factory SignOut() => _instance;
 
 //   Future<void> logout(BuildContext context) async {
-    
+
 // try {
 //   final prefs = ObjectFactory().prefs;
 
@@ -57,7 +57,6 @@ import 'object_factory.dart';
 //   }
 // }
 
-
 // 🎯 Import your global key file here
 
 class SignOut {
@@ -65,30 +64,33 @@ class SignOut {
   static final SignOut _instance = SignOut._();
 
   factory SignOut() => _instance;
-  
+
   // 🎯 NEW METHOD FOR DIO INTERCEPTOR (Context-free)
   Future<void> logoutFromInterceptor() async {
     final context = navigatorKey.currentContext;
-    final prefsManager = ObjectFactory().prefs; // Get the actual prefs manager object
+    final prefsManager =
+        ObjectFactory().prefs; // Get the actual prefs manager object
 
     if (context == null) {
       if (kDebugMode) {
-        print('Error: Navigator context is null during interceptor logout. Clearing prefs only.');
+        print(
+          'Error: Navigator context is null during interceptor logout. Clearing prefs only.',
+        );
       }
       // If context is null, at least clear the prefs to invalidate session
-      _clearAuthData(prefsManager); 
+      _clearAuthData(prefsManager);
       return;
     }
-    
+
     // Call the original logic with the retrieved context
     await logout(context);
   }
 
-
   // ORIGINAL IMPLEMENTATION (called from UI widgets) - LOGIC MOVED TO HELPER
   Future<void> logout(BuildContext context) async {
     try {
-      final prefsManager = ObjectFactory().prefs; // Get the actual prefs manager object
+      final prefsManager =
+          ObjectFactory().prefs; // Get the actual prefs manager object
 
       // Sign out from providers
       context.read<GoogleSignInCubit>().signOut();
@@ -107,9 +109,9 @@ class SignOut {
   }
 
   // Helper method to consolidate pref clearing logic
-  // 💡 FIX: Changed the parameter type from 'ObjectFactory' to 'dynamic' 
+  // 💡 FIX: Changed the parameter type from 'ObjectFactory' to 'dynamic'
   // and renamed to 'prefsManager' for clarity.
-  void _clearAuthData(dynamic prefsManager) { 
+  void _clearAuthData(dynamic prefsManager) {
     prefsManager.setIsLoggedIn(false);
     prefsManager.setIsCustomerLoggedIn(false);
 
@@ -126,5 +128,19 @@ class SignOut {
 
     prefsManager.setCafeUserId(cafeUserId: "");
     prefsManager.setCafeUserMail(cafeUserMail: "");
+
+    // ✅ FIX: Clear subscription cache on logout
+    // This ensures clean state and prevents stale subscription data
+    // from interfering with fresh login
+    try {
+      ObjectFactory().purchaseRepository.clearSubscriptionData();
+      if (kDebugMode) {
+        print('✅ Cleared subscription cache on logout');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('⚠️ Failed to clear subscription cache: $e');
+      }
+    }
   }
 }

@@ -141,12 +141,21 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
       // ✅ Check for pending purchases after initialization
       add(const CheckPendingPurchasesEvent());
 
-      // ✅ REMOVED: Don't automatically fetch backend status on init
-      // This was overwriting the correct state after purchase verification
-      // The backend status will be checked:
-      // 1. After successful purchase verification (in _onVerifyPurchase)
-      // 2. When user manually triggers it (if needed)
-      // 3. On app restart (via getUserSubscriptionData which checks cache)
+      // ✅ CONDITIONAL: Fetch backend status if cache appears stale
+      // Only skip if we have a valid premium state (after recent purchase)
+      // This ensures subscription state is restored after logout/login
+      if (!premiumOverride &&
+          determinedUserType != UserType.venuePaid &&
+          determinedUserType != UserType.publicPaid) {
+        print(
+          '🔄 Cache appears empty/stale - fetching subscription status from backend...',
+        );
+        add(const CheckSubscriptionStatusEvent());
+      } else {
+        print(
+          '✅ Using cached premium state (recent purchase or valid subscription)',
+        );
+      }
     } catch (e) {
       emit(
         state.copyWith(
@@ -607,349 +616,6 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
     }
   }
 
-  /*Future<void> _onLoadProducts(
-    LoadProductsEvent event,
-    Emitter<PaymentPlanState> emit,
-  ) async {
-    try {
-      emit(state.copyWith(status: PaymentPlanStatus.loading));
-
-      final allProducts = await paymentService.loadProducts();
-
-      if (allProducts.isEmpty) {
-        emit(
-          state.copyWith(
-            status: PaymentPlanStatus.purchaseFailed,
-            errorMessage: 'No subscription plans available.',
-          ),
-        );
-        return;
-      }
-
-      print('📦 Processing products for user type: ${state.userType}');
-      print('📦 Is venue user: ${state.isVenueUser}');
-      print('📦 Is in trial period: ${state.isInTrialPeriod}');
-      print('📦 Total product instances: ${allProducts.length}');
-
-      final Map<String, Map<String, dynamic>> uniqueEntries = {};
-
-      void addExpandedEntry({
-        required ProductDetails product,
-        required String? basePlanId,
-        required String? offerToken,
-        required List? pricingPhases,
-        bool isTrial = false, // ✅ NEW: Flag to mark trial offers
-      }) {
-        final key = '${product.id}:${basePlanId ?? 'null'}';
-
-        if (!uniqueEntries.containsKey(key)) {
-          String? formattedPrice;
-          double? rawPrice;
-          String? billingPeriod;
-          int? trialDays; // ✅ NEW: Track trial days
-
-          // Extract price and billing period from pricing phases
-          if (pricingPhases != null && pricingPhases.isNotEmpty) {
-            try {
-              // ✅ Check for trial phase (first phase might be free)
-              for (var phase in pricingPhases) {
-                if (phase is Map) {
-                  final phasePrice = phase['priceAmountMicros'] as int?;
-                  final phasePeriod = phase['billingPeriod'] as String?;
-
-                  // If price is 0 or very low, it's likely a trial
-                  if (phasePrice != null && phasePrice == 0) {
-                    trialDays = _extractDaysFromPeriod(phasePeriod);
-                    print('  🎁 Found trial phase: $trialDays days');
-                  } else if (formattedPrice == null) {
-                    // First paid phase
-                    formattedPrice = phase['formattedPrice'] as String?;
-                    billingPeriod = phasePeriod;
-                    rawPrice =
-                        phasePrice != null ? phasePrice / 1000000.0 : null;
-                  }
-                } else {
-                  // PricingPhaseWrapper object
-                  final phasePrice = phase.priceAmountMicros as int?;
-                  if (phasePrice != null && phasePrice == 0) {
-                    trialDays = _extractDaysFromPeriod(
-                      phase.billingPeriod as String?,
-                    );
-                    print('  🎁 Found trial phase: $trialDays days');
-                  } else if (formattedPrice == null) {
-                    formattedPrice = phase.formattedPrice as String;
-                    billingPeriod = phase.billingPeriod as String;
-                    rawPrice =
-                        phasePrice != null ? phasePrice / 1000000.0 : null;
-                  }
-                }
-              }
-
-              // If we didn't find price yet, use first phase
-              if (formattedPrice == null && pricingPhases.isNotEmpty) {
-                final phase = pricingPhases.first;
-                if (phase is Map) {
-                  formattedPrice = phase['formattedPrice'] as String?;
-                  billingPeriod = phase['billingPeriod'] as String?;
-                  final priceAmountMicros = phase['priceAmountMicros'] as int?;
-                  if (priceAmountMicros != null) {
-                    rawPrice = priceAmountMicros / 1000000.0;
-                  }
-                } else {
-                  formattedPrice = phase.formattedPrice as String;
-                  billingPeriod = phase.billingPeriod as String;
-                  rawPrice = phase.priceAmountMicros / 1000000.0;
-                }
-              }
-            } catch (e) {
-              print("❌ Error extracting pricing phase: $e");
-            }
-          }
-
-          uniqueEntries[key] = {
-            'product': product,
-            'basePlanId': basePlanId,
-            'offerToken': offerToken,
-            'pricingPhases': pricingPhases,
-            'formattedPrice': formattedPrice ?? product.price,
-            'rawPrice': rawPrice ?? product.rawPrice,
-            'billingPeriod': billingPeriod,
-            'isTrial': isTrial || (trialDays != null && trialDays > 0), // ✅ NEW
-            'trialDays': trialDays, // ✅ NEW
-          };
-
-          print(
-            '  ✅ Added: $key price=$formattedPrice period=$billingPeriod${isTrial ? " (TRIAL)" : ""}',
-          );
-        }
-      }
-
-      // ✅ FIXED: Platform-specific product filtering with trial detection
-      if (state.isVenueUser) {
-        final venueProducts =
-            allProducts.where((p) {
-              if (Platform.isAndroid) {
-                return p.id == PaymentService.venueYearlyProductId;
-              } else {
-                return p.id == PaymentService.yearlyVenueProductId;
-              }
-            }).toList();
-
-        print(
-          '📦 Found ${venueProducts.length} venue products for ${Platform.isAndroid ? "Android" : "iOS"}',
-        );
-
-        // ✅ NEW: Track trial and base offers separately
-        Map<String, dynamic>? trialOffer;
-        Map<String, dynamic>? baseOffer;
-
-        for (var product in venueProducts) {
-          if (Platform.isAndroid && product is GooglePlayProductDetails) {
-            final offers = product.productDetails.subscriptionOfferDetails;
-            if (offers != null) {
-              for (var offer in offers) {
-                // ✅ Check if this offer has a trial phase
-                bool hasTrial = false;
-                if (offer.pricingPhases.isNotEmpty) {
-                  // Check first phase for trial (price = 0)
-                  final firstPhase = offer.pricingPhases.first;
-                  if (firstPhase is Map) {
-                    hasTrial = (firstPhase['priceAmountMicros'] as int?) == 0;
-                  } else {
-                    hasTrial = firstPhase.priceAmountMicros == 0;
-                  }
-                }
-
-                final offerData = {
-                  'product': product,
-                  'basePlanId': offer.basePlanId,
-                  'offerToken': offer.offerIdToken,
-                  'pricingPhases': offer.pricingPhases,
-                  'isTrial': hasTrial,
-                };
-
-                if (hasTrial) {
-                  trialOffer = offerData;
-                  print('  🎁 Found TRIAL offer: ${offer.basePlanId}');
-                } else {
-                  baseOffer = offerData;
-                  print('  💰 Found BASE offer: ${offer.basePlanId}');
-                }
-              }
-            } else {
-              baseOffer = {
-                'product': product,
-                'basePlanId': null,
-                'offerToken': null,
-                'pricingPhases': null,
-                'isTrial': false,
-              };
-            }
-          } else {
-            // iOS products
-            baseOffer = {
-              'product': product,
-              'basePlanId': null,
-              'offerToken': null,
-              'pricingPhases': null,
-              'isTrial': false,
-            };
-          }
-        }
-
-        // ✅ CRITICAL: For venue trial users who haven't started trial yet,
-        // prioritize the trial offer
-        final shouldUseTrial =
-            state.userType == UserType.venueTrial &&
-            !state.isInTrialPeriod &&
-            trialOffer != null;
-
-        if (shouldUseTrial) {
-          print('🎯 Venue user eligible for trial - selecting trial offer');
-          addExpandedEntry(
-            product: trialOffer!['product'] as ProductDetails,
-            basePlanId: trialOffer['basePlanId'] as String?,
-            offerToken: trialOffer['offerToken'] as String?,
-            pricingPhases: trialOffer['pricingPhases'] as List?,
-            isTrial: true,
-          );
-        } else {
-          // Add base offer (or trial if that's all we have)
-          final offerToUse = baseOffer ?? trialOffer;
-          if (offerToUse != null) {
-            addExpandedEntry(
-              product: offerToUse['product'] as ProductDetails,
-              basePlanId: offerToUse['basePlanId'] as String?,
-              offerToken: offerToUse['offerToken'] as String?,
-              pricingPhases: offerToUse['pricingPhases'] as List?,
-              isTrial: offerToUse['isTrial'] as bool? ?? false,
-            );
-          }
-        }
-      } else {
-        // Public users - existing logic
-        final publicProducts =
-            allProducts.where((p) {
-              if (Platform.isAndroid) {
-                return p.id == PaymentService.yearlyPublicProductId;
-              } else {
-                return p.id == PaymentService.yearlyPublic ||
-                    p.id == PaymentService.monthlyPublic;
-              }
-            }).toList();
-
-        print(
-          '📦 Found ${publicProducts.length} public products for ${Platform.isAndroid ? "Android" : "iOS"}',
-        );
-
-        for (var product in publicProducts) {
-          if (Platform.isAndroid && product is GooglePlayProductDetails) {
-            final offers = product.productDetails.subscriptionOfferDetails;
-            if (offers != null) {
-              for (var offer in offers) {
-                addExpandedEntry(
-                  product: product,
-                  basePlanId: offer.basePlanId,
-                  offerToken: offer.offerIdToken,
-                  pricingPhases: offer.pricingPhases,
-                );
-              }
-            } else {
-              addExpandedEntry(
-                product: product,
-                basePlanId: null,
-                offerToken: null,
-                pricingPhases: null,
-              );
-            }
-          } else {
-            addExpandedEntry(
-              product: product,
-              basePlanId: null,
-              offerToken: null,
-              pricingPhases: null,
-            );
-          }
-        }
-      }
-
-      if (uniqueEntries.isEmpty) {
-        print('❌ No products matched the filter criteria!');
-        emit(
-          state.copyWith(
-            status: PaymentPlanStatus.purchaseFailed,
-            errorMessage: 'No subscription plans available.',
-          ),
-        );
-        return;
-      }
-
-      final expandedProductsList = uniqueEntries.values.toList();
-
-      print('✅ Final expanded products: ${expandedProductsList.length}');
-      for (var ep in expandedProductsList) {
-        final prod = ep['product'] as ProductDetails;
-        final basePlan = ep['basePlanId'];
-        final price = ep['formattedPrice'];
-        final isTrial = ep['isTrial'] as bool? ?? false;
-        final trialDays = ep['trialDays'];
-        print(
-          '   ${prod.id}:$basePlan ($price)${isTrial ? " - TRIAL ($trialDays days)" : ""}',
-        );
-      }
-
-      final uniqueProducts = <String, ProductDetails>{};
-      for (var entry in expandedProductsList) {
-        final product = entry['product'] as ProductDetails;
-        uniqueProducts[product.id] = product;
-      }
-
-      // ✅ NEW: Auto-select the trial offer for eligible venue users
-      String? autoSelectedProductId;
-      String? autoSelectedBasePlanId;
-      String? autoSelectedOfferToken;
-
-      if (state.isVenueUser &&
-          state.userType == UserType.venueTrial &&
-          !state.isInTrialPeriod) {
-        // Find the trial entry
-        final trialEntry = expandedProductsList.firstWhere(
-          (e) => e['isTrial'] == true,
-          orElse: () => expandedProductsList.first,
-        );
-
-        final product = trialEntry['product'] as ProductDetails;
-        autoSelectedProductId = product.id;
-        autoSelectedBasePlanId = trialEntry['basePlanId'] as String?;
-        autoSelectedOfferToken = trialEntry['offerToken'] as String?;
-
-        print('🎯 Auto-selected trial offer for venue user:');
-        print('   Product: $autoSelectedProductId');
-        print('   Base Plan: $autoSelectedBasePlanId');
-        print('   Offer Token: $autoSelectedOfferToken');
-      }
-
-      emit(
-        state.copyWith(
-          status: PaymentPlanStatus.productsLoaded,
-          products: uniqueProducts.values.toList(),
-          expandedProducts: expandedProductsList,
-          selectedProductId: autoSelectedProductId, // ✅ Auto-select
-          selectedBasePlanId: autoSelectedBasePlanId, // ✅ Auto-select
-          selectedOfferToken: autoSelectedOfferToken, // ✅ Auto-select
-        ),
-      );
-    } catch (e, st) {
-      print('❌ Error loading products: $e\n$st');
-      emit(
-        state.copyWith(
-          status: PaymentPlanStatus.purchaseFailed,
-          errorMessage: 'Failed to load plans: ${e.toString()}',
-        ),
-      );
-    }
-  }*/
-
   void _onSelectPlan(SelectPlanEvent event, Emitter<PaymentPlanState> emit) {
     print('✅ Selecting plan:');
     print('   Product: ${event.productId}');
@@ -1108,6 +774,23 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
 
       if (purchaseDetails.status == PurchaseStatus.purchased ||
           purchaseDetails.status == PurchaseStatus.restored) {
+        // ✅ CRITICAL FIX: For restored purchases, check if we need to re-verify
+        // This handles the case where user logged out and back in
+        if (purchaseDetails.status == PurchaseStatus.restored) {
+          final cachedData = await _paymentRepository.getUserSubscriptionData();
+          final isPremium = cachedData['isPremium'] as bool? ?? false;
+          final premiumOverride =
+              cachedData['premiumOverride'] as bool? ?? false;
+
+          // If cache shows non-premium state, we need to verify even if "duplicate"
+          if (!isPremium && !premiumOverride) {
+            print(
+              '🔄 Restored purchase detected with non-premium cache - forcing verification',
+            );
+            _processedPurchases.remove(purchaseId); // Allow re-processing
+          }
+        }
+
         // ✅ Skip if already processing/processed
         if (_processedPurchases.contains(purchaseId)) {
           print('⏭️ Skipping duplicate purchase event for: $purchaseId');
@@ -1116,6 +799,18 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
 
         // ✅ Mark as being processed
         _processedPurchases.add(purchaseId);
+
+        // ✅ CRITICAL FIX: Cache purchase token for restored purchases
+        // This enables subscription status checks after logout/login
+        if (purchaseDetails.status == PurchaseStatus.restored) {
+          final platform = Platform.isIOS ? 'ios' : 'android';
+          await _paymentRepository.cacheLatestPurchaseDetails(
+            purchaseToken:
+                purchaseDetails.verificationData.serverVerificationData,
+            platform: platform,
+          );
+          print('✅ Cached restored purchase token for status checks');
+        }
 
         final payload = paymentService.extractVerificationPayload(
           purchaseDetails,
@@ -1281,6 +976,12 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
               premiumOverride: true,
             ),
           );
+
+          // ✅ NEW: Trigger full status check to get complete verification_data
+          print(
+            '🔄 Triggering CheckSubscriptionStatusEvent to fetch full status...',
+          );
+          add(const CheckSubscriptionStatusEvent());
 
           return;
         }
@@ -1563,6 +1264,9 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
           subscriptionExpiryDate:
               userData['subscriptionExpiryDate'] as DateTime?,
           currentSubscriptionId: userData['currentSubscriptionId'] as String?,
+          premiumOverride:
+              userData['premiumOverride'] as bool? ??
+              false, // ✅ ADD: Include premium override in state
         ),
       );
     } catch (e) {
