@@ -237,17 +237,20 @@ class UpgradePopup extends StatelessWidget {
             // Show error dialog
             showDialog(
               context: context,
-              builder: (ctx) => AlertDialog(
-                title: const Text('Verification Issue'),
-                content: Text(state.errorMessage ??
-                    'Unable to verify your purchase. Please contact support.'),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(ctx).pop(),
-                    child: const Text('OK'),
+              builder:
+                  (ctx) => AlertDialog(
+                    title: const Text('Verification Issue'),
+                    content: Text(
+                      state.errorMessage ??
+                          'Unable to verify your purchase. Please contact support.',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(),
+                        child: const Text('OK'),
+                      ),
+                    ],
                   ),
-                ],
-              ),
             );
           }
         } else if (state.status == PaymentPlanStatus.purchaseSuccess) {
@@ -300,7 +303,8 @@ class UpgradePopup extends StatelessWidget {
               ProductDetails? venueProduct;
               try {
                 venueProduct = state.products.firstWhere(
-                  (product) => product.id == PaymentService.venueYearlyProductId,
+                  (product) =>
+                      product.id == PaymentService.venueYearlyProductId,
                 );
               } catch (e) {
                 venueProduct =
@@ -378,57 +382,55 @@ class UpgradePopup extends StatelessWidget {
                     width: 151.w,
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: isProcessing
-                          ? null
-                          : () {
-                              if (venueProduct != null) {
-                                context.read<PaymentPlanBloc>().add(
-                                      SelectPlanEvent(venueProduct.id),
-                                    );
-                                context.read<PaymentPlanBloc>().add(
-                                      PurchaseProductEvent(venueProduct.id),
-                                    );
-                              } else {
-                                context.read<PaymentPlanBloc>().add(
-                                      const LoadProductsEvent(),
-                                    );
-                                Fluttertoast.showToast(
-                                  fontSize: 14.sp,
-                                  backgroundColor: AppColors.appRedColor,
-                                  textColor: AppColors.primaryWhiteColor,
-                                  gravity: ToastGravity.BOTTOM,
-                                  msg: 'Loading subscription plans...',
-                                );
-                              }
-                            },
+                      onPressed:
+                          isProcessing
+                              ? null
+                              : () {
+                                if (venueProduct != null) {
+                                  context.read<PaymentPlanBloc>().add(
+                                    SelectPlanEvent(venueProduct.id),
+                                  );
+                                  context.read<PaymentPlanBloc>().add(
+                                    PurchaseProductEvent(venueProduct.id),
+                                  );
+                                } else {
+                                  // ✅ FIX: Don't show error toast, just load products
+                                  // The EasyLoading indicator will show loading state
+                                  context.read<PaymentPlanBloc>().add(
+                                    const LoadProductsEvent(),
+                                  );
+                                }
+                              },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: isProcessing
-                            ? AppColors.textPrimaryGrey
-                            : AppColors.primary,
+                        backgroundColor:
+                            isProcessing
+                                ? AppColors.textPrimaryGrey
+                                : AppColors.primary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(18),
                         ),
                         elevation: 5,
                       ),
-                      child: isProcessing
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
+                      child:
+                          isProcessing
+                              ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
+                                ),
+                              )
+                              : Text(
+                                'SUBSCRIBE HERE',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primaryWhiteColor,
                                 ),
                               ),
-                            )
-                          : Text(
-                              'SUBSCRIBE HERE',
-                              style: GoogleFonts.montserrat(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.primaryWhiteColor,
-                              ),
-                            ),
                     ),
                   ),
                 ],

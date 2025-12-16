@@ -657,12 +657,9 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
   ) async {
     try {
       if (state.isProcessing == true) {
-        emit(
-          state.copyWith(
-            status: PaymentPlanStatus.purchaseFailed,
-            errorMessage: 'Purchase already in progress',
-          ),
-        );
+        // ✅ FIX: Don't emit error state for 'already in progress'
+        // This is expected when user clicks multiple times
+        print('⚠️ Purchase already in progress, ignoring duplicate request');
         return;
       }
 
@@ -774,43 +771,130 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
 
       if (purchaseDetails.status == PurchaseStatus.purchased ||
           purchaseDetails.status == PurchaseStatus.restored) {
-        // ✅ CRITICAL FIX: For restored purchases, check if we need to re-verify
-        // This handles the case where user logged out and back in
+        // ✅ NEW: For RESTORED purchases, check subscription status FIRST
         if (purchaseDetails.status == PurchaseStatus.restored) {
-          final cachedData = await _paymentRepository.getUserSubscriptionData();
-          final isPremium = cachedData['isPremium'] as bool? ?? false;
-          final premiumOverride =
-              cachedData['premiumOverride'] as bool? ?? false;
+          print('🔄 Purchase restored - checking subscription status first');
 
-          // If cache shows non-premium state, we need to verify even if "duplicate"
-          if (!isPremium && !premiumOverride) {
-            print(
-              '🔄 Restored purchase detected with non-premium cache - forcing verification',
-            );
-            _processedPurchases.remove(purchaseId); // Allow re-processing
-          }
-        }
-
-        // ✅ Skip if already processing/processed
-        if (_processedPurchases.contains(purchaseId)) {
-          print('⏭️ Skipping duplicate purchase event for: $purchaseId');
-          continue;
-        }
-
-        // ✅ Mark as being processed
-        _processedPurchases.add(purchaseId);
-
-        // ✅ CRITICAL FIX: Cache purchase token for restored purchases
-        // This enables subscription status checks after logout/login
-        if (purchaseDetails.status == PurchaseStatus.restored) {
+          // Cache the purchase token AND subscription ID for status check
           final platform = Platform.isIOS ? 'ios' : 'android';
           await _paymentRepository.cacheLatestPurchaseDetails(
             purchaseToken:
                 purchaseDetails.verificationData.serverVerificationData,
             platform: platform,
+            subscriptionId:
+                purchaseDetails.productID, // ✅ FIX: Cache product ID
           );
           print('✅ Cached restored purchase token for status checks');
+
+          // Try to check subscription status first
+          try {
+            print('📞 Calling fetchSubscriptionStatusFromBackend...');
+            print('   Product ID: ${purchaseDetails.productID}');
+            final statusResult = await _paymentRepository
+                .fetchSubscriptionStatusFromBackend(
+                  productId: purchaseDetails.productID, // ✅ Pass product ID
+                );
+
+            // Check if we got valid subscription data
+            final isPremium = statusResult['isPremium'] as bool? ?? false;
+            final premiumOverride =
+                statusResult['premiumOverride'] as bool? ?? false;
+            final userType = statusResult['userType'] as UserType?;
+
+            print('📊 Status check result:');
+            print('   isPremium: $isPremium');
+            print('   premiumOverride: $premiumOverride');
+            print('   userType: $userType');
+
+            if (isPremium || premiumOverride) {
+              print('✅ Subscription status confirmed - skipping verification');
+              print('   This purchase already exists in the backend');
+
+              // Complete the purchase
+              if (purchaseDetails.pendingCompletePurchase) {
+                await InAppPurchase.instance.completePurchase(purchaseDetails);
+                print('✅ Purchase completed on store');
+              }
+
+              emit(
+                state.copyWith(
+                  status: PaymentPlanStatus.purchaseRestored,
+                  isPremium: isPremium,
+                  userType: userType,
+                  trialStartDate: statusResult['trialStartDate'] as DateTime?,
+                  trialEndDate: statusResult['trialEndDate'] as DateTime?,
+                  subscriptionExpiryDate:
+                      statusResult['subscriptionExpiryDate'] as DateTime?,
+                  currentSubscriptionId:
+                      statusResult['currentSubscriptionId'] as String?,
+                  errorMessage: null,
+                  isProcessing: false,
+                  premiumOverride: premiumOverride,
+                  pendingPurchase: null,
+                  pendingPayload: null,
+                ),
+              );
+
+              // Mark as processed
+              _processedPurchases.add(purchaseId);
+              print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+              print('✅ RESTORED PURCHASE HANDLED VIA STATUS CHECK');
+              print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+              continue; // Skip verification
+            } else {
+              print('⚠️ Subscription status check returned non-premium');
+              print('   This could mean:');
+              print('   1. Subscription has been canceled');
+              print('   2. Subscription has expired');
+              print('   3. Purchase token belongs to a different user');
+              print('');
+              print('❌ Will NOT grant premium access');
+              print('');
+
+              // ✅ Complete the purchase but do NOT emit premium state
+              if (purchaseDetails.pendingCompletePurchase) {
+                await InAppPurchase.instance.completePurchase(purchaseDetails);
+                print('✅ Purchase completed on store (but access denied)');
+              }
+
+              emit(
+                state.copyWith(
+                  status: PaymentPlanStatus.purchaseFailed,
+                  isPremium: false,
+                  premiumOverride: false,
+                  userType:
+                      state.isVenueUser
+                          ? UserType.venueTrial
+                          : UserType.publicFree,
+                  errorMessage:
+                      'Your subscription has expired or been canceled. Please subscribe again to access premium features.',
+                  isProcessing: false,
+                  pendingPurchase: null,
+                  pendingPayload: null,
+                ),
+              );
+
+              // Mark as processed
+              _processedPurchases.add(purchaseId);
+              print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+              print('❌ RESTORED PURCHASE REJECTED - SUBSCRIPTION INACTIVE');
+              print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+              continue; // ✅ Skip verification
+            }
+          } catch (e) {
+            print('⚠️ Subscription status check failed: $e');
+            print('   Falling back to verification');
+          }
         }
+
+        // Skip if already processing/processed
+        if (_processedPurchases.contains(purchaseId)) {
+          print('⏭️ Skipping duplicate purchase event for: $purchaseId');
+          continue;
+        }
+
+        // Mark as being processed
+        _processedPurchases.add(purchaseId);
 
         final payload = paymentService.extractVerificationPayload(
           purchaseDetails,

@@ -26,6 +26,8 @@ import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import '../../../model/customer/booking/booking_request.dart';
 import '../../cafe_owner/notification/count_controller.dart';
+import '../profile/paid_profile_bloc/bloc/paid_profile_bloc.dart';
+import '../profile/paid_profile_bloc/bloc/paid_profile_state.dart';
 import 'bloc/cafe_details_bloc.dart';
 
 class CafeDetailsScreen extends StatefulWidget {
@@ -470,13 +472,30 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
     );
   }
 
+  /// Helper method to map table type names to preference IDs
+  int? _getPreferenceIdFromTableType(String? tableType) {
+    if (tableType == null) return null;
+
+    switch (tableType) {
+      case 'Business Networking':
+        return 1;
+      case 'Social Solos':
+        return 2;
+      case 'Solo Singles':
+        return 3;
+      case 'Prime Time - Over 60\'s':
+        return 4;
+      default:
+        return null;
+    }
+  }
+
   void _showBookingDialog(BuildContext context) {
     final TextEditingController checkInController = TextEditingController();
     final TextEditingController checkOutController = TextEditingController();
     final TextEditingController apiCheckInController = TextEditingController();
     final TextEditingController apiCheckOutController = TextEditingController();
     String? selectedDiceTableType;
-    bool savePrefToggle = false;
 
     showDialog(
       context: context,
@@ -918,43 +937,79 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                                 ),
                               );
                             } else {
-                              // Toggle for paid users
-                              return Row(
-                                children: [
-                                  SizedBox(
-                                    width: 50.0,
-                                    height: 36.0,
-                                    child: FittedBox(
-                                      fit: BoxFit.fill,
-                                      child: Switch(
-                                        value: savePrefToggle,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            savePrefToggle = value;
-                                          });
-                                          print(
-                                            'Switch value: $savePrefToggle',
-                                          );
-                                        },
-                                        activeColor:
-                                            AppColors.primaryWhiteColor,
-                                        activeTrackColor: AppColors.secondary,
-                                        inactiveThumbColor: Colors.white,
-                                        inactiveTrackColor:
-                                            Colors.grey.shade400,
+                              // Toggle for paid users - always non-interactive, displays preference state from profile
+                              return BlocBuilder<
+                                PaidProfileBloc,
+                                PaidProfileState
+                              >(
+                                builder: (context, profileState) {
+                                  // Get preference ID for selected table type
+                                  final preferenceId =
+                                      _getPreferenceIdFromTableType(
+                                        selectedDiceTableType,
+                                      );
+
+                                  // Get the preference value from profile (defaults to false if not found)
+                                  final isPreferenceEnabled =
+                                      preferenceId != null
+                                          ? (profileState
+                                                  .localPreferences[preferenceId] ??
+                                              false)
+                                          : false;
+
+                                  return Row(
+                                    children: [
+                                      SizedBox(
+                                        width: 50.0,
+                                        height: 36.0,
+                                        child: FittedBox(
+                                          fit: BoxFit.fill,
+                                          child: Switch(
+                                            value: isPreferenceEnabled,
+                                            onChanged:
+                                                null, // Always non-interactive
+                                            activeColor:
+                                                AppColors.primaryWhiteColor,
+                                            activeTrackColor:
+                                                AppColors.secondary,
+                                            inactiveThumbColor: Colors.white,
+                                            inactiveTrackColor:
+                                                Colors.grey.shade400,
+                                          ),
+                                        ),
                                       ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    'Save as Preference',
-                                    style: GoogleFonts.montserrat(
-                                      fontSize: 14,
-                                      color: AppColors.primary,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Save as Preference',
+                                              style: GoogleFonts.montserrat(
+                                                fontSize: 14,
+                                                color: AppColors.primary
+                                                    .withOpacity(0.7),
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            Text(
+                                              isPreferenceEnabled
+                                                  ? 'Set in profile'
+                                                  : 'Not set in profile',
+                                              style: GoogleFonts.montserrat(
+                                                fontSize: 11,
+                                                color: AppColors.primary
+                                                    .withOpacity(0.5),
+                                                fontStyle: FontStyle.italic,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
                               );
                             }
                           },
@@ -986,7 +1041,8 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                                       checkInTime: apiCheckInController.text,
                                       checkOutTime: apiCheckOutController.text,
                                       diceTableType: selectedDiceTableType!,
-                                      setAsPref: savePrefToggle,
+                                      setAsPref:
+                                          false, // ✅ Preference already in profile - no need to send
                                     );
                                   }
                                 },

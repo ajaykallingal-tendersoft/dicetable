@@ -3,6 +3,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
@@ -14,7 +15,6 @@ import 'package:soloseaters/src/purchase/bloc/bloc/purchase_bloc.dart';
 import 'package:soloseaters/src/purchase/bloc/bloc/purchase_event.dart';
 import 'package:soloseaters/src/purchase/bloc/bloc/purchase_state.dart';
 
-
 class ChoosePlanScreen extends StatefulWidget {
   const ChoosePlanScreen({super.key});
 
@@ -23,6 +23,8 @@ class ChoosePlanScreen extends StatefulWidget {
 }
 
 class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
+  bool _successDialogShown = false; // Track if success dialog was already shown
+
   @override
   void initState() {
     super.initState();
@@ -33,6 +35,12 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
         ..add(const ResetStateEvent()) // Reset first
         ..add(const InitializePaymentEvent()); // Then initialize fresh
     });
+  }
+
+  @override
+  void dispose() {
+    _successDialogShown = false; // Reset flag on dispose
+    super.dispose();
   }
 
   @override
@@ -88,8 +96,18 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
         ),
         body: BlocConsumer<PaymentPlanBloc, PaymentPlanState>(
           listener: (context, state) {
-            // ✅ Handle verification states
+            // Reset success dialog flag when a new purchase starts
+            if (state.status == PaymentPlanStatus.purchasing) {
+              _successDialogShown = false;
+              EasyLoading.show(
+                status: 'Processing purchase...',
+                maskType: EasyLoadingMaskType.black,
+              );
+            }
+
+            // Handle verification states
             if (state.status == PaymentPlanStatus.verificationFailed) {
+              EasyLoading.dismiss();
               final attempts = state.verificationAttempts ?? 0;
               if (attempts == 0) {
                 // Max retries reached
@@ -98,26 +116,50 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                   barrierDismissible: false,
                   builder:
                       (context) => AlertDialog(
-                        title: const Text('Verification Issue'),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        title: Row(
+                          children: [
+                            const Icon(
+                              Icons.info_outline,
+                              color: AppColors.primary,
+                              size: 28,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Subscription Issue',
+                              style: GoogleFonts.montserrat(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
                         content: Text(
-                          state.errorMessage ??
-                              'Unable to verify your purchase. Please contact support.',
+                          state.errorMessage?.contains('another account') ==
+                                  true
+                              ? 'This subscription is already linked to a different account. Please log in with the correct account or purchase a new subscription.'
+                              : 'Unable to verify your subscription at this time. Please try again later or contact support if the issue persists.',
+                          style: GoogleFonts.montserrat(
+                            color: AppColors.primary,
+                            fontSize: 14,
+                          ),
                         ),
                         actions: [
                           TextButton(
                             onPressed: () {
                               Navigator.pop(context);
                             },
-                            child: const Text('Contact Support'),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                              context.read<PaymentPlanBloc>().add(
-                                const RestorePurchasesEvent(),
-                              );
-                            },
-                            child: const Text('Retry'),
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppColors.primary,
+                            ),
+                            child: Text(
+                              'Close',
+                              style: GoogleFonts.montserrat(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -126,6 +168,10 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
             }
 
             if (state.status == PaymentPlanStatus.needsRestore) {
+              EasyLoading.show(
+                status: 'Restoring purchases...',
+                maskType: EasyLoadingMaskType.black,
+              );
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
@@ -141,17 +187,34 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
               );
             }
 
-            if (state.status == PaymentPlanStatus.purchaseSuccess) {
+            // ✅ FIX: Only show success dialog once using flag
+            if (state.status == PaymentPlanStatus.purchaseSuccess &&
+                !_successDialogShown) {
+              EasyLoading.dismiss();
+              _successDialogShown = true; // Set flag to prevent repeated shows
               context.read<PaymentPlanBloc>().add(
                 const CheckSubscriptionStatusEvent(),
               );
               _showSuccessDialog(context, state);
             } else if (state.status == PaymentPlanStatus.purchaseFailed) {
-              _showErrorSnackBar(
-                context,
-                state.errorMessage ?? 'Purchase failed',
-              );
+              EasyLoading.dismiss();
+
+              // ✅ FIX: Filter out inappropriate error messages
+              final errorMsg = state.errorMessage ?? 'Purchase failed';
+
+              // Don't show snackbar for these expected/handled states
+              final shouldSkipSnackbar =
+                  errorMsg.contains('already in progress') ||
+                  errorMsg.contains('ITEM_ALREADY_OWNED') ||
+                  errorMsg.contains('already subscribed') ||
+                  errorMsg.contains('Restoring') ||
+                  errorMsg.contains('Loading subscription plans');
+
+              if (!shouldSkipSnackbar) {
+                _showErrorSnackBar(context, errorMsg);
+              }
             } else if (state.status == PaymentPlanStatus.purchaseRestored) {
+              EasyLoading.dismiss();
               context.read<PaymentPlanBloc>().add(
                 const CheckSubscriptionStatusEvent(),
               );
@@ -172,6 +235,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                 ),
               );
             } else if (state.status == PaymentPlanStatus.cancelled) {
+              EasyLoading.dismiss();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
@@ -422,225 +486,223 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
   }
 
   // Replace your _buildPlanOptions method in ChoosePlanScreen with this fixed version
-// COMPLETE REPLACEMENT for _buildPlanOptions and _buildPlanOption in ChoosePlanScreen
+  // COMPLETE REPLACEMENT for _buildPlanOptions and _buildPlanOption in ChoosePlanScreen
 
-List<Widget> _buildPlanOptions(BuildContext context, PaymentPlanState state) {
-  final widgets = <Widget>[];
-  final expandedProducts = state.expandedProducts;
+  List<Widget> _buildPlanOptions(BuildContext context, PaymentPlanState state) {
+    final widgets = <Widget>[];
+    final expandedProducts = state.expandedProducts;
 
-  if (expandedProducts == null || expandedProducts.isEmpty) {
+    if (expandedProducts == null || expandedProducts.isEmpty) {
+      return widgets;
+    }
+
+    // ✅ Sort by raw price (higher first)
+    final sortedProducts = List<Map<String, dynamic>>.from(expandedProducts);
+
+    sortedProducts.sort((a, b) {
+      final aPrice = (a['rawPrice'] as double?) ?? 0.0;
+      final bPrice = (b['rawPrice'] as double?) ?? 0.0;
+      return bPrice.compareTo(aPrice); // Descending
+    });
+
+    print('📄 Sorted products:');
+    for (var item in sortedProducts) {
+      final product = item['product'] as ProductDetails;
+      final basePlanId = item['basePlanId'] as String?;
+      final price = item['formattedPrice'] as String?;
+      final billingPeriod = item['billingPeriod'] as String?;
+      print('  ${product.id}:$basePlanId - $price ($billingPeriod)');
+    }
+
+    for (var expandedProduct in sortedProducts) {
+      final product = expandedProduct['product'] as ProductDetails;
+      final basePlanId = expandedProduct['basePlanId'] as String?;
+      final offerToken = expandedProduct['offerToken'] as String?;
+      final formattedPrice = expandedProduct['formattedPrice'] as String?;
+      final billingPeriod = expandedProduct['billingPeriod'] as String?;
+
+      final isSelected =
+          state.selectedProductId == product.id &&
+          (basePlanId == null
+              ? state.selectedBasePlanId == null
+              : state.selectedBasePlanId == basePlanId);
+
+      widgets.add(
+        _buildPlanOption(
+          context,
+          product: product,
+          basePlanId: basePlanId,
+          billingPeriod: billingPeriod,
+          offerToken: offerToken,
+          formattedPrice: formattedPrice,
+          isSelected: isSelected,
+          onTap: () {
+            print('👆 Selected plan:');
+            print('   Product: ${product.id}');
+            print('   Base Plan: $basePlanId');
+            print('   Offer Token: $offerToken');
+            print('   Price: $formattedPrice');
+
+            context.read<PaymentPlanBloc>().add(
+              SelectPlanEvent(
+                product.id,
+                basePlanId: basePlanId,
+                offerToken: offerToken,
+              ),
+            );
+          },
+        ),
+      );
+      widgets.add(const SizedBox(height: 16.0));
+    }
+
     return widgets;
   }
 
-  // ✅ Sort by raw price (higher first)
-  final sortedProducts = List<Map<String, dynamic>>.from(expandedProducts);
+  // ✅ SIMPLIFIED _buildPlanOption - uses stored billing period
+  Widget _buildPlanOption(
+    BuildContext context, {
+    required ProductDetails product,
+    required String? basePlanId,
+    required String? billingPeriod,
+    required String? offerToken,
+    required String? formattedPrice,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    const Color selectedColor = AppColors.signUpContainerColor;
+    const Color unselectedColor = Colors.transparent;
 
-  sortedProducts.sort((a, b) {
-    final aPrice = (a['rawPrice'] as double?) ?? 0.0;
-    final bPrice = (b['rawPrice'] as double?) ?? 0.0;
-    return bPrice.compareTo(aPrice); // Descending
-  });
+    final Color borderColor =
+        isSelected
+            ? selectedColor
+            : AppColors.primaryWhiteColor.withOpacity(0.3);
 
-  print('📄 Sorted products:');
-  for (var item in sortedProducts) {
-    final product = item['product'] as ProductDetails;
-    final basePlanId = item['basePlanId'] as String?;
-    final price = item['formattedPrice'] as String?;
-    final billingPeriod = item['billingPeriod'] as String?;
-    print('  ${product.id}:$basePlanId - $price ($billingPeriod)');
-  }
+    // ✅ Use stored formatted price
+    String displayPrice = formattedPrice ?? product.price;
 
-  for (var expandedProduct in sortedProducts) {
-    final product = expandedProduct['product'] as ProductDetails;
-    final basePlanId = expandedProduct['basePlanId'] as String?;
-    final offerToken = expandedProduct['offerToken'] as String?;
-    final formattedPrice = expandedProduct['formattedPrice'] as String?;
-    final billingPeriod = expandedProduct['billingPeriod'] as String?;
+    // ✅ Parse billing period from stored value
+    String period = '';
+    String planName = '';
+    String? assetPath;
 
-    final isSelected =
-        state.selectedProductId == product.id &&
-        (basePlanId == null
-            ? state.selectedBasePlanId == null
-            : state.selectedBasePlanId == basePlanId);
-
-    widgets.add(
-      _buildPlanOption(
-        context,
-        product: product,
-        basePlanId: basePlanId,
-        billingPeriod: billingPeriod,
-        offerToken: offerToken,
-        formattedPrice: formattedPrice,
-        isSelected: isSelected,
-        onTap: () {
-          print('👆 Selected plan:');
-          print('   Product: ${product.id}');
-          print('   Base Plan: $basePlanId');
-          print('   Offer Token: $offerToken');
-          print('   Price: $formattedPrice');
-
-          context.read<PaymentPlanBloc>().add(
-            SelectPlanEvent(
-              product.id,
-              basePlanId: basePlanId,
-              offerToken: offerToken,
-            ),
-          );
-        },
-      ),
-    );
-    widgets.add(const SizedBox(height: 16.0));
-  }
-
-  return widgets;
-}
-
-// ✅ SIMPLIFIED _buildPlanOption - uses stored billing period
-Widget _buildPlanOption(
-  BuildContext context, {
-  required ProductDetails product,
-  required String? basePlanId,
-  required String? billingPeriod,
-  required String? offerToken,
-  required String? formattedPrice,
-  required bool isSelected,
-  required VoidCallback onTap,
-}) {
-  const Color selectedColor = AppColors.signUpContainerColor;
-  const Color unselectedColor = Colors.transparent;
-
-  final Color borderColor =
-      isSelected
-          ? selectedColor
-          : AppColors.primaryWhiteColor.withOpacity(0.3);
-
-  // ✅ Use stored formatted price
-  String displayPrice = formattedPrice ?? product.price;
-  
-  // ✅ Parse billing period from stored value
-  String period = '';
-  String planName = '';
-  String? assetPath;
-
-  if (billingPeriod != null && billingPeriod.isNotEmpty) {
-    // Parse ISO 8601 duration (e.g., "P1Y", "P1M")
-    if (billingPeriod.contains('Y')) {
-      period = 'Year';
-      planName = 'Yearly plan';
-      assetPath = Assets.CALENDAR;
-    } else if (billingPeriod.contains('M')) {
-      final monthMatch = RegExp(r'P(\d+)M').firstMatch(billingPeriod);
-      if (monthMatch != null) {
-        final months = int.parse(monthMatch.group(1)!);
-        if (months >= 12) {
-          period = 'Year';
-          planName = 'Yearly plan';
-          assetPath = Assets.CALENDAR;
-        } else if (months == 1) {
+    if (billingPeriod != null && billingPeriod.isNotEmpty) {
+      // Parse ISO 8601 duration (e.g., "P1Y", "P1M")
+      if (billingPeriod.contains('Y')) {
+        period = 'Year';
+        planName = 'Yearly plan';
+        assetPath = Assets.CALENDAR;
+      } else if (billingPeriod.contains('M')) {
+        final monthMatch = RegExp(r'P(\d+)M').firstMatch(billingPeriod);
+        if (monthMatch != null) {
+          final months = int.parse(monthMatch.group(1)!);
+          if (months >= 12) {
+            period = 'Year';
+            planName = 'Yearly plan';
+            assetPath = Assets.CALENDAR;
+          } else if (months == 1) {
+            period = 'Month';
+            planName = 'Monthly plan';
+            assetPath = Assets.CLOCK_YEARLY;
+          } else {
+            period = '$months Months';
+            planName = '$months Months plan';
+            assetPath = Assets.CLOCK_YEARLY;
+          }
+        } else {
           period = 'Month';
           planName = 'Monthly plan';
           assetPath = Assets.CLOCK_YEARLY;
-        } else {
-          period = '$months Months';
-          planName = '$months Months plan';
-          assetPath = Assets.CLOCK_YEARLY;
         }
-      } else {
+      } else if (billingPeriod.contains('W')) {
+        period = 'Week';
+        planName = 'Weekly plan';
+        assetPath = Assets.CLOCK_YEARLY;
+      } else if (billingPeriod.contains('D')) {
+        period = 'Day';
+        planName = 'Daily plan';
+        assetPath = Assets.CLOCK_YEARLY;
+      }
+    } else if (basePlanId != null) {
+      // Fallback: Use base plan ID
+      final basePlanLower = basePlanId.toLowerCase();
+      if (basePlanLower.contains('month')) {
         period = 'Month';
         planName = 'Monthly plan';
         assetPath = Assets.CLOCK_YEARLY;
+      } else if (basePlanLower.contains('year')) {
+        period = 'Year';
+        planName = 'Yearly plan';
+        assetPath = Assets.CALENDAR;
       }
-    } else if (billingPeriod.contains('W')) {
-      period = 'Week';
-      planName = 'Weekly plan';
-      assetPath = Assets.CLOCK_YEARLY;
-    } else if (billingPeriod.contains('D')) {
-      period = 'Day';
-      planName = 'Daily plan';
-      assetPath = Assets.CLOCK_YEARLY;
     }
-  } else if (basePlanId != null) {
-    // Fallback: Use base plan ID
-    final basePlanLower = basePlanId.toLowerCase();
-    if (basePlanLower.contains('month')) {
-      period = 'Month';
-      planName = 'Monthly plan';
-      assetPath = Assets.CLOCK_YEARLY;
-    } else if (basePlanLower.contains('year')) {
-      period = 'Year';
-      planName = 'Yearly plan';
-      assetPath = Assets.CALENDAR;
-    }
-  }
 
-  final productPriceText =
-      period.isNotEmpty
-          ? "$displayPrice / $period"
-          : "$displayPrice";
+    final productPriceText =
+        period.isNotEmpty ? "$displayPrice / $period" : "$displayPrice";
 
-  return InkWell(
-    onTap: onTap,
-    borderRadius: BorderRadius.circular(12.0),
-    child: Container(
-      height: 80.0,
-      decoration: BoxDecoration(
-        color: isSelected ? selectedColor : unselectedColor,
-        borderRadius: BorderRadius.circular(12.0),
-        border: Border.all(color: borderColor, width: isSelected ? 0 : 1),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Row(
-                children: [
-                  isSelected
-                      ? const Icon(
-                        Icons.check_circle,
-                        color: AppColors.secondary,
-                        size: 24.0,
-                      )
-                      : const Icon(
-                        Icons.radio_button_unchecked,
-                        color: AppColors.primaryWhiteColor,
-                        size: 24.0,
-                      ),
-                  const SizedBox(width: 16.0),
-                  Expanded(
-                    child: Text(
-                      productPriceText,
-                      style: GoogleFonts.montserrat(
-                        color:
-                            isSelected
-                                ? AppColors.primary
-                                : AppColors.primaryWhiteColor,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (assetPath != null)
-              Image.asset(
-                assetPath,
-                height: 24.0,
-                width: 24.0,
-                color:
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12.0),
+      child: Container(
+        height: 80.0,
+        decoration: BoxDecoration(
+          color: isSelected ? selectedColor : unselectedColor,
+          borderRadius: BorderRadius.circular(12.0),
+          border: Border.all(color: borderColor, width: isSelected ? 0 : 1),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
                     isSelected
-                        ? AppColors.primary
-                        : AppColors.primaryWhiteColor,
+                        ? const Icon(
+                          Icons.check_circle,
+                          color: AppColors.secondary,
+                          size: 24.0,
+                        )
+                        : const Icon(
+                          Icons.radio_button_unchecked,
+                          color: AppColors.primaryWhiteColor,
+                          size: 24.0,
+                        ),
+                    const SizedBox(width: 16.0),
+                    Expanded(
+                      child: Text(
+                        productPriceText,
+                        style: GoogleFonts.montserrat(
+                          color:
+                              isSelected
+                                  ? AppColors.primary
+                                  : AppColors.primaryWhiteColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-          ],
+              if (assetPath != null)
+                Image.asset(
+                  assetPath,
+                  height: 24.0,
+                  width: 24.0,
+                  color:
+                      isSelected
+                          ? AppColors.primary
+                          : AppColors.primaryWhiteColor,
+                ),
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildContinueButton(BuildContext context, PaymentPlanState state) {
     final isProcessing =
@@ -860,8 +922,6 @@ class PricingHelper {
     if (period == 'Year') {
       return Assets.CALENDAR;
     } else if (period == 'Month') {
-
-      
       return Assets.CLOCK_YEARLY;
     }
     return null;

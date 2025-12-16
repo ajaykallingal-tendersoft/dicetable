@@ -14,7 +14,24 @@ class IapDataProvider {
     print('❌ Dio Error Response: ${e.response}');
 
     final status = e.response?.statusCode;
+    final responseData = e.response?.data;
 
+    // ✅ CHECK FOR DUPLICATE PURCHASE TOKEN ERROR FIRST (before generic 500 handling)
+    if (status == 500 && responseData is Map<String, dynamic>) {
+      final message = responseData['message']?.toString() ?? '';
+
+      // Check for duplicate entry constraint violation
+      if (message.contains('Duplicate entry') ||
+          message.contains('purchases_purchase_token_unique')) {
+        print('⚠️ Detected duplicate purchase token error in response');
+        // Return the specific error so purchase_repository can catch it
+        return StateModel.error(
+          "Duplicate entry - This subscription belongs to another user",
+        );
+      }
+    }
+
+    // Generic 500 error
     if (status == 500) {
       return StateModel.error("Server error. Please try again later.");
     }
@@ -22,15 +39,15 @@ class IapDataProvider {
     if (status == 401) {
       return StateModel.error("Unauthorized. Please login again.");
     }
-     if (status == 409) {
+    if (status == 409) {
       // Handle conflicts, like "already verified"
       // We can pass a special success state or a specific error message
       return StateModel.error("Purchase has already been verified.");
     }
 
-
     if (e.type == DioExceptionType.connectionError ||
-        e.type == DioExceptionType.unknown || e.type == DioExceptionType.connectionTimeout) {
+        e.type == DioExceptionType.unknown ||
+        e.type == DioExceptionType.connectionTimeout) {
       return StateModel.error(
         "Connection error. Check your internet connection.",
       );
@@ -41,8 +58,8 @@ class IapDataProvider {
     }
 
     // Try to get a more specific error from the response body
-    final responseData = e.response?.data;
-    if (responseData is Map<String, dynamic> && responseData.containsKey('message')) {
+    if (responseData is Map<String, dynamic> &&
+        responseData.containsKey('message')) {
       return StateModel.error(responseData['message']);
     }
 
@@ -50,16 +67,13 @@ class IapDataProvider {
   }
 
   /// Safe JSON decode
-  T? _safeParse<T>(
-    dynamic json,
-    T Function(Map<String, dynamic>) parser,
-  ) {
+  T? _safeParse<T>(dynamic json, T Function(Map<String, dynamic>) parser) {
     try {
       if (json is Map<String, dynamic>) {
         return parser(json);
       }
       return null;
-    } catch (e,stacktrace) {
+    } catch (e, stacktrace) {
       print('❌ JSON Parse Error: $e');
       print('❌ Stacktrace: $stacktrace');
       return null;
@@ -92,11 +106,14 @@ class IapDataProvider {
         }
 
         // Check for "already verified" message from a successful response
-        if (parsed.message?.toLowerCase().contains('already verified') == true) {
+        if (parsed.message?.toLowerCase().contains('already verified') ==
+            true) {
           return StateModel.success(parsed);
         }
 
-        return StateModel.error(parsed.message ?? "Purchase verification failed");
+        return StateModel.error(
+          parsed.message ?? "Purchase verification failed",
+        );
       }
 
       return StateModel.error(
@@ -117,8 +134,9 @@ class IapDataProvider {
     try {
       print('📡 Fetching subscription status');
 
-      final response =
-          await ObjectFactory().apiClient.getSubscriptionStatus(request);
+      final response = await ObjectFactory().apiClient.getSubscriptionStatus(
+        request,
+      );
 
       print('✅ Raw subscription response: ${response.data}');
 
@@ -137,13 +155,47 @@ class IapDataProvider {
         }
 
         return StateModel.error(
-            parsed.message ?? "Failed to fetch subscription");
+          parsed.message ?? "Failed to fetch subscription",
+        );
       }
 
       return StateModel.error(
         "Request failed with status ${response.statusCode}",
       );
     } on DioException catch (e) {
+      // ✅ NEW: Special handling for 400 responses with canceled subscriptions
+      if (e.response?.statusCode == 400) {
+        final responseData = e.response?.data;
+
+        if (responseData is Map<String, dynamic>) {
+          // Try to parse the response even though it's a 400 error
+          final parsed = _safeParse(
+            responseData,
+            (json) => SubscriptionStatusResponse.fromJson(json),
+          );
+
+          // ✅ CRITICAL: If we got verification_data with SUBSCRIPTION_STATE_CANCELED,
+          // return it as "success" so the repository can process the cancellation
+          if (parsed?.verificationData?.subscriptionState
+                  ?.toUpperCase()
+                  .contains('CANCEL') ==
+              true) {
+            print('⚠️ Detected canceled subscription in 400 response');
+            print(
+              '   Subscription state: ${parsed!.verificationData!.subscriptionState}',
+            );
+            print('   Returning as success for processing');
+
+            // Return success with the cancellation data
+            return StateModel.success(parsed);
+          }
+
+          // Regular 400 error handling
+          final message = responseData['message']?.toString() ?? 'Bad request';
+          print('❌ 400 error without cancellation data: $message');
+        }
+      }
+
       return _handleDioError(e);
     } catch (e) {
       print("❌ Unexpected error in getSubscriptionStatus: $e");
