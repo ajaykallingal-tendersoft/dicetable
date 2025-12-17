@@ -70,6 +70,14 @@ class PaymentRepository {
     );
   }
 
+  // NEW HELPER: Clear cached purchase details
+  Future<void> clearCachedPurchaseToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_scopedKey(_latestPurchaseTokenKey));
+    await prefs.remove(_scopedKey(_latestPurchasePlatformKey));
+    print('✅ Cleared cached purchase token/platform');
+  }
+
   /// ========================================
   /// VERIFY PURCHASE WITH BACKEND
   /// ========================================

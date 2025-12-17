@@ -64,9 +64,7 @@ class Prefs {
   static const String _IS_GUEST = "is_GUEST";
   static const String _CAFE_USER_ID = "cafe_user_id";
   static const String _APPLE_AUTH_ID = "apple_auth_id";
-    static const String _IS_APPLE = "is_apple";
-
-  
+  static const String _IS_APPLE = "is_apple";
 
   Prefs();
 
@@ -74,8 +72,10 @@ class Prefs {
     _sharedPreferences = value;
   }
 
+  /// Get the SharedPreferences instance
+  SharedPreferences? get getSharedPrefs => _sharedPreferences;
 
-   void setIsApple(bool status) {
+  void setIsApple(bool status) {
     _sharedPreferences!.setBool(_IS_APPLE, status);
   }
 
@@ -301,8 +301,9 @@ class Prefs {
   }
 
   Map<String, dynamic>? getPendingNotificationPayload() {
-    final rawPayload =
-        _sharedPreferences?.getString(_PENDING_NOTIFICATION_PAYLOAD);
+    final rawPayload = _sharedPreferences?.getString(
+      _PENDING_NOTIFICATION_PAYLOAD,
+    );
     if (rawPayload == null || rawPayload.isEmpty) {
       return null;
     }

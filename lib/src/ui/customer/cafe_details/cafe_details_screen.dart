@@ -26,8 +26,6 @@ import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import '../../../model/customer/booking/booking_request.dart';
 import '../../cafe_owner/notification/count_controller.dart';
-import '../profile/paid_profile_bloc/bloc/paid_profile_bloc.dart';
-import '../profile/paid_profile_bloc/bloc/paid_profile_state.dart';
 import 'bloc/cafe_details_bloc.dart';
 
 class CafeDetailsScreen extends StatefulWidget {
@@ -490,6 +488,24 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
     }
   }
 
+  /// Helper method to get preference state from SharedPreferences
+  /// This screen is customer-only, so we only check customer user ID
+  Future<bool> _getPreferenceState(String? tableType) async {
+    final preferenceId = _getPreferenceIdFromTableType(tableType);
+    if (preferenceId == null) return false;
+
+    final prefs = ObjectFactory().prefs;
+    // Customer user ID (this screen is only for customers, not cafe owners)
+    final userId = prefs.getUserId() ?? 'anonymous';
+    final key = 'paid_profile_preference_${preferenceId}_$userId';
+
+    // Use the existing SharedPreferences instance
+    final sharedPrefs = prefs.getSharedPrefs;
+    if (sharedPrefs == null) return false;
+
+    return sharedPrefs.getBool(key) ?? false;
+  }
+
   void _showBookingDialog(BuildContext context) {
     final TextEditingController checkInController = TextEditingController();
     final TextEditingController checkOutController = TextEditingController();
@@ -937,25 +953,18 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                                 ),
                               );
                             } else {
-                              // Toggle for paid users - always non-interactive, displays preference state from profile
-                              return BlocBuilder<
-                                PaidProfileBloc,
-                                PaidProfileState
-                              >(
-                                builder: (context, profileState) {
-                                  // Get preference ID for selected table type
-                                  final preferenceId =
-                                      _getPreferenceIdFromTableType(
-                                        selectedDiceTableType,
-                                      );
-
-                                  // Get the preference value from profile (defaults to false if not found)
+                              // Toggle for paid users - displays actual preference state from SharedPreferences
+                              // Non-interactive - preferences managed in Profile screen
+                              return FutureBuilder<bool>(
+                                key: ValueKey(
+                                  selectedDiceTableType,
+                                ), // Force rebuild when table type changes
+                                future: _getPreferenceState(
+                                  selectedDiceTableType,
+                                ),
+                                builder: (context, snapshot) {
                                   final isPreferenceEnabled =
-                                      preferenceId != null
-                                          ? (profileState
-                                                  .localPreferences[preferenceId] ??
-                                              false)
-                                          : false;
+                                      snapshot.data ?? false;
 
                                   return Row(
                                     children: [

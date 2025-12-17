@@ -771,28 +771,33 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
 
       if (purchaseDetails.status == PurchaseStatus.purchased ||
           purchaseDetails.status == PurchaseStatus.restored) {
-        // ✅ NEW: For RESTORED purchases, check subscription status FIRST
+        // ✅ FIXED: For RESTORED purchases, check subscription status FIRST before caching
         if (purchaseDetails.status == PurchaseStatus.restored) {
-          print('🔄 Purchase restored - checking subscription status first');
-
-          // Cache the purchase token AND subscription ID for status check
-          final platform = Platform.isIOS ? 'ios' : 'android';
-          await _paymentRepository.cacheLatestPurchaseDetails(
-            purchaseToken:
-                purchaseDetails.verificationData.serverVerificationData,
-            platform: platform,
-            subscriptionId:
-                purchaseDetails.productID, // ✅ FIX: Cache product ID
+          print(
+            '🔄 Purchase restored - checking subscription status BEFORE caching',
           );
-          print('✅ Cached restored purchase token for status checks');
+          print('   Product ID: ${purchaseDetails.productID}');
 
+          // ✅ DON'T cache yet - first verify if subscription is still active
           // Try to check subscription status first
           try {
             print('📞 Calling fetchSubscriptionStatusFromBackend...');
-            print('   Product ID: ${purchaseDetails.productID}');
+
+            // Temporarily cache just for the status check
+            final platform = Platform.isIOS ? 'ios' : 'android';
+            final tempToken =
+                purchaseDetails.verificationData.serverVerificationData;
+
+            // Make a temporary cache for the API call
+            await _paymentRepository.cacheLatestPurchaseDetails(
+              purchaseToken: tempToken,
+              platform: platform,
+              subscriptionId: purchaseDetails.productID,
+            );
+
             final statusResult = await _paymentRepository
                 .fetchSubscriptionStatusFromBackend(
-                  productId: purchaseDetails.productID, // ✅ Pass product ID
+                  productId: purchaseDetails.productID,
                 );
 
             // Check if we got valid subscription data
@@ -807,8 +812,16 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
             print('   userType: $userType');
 
             if (isPremium || premiumOverride) {
-              print('✅ Subscription status confirmed - skipping verification');
-              print('   This purchase already exists in the backend');
+              print('✅ Subscription is ACTIVE - caching token permanently');
+              print('   This purchase is valid and will be cached');
+
+              // ✅ NOW cache the token since subscription is active
+              await _paymentRepository.cacheLatestPurchaseDetails(
+                purchaseToken: tempToken,
+                platform: platform,
+                subscriptionId: purchaseDetails.productID,
+              );
+              print('✅ Cached active subscription token');
 
               // Complete the purchase
               if (purchaseDetails.pendingCompletePurchase) {
@@ -838,18 +851,25 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
               // Mark as processed
               _processedPurchases.add(purchaseId);
               print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-              print('✅ RESTORED PURCHASE HANDLED VIA STATUS CHECK');
+              print('✅ RESTORED PURCHASE HANDLED - ACTIVE SUBSCRIPTION');
               print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
               continue; // Skip verification
             } else {
-              print('⚠️ Subscription status check returned non-premium');
-              print('   This could mean:');
+              print('⚠️ Subscription is CANCELED/EXPIRED - NOT caching token');
+              print('   This allows user to make a NEW subscription');
+              print('   Reasons:');
               print('   1. Subscription has been canceled');
               print('   2. Subscription has expired');
               print('   3. Purchase token belongs to a different user');
               print('');
-              print('❌ Will NOT grant premium access');
+              print('❌ Will NOT cache token or grant premium access');
+              print('✅ User can now proceed with a NEW purchase');
               print('');
+
+              // ✅ CRITICAL: Clear the temporarily cached token
+              // This ensures the old token doesn't interfere with new purchases
+              await _paymentRepository.clearCachedPurchaseToken();
+              print('🗑️ Cleared temporarily cached token');
 
               // ✅ Complete the purchase but do NOT emit premium state
               if (purchaseDetails.pendingCompletePurchase) {
@@ -859,15 +879,16 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
 
               emit(
                 state.copyWith(
-                  status: PaymentPlanStatus.purchaseFailed,
+                  status:
+                      PaymentPlanStatus
+                          .initial, // ✅ Reset to initial, not failed
                   isPremium: false,
                   premiumOverride: false,
                   userType:
                       state.isVenueUser
                           ? UserType.venueTrial
                           : UserType.publicFree,
-                  errorMessage:
-                      'Your subscription has expired or been canceled. Please subscribe again to access premium features.',
+                  errorMessage: null, // ✅ No error - this is expected behavior
                   isProcessing: false,
                   pendingPurchase: null,
                   pendingPayload: null,
@@ -877,9 +898,9 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
               // Mark as processed
               _processedPurchases.add(purchaseId);
               print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-              print('❌ RESTORED PURCHASE REJECTED - SUBSCRIPTION INACTIVE');
+              print('✅ RESTORED PURCHASE CLEARED - USER CAN SUBSCRIBE AGAIN');
               print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-              continue; // ✅ Skip verification
+              continue; // ✅ Skip verification and allow new purchase
             }
           } catch (e) {
             print('⚠️ Subscription status check failed: $e');
