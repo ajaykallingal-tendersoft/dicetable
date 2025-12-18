@@ -16,6 +16,7 @@ import 'package:soloseaters/src/resources/api_providers/customer/profile_data_pr
 import 'package:soloseaters/src/ui/customer/profile/paid_profile_bloc/bloc/paid_profile_event.dart';
 import 'package:soloseaters/src/ui/customer/profile/paid_profile_bloc/bloc/paid_profile_state.dart';
 import 'package:soloseaters/src/utils/extension/state_model_extension.dart';
+import 'package:soloseaters/src/utils/data/object_factory.dart';
 
 class PaidProfileBloc extends Bloc<PaidProfileEvent, PaidProfileState> {
   final CustomerProfileDataProvider customerProfileDataProvider;
@@ -33,6 +34,30 @@ class PaidProfileBloc extends Bloc<PaidProfileEvent, PaidProfileState> {
     on<UpdateTextFieldEvent>(_onUpdateTextField);
     on<ResetUpdateStatusEvent>(_onResetUpdateStatus);
     on<UpdateProfileImageEvent>(_onUpdateProfileImage);
+  }
+
+  /// Save preferences to SharedPreferences for local access
+  /// This allows other screens to check preference state without API calls
+  Future<void> _savePreferencesToSharedPrefs(Map<int, bool> preferences) async {
+    try {
+      final prefs = ObjectFactory().prefs;
+      final userId = prefs.getUserId() ?? 'anonymous';
+      final sharedPrefs = prefs.getSharedPrefs;
+
+      if (sharedPrefs == null) {
+        print('⚠️ SharedPreferences not available');
+        return;
+      }
+
+      // Save each preference with the same key format used in cafe_details_screen
+      for (var entry in preferences.entries) {
+        final key = 'paid_profile_preference_${entry.key}_$userId';
+        await sharedPrefs.setBool(key, entry.value);
+        print('✅ Saved preference $key = ${entry.value}');
+      }
+    } catch (e) {
+      print('⚠️ Error saving preferences to SharedPreferences: $e');
+    }
   }
 
   /// Compress image to reduce file size
@@ -64,7 +89,7 @@ class PaidProfileBloc extends Bloc<PaidProfileEvent, PaidProfileState> {
     }
   }
 
-    /// Request appropriate permission for image access
+  /// Request appropriate permission for image access
   Future<bool> _requestImagePermission() async {
     if (!Platform.isAndroid) {
       // iOS handles permission automatically via Info.plist
@@ -82,14 +107,13 @@ class PaidProfileBloc extends Bloc<PaidProfileEvent, PaidProfileState> {
     return permissionStatus.isGranted;
   }
 
-
-    /// Check if device is Android 13 or higher
+  /// Check if device is Android 13 or higher
   Future<bool> _isAndroid13OrHigher() async {
     if (!Platform.isAndroid) return false;
-    
+
     final deviceInfoPlugin = DeviceInfoPlugin();
     final androidInfo = await deviceInfoPlugin.androidInfo;
-    
+
     return androidInfo.version.sdkInt >= 33;
   }
 
@@ -98,12 +122,15 @@ class PaidProfileBloc extends Bloc<PaidProfileEvent, PaidProfileState> {
     Emitter<PaidProfileState> emit,
   ) async {
     try {
-       // Check permission first
+      // Check permission first
       final hasPermission = await _requestImagePermission();
       if (!hasPermission) {
-        emit(state.copyWith(
-          errorMessage: 'Photo access permission denied. Please enable it in settings.',
-        ));
+        emit(
+          state.copyWith(
+            errorMessage:
+                'Photo access permission denied. Please enable it in settings.',
+          ),
+        );
         return;
       }
       final compressed = await _compressImage(event.image);
@@ -198,6 +225,9 @@ class PaidProfileBloc extends Bloc<PaidProfileEvent, PaidProfileState> {
                 }).toList(),
           ),
         );
+
+        // Save preferences to SharedPreferences for local access
+        await _savePreferencesToSharedPrefs(initialPreferences);
 
         emit(
           state.copyWith(
@@ -379,6 +409,9 @@ class PaidProfileBloc extends Bloc<PaidProfileEvent, PaidProfileState> {
               ),
             );
 
+            // Save preferences to SharedPreferences for local access
+            await _savePreferencesToSharedPrefs(updatedPreferences);
+
             emit(
               state.copyWith(
                 isUpdating: false,
@@ -489,55 +522,52 @@ class PaidProfileBloc extends Bloc<PaidProfileEvent, PaidProfileState> {
     Emitter<PaidProfileState> emit,
   ) async {
     try {
-       // Check permission first
+      // Check permission first
       final hasPermission = await _requestImagePermission();
       if (!hasPermission) {
         emit(
           state.copyWith(
-            errorMessage: 'Photo access permission denied. Please enable it in settings.',
+            errorMessage:
+                'Photo access permission denied. Please enable it in settings.',
           ),
         );
         return;
       }
-    final localCount = state.selectedBusinessImages.length;
+      final localCount = state.selectedBusinessImages.length;
 
-    // ALWAYS allow up to 2 local images
-    if (localCount >= 2) {
+      // ALWAYS allow up to 2 local images
+      if (localCount >= 2) {
+        emit(
+          state.copyWith(
+            errorMessage:
+                'You can only select up to 2 new business images at a time',
+          ),
+        );
+        return;
+      }
+
+      final allowed = 2 - localCount;
+      final toProcess = event.images.take(allowed).toList();
+
+      final List<XFile> compressedImages = [];
+      for (var img in toProcess) {
+        final compressed = await _compressImage(img);
+        if (compressed != null) compressedImages.add(compressed);
+      }
+
       emit(
         state.copyWith(
-          errorMessage:
-              'You can only select up to 2 new business images at a time',
+          selectedBusinessImages: [
+            ...state.selectedBusinessImages,
+            ...compressedImages,
+          ],
+          hasUnsavedChanges: true,
+          errorMessage: null, //  Clear previous errors
+          clearErrorMessage: true,
         ),
       );
-      return;
-    }
-
-    final allowed = 2 - localCount;
-    final toProcess = event.images.take(allowed).toList();
-
-    final List<XFile> compressedImages = [];
-    for (var img in toProcess) {
-      final compressed = await _compressImage(img);
-      if (compressed != null) compressedImages.add(compressed);
-    }
-
-    emit(
-      state.copyWith(
-        selectedBusinessImages: [
-          ...state.selectedBusinessImages,
-          ...compressedImages,
-        ],
-        hasUnsavedChanges: true,
-        errorMessage: null, //  Clear previous errors
-        clearErrorMessage: true,
-      ),
-    );
-  } catch (e) {
-      emit(
-        state.copyWith(
-          errorMessage: 'Failed to add business images',
-        ),
-      );
+    } catch (e) {
+      emit(state.copyWith(errorMessage: 'Failed to add business images'));
     }
   }
 
@@ -546,56 +576,53 @@ class PaidProfileBloc extends Bloc<PaidProfileEvent, PaidProfileState> {
     Emitter<PaidProfileState> emit,
   ) async {
     try {
-         // Check permission first
+      // Check permission first
       final hasPermission = await _requestImagePermission();
       if (!hasPermission) {
         emit(
           state.copyWith(
-            errorMessage: 'Photo access permission denied. Please enable it in settings.',
+            errorMessage:
+                'Photo access permission denied. Please enable it in settings.',
           ),
         );
         return;
       }
-    final localCount = state.selectedHobbyImages.length;
+      final localCount = state.selectedHobbyImages.length;
 
-    // ALWAYS allow up to 2 local images
-    if (localCount >= 2) {
+      // ALWAYS allow up to 2 local images
+      if (localCount >= 2) {
+        emit(
+          state.copyWith(
+            errorMessage:
+                'You can only select up to 2 new hobby images at a time',
+          ),
+        );
+        return;
+      }
+
+      final allowed = 2 - localCount;
+      final toProcess = event.images.take(allowed).toList();
+
+      final List<XFile> compressedImages = [];
+      for (var img in toProcess) {
+        final compressed = await _compressImage(img);
+        if (compressed != null) compressedImages.add(compressed);
+      }
+
       emit(
         state.copyWith(
-          errorMessage:
-              'You can only select up to 2 new hobby images at a time',
+          selectedHobbyImages: [
+            ...state.selectedHobbyImages,
+            ...compressedImages,
+          ],
+          hasUnsavedChanges: true,
+          errorMessage: null, //  Clear previous errors
+          clearErrorMessage: true,
         ),
       );
-      return;
+    } catch (e) {
+      emit(state.copyWith(errorMessage: 'Failed to add hobby images'));
     }
-
-    final allowed = 2 - localCount;
-    final toProcess = event.images.take(allowed).toList();
-
-    final List<XFile> compressedImages = [];
-    for (var img in toProcess) {
-      final compressed = await _compressImage(img);
-      if (compressed != null) compressedImages.add(compressed);
-    }
-
-    emit(
-      state.copyWith(
-        selectedHobbyImages: [
-          ...state.selectedHobbyImages,
-          ...compressedImages,
-        ],
-        hasUnsavedChanges: true,
-        errorMessage: null, //  Clear previous errors
-        clearErrorMessage: true,
-      ),
-    );
-  } catch (e) {
-      emit(
-        state.copyWith(
-          errorMessage: 'Failed to add hobby images',
-        ),
-      );
-    } 
   }
 
   void _onRemoveBusinessImage(
