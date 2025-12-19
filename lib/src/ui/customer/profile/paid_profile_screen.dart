@@ -19,6 +19,7 @@ import 'package:soloseaters/src/model/customer/profile/customer_paid_profile_res
 import 'package:soloseaters/src/ui/customer/profile/paid_profile_bloc/bloc/paid_profile_bloc.dart';
 import 'package:soloseaters/src/ui/customer/profile/paid_profile_bloc/bloc/paid_profile_event.dart';
 import 'package:soloseaters/src/ui/customer/profile/paid_profile_bloc/bloc/paid_profile_state.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class PadiProfileScreen extends StatefulWidget {
   final Map<String, dynamic> profileData;
@@ -282,6 +283,11 @@ class _PadiProfileScreenState extends State<PadiProfileScreen> {
 
                         // Save Button
                         _buildSaveButton(state),
+
+                        const Gap(12),
+
+                        // Manage Subscription Button (Required by Play Store & App Store)
+                        _buildManageSubscriptionButton(),
 
                         const Gap(30),
                       ],
@@ -881,6 +887,51 @@ class _PadiProfileScreenState extends State<PadiProfileScreen> {
             fontSize: 12.sp,
             fontWeight: FontWeight.w600,
             color: isEnabled ? AppColors.primary : Colors.white38,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ✅ Open Play Store / App Store subscription management
+  Future<void> _openSubscriptionManagement() async {
+    try {
+      Uri? uri;
+
+      if (Platform.isAndroid) {
+        // Open Google Play Store subscriptions page
+        uri = Uri.parse(
+          'https://play.google.com/store/account/subscriptions?package=com.mydicetable.app',
+        );
+      } else if (Platform.isIOS) {
+        // Open App Store subscriptions page
+        uri = Uri.parse('https://apps.apple.com/account/subscriptions');
+      }
+
+      if (uri != null && await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        print('⚠️ Could not launch subscription management URL');
+      }
+    } catch (e) {
+      print('❌ Error opening subscription management: $e');
+    }
+  }
+
+  Widget _buildManageSubscriptionButton() {
+    return Center(
+      child: TextButton(
+        onPressed: _openSubscriptionManagement,
+        style: TextButton.styleFrom(
+          padding: EdgeInsets.symmetric(vertical: 8.h),
+        ),
+        child: Text(
+          'Manage Subscription',
+          style: GoogleFonts.montserrat(
+            fontSize: 13.sp,
+            color: AppColors.primaryWhiteColor,
+            fontWeight: FontWeight.w500,
+            decoration: TextDecoration.underline,
           ),
         ),
       ),

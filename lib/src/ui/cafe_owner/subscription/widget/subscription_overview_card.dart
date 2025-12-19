@@ -10,11 +10,14 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gap/gap.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:soloseaters/src/purchase/bloc/bloc/purchase_bloc.dart';
 import 'package:soloseaters/src/purchase/bloc/bloc/purchase_state.dart';
+import 'package:soloseaters/src/purchase/bloc/bloc/purchase_event.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'dart:io';
+import 'package:soloseaters/src/utils/data/privacy_terms.dart';
 
 class SubscriptionOverviewCard extends StatefulWidget {
   final SubsriptionOverview? subsriptionOverview;
@@ -77,16 +80,6 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
         final status = isActive ? 'Active' : 'Expired';
         final statusColor = isActive ? AppColors.appGreenColor : Colors.red;
 
-        // Get plan name from user type
-        String planName = 'Free Plan';
-        if (paymentState.userType == UserType.venuePaid) {
-          planName = 'Venue Premium Plan';
-        } else if (paymentState.userType == UserType.publicPaid) {
-          planName = 'Public Premium Plan';
-        } else if (paymentState.userType == UserType.venueTrial) {
-          planName = 'Venue Trial';
-        }
-
         // Format expiry date
         String expiryDate = 'N/A';
         if (paymentState.subscriptionExpiryDate != null) {
@@ -100,7 +93,7 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
         }
 
         // Get amount from selected product (fallback to widget data)
-        String amount = widget.subsriptionOverview?.amount ?? '100';
+        String amount = widget.subsriptionOverview?.amount ?? '99';
         String duration = widget.subsriptionOverview?.duration ?? 'year';
 
         // If we have a selected product, extract price from it
@@ -323,66 +316,66 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                               maxLines: 1,
                               minFontSize: 8,
                             ),
-                            SizedBox(height: basePadding * 0.5),
-                            Container(
-                              width: double.infinity,
-                              padding: EdgeInsets.symmetric(
-                                horizontal: basePadding * 2,
-                              ),
-                              child: DottedBorder(
-                                child: Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: basePadding * 0.6,
-                                    vertical: basePadding * 0.4,
-                                  ),
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: [
-                                      Text(
-                                        'Discount Code: ',
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.bodyMedium?.copyWith(
-                                          color: AppColors.discountTextColor,
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: getScaledFontSize(14),
-                                        ),
-                                      ),
-                                      SizedBox(width: basePadding * 0.2),
-                                      Expanded(
-                                        child: TextFormField(
-                                          controller: _discountController,
-                                          decoration: InputDecoration(
-                                            isDense: true,
-                                            contentPadding:
-                                                EdgeInsets.symmetric(
-                                                  vertical: basePadding * 0.2,
-                                                  horizontal: basePadding * 0.1,
-                                                ),
-                                            border: InputBorder.none,
-                                            hintText: 'Enter code',
-                                            hintStyle: TextStyle(
-                                              color: Colors.grey,
-                                              fontSize: getScaledFontSize(14),
-                                            ),
-                                          ),
-                                          style: Theme.of(
-                                            context,
-                                          ).textTheme.bodyMedium?.copyWith(
-                                            fontWeight: FontWeight.normal,
-                                            fontSize: getScaledFontSize(14),
-                                            color: AppColors.textPrimaryGrey,
-                                          ),
-                                          keyboardType: TextInputType.text,
-                                          textInputAction: TextInputAction.done,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
+                            // SizedBox(height: basePadding * 0.5),
+                            // Container(
+                            //   width: double.infinity,
+                            //   padding: EdgeInsets.symmetric(
+                            //     horizontal: basePadding * 2,
+                            //   ),
+                            //   child: DottedBorder(
+                            //     child: Padding(
+                            //       padding: EdgeInsets.symmetric(
+                            //         horizontal: basePadding * 0.6,
+                            //         vertical: basePadding * 0.4,
+                            //       ),
+                            //       child: Row(
+                            //         crossAxisAlignment:
+                            //             CrossAxisAlignment.center,
+                            //         children: [
+                            //           Text(
+                            //             'Discount Code: ',
+                            //             style: Theme.of(
+                            //               context,
+                            //             ).textTheme.bodyMedium?.copyWith(
+                            //               color: AppColors.discountTextColor,
+                            //               fontWeight: FontWeight.w700,
+                            //               fontSize: getScaledFontSize(14),
+                            //             ),
+                            //           ),
+                            //           SizedBox(width: basePadding * 0.2),
+                            //           Expanded(
+                            //             child: TextFormField(
+                            //               controller: _discountController,
+                            //               decoration: InputDecoration(
+                            //                 isDense: true,
+                            //                 contentPadding:
+                            //                     EdgeInsets.symmetric(
+                            //                       vertical: basePadding * 0.2,
+                            //                       horizontal: basePadding * 0.1,
+                            //                     ),
+                            //                 border: InputBorder.none,
+                            //                 hintText: 'Enter code',
+                            //                 hintStyle: TextStyle(
+                            //                   color: Colors.grey,
+                            //                   fontSize: getScaledFontSize(14),
+                            //                 ),
+                            //               ),
+                            //               style: Theme.of(
+                            //                 context,
+                            //               ).textTheme.bodyMedium?.copyWith(
+                            //                 fontWeight: FontWeight.normal,
+                            //                 fontSize: getScaledFontSize(14),
+                            //                 color: AppColors.textPrimaryGrey,
+                            //               ),
+                            //               keyboardType: TextInputType.text,
+                            //               textInputAction: TextInputAction.done,
+                            //             ),
+                            //           ),
+                            //         ],
+                            //       ),
+                            //     ),
+                            //   ),
+                            // ),
                             SizedBox(height: basePadding * 1.2),
                             LayoutBuilder(
                               builder: (context, buttonConstraints) {
@@ -471,6 +464,39 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                                   ],
                                 );
                               },
+                            ),
+                            SizedBox(height: basePadding * 0.5),
+                            // ✅ RESTORE PURCHASES BUTTON (Required for iOS App Store)
+                            TextButton(
+                              onPressed: () {
+                                EasyLoading.show(
+                                  status: 'Restoring purchases...',
+                                  maskType: EasyLoadingMaskType.black,
+                                );
+                                context.read<PaymentPlanBloc>().add(
+                                  const RestorePurchasesEvent(),
+                                );
+                              },
+                              style: TextButton.styleFrom(
+                                padding: EdgeInsets.symmetric(
+                                  vertical: basePadding * 0.3,
+                                ),
+                              ),
+                              child: Text(
+                                'Restore Purchases',
+                                style: GoogleFonts.montserrat(
+                                  fontSize: getScaledFontSize(11),
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w500,
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                            ),
+                            SizedBox(height: basePadding * 0.3),
+                            // ✅ TERMS & PRIVACY LINKS (Required by both stores)
+                            PrivacyAndTermsText(
+                              textColor: AppColors.primary,
+                              linkColor: AppColors.secondary,
                             ),
                             SizedBox(height: basePadding),
                           ],

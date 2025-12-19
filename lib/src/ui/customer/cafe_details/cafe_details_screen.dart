@@ -1060,7 +1060,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                                                 fontSize: 14,
                                                 color: AppColors.primary
                                                     .withOpacity(0.7),
-                                                fontWeight: FontWeight.w600,
+                                                fontWeight: FontWeight.bold,
                                               ),
                                             ),
                                             Text(

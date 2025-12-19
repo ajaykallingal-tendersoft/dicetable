@@ -853,6 +853,61 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
           );
           print('   Product ID: ${purchaseDetails.productID}');
 
+          // 🔒 SECURITY FIX: Validate product type matches user type
+          // Prevent cross-account premium leak (e.g., public user getting venue subscription)
+          final productId = purchaseDetails.productID;
+          final currentUserType = state.userType;
+
+          // Check product type (covers both monthly and yearly variants)
+          final isVenueProduct = productId.contains(
+            'venue',
+          ); // venue_yearly_plan
+          final isPublicProduct = productId.contains(
+            'public',
+          ); // public_yearly_plan, public_monthly_plan
+
+          final isVenueUser =
+              currentUserType == UserType.venueTrial ||
+              currentUserType == UserType.venuePaid;
+          final isPublicUser =
+              currentUserType == UserType.publicFree ||
+              currentUserType == UserType.publicPaid;
+
+          print('🔍 Product Type Validation:');
+          print('   Current User Type: $currentUserType');
+          print('   Product ID: $productId');
+          print('   Is Venue Product: $isVenueProduct');
+          print('   Is Public Product: $isPublicProduct');
+          print('   Is Venue User: $isVenueUser');
+          print('   Is Public User: $isPublicUser');
+
+          // ❌ REJECT if product type doesn't match user type
+          if ((isVenueProduct && isPublicUser) ||
+              (isPublicProduct && isVenueUser)) {
+            print('');
+            print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            print('🚨 SECURITY: PRODUCT TYPE MISMATCH - REJECTING RESTORE');
+            print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            print('❌ Product: $productId');
+            print('❌ User Type: $currentUserType');
+            print('🔒 This purchase belongs to a different account type');
+            print('🔒 Preventing cross-account premium access');
+            print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            print('');
+
+            // Complete the purchase to acknowledge it, but don't grant access
+            if (purchaseDetails.pendingCompletePurchase) {
+              await InAppPurchase.instance.completePurchase(purchaseDetails);
+            }
+
+            // Don't process this purchase further
+            return;
+          }
+
+          print(
+            '✅ Product type matches user type - proceeding with verification',
+          );
+
           // ✅ DON'T cache yet - first verify if subscription is still active
           // Try to check subscription status first
           try {
@@ -1423,10 +1478,42 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
       );
 
       print('🔄 Restoring purchases...');
+
+      // ✅ Start timeout - if no purchases are restored within 5 seconds, complete
+      final timeoutCompleter = Completer<void>();
+      Timer(const Duration(seconds: 5), () {
+        if (!timeoutCompleter.isCompleted) {
+          timeoutCompleter.complete();
+        }
+      });
+
+      // Call restore
       await paymentService.restorePurchases();
-      // The purchase stream will now emit a 'restored' status update.
+
+      // Wait for timeout
+      await timeoutCompleter.future;
+
+      // ✅ If we reach here, timeout occurred (no purchases found)
+      // Check if state is still in loading (no purchase stream events received)
+      if (state.status == PaymentPlanStatus.loading && state.isProcessing) {
+        print('⏱️ Restore timeout: No purchases found to restore');
+        print('   This is normal if:');
+        print('   1. User has never subscribed on this device');
+        print('   2. Subscription was purchased on a different account');
+        print('   3. Purchase was already consumed/completed');
+        print('');
+
+        // Reset to initial state - allows user to proceed
+        emit(
+          state.copyWith(
+            status: PaymentPlanStatus.initial,
+            isProcessing: false,
+            errorMessage: null,
+          ),
+        );
+      }
+      // The purchase stream will emit a 'restored' status update if purchases are found.
       // The _onHandlePurchaseUpdate method will catch this and trigger the verification flow.
-      // No need to emit a success/failure state here, as the stream is the single source of truth.
     } catch (e) {
       emit(
         state.copyWith(

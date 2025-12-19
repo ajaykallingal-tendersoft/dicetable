@@ -14,6 +14,7 @@ import 'package:soloseaters/src/constants/assets.dart';
 import 'package:soloseaters/src/purchase/bloc/bloc/purchase_bloc.dart';
 import 'package:soloseaters/src/purchase/bloc/bloc/purchase_event.dart';
 import 'package:soloseaters/src/purchase/bloc/bloc/purchase_state.dart';
+import 'package:soloseaters/src/utils/data/privacy_terms.dart';
 
 class ChoosePlanScreen extends StatefulWidget {
   const ChoosePlanScreen({super.key});
@@ -79,20 +80,6 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
             ),
           ),
           centerTitle: false,
-          actions: [
-            IconButton(
-              icon: const Icon(
-                Icons.restore,
-                color: AppColors.primaryWhiteColor,
-              ),
-              onPressed: () {
-                context.read<PaymentPlanBloc>().add(
-                  const RestorePurchasesEvent(),
-                );
-              },
-              tooltip: 'Restore Purchases',
-            ),
-          ],
         ),
         body: BlocConsumer<PaymentPlanBloc, PaymentPlanState>(
           listener: (context, state) {
@@ -101,6 +88,15 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
               _successDialogShown = false;
               EasyLoading.show(
                 status: 'Processing purchase...',
+                maskType: EasyLoadingMaskType.black,
+              );
+            }
+
+            // ✅ Show loading when restore starts (when isProcessing is true but status is still loading)
+            if (state.status == PaymentPlanStatus.loading &&
+                state.isProcessing) {
+              EasyLoading.show(
+                status: 'Restoring purchases...',
                 maskType: EasyLoadingMaskType.black,
               );
             }
@@ -238,6 +234,10 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                   ),
                 ),
               );
+            } else if (state.status == PaymentPlanStatus.initial &&
+                !state.isProcessing) {
+              // ✅ Dismiss loading when restore completes with no active subscription found
+              EasyLoading.dismiss();
             } else if (state.status == PaymentPlanStatus.cancelled) {
               EasyLoading.dismiss();
               ScaffoldMessenger.of(context).showSnackBar(
@@ -387,10 +387,56 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
 
                     const SizedBox(height: 40.0),
 
+                    // ✅ AUTO-RENEWAL DISCLOSURE (Required by Play Store & App Store)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                      child: Text(
+                        'Subscription automatically renews unless canceled at least 24 hours before the end of the current period. Manage subscriptions in your account settings.',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.montserrat(
+                          fontSize: 11,
+                          color: AppColors.primaryWhiteColor.withOpacity(0.7),
+                          height: 1.3,
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16.0),
+
                     // Continue button
                     _buildContinueButton(context, state),
 
                     const SizedBox(height: 16.0),
+
+                    // ✅ RESTORE PURCHASES BUTTON (Required for iOS App Store)
+                    Center(
+                      child: TextButton(
+                        onPressed: () {
+                          context.read<PaymentPlanBloc>().add(
+                            const RestorePurchasesEvent(),
+                          );
+                        },
+                        child: Text(
+                          'Restore Purchases',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 13,
+                            color: AppColors.primaryWhiteColor,
+                            fontWeight: FontWeight.w500,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 12.0),
+
+                    // ✅ TERMS & PRIVACY LINKS (Required by both stores)
+                    // Use light colors for dark background
+                    PrivacyAndTermsText(
+                      textColor: AppColors.primaryWhiteColor.withOpacity(0.9),
+                      linkColor: AppColors.primaryWhiteColor,
+                    ),
+
                     const SizedBox(height: 40.0),
                   ],
                 ),

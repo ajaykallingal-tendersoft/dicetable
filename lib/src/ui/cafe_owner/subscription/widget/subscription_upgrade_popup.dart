@@ -10,6 +10,7 @@ import 'package:soloseaters/src/purchase/bloc/bloc/purchase_bloc.dart';
 import 'package:soloseaters/src/purchase/bloc/bloc/purchase_event.dart';
 import 'package:soloseaters/src/purchase/bloc/bloc/purchase_state.dart';
 import 'package:soloseaters/src/purchase/services/purchase_service.dart';
+import 'package:soloseaters/src/utils/data/privacy_terms.dart';
 
 // class UpgradePopup extends StatelessWidget {
 //   const UpgradePopup({super.key});
@@ -377,7 +378,27 @@ class UpgradePopup extends StatelessWidget {
                       color: AppColors.textPrimaryGrey,
                     ),
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 20),
+                  // ✅ AUTO-RENEWAL DISCLOSURE (Required by Play Store & App Store)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      'Subscription automatically renews unless canceled at least 24 hours before the end of the current period. You can manage and cancel subscriptions in your account settings.',
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.montserrat(
+                        fontSize: 10,
+                        color: AppColors.textPrimaryGrey,
+                        height: 1.3,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  //TERMS & PRIVACY LINKS (Required by both stores)
+                  PrivacyAndTermsText(
+                    textColor: AppColors.primary,
+                    linkColor: AppColors.secondary,
+                  ),
+                  const SizedBox(height: 20),
                   SizedBox(
                     width: 151.w,
                     height: 50,
