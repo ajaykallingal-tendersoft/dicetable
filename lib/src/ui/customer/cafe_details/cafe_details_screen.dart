@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:badges/badges.dart' as badges;
 import 'package:device_info_plus/device_info_plus.dart';
+import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:soloseaters/src/common/elevated_button_widget.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
@@ -474,7 +475,15 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
   int? _getPreferenceIdFromTableType(String? tableType) {
     if (tableType == null) return null;
 
-    switch (tableType) {
+    // Debug: Print exact string and character codes
+    print('🔍 [Mapping] Table type: "$tableType"');
+    print('🔍 [Mapping] Character codes: ${tableType.codeUnits}');
+
+    // Normalize apostrophes to handle both standard (') and fancy (’) characters
+    final normalized = tableType.replaceAll('\u2019', '\'');
+    print('🔍 [Mapping] Normalized: "$normalized"');
+
+    switch (normalized) {
       case 'Business Networking':
         return 1;
       case 'Social Solos':
@@ -484,6 +493,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
       case 'Prime Time - Over 60\'s':
         return 4;
       default:
+        print('⚠️ [Mapping] No match found for: "$tableType"');
         return null;
     }
   }
@@ -491,19 +501,46 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
   /// Helper method to get preference state from SharedPreferences
   /// This screen is customer-only, so we only check customer user ID
   Future<bool> _getPreferenceState(String? tableType) async {
+    print(
+      '🔍 [Cafe Details] _getPreferenceState called with tableType: $tableType',
+    );
+
     final preferenceId = _getPreferenceIdFromTableType(tableType);
-    if (preferenceId == null) return false;
+    print('🔍 [Cafe Details] Mapped preferenceId: $preferenceId');
+
+    if (preferenceId == null) {
+      print('⚠️ [Cafe Details] preferenceId is null, returning false');
+      return false;
+    }
 
     final prefs = ObjectFactory().prefs;
     // Customer user ID (this screen is only for customers, not cafe owners)
     final userId = prefs.getUserId() ?? 'anonymous';
     final key = 'paid_profile_preference_${preferenceId}_$userId';
 
+    print('🔍 [Cafe Details] Generated key: $key');
+    print('🔍 [Cafe Details] UserId: $userId');
+
     // Use the existing SharedPreferences instance
     final sharedPrefs = prefs.getSharedPrefs;
-    if (sharedPrefs == null) return false;
+    if (sharedPrefs == null) {
+      print('⚠️ [Cafe Details] SharedPreferences is null');
+      return false;
+    }
 
-    return sharedPrefs.getBool(key) ?? false;
+    final value = sharedPrefs.getBool(key) ?? false;
+    print('✅ [Cafe Details] Retrieved value for key $key: $value');
+
+    // Debug: Print all keys that start with 'paid_profile_preference_'
+    final allKeys = sharedPrefs.getKeys();
+    final prefKeys =
+        allKeys.where((k) => k.startsWith('paid_profile_preference_')).toList();
+    print('📋 [Cafe Details] All preference keys in SharedPreferences:');
+    for (var k in prefKeys) {
+      print('   - $k: ${sharedPrefs.getBool(k)}');
+    }
+
+    return value;
   }
 
   void _showBookingDialog(BuildContext context) {
@@ -560,10 +597,10 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
 
                         Text(
                           'Select Time and Table Type',
-                          style: TextStyle(
+                          style: GoogleFonts.montserrat(
                             color: AppColors.primary,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 22.sp,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 21.sp,
                           ),
                         ),
 
@@ -572,10 +609,10 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                         // SELECT TIME Label
                         Text(
                           'SELECT TIME',
-                          style: TextStyle(
+                          style: GoogleFonts.montserrat(
                             color: AppColors.primary,
                             fontWeight: FontWeight.bold,
-                            fontSize: 16.sp,
+                            fontSize: 15.sp,
                             // letterSpacing: 0.8,
                           ),
                         ),
@@ -805,81 +842,105 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                         // SELECT TABLE TYPE Label
                         Text(
                           'SELECT TABLE TYPE',
-                          style: TextStyle(
+                          style: GoogleFonts.montserrat(
                             color: AppColors.primary,
                             fontWeight: FontWeight.bold,
-                            fontSize: 16.sp,
+                            fontSize: 15.sp,
                             // letterSpacing: 0.8,
                           ),
                         ),
                         Gap(12.h),
 
-                        // Table Type Dropdown
-                        Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(15.r),
-                            border: Border.all(
-                              color: AppColors.textPrimaryGrey.withOpacity(0.3),
+                        // Table Type Dropdown using dropdown_button2 package
+                        DropdownButtonFormField2<String>(
+                          value: selectedDiceTableType,
+                          isExpanded:
+                              true, // Ensures dropdown fills width and positions correctly
+                          decoration: InputDecoration(
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: 16.w,
+                              vertical:
+                                  16.h, // Increased from 14 to prevent text cutoff
+                            ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15.r),
+                              borderSide: BorderSide(
+                                color: AppColors.textPrimaryGrey.withOpacity(
+                                  0.3,
+                                ),
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15.r),
+                              borderSide: BorderSide(
+                                color: AppColors.textPrimaryGrey.withOpacity(
+                                  0.3,
+                                ),
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15.r),
+                              borderSide: BorderSide(
+                                color: AppColors.textPrimaryGrey.withOpacity(
+                                  0.3,
+                                ), // ✅ Changed from primary color to grey
+                              ),
+                            ),
+                            filled: true,
+                            fillColor: AppColors.primaryWhiteColor,
+                          ),
+                          hint: Text(
+                            'Select Table Type',
+                            style: TextStyle(
+                              color: AppColors.textPrimaryGrey.withOpacity(0.6),
+                              fontWeight: FontWeight.w400,
+                              fontSize: 14.sp,
                             ),
                           ),
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 6.0),
-                            child: DropdownButtonFormField<String>(
-                              value: selectedDiceTableType,
-                              isDense: false,
-                              isExpanded: true,
-                              decoration: InputDecoration(
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 16.w,
-                                  vertical: 14.h,
-                                ),
-                                border: InputBorder.none,
-                                enabledBorder: InputBorder.none,
-                                focusedBorder: InputBorder.none,
-                                errorBorder: InputBorder.none,
-                                focusedErrorBorder: InputBorder.none,
-                              ),
-                              hint: Text(
-                                'Select Table Type',
-                                style: TextStyle(
-                                  color: AppColors.textPrimaryGrey.withOpacity(
-                                    0.6,
+                          items:
+                              _tableType.map((tableType) {
+                                return DropdownMenuItem<String>(
+                                  value: tableType,
+                                  child: Text(
+                                    tableType,
+                                    style: TextStyle(
+                                      color: AppColors.textPrimaryGrey,
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14.sp,
+                                    ),
                                   ),
-                                  fontWeight: FontWeight.w400,
-                                  fontSize: 14.sp,
-                                ),
-                              ),
-                              icon: Icon(
-                                Icons.keyboard_arrow_down,
-                                color: AppColors.textPrimaryGrey,
-                                size: 24.w,
-                              ),
-                              style: TextStyle(
-                                color: AppColors.textPrimaryGrey,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 14.sp,
-                              ),
-                              dropdownColor: AppColors.primaryWhiteColor,
-                              items:
-                                  _tableType.map((tableType) {
-                                    return DropdownMenuItem<String>(
-                                      value: tableType,
-                                      child: Text(
-                                        tableType,
-                                        style: TextStyle(
-                                          color: AppColors.textPrimaryGrey,
-                                          fontWeight: FontWeight.w400,
-                                          fontSize: 14.sp,
-                                        ),
-                                      ),
-                                    );
-                                  }).toList(),
-                              onChanged: (String? newValue) {
-                                setState(() {
-                                  selectedDiceTableType = newValue;
-                                });
-                              },
+                                );
+                              }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedDiceTableType = value;
+                            });
+                          },
+                          buttonStyleData: ButtonStyleData(
+                            padding: EdgeInsets.only(right: 8.w),
+                          ),
+                          iconStyleData: IconStyleData(
+                            icon: Icon(
+                              Icons.keyboard_arrow_down,
+                              color: AppColors.textPrimaryGrey,
                             ),
+                            iconSize: 24.w,
+                          ),
+                          dropdownStyleData: DropdownStyleData(
+                            maxHeight: 250.h,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12.r),
+                              color: AppColors.primaryWhiteColor,
+                            ),
+                            elevation: 8,
+                            offset: const Offset(
+                              0,
+                              -5,
+                            ), // ✅ Positions menu directly below field
+                          ),
+                          menuItemStyleData: MenuItemStyleData(
+                            height: 48.h,
+                            padding: EdgeInsets.symmetric(horizontal: 16.w),
                           ),
                         ),
 

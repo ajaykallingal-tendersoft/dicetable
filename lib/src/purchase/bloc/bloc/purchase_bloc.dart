@@ -12,6 +12,9 @@ import 'package:soloseaters/src/purchase/bloc/bloc/purchase_state.dart';
 import 'package:soloseaters/src/purchase/repository/purchase_repository.dart';
 import 'package:soloseaters/src/purchase/services/purchase_service.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
+import 'package:soloseaters/src/resources/api_providers/customer/profile_data_provider.dart';
+import 'package:soloseaters/src/model/state_model.dart';
+import 'package:soloseaters/src/utils/extension/state_model_extension.dart';
 
 class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
   final PaymentService paymentService;
@@ -41,6 +44,78 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
     on<RetryVerificationEvent>(_onRetryVerification); // NEW
     on<CheckPendingPurchasesEvent>(_onCheckPendingPurchases); // NEW
     on<ResetStateEvent>(_onResetState);
+  }
+
+  /// Helper method to sync paid profile preferences to SharedPreferences
+  /// This is called after successful subscription to ensure preferences are available
+  /// for other screens (like booking dialog) without requiring API calls
+  Future<void> _syncPaidProfilePreferences() async {
+    try {
+      print('🔄 Syncing paid profile preferences to SharedPreferences...');
+
+      // Get SharedPreferences and user ID
+      final prefs = ObjectFactory().prefs;
+      final sharedPrefs = prefs.getSharedPrefs;
+
+      if (sharedPrefs == null) {
+        print('⚠️ SharedPreferences not available, skipping preference sync');
+        return;
+      }
+
+      // Get user ID
+      final userId = prefs.getUserId();
+      if (userId == null) {
+        print('⚠️ User ID not available, skipping preference sync');
+        return;
+      }
+
+      // Create instance of CustomerProfileDataProvider
+      final customerProfileDataProvider = CustomerProfileDataProvider();
+      final stateModel =
+          await customerProfileDataProvider.getPaidCustomerProfileById();
+
+      if (stateModel is SuccessState<dynamic>) {
+        final profile = stateModel.value;
+        final apiPreferences = profile?.data?.myPreferences ?? [];
+        final apiPreferencesIds = profile?.data?.myPreferencesIds ?? [];
+
+        // Define static preferences (same as in PaidProfileBloc)
+        final staticPreferences = [
+          {"id": 1, "name": "Business Networking"},
+          {"id": 2, "name": "Social Solos"},
+          {"id": 3, "name": "Solo Singles"},
+          {"id": 4, "name": "Prime Time - Over 60's"},
+        ];
+
+        // Save each preference to SharedPreferences
+        for (var staticPref in staticPreferences) {
+          final prefId = staticPref['id'] as int;
+
+          // Find matching API preference
+          final apiPref = apiPreferences.cast<dynamic>().firstWhere(
+            (p) => p.id == prefId,
+            orElse: () => {'id': prefId, 'isPreferences': false},
+          );
+
+          // Check both conditions (same logic as PaidProfileBloc)
+          final isInIds = apiPreferencesIds.contains(prefId);
+          final isPreferenceTrue = apiPref?.isPreferences ?? false;
+          final isEnabled = isInIds && isPreferenceTrue;
+
+          // Save to SharedPreferences
+          final key = 'paid_profile_preference_${prefId}_$userId';
+          await sharedPrefs.setBool(key, isEnabled);
+          print('✅ Synced preference $key = $isEnabled');
+        }
+
+        print('✅ Successfully synced paid profile preferences');
+      } else {
+        print('⚠️ Failed to fetch paid profile, skipping preference sync');
+      }
+    } catch (e) {
+      print('⚠️ Error syncing paid profile preferences: $e');
+      // Non-fatal error, don't rethrow
+    }
   }
 
   //NEW: Reset state completely on user change
@@ -1082,6 +1157,9 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
             ),
           );
 
+          // ✅ NEW: Sync preferences to SharedPreferences after successful subscription (already verified path)
+          await _syncPaidProfilePreferences();
+
           // ✅ NEW: Trigger full status check to get complete verification_data
           print(
             '🔄 Triggering CheckSubscriptionStatusEvent to fetch full status...',
@@ -1254,6 +1332,11 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         print('   Is premium: $resolvedIsPremium');
         print('   Trial end: $trialEndDate');
 
+        // ✅ NEW: Sync preferences to SharedPreferences after successful subscription
+        if (resolvedIsPremium) {
+          await _syncPaidProfilePreferences();
+        }
+
         return;
       }
 
@@ -1285,6 +1368,12 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
       print('   User type: ${userData['userType']}');
       print('   Is premium: ${userData['isPremium']}');
       print('   Trial end: ${userData['trialEndDate']}');
+
+      // ✅ NEW: Sync preferences to SharedPreferences after successful subscription (fallback path)
+      final isPremiumFallback = userData['isPremium'] as bool? ?? false;
+      if (isPremiumFallback) {
+        await _syncPaidProfilePreferences();
+      }
     } catch (e) {
       final isRetryable =
           e.toString().contains('SocketException') ||
@@ -1374,6 +1463,15 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
               false, // ✅ ADD: Include premium override in state
         ),
       );
+
+      // ✅ NEW: Sync preferences for restored purchases / existing subscriptions
+      // This is critical for users who log in with existing subscriptions
+      final isPremium = userData['isPremium'] as bool? ?? false;
+      final premiumOverride = userData['premiumOverride'] as bool? ?? false;
+      if (isPremium || premiumOverride) {
+        print('🔄 User has active subscription - syncing preferences...');
+        await _syncPaidProfilePreferences();
+      }
     } catch (e) {
       emit(
         state.copyWith(

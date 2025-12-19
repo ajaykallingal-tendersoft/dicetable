@@ -13,6 +13,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:soloseaters/src/purchase/bloc/bloc/purchase_bloc.dart';
 import 'package:soloseaters/src/purchase/bloc/bloc/purchase_state.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'dart:io';
 
 class SubscriptionOverviewCard extends StatefulWidget {
   final SubsriptionOverview? subsriptionOverview;
@@ -39,6 +41,31 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
       barrierDismissible: false,
       builder: (context) => const UpgradePopup(),
     );
+  }
+
+  // ✅ Open Play Store / App Store subscription management
+  Future<void> _openSubscriptionManagement() async {
+    try {
+      Uri? uri;
+
+      if (Platform.isAndroid) {
+        // Open Google Play Store subscriptions page
+        uri = Uri.parse(
+          'https://play.google.com/store/account/subscriptions?package=com.mydicetable.app',
+        );
+      } else if (Platform.isIOS) {
+        // Open App Store subscriptions page
+        uri = Uri.parse('https://apps.apple.com/account/subscriptions');
+      }
+
+      if (uri != null && await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        print('⚠️ Could not launch subscription management URL');
+      }
+    } catch (e) {
+      print('❌ Error opening subscription management: $e');
+    }
   }
 
   @override
@@ -207,7 +234,10 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                               height: containerHeight,
                               width: containerWidth,
                               decoration: BoxDecoration(
-                                color: status == "Active" ? AppColors.premiumPlanColor : AppColors.freeUserBadgeTextColor,
+                                color:
+                                    status == "Active"
+                                        ? AppColors.premiumPlanColor
+                                        : AppColors.freeUserBadgeColor,
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Row(
@@ -219,7 +249,11 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                                       'assets/png/premium-plan.png',
                                       fit: BoxFit.contain,
                                       height: containerHeight * 0.6,
-                                      color: status == "Active" ?  AppColors.premiumPlanTextColor : AppColors.freeUserBadgeTextColor,
+                                      color:
+                                          status == "Active"
+                                              ? AppColors.premiumPlanTextColor
+                                              : AppColors
+                                                  .freeUserBadgeTextColor,
                                     ),
                                   ),
                                   SizedBox(width: basePadding * 0.3),
@@ -230,7 +264,11 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                                       style: Theme.of(
                                         context,
                                       ).textTheme.bodyMedium!.copyWith(
-                                        color: status == "Active" ? AppColors.premiumPlanTextColor : AppColors.freeUserBadgeTextColor,
+                                        color:
+                                            status == "Active"
+                                                ? AppColors.premiumPlanTextColor
+                                                : AppColors
+                                                    .freeUserBadgeTextColor,
                                         fontSize: getScaledFontSize(16),
                                         fontWeight: FontWeight.w600,
                                       ),
@@ -407,7 +445,7 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                                       width: finalButtonWidth,
                                       height: buttonHeight,
                                       child: OutlinedButton(
-                                        onPressed: () {},
+                                        onPressed: _openSubscriptionManagement,
                                         style: OutlinedButton.styleFrom(
                                           padding: EdgeInsets.symmetric(
                                             vertical: basePadding * 0.3,
@@ -417,7 +455,7 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                                         child: FittedBox(
                                           fit: BoxFit.scaleDown,
                                           child: Text(
-                                            'CANCEL',
+                                            'MANAGE',
                                             style: Theme.of(
                                               context,
                                             ).textTheme.bodyMedium!.copyWith(

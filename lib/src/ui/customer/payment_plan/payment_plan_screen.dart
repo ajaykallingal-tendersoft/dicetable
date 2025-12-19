@@ -192,6 +192,10 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                 !_successDialogShown) {
               EasyLoading.dismiss();
               _successDialogShown = true; // Set flag to prevent repeated shows
+
+              // ✅ Preference sync now happens automatically in PaymentPlanBloc
+              // after successful verification via _syncPaidProfilePreferences()
+
               context.read<PaymentPlanBloc>().add(
                 const CheckSubscriptionStatusEvent(),
               );
