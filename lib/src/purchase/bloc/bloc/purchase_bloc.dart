@@ -1047,7 +1047,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         // Mark as being processed
         _processedPurchases.add(purchaseId);
 
-        final payload = paymentService.extractVerificationPayload(
+        final payload = await paymentService.extractVerificationPayload(
           purchaseDetails,
         );
 

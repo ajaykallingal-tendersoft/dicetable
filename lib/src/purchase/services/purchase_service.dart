@@ -8,6 +8,7 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/billing_client_wrappers.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
+import '../utils/debug_logger.dart';
 
 class PaymentService {
   // ====== CORRECT PRODUCT IDs FOR GOOGLE PLAY ======
@@ -446,7 +447,9 @@ class PaymentService {
   // HELPER: BUILD VERIFICATION PAYLOAD
   // =====================================================
 
-  Map<String, dynamic> extractVerificationPayload(PurchaseDetails purchase) {
+  Future<Map<String, dynamic>> extractVerificationPayload(
+    PurchaseDetails purchase,
+  ) async {
     final ver = purchase.verificationData;
     // keep using defaultTargetPlatform as your file did originally
     final bool isIOS = defaultTargetPlatform == TargetPlatform.iOS;
@@ -495,16 +498,94 @@ class PaymentService {
     if (isIOS && purchase is AppStorePurchaseDetails) {
       final tx = purchase.skPaymentTransaction;
 
+      // ✅ CRITICAL: Read the FULL App Store receipt from appStoreReceiptURL
+      // This is required for proper server-side verification with Apple
+      String receiptData = '';
+      try {
+        // The AppStorePurchaseDetails already contains the full receipt in verificationData
+        // For iOS, verificationData.localVerificationData contains the base64-encoded receipt
+        // from appStoreReceiptURL, which is what Apple requires for server-side validation
+
+        if (ver.localVerificationData.isNotEmpty) {
+          // The in_app_purchase_storekit plugin already reads from appStoreReceiptURL
+          // and provides it as base64-encoded data in localVerificationData
+          receiptData = ver.localVerificationData;
+          print('✅ App Store receipt retrieved from localVerificationData');
+          print(
+            '   Receipt data length: ${receiptData.length} characters (base64)',
+          );
+        } else {
+          print('⚠️ Local verification data is null or empty');
+          // Fallback to serverVerificationData if available
+          receiptData = ver.serverVerificationData ?? '';
+        }
+      } catch (e, st) {
+        print('❌ Error extracting App Store receipt: $e\n$st');
+        // Fallback to serverVerificationData if error occurs
+        receiptData = ver.serverVerificationData ?? '';
+      }
+
       payload.addAll({
         // platform already included above
-        // many backends expect 'receipt_data' for iOS App Store receipt validation
-        'receipt_data': ver.serverVerificationData ?? '',
+        // The full App Store receipt (Base64 encoded entire receipt file)
+        'receipt_data': receiptData,
         'purchase_token':
-            ver.serverVerificationData ?? '', // keep both names to be safe
+            receiptData, // keep both names for backend compatibility
         'transaction_id': purchase.purchaseID,
         'original_transaction_id':
             tx?.originalTransaction?.transactionIdentifier,
       });
+
+      // ✅ DEBUG: Print entire iOS verification payload
+      print('');
+      print('═══════════════════════════════════════════════════════════');
+      print('🍎 iOS VERIFICATION PAYLOAD - COMPLETE DEBUG OUTPUT');
+      print('═══════════════════════════════════════════════════════════');
+      print('📦 All Payload Fields:');
+      payload.forEach((key, value) {
+        if (key == 'receipt_data' || key == 'purchase_token') {
+          // Don't print full receipt data (too long), just show length
+          print('   $key: [Base64 data, ${value.toString().length} chars]');
+        } else if (key == 'verification_data') {
+          // Print verification_data details
+          print('   $key:');
+          if (value is Map) {
+            value.forEach((subKey, subValue) {
+              if (subKey == 'local_verification_data' ||
+                  subKey == 'server_verification_data') {
+                print('      $subKey: [${subValue.toString().length} chars]');
+              } else {
+                print('      $subKey: $subValue');
+              }
+            });
+          }
+        } else {
+          print('   $key: $value');
+        }
+      });
+      print('');
+      print('🔑 Key Fields Summary:');
+      print('   Platform: ${payload['platform']}');
+      print('   Product ID: ${payload['product_id']}');
+      print('   Transaction ID: ${payload['transaction_id']}');
+      print(
+        '   Original Transaction ID: ${payload['original_transaction_id']}',
+      );
+      print('   Receipt Data Length: ${receiptData.length} characters');
+      print('   Has Receipt Data: ${receiptData.isNotEmpty}');
+      print('═══════════════════════════════════════════════════════════');
+      print('');
+
+      // ✅ Also save to file for testing environments where console is not accessible
+      if (kDebugMode) {
+        final filePath = await PurchaseDebugLogger.logPayloadToFile(payload);
+        if (filePath != null) {
+          print('📁 Payload saved to: $filePath');
+          print(
+            '   You can retrieve this file from the device to inspect the payload',
+          );
+        }
+      }
 
       return payload;
     }
