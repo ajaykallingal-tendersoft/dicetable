@@ -498,27 +498,36 @@ class PaymentService {
     if (isIOS && purchase is AppStorePurchaseDetails) {
       final tx = purchase.skPaymentTransaction;
 
-      // ✅ CRITICAL: Read the FULL App Store receipt from appStoreReceiptURL
-      // This is required for proper server-side verification with Apple
+      // ✅ CRITICAL: Use serverVerificationData for Apple's /verifyReceipt endpoint
+      // serverVerificationData is specifically designed for server-side verification
+      // localVerificationData is for on-device validation only
       String receiptData = '';
       try {
-        // The AppStorePurchaseDetails already contains the full receipt in verificationData
-        // For iOS, verificationData.localVerificationData contains the base64-encoded receipt
-        // from appStoreReceiptURL, which is what Apple requires for server-side validation
+        print('');
+        print('🍎 iOS Receipt Data Extraction:');
+        print(
+          '   serverVerificationData length: ${ver.serverVerificationData.length}',
+        );
+        print(
+          '   localVerificationData length: ${ver.localVerificationData.length}',
+        );
 
-        if (ver.localVerificationData.isNotEmpty) {
-          // The in_app_purchase_storekit plugin already reads from appStoreReceiptURL
-          // and provides it as base64-encoded data in localVerificationData
+        // Use serverVerificationData - this contains the correct format for /verifyReceipt
+        // Works in StoreKit Testing, Sandbox, and Production
+        if (ver.serverVerificationData.isNotEmpty) {
+          receiptData = ver.serverVerificationData;
+          print('✅ Using serverVerificationData for backend verification');
+          print('   Receipt data length: ${receiptData.length} characters');
+        } else if (ver.localVerificationData.isNotEmpty) {
+          // Fallback (should not happen in normal flow)
           receiptData = ver.localVerificationData;
-          print('✅ App Store receipt retrieved from localVerificationData');
           print(
-            '   Receipt data length: ${receiptData.length} characters (base64)',
+            '⚠️ serverVerificationData empty, using localVerificationData as fallback',
           );
         } else {
-          print('⚠️ Local verification data is null or empty');
-          // Fallback to serverVerificationData if available
-          receiptData = ver.serverVerificationData ?? '';
+          print('❌ No receipt data available');
         }
+        print('');
       } catch (e, st) {
         print('❌ Error extracting App Store receipt: $e\n$st');
         // Fallback to serverVerificationData if error occurs
