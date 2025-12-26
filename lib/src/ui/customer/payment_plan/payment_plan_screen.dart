@@ -258,26 +258,26 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
             }
           },
           builder: (context, state) {
-            // Show loading indicator
-            if (state.status == PaymentPlanStatus.loading) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const CircularProgressIndicator(
-                      color: AppColors.primaryWhiteColor,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Loading plans...',
-                      style: GoogleFonts.montserrat(
-                        color: AppColors.primaryWhiteColor,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
-                ),
-              );
+            // Show loading with EasyLoading for initial product fetch
+            if (state.status == PaymentPlanStatus.loading &&
+                !state.isProcessing) {
+              // Use EasyLoading for consistency
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (EasyLoading.isShow == false) {
+                  EasyLoading.show(
+                    status: 'Loading plans...',
+                    maskType: EasyLoadingMaskType.black,
+                  );
+                }
+              });
+            }
+
+            // Dismiss EasyLoading when products are loaded
+            if (state.status == PaymentPlanStatus.productsLoaded ||
+                state.status == PaymentPlanStatus.initial) {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                EasyLoading.dismiss();
+              });
             }
 
             // Show error if no products loaded

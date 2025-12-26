@@ -468,7 +468,7 @@ class PaymentService {
       'order_id': purchase.purchaseID ?? '0',
       'transaction_date': purchase.transactionDate,
       'status': purchase.status.toString(),
-      'platform': resolvedPlatform, // <-- IMPORTANT: backend expects this
+      'platform': resolvedPlatform, //
       'verification_data': {
         'local_verification_data': ver.localVerificationData,
         'server_verification_data': ver.serverVerificationData,
