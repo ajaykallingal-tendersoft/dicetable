@@ -237,8 +237,6 @@ class _CafeDetailsCardState extends State<CafeDetailsCard> {
                   );
                 },
               ),
-
-          
             ],
           ),
 
@@ -391,27 +389,69 @@ class _CafeDetailsCardState extends State<CafeDetailsCard> {
                     const Gap(3),
 
                     // The main logic to process and display all event details
-                    // The following section is corrected:
+                    // Show event name/description once, then list all days with timings
                     ...?widget.upcomingEvents?.map((event) {
                       final upcomingEvent = event;
+                      final eventWidgets = <Widget>[];
 
-                      final dayWidgets = <Widget>[];
+                      // 1. Event Name (shown once per event)
+                      eventWidgets.add(
+                        Text(
+                          upcomingEvent.name ?? 'Event',
+                          style: Theme.of(
+                            context,
+                          ).textTheme.bodyMedium!.copyWith(
+                            color: AppColors.shadowColor,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 13.sp,
+                          ),
+                        ),
+                      );
 
-                      // Access availableDays directly from the UpcomingEvent object
+                      // 2. Event Description (shown once per event, if available)
+                      if (upcomingEvent.description != null &&
+                          upcomingEvent.description!.trim().isNotEmpty) {
+                        eventWidgets.add(const Gap(4));
+                        eventWidgets.add(
+                          Text(
+                            upcomingEvent.description!,
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodySmall!.copyWith(
+                              color: AppColors.shadowColor.withOpacity(0.8),
+                              fontWeight: FontWeight.normal,
+                              fontSize: 11.sp,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                        );
+                        eventWidgets.add(const Gap(8));
+                      }
+
+                      // 3. Iterate through all available days
                       final availableDays = upcomingEvent.availableDays;
-
-                      if (availableDays != null) {
+                      if (availableDays != null && availableDays.isNotEmpty) {
                         for (var day in availableDays) {
-                          // Access properties directly from the AvailableDay object
-                          // and use the helper function _getFullDay
                           final fullDay = _getFullDay(day.day ?? '');
 
-                          // Access timings directly from the AvailableDay object
-                          final timings = day.timings;
+                          // Day heading (e.g., "Monday:")
+                          eventWidgets.add(
+                            Text(
+                              '$fullDay:',
+                              style: Theme.of(
+                                context,
+                              ).textTheme.bodyMedium!.copyWith(
+                                color: AppColors.shadowColor,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 12.sp,
+                              ),
+                            ),
+                          );
 
-                          if (timings != null) {
+                          // All timings for this day (with bullet points, indented)
+                          final timings = day.timings;
+                          if (timings != null && timings.isNotEmpty) {
                             for (var timing in timings) {
-                              // Access open/close directly from the Timing object
                               final openTime =
                                   timing.open != null
                                       ? _formatTime(timing.open!)
@@ -421,43 +461,49 @@ class _CafeDetailsCardState extends State<CafeDetailsCard> {
                                       ? _formatTime(timing.close!)
                                       : 'N/A';
 
-                              // 1. Event Name on Day (Business Networking on Monday)
-                              dayWidgets.add(
-                                Text(
-                                  '${upcomingEvent.name} on $fullDay', // Use upcomingEvent.name
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.bodyMedium!.copyWith(
-                                    color: AppColors.shadowColor,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12.sp,
+                              eventWidgets.add(
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 12.0),
+                                  child: Row(
+                                    children: [
+                                      Text(
+                                        '• ',
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodyMedium!.copyWith(
+                                          color: AppColors.shadowColor,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 12.sp,
+                                        ),
+                                      ),
+                                      Text(
+                                        '$openTime - $closeTime',
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.bodyMedium!.copyWith(
+                                          color: AppColors.shadowColor,
+                                          fontWeight: FontWeight.normal,
+                                          fontSize: 12.sp,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               );
-
-                              // 2. Start Time - End Time (10:00 AM - 12:00 PM)
-                              dayWidgets.add(
-                                Text(
-                                  '$openTime - $closeTime',
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.bodyMedium!.copyWith(
-                                    color: AppColors.shadowColor,
-                                    fontWeight: FontWeight.normal,
-                                    fontSize: 12.sp,
-                                  ),
-                                ),
-                              );
-
-                              // Add a small gap between different timings/events
-                              dayWidgets.add(const Gap(8));
                             }
                           }
+
+                          // Small gap between days
+                          eventWidgets.add(const Gap(6));
                         }
                       }
+
+                      // Larger gap between different events
+                      eventWidgets.add(const Gap(10));
+
                       return Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: dayWidgets,
+                        children: eventWidgets,
                       );
                     }).toList(), // Convert the map result to a List of Widgets
                   ],
