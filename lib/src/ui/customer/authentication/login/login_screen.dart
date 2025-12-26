@@ -375,20 +375,32 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                         bottom: 650.h,
                         left: 0,
                         right: 0,
-                        child: Image.asset(
-                              'assets/png/solo.png',
-                              height: 141.h,
-                              width: 230.w,
-                              fit: BoxFit.scaleDown,
-                            )
-                            .animate()
-                            .scale(
-                              begin: const Offset(0.8, 0.8),
-                              end: const Offset(1, 1),
-                              duration: 600.ms,
-                              curve: Curves.easeOutBack,
-                            )
-                            .fadeIn(duration: 500.ms),
+                        child: Center(
+                          child: Container(
+                                height: 200.h,
+                                width: 325,
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                padding: EdgeInsets.all(16),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Image.asset(
+                                    'assets/png/solo.png',
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
+                              )
+                              .animate()
+                              .scale(
+                                begin: const Offset(0.8, 0.8),
+                                end: const Offset(1, 1),
+                                duration: 600.ms,
+                                curve: Curves.easeOutBack,
+                              )
+                              .fadeIn(duration: 500.ms),
+                        ),
                       ),
 
                       Positioned(

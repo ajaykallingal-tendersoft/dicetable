@@ -152,8 +152,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 _showErrorToast(errorMessage);
               }
             },
-        
-      
+
             builder: (context, state) {
               final emailError =
                   state is LoginFormState ? state.emailError : null;
@@ -180,20 +179,32 @@ class _LoginScreenState extends State<LoginScreen> {
                         bottom: 650.h,
                         left: 0,
                         right: 0,
-                        child: Image.asset(
-                              'assets/png/solo.png',
-                              height: 141.h,
-                              width: 230.w,
-                              fit: BoxFit.scaleDown,
-                            )
-                            .animate()
-                            .scale(
-                              begin: const Offset(0.8, 0.8),
-                              end: const Offset(1, 1),
-                              duration: 600.ms,
-                              curve: Curves.easeOutBack,
-                            )
-                            .fadeIn(duration: 500.ms),
+                        child: Center(
+                          child: Container(
+                                height: 200.h,
+                                width: 325,
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                padding: EdgeInsets.all(16),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Image.asset(
+                                    'assets/png/solo.png',
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
+                              )
+                              .animate()
+                              .scale(
+                                begin: const Offset(0.8, 0.8),
+                                end: const Offset(1, 1),
+                                duration: 600.ms,
+                                curve: Curves.easeOutBack,
+                              )
+                              .fadeIn(duration: 500.ms),
+                        ),
                       ),
 
                       Positioned(
@@ -391,7 +402,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                                               if (_networkState
                                                                   is NetworkFailure) {
                                                                 Fluttertoast.showToast(
-                                                                  fontSize: 14.sp,
+                                                                  fontSize:
+                                                                      14.sp,
                                                                   msg:
                                                                       "No internet connection",
                                                                   backgroundColor:
@@ -413,7 +425,10 @@ class _LoginScreenState extends State<LoginScreen> {
                                                             },
                                                     child: ElevatedButtonWidget(
                                                       height: 70.h,
-                                                      width: MediaQuery.of(context).size.width,
+                                                      width:
+                                                          MediaQuery.of(
+                                                            context,
+                                                          ).size.width,
                                                       iconEnabled: false,
                                                       iconLabel: "LOGIN",
                                                       color: AppColors.primary,
@@ -465,7 +480,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                                     curve: Curves.elasticOut,
                                                     delay: 900.ms,
                                                   ),
-                                                   Gap(20),
+                                              Gap(20),
                                               LoginWithAppleWidget()
                                                   .animate()
                                                   .fadeIn(
@@ -595,7 +610,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
       // Handle email verification requirement
       if (response.message == "Please verify your email first.") {
-      
         _navigateToVerification(context);
       }
     }
@@ -730,7 +744,7 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _showEmailVerificationToast(String message) { 
+  void _showEmailVerificationToast(String message) {
     Fluttertoast.showToast(
       fontSize: 14.sp,
       msg: message,
