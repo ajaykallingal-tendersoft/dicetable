@@ -374,6 +374,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                         top: 50,
                         left: 0,
                         right: 0,
+                        height: 200,
                         child: Align(
                           alignment: Alignment.topCenter,
                           child: Container(
