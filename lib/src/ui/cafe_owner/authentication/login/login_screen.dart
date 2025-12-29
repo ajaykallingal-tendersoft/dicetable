@@ -176,12 +176,12 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       Positioned(
                         top: 50,
-                        bottom: 650.h,
                         left: 0,
                         right: 0,
-                        child: Center(
+                        child: Align(
+                          alignment: Alignment.topCenter,
                           child: Container(
-                                height: 200.h,
+                                height: 200,
                                 width: 325,
                                 decoration: BoxDecoration(
                                   color: AppColors.primary,
