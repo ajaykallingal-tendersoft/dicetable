@@ -746,6 +746,19 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         ),
       );
 
+      // ✅ CRITICAL FIX: Start a timeout to handle iOS cancellation that doesn't emit event
+      // If purchase doesn't complete within 30 seconds, reset to allow retry
+      Timer(const Duration(seconds: 30), () {
+        if (state.status == PaymentPlanStatus.purchasing ||
+            state.status == PaymentPlanStatus.verifying) {
+          print('⏱️ Purchase timeout - resetting state');
+          print(
+            '   This handles cases where iOS cancellation doesn\'t emit event',
+          );
+          add(const CancelPurchaseEvent());
+        }
+      });
+
       // ✅ CRITICAL FIX: Find the EXACT product instance that matches
       // both the product ID AND the selected base plan
       ProductDetails? targetProduct;
