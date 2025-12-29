@@ -137,6 +137,26 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
     print('✅ PaymentPlanBloc state reset complete');
   }
 
+  // ✅ Handle purchase cancellation (from timeout or user closing sheet)
+  Future<void> _onCancelPurchase(
+    CancelPurchaseEvent event,
+    Emitter<PaymentPlanState> emit,
+  ) async {
+    print('🚫 Handling purchase cancellation...');
+    print('   Current status before cancel: ${state.status}');
+
+    emit(
+      state.copyWith(
+        status: PaymentPlanStatus.cancelled,
+        isProcessing: false,
+        errorMessage: 'Purchase was cancelled',
+      ),
+    );
+
+    print('✅ Purchase cancelled - status set to PaymentPlanStatus.cancelled');
+    print('   isProcessing: ${state.isProcessing}');
+  }
+
   Future<void> _onInitialize(
     InitializePaymentEvent event,
     Emitter<PaymentPlanState> emit,
