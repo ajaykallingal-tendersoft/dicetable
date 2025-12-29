@@ -59,10 +59,20 @@ class PaymentService {
         return false;
       }
 
-      // Subscribe to real purchase stream
+      // ✅ CRITICAL FIX: Subscribe to real purchase stream AND forward to controller
+      // This ensures iOS events reach the bloc even in debug mode
+      print('🔗 Setting up purchase stream forwarding...');
       _subscription = _inAppPurchase.purchaseStream.listen(
         (purchases) {
           try {
+            print(
+              '📡 Purchase stream event received: ${purchases.length} purchases',
+            );
+            for (var p in purchases) {
+              print('   - Product: ${p.productID}, Status: ${p.status}');
+            }
+
+            // ✅ Forward to fake controller so bloc receives events
             _fakePurchaseController.add(purchases);
             _onPurchaseUpdated(purchases);
           } catch (e, st) {
@@ -74,6 +84,7 @@ class PaymentService {
       );
 
       print("✅ Store initialized and listening to purchase stream.");
+      print("✅ Purchase events will be forwarded to bloc");
       return true;
     } catch (e, st) {
       print("❌ Error initializing IAP service: $e\n$st");
@@ -415,6 +426,7 @@ class PaymentService {
       }
       // iOS purchase flow (no base plans or offer tokens)
       else if (Platform.isIOS) {
+        print('🍎 iOS Purchase Flow:');
         purchaseParam = PurchaseParam(
           productDetails: productDetails,
           applicationUserName: null,
@@ -423,9 +435,12 @@ class PaymentService {
         return 'Unsupported platform.';
       }
 
-      print('🚀 Launching Google Play purchase flow…');
+      print('🚀 Launching purchase flow for ${productDetails.id}...');
+      print('   Platform: ${Platform.isIOS ? "iOS" : "Android"}');
       print('   Selected plan price: ${productDetails.price}');
-      print('   Offer Token Applied: $offerToken');
+      if (Platform.isAndroid) {
+        print('   Offer Token Applied: $offerToken');
+      }
 
       final bool started = await _inAppPurchase.buyNonConsumable(
         purchaseParam: purchaseParam,
@@ -433,10 +448,13 @@ class PaymentService {
 
       if (!started) {
         print('❌ Purchase flow failed to start');
+        print('   This usually means another purchase is in progress');
         return 'Failed to start purchase flow.';
       }
 
       print('✅ Purchase flow started successfully');
+      print('   Waiting for purchase stream events...');
+      print('   iOS: Native sheet should appear now');
       return null;
     } catch (e, st) {
       print('❌ purchaseProduct() ERROR: $e\n$st');

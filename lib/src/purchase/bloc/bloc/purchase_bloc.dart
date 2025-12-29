@@ -747,15 +747,23 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
       );
 
       // ✅ CRITICAL FIX: Start a timeout to handle iOS cancellation that doesn't emit event
-      // If purchase doesn't complete within 30 seconds, reset to allow retry
-      Timer(const Duration(seconds: 30), () {
+      // Reduced to 10 seconds for better UX when native sheet is dismissed
+      print('⏱️ Starting 10-second purchase timeout...');
+      Timer(const Duration(seconds: 10), () {
         if (state.status == PaymentPlanStatus.purchasing ||
             state.status == PaymentPlanStatus.verifying) {
-          print('⏱️ Purchase timeout - resetting state');
-          print(
-            '   This handles cases where iOS cancellation doesn\'t emit event',
-          );
+          print('');
+          print('⏱️ ===== PURCHASE TIMEOUT TRIGGERED =====');
+          print('   Current status: ${state.status}');
+          print('   This handles iOS sheet dismissal without stream event');
+          print('   Dispatching CancelPurchaseEvent to reset state');
+          print('========================================');
+          print('');
           add(const CancelPurchaseEvent());
+        } else {
+          print(
+            '⏱️ Timeout reached but purchase already completed (status: ${state.status})',
+          );
         }
       });
 
