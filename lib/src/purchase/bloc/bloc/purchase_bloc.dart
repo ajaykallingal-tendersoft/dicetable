@@ -1609,19 +1609,6 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
     }
   }
 
-  void _onCancelPurchase(
-    CancelPurchaseEvent event,
-    Emitter<PaymentPlanState> emit,
-  ) {
-    emit(
-      state.copyWith(
-        status: PaymentPlanStatus.initial,
-        isProcessing: false,
-        clearError: true,
-      ),
-    );
-  }
-
   void _onClearError(ClearErrorEvent event, Emitter<PaymentPlanState> emit) {
     emit(state.copyWith(clearError: true));
   }
