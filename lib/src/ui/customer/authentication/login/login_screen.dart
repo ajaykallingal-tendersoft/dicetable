@@ -374,33 +374,39 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                         top: 50,
                         left: 0,
                         right: 0,
-                        height: 200,
+                        bottom: 650.h,
                         child: Align(
                           alignment: Alignment.topCenter,
-                          child: Container(
-                                height: 200,
-                                width: 325,
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                padding: EdgeInsets.all(16),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Image.asset(
-                                    'assets/png/solo.png',
-                                    fit: BoxFit.contain,
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              maxWidth: 325,
+                              maxHeight: 200,
+                            ),
+                            child: Container(
+                                  height: 200,
+                                  width: 325,
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary,
+                                    borderRadius: BorderRadius.circular(20),
                                   ),
-                                ),
-                              )
-                              .animate()
-                              .scale(
-                                begin: const Offset(0.8, 0.8),
-                                end: const Offset(1, 1),
-                                duration: 600.ms,
-                                curve: Curves.easeOutBack,
-                              )
-                              .fadeIn(duration: 500.ms),
+                                  padding: EdgeInsets.all(16),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: Image.asset(
+                                      'assets/png/solo.png',
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
+                                )
+                                .animate()
+                                .scale(
+                                  begin: const Offset(0.8, 0.8),
+                                  end: const Offset(1, 1),
+                                  duration: 600.ms,
+                                  curve: Curves.easeOutBack,
+                                )
+                                .fadeIn(duration: 500.ms),
+                          ),
                         ),
                       ),
 
