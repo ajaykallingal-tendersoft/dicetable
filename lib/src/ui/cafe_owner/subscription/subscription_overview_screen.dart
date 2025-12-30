@@ -86,22 +86,8 @@ class _SubscriptionOverviewScreenState
         builder: (context, state) {
           Widget child;
 
-          // ✅ Handle case when subscription data is null
-          if (state is SubscriptionOverviewLoaded &&
-              state.subscriptionOverviewResponse.data?.subsriptionOverview ==
-                  null) {
-            child = Center(
-              child: Text(
-                "No Subscription found for this account!",
-                style: Theme.of(context).textTheme.bodySmall!.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 18.sp,
-                ),
-              ),
-            );
-          } else if (state is SubscriptionOverviewLoaded) {
-            // ✅ Show subscription overview when data exists
+          // ✅ Show subscription overview card for both free and premium users
+          if (state is SubscriptionOverviewLoaded) {
             child = SingleChildScrollView(
               physics: const BouncingScrollPhysics(),
               child: Padding(
