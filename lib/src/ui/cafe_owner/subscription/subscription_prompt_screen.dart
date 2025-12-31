@@ -433,6 +433,7 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                 );
               },
             ).animate().fadeIn(duration: 450.ms).slideY(begin: 0.2, delay: 600.ms),
+            const Gap(35),
           ],
         ),
       ),
@@ -481,6 +482,28 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
           child: BlocListener<PaymentPlanBloc, PaymentPlanState>(
             listener: (context, paymentState) {
               // ✅ Debug logging to track state changes
+
+              // ✅ Show loading when purchase is initiated
+              if (paymentState.status == PaymentPlanStatus.purchasing) {
+                EasyLoading.show(status: 'Processing payment...');
+              }
+
+              // ✅ Show loading when verifying purchase
+              if (paymentState.status == PaymentPlanStatus.verifying) {
+                EasyLoading.show(status: 'Verifying purchase...');
+              }
+
+              // ✅ Dismiss loading when purchase is cancelled
+              if (paymentState.status == PaymentPlanStatus.cancelled) {
+                EasyLoading.dismiss();
+                Fluttertoast.showToast(
+                  fontSize: 14.sp,
+                  backgroundColor: AppColors.appRedColor,
+                  textColor: AppColors.primaryWhiteColor,
+                  gravity: ToastGravity.BOTTOM,
+                  msg: 'Purchase was cancelled',
+                );
+              }
 
               if (paymentState.status == PaymentPlanStatus.purchaseSuccess) {
                 EasyLoading.dismiss();
