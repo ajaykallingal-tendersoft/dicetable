@@ -50,11 +50,11 @@ class NotificationServices {
       if (token != null) {
         ObjectFactory().prefs.setFcmToken(token: token);
         if (kDebugMode) {
-          print('FCM Token saved: $token');
+
         }
       } else {
         if (kDebugMode) {
-          print('Warning: FCM token not retrieved');
+
         }
       }
 
@@ -65,7 +65,7 @@ class NotificationServices {
       _isInitialized = true;
     } catch (e) {
       if (kDebugMode) {
-        print('Notification initialization failed: $e');
+
       }
     }
   }
@@ -75,7 +75,7 @@ class NotificationServices {
 
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
       if (kDebugMode) {
-        print('Notification interaction from background state');
+
       }
       unawaited(
         _handleNotificationNavigation(
@@ -88,7 +88,7 @@ class NotificationServices {
     final RemoteMessage? initialMessage = await messaging.getInitialMessage();
     if (initialMessage != null) {
       if (kDebugMode) {
-        print('Notification interaction from terminated state detected');
+
       }
       _persistPendingNavigation(Map<String, dynamic>.from(initialMessage.data));
     }
@@ -138,7 +138,7 @@ class NotificationServices {
 
   Future<void> _handleNotificationTap(NotificationResponse response) async {
     if (kDebugMode) {
-      print('Notification tapped: ${response.payload}');
+
     }
     Map<String, dynamic>? payload;
     if (response.payload != null && response.payload!.isNotEmpty) {
@@ -146,7 +146,7 @@ class NotificationServices {
         payload = Map<String, dynamic>.from(jsonDecode(response.payload!));
       } catch (e) {
         if (kDebugMode) {
-          print('Failed to decode notification payload: $e');
+
         }
       }
     }
@@ -169,7 +169,7 @@ class NotificationServices {
     final context = navigatorKey.currentContext;
     if (context == null) {
       if (kDebugMode) {
-        print('Navigation context not available for route: $route');
+
       }
       return false;
     }
@@ -179,7 +179,7 @@ class NotificationServices {
       router.push(route);
     } catch (e) {
       if (kDebugMode) {
-        print('Failed to push route $route, falling back to go. Error: $e');
+
       }
       router.go(route);
     }
@@ -240,11 +240,11 @@ class NotificationServices {
     try {
       // Any context-specific initialization can go here
       if (kDebugMode) {
-        print('Notification service fully initialized with context');
+
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Context-specific notification initialization failed: $e');
+
       }
     }
   }
@@ -253,10 +253,10 @@ class NotificationServices {
   void _setupForegroundMessageHandling() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       if (kDebugMode) {
-        print("Handling a foreground message: ${message.messageId}");
-        print("Message data: ${message.data}");
-        print("Message notification: ${message.notification?.title}");
-        print("Message notification: ${message.notification?.body}");
+
+
+
+
       }
 
       // For iOS, we need to handle foreground notifications differently
@@ -307,21 +307,21 @@ class NotificationServices {
 
       if (settings.authorizationStatus == AuthorizationStatus.authorized) {
         if (kDebugMode) {
-          print('User granted permission');
+
         }
       } else if (settings.authorizationStatus ==
           AuthorizationStatus.provisional) {
         if (kDebugMode) {
-          print('User granted provisional permission');
+
         }
       } else {
         if (kDebugMode) {
-          print('User denied permission');
+
         }
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error requesting notification permission: $e');
+
       }
     }
   }
@@ -337,7 +337,7 @@ class NotificationServices {
       // Check if we've already shown this notification
       if (_shownNotifications.contains(notificationId)) {
         if (kDebugMode) {
-          print('Notification already shown, skipping: $notificationId');
+
         }
         return;
       }
@@ -417,11 +417,11 @@ class NotificationServices {
         print(
           'Notification displayed successfully on ${Platform.operatingSystem}',
         );
-        print('Notification ID: $notificationId');
+
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error showing notification: $e');
+
       }
     }
   }
@@ -433,7 +433,7 @@ class NotificationServices {
       return token;
     } catch (e) {
       if (kDebugMode) {
-        print('Error getting device token: $e');
+
       }
       return null;
     }
@@ -453,7 +453,7 @@ class NotificationServices {
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error setting foreground message options: $e');
+
       }
     }
   }
@@ -465,12 +465,12 @@ class NotificationServices {
       if (token != null) {
         ObjectFactory().prefs.setFcmToken(token: token);
         if (kDebugMode) {
-          print('FCM Token refreshed: $token');
+
         }
       }
     } catch (e) {
       if (kDebugMode) {
-        print('Error refreshing token: $e');
+
       }
     }
   }
@@ -484,14 +484,14 @@ class NotificationServices {
           >()
           ?.requestPermissions(alert: true, badge: false, sound: true);
 
-      print('iOS notification permissions granted: $result');
+
 
       // Check FCM authorization status
       NotificationSettings settings = await messaging.getNotificationSettings();
-      print('FCM Authorization status: ${settings.authorizationStatus}');
-      print('FCM Alert setting: ${settings.alert}');
-      print('FCM Badge setting: ${settings.badge}');
-      print('FCM Sound setting: ${settings.sound}');
+
+
+
+
     }
   }
 }

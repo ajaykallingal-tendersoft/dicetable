@@ -31,7 +31,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
     super.initState();
     // ✅ CRITICAL: Force fresh initialization for current user
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      print('🔄 ChoosePlanScreen: Initializing for current user...');
+
       context.read<PaymentPlanBloc>()
         ..add(const ResetStateEvent()) // Reset first
         ..add(const InitializePaymentEvent()); // Then initialize fresh
@@ -324,10 +324,10 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
             }
 
             // ✅ Debug info (remove in production)
-            print('📱 ChoosePlanScreen State:');
-            print('   User Type: ${state.userType}');
-            print('   Is Venue: ${state.isVenueUser}');
-            print('   Products: ${state.products.map((p) => p.id).toList()}');
+
+
+
+
 
             // Main content
             return SafeArea(
@@ -555,13 +555,13 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
       return bPrice.compareTo(aPrice); // Descending
     });
 
-    print('📄 Sorted products:');
+
     for (var item in sortedProducts) {
       final product = item['product'] as ProductDetails;
       final basePlanId = item['basePlanId'] as String?;
       final price = item['formattedPrice'] as String?;
       final billingPeriod = item['billingPeriod'] as String?;
-      print('  ${product.id}:$basePlanId - $price ($billingPeriod)');
+
     }
 
     for (var expandedProduct in sortedProducts) {
@@ -587,11 +587,11 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
           formattedPrice: formattedPrice,
           isSelected: isSelected,
           onTap: () {
-            print('👆 Selected plan:');
-            print('   Product: ${product.id}');
-            print('   Base Plan: $basePlanId');
-            print('   Offer Token: $offerToken');
-            print('   Price: $formattedPrice');
+
+
+
+
+
 
             context.read<PaymentPlanBloc>().add(
               SelectPlanEvent(

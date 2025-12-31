@@ -45,23 +45,23 @@ class PaymentService {
   Future<bool> initialize({bool forceReal = false}) async {
     try {
       if (kDebugMode && !forceReal) {
-        print("🧪 DEBUG MODE: Using Fake In-App Purchase environment");
+
         return true;
       }
 
-      print("⚙️ Initializing REAL In-App Purchase environment...");
+
       final isAvailable = await _inAppPurchase.isAvailable();
-      print("⚙️ isAvailable => $isAvailable");
+
 
       if (!isAvailable) {
         final diag = await diagnoseStore();
-        print("❌ Store not available. diagnoseStore => $diag");
+
         return false;
       }
 
       // ✅ CRITICAL FIX: Subscribe to real purchase stream AND forward to controller
       // This ensures iOS events reach the bloc even in debug mode
-      print('🔗 Setting up purchase stream forwarding...');
+
       _subscription = _inAppPurchase.purchaseStream.listen(
         (purchases) {
           try {
@@ -69,25 +69,25 @@ class PaymentService {
               '📡 Purchase stream event received: ${purchases.length} purchases',
             );
             for (var p in purchases) {
-              print('   - Product: ${p.productID}, Status: ${p.status}');
+
             }
 
             // ✅ Forward to fake controller so bloc receives events
             _fakePurchaseController.add(purchases);
             _onPurchaseUpdated(purchases);
           } catch (e, st) {
-            print('⚠️ purchase stream handling error: $e\n$st');
+
           }
         },
         onError: (err, st) => print('⚠️ purchaseStream onError: $err\n$st'),
         cancelOnError: false,
       );
 
-      print("✅ Store initialized and listening to purchase stream.");
-      print("✅ Purchase events will be forwarded to bloc");
+
+
       return true;
     } catch (e, st) {
-      print("❌ Error initializing IAP service: $e\n$st");
+
       return false;
     }
   }
@@ -97,7 +97,7 @@ class PaymentService {
   // =====================================================
 
   List<ProductDetails> _fakeProducts() {
-    print("🧪 Returning FAKE products...");
+
 
     return [
       // ✅ FIRST: Monthly plan (should appear first)
@@ -156,7 +156,7 @@ class PaymentService {
       if (kDebugMode) {
         await Future.delayed(const Duration(milliseconds: 500));
         _products = _fakeProducts();
-        print("🧪 Loaded FAKE products (${_products.length})");
+
         return _products;
       }
 
@@ -164,18 +164,18 @@ class PaymentService {
 
       if (Platform.isAndroid) {
         productIds = {venueYearlyProductId, yearlyPublicProductId};
-        print('📦 Loading ANDROID parent subscription IDs: $productIds');
+
       } else if (Platform.isIOS) {
         productIds = {yearlyPublic, monthlyPublic, yearlyVenueProductId};
-        print('');
-        print('═══════════════════════════════════════════');
-        print('🍎 iOS IAP - LOADING PRODUCTS');
-        print('═══════════════════════════════════════════');
-        print('📤 Requesting Product IDs:');
+
+
+
+
+
         for (var id in productIds) {
-          print('   • "$id"');
+
         }
-        print('');
+
       } else {
         throw Exception('Unsupported platform');
       }
@@ -187,35 +187,35 @@ class PaymentService {
         attempt++;
 
         if (Platform.isIOS) {
-          print('⏳ Querying App Store (Attempt #$attempt)...');
+
         } else {
-          print('📦 queryProductDetails attempt #$attempt');
+
         }
 
         response = await _inAppPurchase.queryProductDetails(productIds);
 
         if (Platform.isAndroid) {
-          print('  productDetails.length = ${response.productDetails.length}');
-          print('  notFoundIDs = ${response.notFoundIDs}');
+
+
         } else if (Platform.isIOS) {
-          print('');
-          print('📥 App Store Response:');
-          print('   Products Found: ${response.productDetails.length}');
-          print('   Products Not Found: ${response.notFoundIDs.length}');
+
+
+
+
 
           if (response.notFoundIDs.isNotEmpty) {
-            print('');
-            print('⚠️ MISSING PRODUCTS:');
+
+
             for (var id in response.notFoundIDs) {
-              print('   ❌ "$id" not in StoreKit Configuration');
+
             }
           }
         }
 
         if (response.error != null) {
-          print('⚠️ Store error: ${response.error}');
+
           if (attempt < retryCount) {
-            print('   Retrying in ${(retryDelay * attempt).inSeconds}s...');
+
             await Future.delayed(retryDelay * attempt);
             continue;
           }
@@ -224,15 +224,15 @@ class PaymentService {
 
         if (response.productDetails.isEmpty) {
           if (Platform.isIOS) {
-            print('⚠️ No products returned!');
-            print('   Possible causes:');
-            print('   1. StoreKit Configuration not selected in scheme');
-            print('   2. Product IDs mismatch');
-            print('   3. StoreKit file not in project');
+
+
+
+
+
           }
 
           if (attempt < retryCount) {
-            print('   Retrying in ${(retryDelay * attempt).inSeconds}s...');
+
             await Future.delayed(retryDelay * attempt);
             continue;
           }
@@ -244,8 +244,8 @@ class PaymentService {
         _products = response.productDetails;
 
         if (Platform.isIOS) {
-          print('');
-          print('✅ PRODUCTS SUCCESSFULLY LOADED:');
+
+
 
           for (var i = 0; i < _products.length; i++) {
             final product = _products[i];
@@ -258,52 +258,52 @@ class PaymentService {
                 product.price == '0';
 
             if (isFake) {
-              print('');
-              print('   🚨 FAKE PRODUCT DETECTED!');
-              print('   ❌ Product ID: "${product.id}"');
-              print('      Title: ${product.title}');
-              print('      Price: ${product.price}');
-              print('');
-              print('   ⚠️ This means StoreKit Configuration is NOT loaded!');
+
+
+
+
+
+
+
               print(
                 '   Fix: Edit Scheme → Run → Options → StoreKit Configuration',
               );
-              print('');
+
             } else {
-              print('');
-              print('   ✅ Product ${i + 1}/${_products.length}:');
-              print('      ID: "${product.id}"');
-              print('      Title: ${product.title}');
-              print('      Price: ${product.price}');
-              print('      Description: ${product.description}');
+
+
+
+
+
+
 
               // iOS specific details
               if (product is AppStoreProductDetails) {
-                print('      Currency: ${product.currencyCode}');
-                print('      Raw Price: ${product.rawPrice}');
+
+
               }
             }
           }
 
-          print('');
-          print('═══════════════════════════════════════════');
-          print('');
+
+
+
         } else {
           // Android logging (existing)
-          print('✅ Loaded ${_products.length} product instance(s)');
+
 
           for (var i = 0; i < _products.length; i++) {
             final product = _products[i];
-            print('  Instance $i: ${product.id}');
-            print('    Price: ${product.price}');
+
+
 
             if (product is GooglePlayProductDetails) {
               final offers = product.productDetails.subscriptionOfferDetails;
               if (offers != null && offers.isNotEmpty) {
-                print('    Offers in this instance: ${offers.length}');
+
                 for (var offer in offers) {
-                  print('      - Base Plan: ${offer.basePlanId}');
-                  print('        Offer Token: ${offer.offerIdToken}');
+
+
                   if (offer.pricingPhases.isNotEmpty) {
                     print(
                       '        Price: ${offer.pricingPhases.first.formattedPrice}',
@@ -318,7 +318,7 @@ class PaymentService {
         return _products;
       }
     } catch (e, st) {
-      print('❌ Error loading products: $e\n$st');
+
       rethrow;
     }
   }
@@ -329,12 +329,12 @@ class PaymentService {
 
   Future<void> _simulateFakePurchase(ProductDetails product) async {
     if (_fakePurchaseAlreadyDispatched) {
-      print("⚠️ Fake purchase already dispatched. Ignoring duplicate.");
+
       return;
     }
 
     _fakePurchaseAlreadyDispatched = true;
-    print("🧪 Simulating fake purchase for: ${product.id}");
+
 
     await Future.delayed(const Duration(seconds: 1));
 
@@ -351,7 +351,7 @@ class PaymentService {
     );
 
     _fakePurchaseController.add([fakePurchase]);
-    print("🧪 Fake purchase dispatched to purchase stream");
+
   }
 
   // =====================================================
@@ -375,10 +375,10 @@ class PaymentService {
         return null;
       }
 
-      print('🛒 Starting purchase:');
-      print('  Product ID: ${productDetails.id}');
-      print('  Base Plan ID: $basePlanId');
-      print('  Offer Token: $offerToken');
+
+
+
+
 
       late PurchaseParam purchaseParam;
 
@@ -390,12 +390,12 @@ class PaymentService {
         // Log available offers for debugging
         final offers = productDetails.productDetails.subscriptionOfferDetails;
         if (offers != null) {
-          print('  📦 Offers available:');
+
           for (var offer in offers) {
-            print('    - basePlanId: ${offer.basePlanId}');
-            print('      offerToken: ${offer.offerIdToken}');
+
+
             if (offer.pricingPhases.isNotEmpty) {
-              print('      price: ${offer.pricingPhases.first.formattedPrice}');
+
             }
           }
         }
@@ -403,7 +403,7 @@ class PaymentService {
         if (oldPurchaseDetails != null &&
             oldPurchaseDetails is GooglePlayPurchaseDetails) {
           // Upgrade/downgrade flow
-          print('🔄 Performing upgrade/downgrade purchase');
+
 
           purchaseParam = GooglePlayPurchaseParam(
             productDetails: productDetails,
@@ -415,7 +415,7 @@ class PaymentService {
           );
         } else {
           // Normal new purchase
-          print('🆕 New subscription purchase');
+
 
           purchaseParam = GooglePlayPurchaseParam(
             productDetails: productDetails,
@@ -426,7 +426,7 @@ class PaymentService {
       }
       // iOS purchase flow (no base plans or offer tokens)
       else if (Platform.isIOS) {
-        print('🍎 iOS Purchase Flow:');
+
         purchaseParam = PurchaseParam(
           productDetails: productDetails,
           applicationUserName: null,
@@ -435,11 +435,11 @@ class PaymentService {
         return 'Unsupported platform.';
       }
 
-      print('🚀 Launching purchase flow for ${productDetails.id}...');
-      print('   Platform: ${Platform.isIOS ? "iOS" : "Android"}');
-      print('   Selected plan price: ${productDetails.price}');
+
+
+
       if (Platform.isAndroid) {
-        print('   Offer Token Applied: $offerToken');
+
       }
 
       final bool started = await _inAppPurchase.buyNonConsumable(
@@ -447,17 +447,17 @@ class PaymentService {
       );
 
       if (!started) {
-        print('❌ Purchase flow failed to start');
-        print('   This usually means another purchase is in progress');
+
+
         return 'Failed to start purchase flow.';
       }
 
-      print('✅ Purchase flow started successfully');
-      print('   Waiting for purchase stream events...');
-      print('   iOS: Native sheet should appear now');
+
+
+
       return null;
     } catch (e, st) {
-      print('❌ purchaseProduct() ERROR: $e\n$st');
+
       return e.toString();
     }
   }
@@ -521,8 +521,8 @@ class PaymentService {
       // localVerificationData is for on-device validation only
       String receiptData = '';
       try {
-        print('');
-        print('🍎 iOS Receipt Data Extraction:');
+
+
         print(
           '   serverVerificationData length: ${ver.serverVerificationData.length}',
         );
@@ -534,8 +534,8 @@ class PaymentService {
         // Works in StoreKit Testing, Sandbox, and Production
         if (ver.serverVerificationData.isNotEmpty) {
           receiptData = ver.serverVerificationData;
-          print('✅ Using serverVerificationData for backend verification');
-          print('   Receipt data length: ${receiptData.length} characters');
+
+
         } else if (ver.localVerificationData.isNotEmpty) {
           // Fallback (should not happen in normal flow)
           receiptData = ver.localVerificationData;
@@ -543,11 +543,11 @@ class PaymentService {
             '⚠️ serverVerificationData empty, using localVerificationData as fallback',
           );
         } else {
-          print('❌ No receipt data available');
+
         }
-        print('');
+
       } catch (e, st) {
-        print('❌ Error extracting App Store receipt: $e\n$st');
+
         // Fallback to serverVerificationData if error occurs
         receiptData = ver.serverVerificationData ?? '';
       }
@@ -564,50 +564,50 @@ class PaymentService {
       });
 
       // ✅ DEBUG: Print entire iOS verification payload
-      print('');
-      print('═══════════════════════════════════════════════════════════');
-      print('🍎 iOS VERIFICATION PAYLOAD - COMPLETE DEBUG OUTPUT');
-      print('═══════════════════════════════════════════════════════════');
-      print('📦 All Payload Fields:');
+
+
+
+
+
       payload.forEach((key, value) {
         if (key == 'receipt_data' || key == 'purchase_token') {
           // Don't print full receipt data (too long), just show length
-          print('   $key: [Base64 data, ${value.toString().length} chars]');
+
         } else if (key == 'verification_data') {
           // Print verification_data details
-          print('   $key:');
+
           if (value is Map) {
             value.forEach((subKey, subValue) {
               if (subKey == 'local_verification_data' ||
                   subKey == 'server_verification_data') {
-                print('      $subKey: [${subValue.toString().length} chars]');
+
               } else {
-                print('      $subKey: $subValue');
+
               }
             });
           }
         } else {
-          print('   $key: $value');
+
         }
       });
-      print('');
-      print('🔑 Key Fields Summary:');
-      print('   Platform: ${payload['platform']}');
-      print('   Product ID: ${payload['product_id']}');
-      print('   Transaction ID: ${payload['transaction_id']}');
+
+
+
+
+
       print(
         '   Original Transaction ID: ${payload['original_transaction_id']}',
       );
-      print('   Receipt Data Length: ${receiptData.length} characters');
-      print('   Has Receipt Data: ${receiptData.isNotEmpty}');
-      print('═══════════════════════════════════════════════════════════');
-      print('');
+
+
+
+
 
       // ✅ Also save to file for testing environments where console is not accessible
       if (kDebugMode) {
         final filePath = await PurchaseDebugLogger.logPayloadToFile(payload);
         if (filePath != null) {
-          print('📁 Payload saved to: $filePath');
+
           print(
             '   You can retrieve this file from the device to inspect the payload',
           );
@@ -633,7 +633,7 @@ class PaymentService {
 
   void _onPurchaseUpdated(List<PurchaseDetails> purchases) async {
     for (var purchase in purchases) {
-      print("📄 Purchase update: ${purchase.productID} — ${purchase.status}");
+
 
       _fakePurchaseController.add([purchase]);
 
@@ -649,7 +649,7 @@ class PaymentService {
 
   Future<void> restorePurchases() async {
     if (kDebugMode) {
-      print("🧪 DEBUG: Simulating restore purchases...");
+
       await Future.delayed(const Duration(seconds: 1));
 
       final fakeRestored = PurchaseDetails(
@@ -672,7 +672,7 @@ class PaymentService {
     if (!available) throw Exception("Store unavailable");
 
     await _inAppPurchase.restorePurchases();
-    print("📄 Restore purchases initiated");
+
   }
 
   // =====================================================

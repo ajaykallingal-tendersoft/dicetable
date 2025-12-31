@@ -51,21 +51,21 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
   /// for other screens (like booking dialog) without requiring API calls
   Future<void> _syncPaidProfilePreferences() async {
     try {
-      print('🔄 Syncing paid profile preferences to SharedPreferences...');
+
 
       // Get SharedPreferences and user ID
       final prefs = ObjectFactory().prefs;
       final sharedPrefs = prefs.getSharedPrefs;
 
       if (sharedPrefs == null) {
-        print('⚠️ SharedPreferences not available, skipping preference sync');
+
         return;
       }
 
       // Get user ID
       final userId = prefs.getUserId();
       if (userId == null) {
-        print('⚠️ User ID not available, skipping preference sync');
+
         return;
       }
 
@@ -105,15 +105,15 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
           // Save to SharedPreferences
           final key = 'paid_profile_preference_${prefId}_$userId';
           await sharedPrefs.setBool(key, isEnabled);
-          print('✅ Synced preference $key = $isEnabled');
+
         }
 
-        print('✅ Successfully synced paid profile preferences');
+
       } else {
-        print('⚠️ Failed to fetch paid profile, skipping preference sync');
+
       }
     } catch (e) {
-      print('⚠️ Error syncing paid profile preferences: $e');
+
       // Non-fatal error, don't rethrow
     }
   }
@@ -123,7 +123,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
     ResetStateEvent event,
     Emitter<PaymentPlanState> emit,
   ) async {
-    print('🔄 Resetting PaymentPlanBloc state...');
+
 
     await _purchaseSubscription?.cancel();
     _purchaseSubscription = null;
@@ -134,7 +134,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
     emit(const PaymentPlanState());
     _currentUserId = null;
 
-    print('✅ PaymentPlanBloc state reset complete');
+
   }
 
   // ✅ Handle purchase cancellation (from timeout or user closing sheet)
@@ -142,8 +142,8 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
     CancelPurchaseEvent event,
     Emitter<PaymentPlanState> emit,
   ) async {
-    print('🚫 Handling purchase cancellation...');
-    print('   Current status before cancel: ${state.status}');
+
+
 
     emit(
       state.copyWith(
@@ -153,8 +153,8 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
       ),
     );
 
-    print('✅ Purchase cancelled - status set to PaymentPlanStatus.cancelled');
-    print('   isProcessing: ${state.isProcessing}');
+
+
   }
 
   Future<void> _onInitialize(
@@ -186,7 +186,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
       }
 
       _currentUserId = newUserId;
-      print('👤 Current user ID: $_currentUserId');
+
 
       final isAvailable = await paymentService.initialize();
       if (!isAvailable) {
@@ -210,12 +210,12 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
 
       // Load initial local data
       final userData = await _paymentRepository.getUserSubscriptionData();
-      print("DEBUG USER DATA: $userData");
+
 
       final determinedUserType = userData['userType'] as UserType;
       final premiumOverride = userData['premiumOverride'] as bool? ?? false;
-      print("✅ Determined user type: $determinedUserType");
-      print("✅ Premium override from cache: $premiumOverride");
+
+
 
       emit(
         state.copyWith(
@@ -267,14 +267,14 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
     Emitter<PaymentPlanState> emit,
   ) async {
     try {
-      print('🔍 Checking for pending purchases...');
+
 
       // Query past purchases to find any that weren't completed
       await InAppPurchase.instance.restorePurchases();
 
       // The purchase stream listener will handle any restored purchases
     } catch (e) {
-      print('⚠️ Error checking pending purchases: $e');
+
       // Don't fail initialization, just log
     }
   }
@@ -305,10 +305,10 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         return;
       }
 
-      print('📦 Processing products for user type: ${state.userType}');
-      print('📦 Is venue user: ${state.isVenueUser}');
-      print('📦 Is in trial period: ${state.isInTrialPeriod}');
-      print('📦 Total product instances: ${allProducts.length}');
+
+
+
+
 
       final Map<String, Map<String, dynamic>> uniqueEntries = {};
 
@@ -351,7 +351,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
                 // If price is 0, it's a trial phase
                 if (phasePrice != null && phasePrice == 0) {
                   trialDays = _extractDaysFromPeriod(phasePeriod);
-                  print('   Phase ${i + 1}: 🎁 FREE TRIAL - $trialDays days');
+
                 } else if (formattedPrice == null) {
                   // First paid phase
                   formattedPrice = phaseFormattedPrice;
@@ -380,7 +380,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
                 }
               }
             } catch (e) {
-              print("❌ Error extracting pricing phase: $e");
+
             }
           }
 
@@ -427,13 +427,13 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
             final offers = product.productDetails.subscriptionOfferDetails;
 
             if (offers != null) {
-              print('   Product has ${offers.length} offer(s)');
+
 
               for (var offer in offers) {
-                print('   📋 Analyzing offer:');
-                print('      Base Plan ID: ${offer.basePlanId}');
-                print('      Offer ID: ${offer.offerId ?? "null"}');
-                print('      Offer Tags: ${offer.offerTags}');
+
+
+
+
 
                 // Check pricing phases to detect trial
                 bool hasTrial = false;
@@ -469,10 +469,10 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
 
                 if (hasTrial) {
                   trialOffer = offerData;
-                  print('      🎁 TRIAL OFFER DETECTED');
+
                 } else {
                   baseOffer = offerData;
-                  print('      💰 BASE OFFER (No Trial)');
+
                 }
               }
             } else {
@@ -486,7 +486,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
                 'pricingPhases': null,
                 'isTrial': false,
               };
-              print('   ⚠️ No subscription offers found for this product');
+
             }
           } else {
             // iOS products
@@ -509,13 +509,13 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
             trialOffer != null;
 
         if (shouldUseTrial) {
-          print('');
-          print('🎯 Auto-selecting TRIAL offer for venue user:');
-          print('   Product: ${(trialOffer!['product'] as ProductDetails).id}');
-          print('   Base Plan: ${trialOffer['basePlanId']}');
-          print('   Offer ID: ${trialOffer['offerId']}');
-          print('   Offer Token: ${trialOffer['offerToken']}');
-          print('');
+
+
+
+
+
+
+
 
           addExpandedEntry(
             product: trialOffer['product'] as ProductDetails,
@@ -527,17 +527,17 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
           );
         } else {
           if (trialOffer == null) {
-            print('');
-            print('⚠️ No trial offer available - using base offer');
+
+
             print(
               '   Check Play Console → Subscriptions → venue_yearly_plan → Base Plans & Offers',
             );
-            print('   Ensure a trial offer is created and activated');
-            print('');
+
+
           } else if (state.isInTrialPeriod) {
-            print('');
-            print('ℹ️ User already in trial period - using base offer');
-            print('');
+
+
+
           }
 
           final offerToUse = baseOffer ?? trialOffer;
@@ -603,7 +603,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
       }
 
       if (uniqueEntries.isEmpty) {
-        print('❌ No products matched the filter criteria!');
+
         emit(
           state.copyWith(
             status: PaymentPlanStatus.purchaseFailed,
@@ -615,7 +615,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
 
       final expandedProductsList = uniqueEntries.values.toList();
 
-      print('✅ Final expanded products: ${expandedProductsList.length}');
+
       for (var ep in expandedProductsList) {
         final prod = ep['product'] as ProductDetails;
         final basePlan = ep['basePlanId'];
@@ -655,14 +655,14 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         autoSelectedOfferToken = trialEntry['offerToken'] as String?;
         autoSelectedOfferId = trialEntry['offerId'] as String?;
 
-        print('');
-        print('🎯 Auto-selected for venue user:');
-        print('   Product: $autoSelectedProductId');
-        print('   Base Plan: $autoSelectedBasePlanId');
-        print('   Offer ID: $autoSelectedOfferId');
-        print('   Offer Token: $autoSelectedOfferToken');
-        print('   Is Trial: ${trialEntry['isTrial']}');
-        print('');
+
+
+
+
+
+
+
+
       }
 
       emit(
@@ -677,7 +677,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         ),
       );
     } catch (e, st) {
-      print('❌ Error loading products: $e\n$st');
+
       emit(
         state.copyWith(
           status: PaymentPlanStatus.purchaseFailed,
@@ -712,10 +712,10 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
   }
 
   void _onSelectPlan(SelectPlanEvent event, Emitter<PaymentPlanState> emit) {
-    print('✅ Selecting plan:');
-    print('   Product: ${event.productId}');
-    print('   Base Plan: ${event.basePlanId}');
-    print('   Offer Token: ${event.offerToken}');
+
+
+
+
 
     emit(
       state.copyWith(
@@ -754,7 +754,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
       if (state.isProcessing == true) {
         // ✅ FIX: Don't emit error state for 'already in progress'
         // This is expected when user clicks multiple times
-        print('⚠️ Purchase already in progress, ignoring duplicate request');
+
         return;
       }
 
@@ -768,17 +768,17 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
 
       // ✅ CRITICAL FIX: Start a timeout to handle iOS cancellation that doesn't emit event
       // Reduced to 10 seconds for better UX when native sheet is dismissed
-      print('⏱️ Starting 10-second purchase timeout...');
+
       Timer(const Duration(seconds: 10), () {
         if (state.status == PaymentPlanStatus.purchasing ||
             state.status == PaymentPlanStatus.verifying) {
-          print('');
-          print('⏱️ ===== PURCHASE TIMEOUT TRIGGERED =====');
-          print('   Current status: ${state.status}');
-          print('   This handles iOS sheet dismissal without stream event');
-          print('   Dispatching CancelPurchaseEvent to reset state');
-          print('========================================');
-          print('');
+
+
+
+
+
+
+
           add(const CancelPurchaseEvent());
         } else {
           print(
@@ -815,7 +815,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
           orElse:
               () => throw Exception("Product not found: ${event.productId}"),
         );
-        print('⚠️ Using fallback product (base plan might not match)');
+
       }
 
       final isVenueTrial =
@@ -823,11 +823,11 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
           state.userType == UserType.venueTrial &&
           !state.isInTrialPeriod;
 
-      print('🛒 Purchasing:');
-      print('   Product: ${targetProduct.id}');
-      print('   Selected base plan: ${state.selectedBasePlanId}');
-      print('   Selected offer token: ${state.selectedOfferToken}');
-      print('   Is venue trial: $isVenueTrial');
+
+
+
+
+
 
       // ✅ Pass the CORRECT product instance and offer token
       final errorMessage = await paymentService.purchaseProduct(
@@ -840,7 +840,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
       if (errorMessage != null) {
         if (errorMessage.contains('ITEM_ALREADY_OWNED') ||
             errorMessage.contains('already subscribed')) {
-          print('⚠️ Item already owned, triggering restore...');
+
 
           emit(
             state.copyWith(
@@ -892,7 +892,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
           print(
             '🔄 Purchase restored - checking subscription status BEFORE caching',
           );
-          print('   Product ID: ${purchaseDetails.productID}');
+
 
           // 🔒 SECURITY FIX: Validate product type matches user type
           // Prevent cross-account premium leak (e.g., public user getting venue subscription)
@@ -914,27 +914,27 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
               currentUserType == UserType.publicFree ||
               currentUserType == UserType.publicPaid;
 
-          print('🔍 Product Type Validation:');
-          print('   Current User Type: $currentUserType');
-          print('   Product ID: $productId');
-          print('   Is Venue Product: $isVenueProduct');
-          print('   Is Public Product: $isPublicProduct');
-          print('   Is Venue User: $isVenueUser');
-          print('   Is Public User: $isPublicUser');
+
+
+
+
+
+
+
 
           // ❌ REJECT if product type doesn't match user type
           if ((isVenueProduct && isPublicUser) ||
               (isPublicProduct && isVenueUser)) {
-            print('');
-            print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            print('🚨 SECURITY: PRODUCT TYPE MISMATCH - REJECTING RESTORE');
-            print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            print('❌ Product: $productId');
-            print('❌ User Type: $currentUserType');
-            print('🔒 This purchase belongs to a different account type');
-            print('🔒 Preventing cross-account premium access');
-            print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            print('');
+
+
+
+
+
+
+
+
+
+
 
             // Complete the purchase to acknowledge it, but don't grant access
             if (purchaseDetails.pendingCompletePurchase) {
@@ -952,7 +952,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
           // ✅ DON'T cache yet - first verify if subscription is still active
           // Try to check subscription status first
           try {
-            print('📞 Calling fetchSubscriptionStatusFromBackend...');
+
 
             // Temporarily cache just for the status check
             final platform = Platform.isIOS ? 'ios' : 'android';
@@ -977,14 +977,14 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
                 statusResult['premiumOverride'] as bool? ?? false;
             final userType = statusResult['userType'] as UserType?;
 
-            print('📊 Status check result:');
-            print('   isPremium: $isPremium');
-            print('   premiumOverride: $premiumOverride');
-            print('   userType: $userType');
+
+
+
+
 
             if (isPremium || premiumOverride) {
-              print('✅ Subscription is ACTIVE - caching token permanently');
-              print('   This purchase is valid and will be cached');
+
+
 
               // ✅ NOW cache the token since subscription is active
               await _paymentRepository.cacheLatestPurchaseDetails(
@@ -992,12 +992,12 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
                 platform: platform,
                 subscriptionId: purchaseDetails.productID,
               );
-              print('✅ Cached active subscription token');
+
 
               // Complete the purchase
               if (purchaseDetails.pendingCompletePurchase) {
                 await InAppPurchase.instance.completePurchase(purchaseDetails);
-                print('✅ Purchase completed on store');
+
               }
 
               emit(
@@ -1021,31 +1021,31 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
 
               // Mark as processed
               _processedPurchases.add(purchaseId);
-              print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-              print('✅ RESTORED PURCHASE HANDLED - ACTIVE SUBSCRIPTION');
-              print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+
+
               continue; // Skip verification
             } else {
-              print('⚠️ Subscription is CANCELED/EXPIRED - NOT caching token');
-              print('   This allows user to make a NEW subscription');
-              print('   Reasons:');
-              print('   1. Subscription has been canceled');
-              print('   2. Subscription has expired');
-              print('   3. Purchase token belongs to a different user');
-              print('');
-              print('❌ Will NOT cache token or grant premium access');
-              print('✅ User can now proceed with a NEW purchase');
-              print('');
+
+
+
+
+
+
+
+
+
+
 
               // ✅ CRITICAL: Clear the temporarily cached token
               // This ensures the old token doesn't interfere with new purchases
               await _paymentRepository.clearCachedPurchaseToken();
-              print('🗑️ Cleared temporarily cached token');
+
 
               // ✅ Complete the purchase but do NOT emit premium state
               if (purchaseDetails.pendingCompletePurchase) {
                 await InAppPurchase.instance.completePurchase(purchaseDetails);
-                print('✅ Purchase completed on store (but access denied)');
+
               }
 
               emit(
@@ -1068,20 +1068,20 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
 
               // Mark as processed
               _processedPurchases.add(purchaseId);
-              print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-              print('✅ RESTORED PURCHASE CLEARED - USER CAN SUBSCRIBE AGAIN');
-              print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+
+
               continue; // ✅ Skip verification and allow new purchase
             }
           } catch (e) {
-            print('⚠️ Subscription status check failed: $e');
-            print('   Falling back to verification');
+
+
           }
         }
 
         // Skip if already processing/processed
         if (_processedPurchases.contains(purchaseId)) {
-          print('⏭️ Skipping duplicate purchase event for: $purchaseId');
+
           continue;
         }
 
@@ -1158,7 +1158,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
       return;
     }
 
-    print('🔄 Retrying verification (attempt ${event.attemptNumber})...');
+
 
     // Exponential backoff: 2s, 4s, 8s
     final delay = Duration(seconds: 2 * event.attemptNumber);
@@ -1178,16 +1178,16 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
       final payload = Map<String, dynamic>.from(event.verificationPayload);
 
       // Debug logging
-      print('');
-      print('╔══════════════════════════════════════════╗');
-      print('🔍 VERIFICATION PAYLOAD DEBUG');
-      print('╚══════════════════════════════════════════╝');
-      print('📦 Payload keys: ${payload.keys.toList()}');
-      print('📦 Has platform? ${payload.containsKey('platform')}');
+
+
+
+
+
+
       if (payload.containsKey('platform')) {
-        print('📦 Platform value: ${payload['platform']}');
+
       } else {
-        print('⚠️ MISSING platform field, attempting to infer now...');
+
         final inferredPlatform =
             (purchaseDetails.verificationData?.source ?? '')
                 .toString()
@@ -1202,10 +1202,10 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
           payload['platform'] =
               defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android';
         }
-        print('✅ Inferred platform: ${payload['platform']}');
+
       }
-      print('╚══════════════════════════════════════════╝');
-      print('');
+
+
 
       Map<String, dynamic> verificationResult = {'valid': true};
 
@@ -1223,12 +1223,12 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         // ✅ Check if this is a "already verified" message (not an actual error)
         if (errorMessage.contains('already verified') ||
             errorMessage.contains('Purchase already verified')) {
-          print('ℹ️ Purchase was already verified, treating as success');
+
 
           // Complete the purchase
           if (purchaseDetails.pendingCompletePurchase) {
             await InAppPurchase.instance.completePurchase(purchaseDetails);
-            print('✅ Purchase completed on store');
+
           }
 
           // Fetch fresh user data and emit success (fallback safe path)
@@ -1308,7 +1308,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
       // SUCCESS: complete the purchase if pending
       if (purchaseDetails.pendingCompletePurchase) {
         await InAppPurchase.instance.completePurchase(purchaseDetails);
-        print('✅ Purchase completed on store');
+
       }
 
       // Clear pending purchase info early
@@ -1384,24 +1384,24 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
             hasActive ||
             (trialEndDate != null && DateTime.now().isBefore(trialEndDate));
 
-        print('✅ Verification successful - updating state with backend data');
-        print('   User type: $resolvedUserType');
-        print('   Is premium: $resolvedIsPremium');
-        print('   Has active subscription: $hasActive');
-        print('   Trial end: $trialEndDate');
-        print('   Subscription expiry: $subscriptionExpiryDate');
-        print('');
-        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        print('✅ VERIFICATION SUCCESS - GRANTING PREMIUM ACCESS');
-        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        print('📦 Product: $resolvedUserType');
-        print('🎯 User Type: $resolvedUserType');
-        print('💎 Premium Status: $resolvedIsPremium');
-        print('📅 Trial End: $trialEndDate');
-        print('📅 Subscription Expiry: $subscriptionExpiryDate');
-        print('🔐 Premium Override: TRUE');
-        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        print('');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         // ✅ Emit success state with backend data
         emit(
@@ -1424,9 +1424,9 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         print(
           '✅ Purchase verified and state updated (from verificationResult)',
         );
-        print('   User type: $resolvedUserType');
-        print('   Is premium: $resolvedIsPremium');
-        print('   Trial end: $trialEndDate');
+
+
+
 
         // ✅ NEW: Sync preferences to SharedPreferences after successful subscription
         if (resolvedIsPremium) {
@@ -1461,9 +1461,9 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
       print(
         '✅ Purchase verified and state updated (from cached userData fallback)',
       );
-      print('   User type: ${userData['userType']}');
-      print('   Is premium: ${userData['isPremium']}');
-      print('   Trial end: ${userData['trialEndDate']}');
+
+
+
 
       // ✅ NEW: Sync preferences to SharedPreferences after successful subscription (fallback path)
       final isPremiumFallback = userData['isPremium'] as bool? ?? false;
@@ -1518,7 +1518,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         state.copyWith(status: PaymentPlanStatus.loading, isProcessing: true),
       );
 
-      print('🔄 Restoring purchases...');
+
 
       // ✅ Start timeout - if no purchases are restored within 5 seconds, complete
       final timeoutCompleter = Completer<void>();
@@ -1537,12 +1537,12 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
       // ✅ If we reach here, timeout occurred (no purchases found)
       // Check if state is still in loading (no purchase stream events received)
       if (state.status == PaymentPlanStatus.loading && state.isProcessing) {
-        print('⏱️ Restore timeout: No purchases found to restore');
-        print('   This is normal if:');
-        print('   1. User has never subscribed on this device');
-        print('   2. Subscription was purchased on a different account');
-        print('   3. Purchase was already consumed/completed');
-        print('');
+
+
+
+
+
+
 
         // Reset to initial state - allows user to proceed
         emit(
@@ -1597,7 +1597,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
       final isPremium = userData['isPremium'] as bool? ?? false;
       final premiumOverride = userData['premiumOverride'] as bool? ?? false;
       if (isPremium || premiumOverride) {
-        print('🔄 User has active subscription - syncing preferences...');
+
         await _syncPaidProfilePreferences();
       }
     } catch (e) {

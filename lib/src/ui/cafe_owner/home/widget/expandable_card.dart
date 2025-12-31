@@ -348,7 +348,7 @@ class _ExpandableCardState extends State<ExpandableCard> {
                         BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
                           builder: (context, paymentState) {
                             // ✅ Log debug info when building
-                            print(paymentState.debugPremiumAccess());
+
                             // 🔑 KEY FIX: Premium users should NOT need upgrade
                             final bool hasPremiumAccess =
                                 paymentState.premiumOverride ||
@@ -428,7 +428,7 @@ class _ExpandableCardState extends State<ExpandableCard> {
                       BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
                         builder: (context, paymentState) {
                           // ✅ Log debug info when building
-                          print(paymentState.debugPremiumAccess());
+
                           // 🔑 KEY FIX: Premium users should NOT need upgrade
                           final bool hasPremiumAccess =
                               paymentState.premiumOverride ||
@@ -608,7 +608,7 @@ class _ExpandableCardState extends State<ExpandableCard> {
     return BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
       builder: (context, paymentState) {
         // ✅ Log debug info when building
-        print(paymentState.debugPremiumAccess());
+
         // 🔑 KEY FIX: Premium users should NOT need upgrade
         final bool hasPremiumAccess =
             paymentState.premiumOverride ||
@@ -689,7 +689,7 @@ class _ExpandableCardState extends State<ExpandableCard> {
           (state is DiceTableUpdateLoading || !isDaysNotEmpty)
               ? null
               : () {
-                print('Selected days being sent: $selectedDays');
+
 
                 context.read<HomeBloc>().add(
                   UpdatePromoTextEvent(widget.index, _promoController.text),
@@ -771,8 +771,8 @@ class _ExpandableCardState extends State<ExpandableCard> {
                       }
                     }).toList();
 
-                print('📤 Sending to API:');
-                print('  always_available: $finalAlwaysAvailable');
+
+
                 for (var day in availableDaysForApi) {
                   print(
                     '  ${day.day}: is_open=${day.isOpen}, timings=${day.timings?.length}',

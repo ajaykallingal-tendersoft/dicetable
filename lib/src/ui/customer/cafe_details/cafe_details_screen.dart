@@ -252,8 +252,8 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                 isGuest ? ObjectFactory().prefs.getDeviceID() ?? '' : '';
 
             // Debug logging
-            print('🔄 Triggering refresh for cafe ID: $_id');
-            print('📍 Location: lat=$lat, lon=$lon');
+
+
 
             context.read<CafeListBloc>().add(
               RefreshCafeDetailsEvent(
@@ -476,12 +476,12 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
     if (tableType == null) return null;
 
     // Debug: Print exact string and character codes
-    print('🔍 [Mapping] Table type: "$tableType"');
-    print('🔍 [Mapping] Character codes: ${tableType.codeUnits}');
+
+
 
     // Normalize apostrophes to handle both standard (') and fancy (’) characters
     final normalized = tableType.replaceAll('\u2019', '\'');
-    print('🔍 [Mapping] Normalized: "$normalized"');
+
 
     switch (normalized) {
       case 'Business Networking':
@@ -493,7 +493,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
       case 'Prime Time - Over 60\'s':
         return 4;
       default:
-        print('⚠️ [Mapping] No match found for: "$tableType"');
+
         return null;
     }
   }
@@ -506,10 +506,10 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
     );
 
     final preferenceId = _getPreferenceIdFromTableType(tableType);
-    print('🔍 [Cafe Details] Mapped preferenceId: $preferenceId');
+
 
     if (preferenceId == null) {
-      print('⚠️ [Cafe Details] preferenceId is null, returning false');
+
       return false;
     }
 
@@ -518,26 +518,26 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
     final userId = prefs.getUserId() ?? 'anonymous';
     final key = 'paid_profile_preference_${preferenceId}_$userId';
 
-    print('🔍 [Cafe Details] Generated key: $key');
-    print('🔍 [Cafe Details] UserId: $userId');
+
+
 
     // Use the existing SharedPreferences instance
     final sharedPrefs = prefs.getSharedPrefs;
     if (sharedPrefs == null) {
-      print('⚠️ [Cafe Details] SharedPreferences is null');
+
       return false;
     }
 
     final value = sharedPrefs.getBool(key) ?? false;
-    print('✅ [Cafe Details] Retrieved value for key $key: $value');
+
 
     // Debug: Print all keys that start with 'paid_profile_preference_'
     final allKeys = sharedPrefs.getKeys();
     final prefKeys =
         allKeys.where((k) => k.startsWith('paid_profile_preference_')).toList();
-    print('📋 [Cafe Details] All preference keys in SharedPreferences:');
+
     for (var k in prefKeys) {
-      print('   - $k: ${sharedPrefs.getBool(k)}');
+
     }
 
     return value;
@@ -1488,7 +1488,7 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
       DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
       if (Platform.isAndroid) {
         AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-        print("DeviceID: ${androidInfo.id}");
+
         return androidInfo.id;
       } else if (Platform.isIOS) {
         IosDeviceInfo iosInfo = await deviceInfo.iosInfo;

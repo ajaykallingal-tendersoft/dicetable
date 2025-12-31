@@ -216,7 +216,7 @@ class _EnhancedAvailableDaysDialogState
     setState(() {
       alwaysAvailable = value;
 
-      print('🔄 Toggle Always Available: $value');
+
 
       if (value) {
         // ✅ When toggled ON: Select ALL days using their default open-close timings
@@ -251,11 +251,11 @@ class _EnhancedAvailableDaysDialogState
             ],
           );
 
-          print('  ✓ $dayKey → $defaultOpen - $defaultClose');
+
         }
       } else {
         // ✅ When toggled OFF: Keep only days that have custom event slots
-        print('❌ Toggled OFF - Keeping only custom event days');
+
 
         for (var entry in daySelections.entries) {
           final hasCustomSlots = entry.value.timeSlots.length > 1;
@@ -279,9 +279,9 @@ class _EnhancedAvailableDaysDialogState
           );
 
           if (hasCustomSlots) {
-            print('  ✓ Kept ${entry.key} (has custom slots)');
+
           } else {
-            print('  ✗ Cleared ${entry.key} (no custom slots)');
+
           }
         }
       }
@@ -293,7 +293,7 @@ class _EnhancedAvailableDaysDialogState
             .where((e) => e.value.isSelected)
             .map((e) => e.key)
             .toList();
-    print('📅 Selected days after toggle: $selectedDays');
+
   }
 
   void _toggleDay(String day) {
@@ -347,7 +347,7 @@ class _EnhancedAvailableDaysDialogState
       }
     }
 
-    print('🔍 Next available start: $nextStartMin minutes');
+
     print(
       '🔍 Existing slots: ${userSlots.map((s) => '${s.from}-${s.to}').toList()}',
     );
@@ -369,7 +369,7 @@ class _EnhancedAvailableDaysDialogState
     final newEnd =
         '${(nextEndMin ~/ 60).toString().padLeft(2, '0')}:${(nextEndMin % 60).toString().padLeft(2, '0')}:00';
 
-    print('🔍 Adding new slot: $newStart - $newEnd');
+
 
     if (_validateNewSlot(day, newStart, newEnd)) {
       setState(() {
