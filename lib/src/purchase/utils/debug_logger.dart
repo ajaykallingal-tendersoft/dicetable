@@ -70,10 +70,8 @@ class PurchaseDebugLogger {
         mode: FileMode.append,
       );
 
-      print('✅ iOS payload logged to file: ${file.path}');
       return file.path;
-    } catch (e, st) {
-      print('❌ Failed to log payload to file: $e\n$st');
+    } catch (e) {
       return null;
     }
   }
