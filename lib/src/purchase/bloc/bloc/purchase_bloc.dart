@@ -1220,7 +1220,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
             verificationResult['message'] as String? ??
             'Purchase verification failed';
 
-        // ✅ Check if this is a "already verified" message (not an actual error)
+        //  Check if this is a "already verified" message (not an actual error)
         if (errorMessage.contains('already verified') ||
             errorMessage.contains('Purchase already verified')) {
           print('ℹ️ Purchase was already verified, treating as success');
@@ -1253,10 +1253,10 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
             ),
           );
 
-          // ✅ NEW: Sync preferences to SharedPreferences after successful subscription (already verified path)
+          //  NEW: Sync preferences to SharedPreferences after successful subscription (already verified path)
           await _syncPaidProfilePreferences();
 
-          // ✅ NEW: Trigger full status check to get complete verification_data
+          //  NEW: Trigger full status check to get complete verification_data
           print(
             '🔄 Triggering CheckSubscriptionStatusEvent to fetch full status...',
           );
@@ -1320,7 +1320,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         ),
       );
 
-      // ✅ CRITICAL FIX: Extract data from verificationResult first
+      //  CRITICAL FIX: Extract data from verificationResult first
       final bool? hasActive =
           verificationResult.containsKey('has_active_subscription')
               ? (verificationResult['has_active_subscription'] == true)
@@ -1367,14 +1367,14 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
               ? DateTime.tryParse(_fixDateFormat(trialEndStr))
               : null;
 
-      // ✅ Extract premium_override if present
+      //  Extract premium_override if present
       final bool? premiumOverrideFromBackend =
           verificationResult.containsKey('premium_override')
               ? (verificationResult['premium_override'] as bool?)
               : null;
 
       if (hasActive != null && isVenue != null) {
-        // ✅ Derive userType & isPremium from backend response
+        //  Derive userType & isPremium from backend response
         final UserType resolvedUserType =
             isVenue
                 ? (hasActive ? UserType.venuePaid : UserType.venueTrial)
@@ -1428,7 +1428,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         print('   Is premium: $resolvedIsPremium');
         print('   Trial end: $trialEndDate');
 
-        // ✅ NEW: Sync preferences to SharedPreferences after successful subscription
+        //  NEW: Sync preferences to SharedPreferences after successful subscription
         if (resolvedIsPremium) {
           await _syncPaidProfilePreferences();
         }
@@ -1459,13 +1459,13 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
       );
 
       print(
-        '✅ Purchase verified and state updated (from cached userData fallback)',
+        ' Purchase verified and state updated (from cached userData fallback)',
       );
       print('   User type: ${userData['userType']}');
       print('   Is premium: ${userData['isPremium']}');
       print('   Trial end: ${userData['trialEndDate']}');
 
-      // ✅ NEW: Sync preferences to SharedPreferences after successful subscription (fallback path)
+      //  NEW: Sync preferences to SharedPreferences after successful subscription (fallback path)
       final isPremiumFallback = userData['isPremium'] as bool? ?? false;
       if (isPremiumFallback) {
         await _syncPaidProfilePreferences();
@@ -1520,7 +1520,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
 
       print('🔄 Restoring purchases...');
 
-      // ✅ Start timeout - if no purchases are restored within 5 seconds, complete
+      //  Start timeout - if no purchases are restored within 5 seconds, complete
       final timeoutCompleter = Completer<void>();
       Timer(const Duration(seconds: 5), () {
         if (!timeoutCompleter.isCompleted) {

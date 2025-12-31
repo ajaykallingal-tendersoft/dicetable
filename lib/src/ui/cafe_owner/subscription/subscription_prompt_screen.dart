@@ -603,6 +603,52 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                               ),
                             ),
                             SizedBox(height: 20.h),
+                            // Premium Benefits Section
+                            Container(
+                              padding: EdgeInsets.all(16.r),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withOpacity(0.05),
+                                borderRadius: BorderRadius.circular(12.r),
+                                border: Border.all(
+                                  color: AppColors.primary.withOpacity(0.2),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Features Include',
+                                    style: TextTheme.of(
+                                      context,
+                                    ).labelMedium!.copyWith(
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14.sp,
+                                    ),
+                                  ),
+                                  SizedBox(height: 12.h),
+                                  _buildBenefitItem(
+                                    context,
+                                    'Publish events',
+                                    Icons.event_available,
+                                  ),
+                                  SizedBox(height: 8.h),
+                                  _buildBenefitItem(
+                                    context,
+                                    'Boost venue visibility',
+                                    Icons.trending_up,
+                                  ),
+                                  SizedBox(height: 8.h),
+                                  _buildBenefitItem(
+                                    context,
+                                    'View event attendees',
+                                    Icons.people,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(height: 20.h),
                             // RichText(
                             //   text: TextSpan(
                             //     children: [
@@ -840,9 +886,29 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                 );
               },
             ).animate().fadeIn(duration: 450.ms).slideY(begin: 0.2, delay: 600.ms),
+            Gap(30),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildBenefitItem(BuildContext context, String text, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, color: AppColors.primary, size: 20.sp),
+        SizedBox(width: 12.w),
+        Expanded(
+          child: Text(
+            text,
+            style: TextTheme.of(context).bodyMedium!.copyWith(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w500,
+              fontSize: 13.sp,
+            ),
+          ),
+        ),
+      ],
     );
   }
 

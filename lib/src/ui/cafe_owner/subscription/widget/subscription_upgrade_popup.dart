@@ -345,7 +345,45 @@ class UpgradePopup extends StatelessWidget {
                       color: AppColors.primary,
                     ),
                   ),
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 24),
+                  // Premium Benefits Section
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: AppColors.primary.withOpacity(0.2),
+                        width: 1,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Features Include',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        _buildBenefitItem(
+                          'Publish events',
+                          Icons.event_available,
+                        ),
+                        const SizedBox(height: 8),
+                        _buildBenefitItem(
+                          'Boost venue visibility',
+                          Icons.trending_up,
+                        ),
+                        const SizedBox(height: 8),
+                        _buildBenefitItem('View event attendees', Icons.people),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.baseline,
@@ -460,6 +498,25 @@ class UpgradePopup extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildBenefitItem(String text, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, color: AppColors.primary, size: 18),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            text,
+            style: GoogleFonts.montserrat(
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              color: AppColors.primary,
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
