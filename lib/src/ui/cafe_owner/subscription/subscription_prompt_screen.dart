@@ -962,6 +962,27 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                 );
               }
 
+              // ✅ FIX: Handle verification failure with EasyLoader dismissal
+              if (paymentState.status == PaymentPlanStatus.verificationFailed) {
+                final attempts = paymentState.verificationAttempts ?? 0;
+                if (attempts > 0) {
+                  // Retrying - show retry status
+                  EasyLoading.show(status: 'Retrying ($attempts/3)...');
+                } else {
+                  // Max retries reached - dismiss loader and show error
+                  EasyLoading.dismiss();
+                  Fluttertoast.showToast(
+                    fontSize: 14.sp,
+                    backgroundColor: AppColors.appRedColor,
+                    textColor: AppColors.primaryWhiteColor,
+                    gravity: ToastGravity.BOTTOM,
+                    msg:
+                        paymentState.errorMessage ??
+                        'Unable to verify purchase. Please contact support.',
+                  );
+                }
+              }
+
               // ✅ Show restore success
               if (paymentState.status == PaymentPlanStatus.purchaseRestored) {
                 EasyLoading.dismiss();

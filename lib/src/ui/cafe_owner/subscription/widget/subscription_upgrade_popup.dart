@@ -229,13 +229,15 @@ class UpgradePopup extends StatelessWidget {
         } else if (state.status == PaymentPlanStatus.verifying) {
           EasyLoading.show(status: 'Verifying purchase...');
         } else if (state.status == PaymentPlanStatus.verificationFailed) {
-          // ✅ Show retry progress
+          // ✅ CRITICAL FIX: Always dismiss EasyLoader first
+          EasyLoading.dismiss();
+
           final attempts = state.verificationAttempts ?? 0;
           if (attempts > 0) {
+            // Still retrying - show retry progress
             EasyLoading.show(status: 'Retrying verification ($attempts/3)...');
           } else {
-            EasyLoading.dismiss();
-            // Show error dialog
+            // Max retries reached - show error dialog
             showDialog(
               context: context,
               builder:

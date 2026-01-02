@@ -894,6 +894,51 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
           );
           print('   Product ID: ${purchaseDetails.productID}');
 
+          // ✅ CRITICAL FIX: Check if we have valid receipt data FIRST
+          // Empty receipts are common in TestFlight/Sandbox and should not be verified
+          final receiptData =
+              purchaseDetails.verificationData.serverVerificationData;
+
+          if (receiptData.isEmpty) {
+            print('');
+            print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            print('⚠️ EMPTY RECEIPT DATA FOR RESTORED PURCHASE');
+            print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            print('   Product: ${purchaseDetails.productID}');
+            print('   This is expected in:');
+            print('   1. TestFlight builds with incomplete purchases');
+            print('   2. Sandbox environment edge cases');
+            print('   3. Fresh installs with no completed transactions');
+            print('');
+            print('✅ Completing purchase to acknowledge it');
+            print('❌ NOT caching token (no valid receipt to verify)');
+            print('✅ User can make a NEW purchase');
+            print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            print('');
+
+            // Complete the purchase to acknowledge it
+            if (purchaseDetails.pendingCompletePurchase) {
+              await InAppPurchase.instance.completePurchase(purchaseDetails);
+            }
+
+            // Clear any cached token
+            await _paymentRepository.clearCachedPurchaseToken();
+
+            // Reset state to allow new purchase
+            emit(
+              state.copyWith(
+                status: PaymentPlanStatus.initial,
+                isProcessing: false,
+                errorMessage: null,
+              ),
+            );
+
+            return; // Exit early - don't attempt verification
+          }
+
+          print('✅ Receipt data present (${receiptData.length} chars)');
+          print('   Proceeding with product type validation...');
+
           // 🔒 SECURITY FIX: Validate product type matches user type
           // Prevent cross-account premium leak (e.g., public user getting venue subscription)
           final productId = purchaseDetails.productID;
@@ -1125,6 +1170,14 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
           );
         }
       } else if (purchaseDetails.status == PurchaseStatus.canceled) {
+        // ✅ CRITICAL FIX: Complete canceled purchases to prevent stuck transactions
+        // Failing to complete canceled purchases can cause them to remain in the queue
+        // and be processed again on every app launch
+        if (purchaseDetails.pendingCompletePurchase) {
+          await InAppPurchase.instance.completePurchase(purchaseDetails);
+          print('✅ Completed canceled purchase to clear from queue');
+        }
+
         emit(
           state.copyWith(
             status: PaymentPlanStatus.cancelled,

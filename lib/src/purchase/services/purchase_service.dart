@@ -8,6 +8,7 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/billing_client_wrappers.dart';
 import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
+import 'package:in_app_purchase_storekit/store_kit_wrappers.dart';
 import '../utils/debug_logger.dart';
 
 class PaymentService {
@@ -461,6 +462,46 @@ class PaymentService {
       return e.toString();
     }
   }
+
+  // =====================================================
+  // HELPER: GET APP RECEIPT DATA (iOS Legacy Format)
+  // =====================================================
+
+  /// Get the app's receipt data as base64 string (legacy format for backend)
+  /// This reads the entire app receipt file from the bundle, which contains
+  /// all purchase history for this app.
+  Future<String?> _getAppReceiptData() async {
+    try {
+      if (!Platform.isIOS) return null;
+
+      // Access the app's receipt using StoreKit
+      // SKReceiptManager.retrieveReceiptData() returns base64-encoded receipt
+      final receiptData = await SKReceiptManager.retrieveReceiptData();
+
+      if (receiptData == null || receiptData.isEmpty) {
+        print('⚠️ App receipt is empty - this can happen in:');
+        print('   1. Fresh TestFlight install (no purchases yet)');
+        print('   2. Simulator (no real purchases)');
+        print('   3. Receipt needs refresh from App Store');
+        print('   4. User canceled purchase before completion');
+        return null;
+      }
+
+      print('✅ Retrieved app receipt from bundle');
+      print('   Receipt length: ${receiptData.length} characters');
+      print('   Format: Base64 encoded (legacy /verifyReceipt compatible)');
+
+      return receiptData; // Already base64 encoded
+    } catch (e, st) {
+      print('❌ Error reading app receipt: $e\n$st');
+      print('   This may indicate:');
+      print('   1. Receipt file is corrupted');
+      print('   2. App sandbox environment issue');
+      print('   3. iOS permissions problem');
+      return null;
+    }
+  }
+
   // =====================================================
   // HELPER: BUILD VERIFICATION PAYLOAD
   // =====================================================
@@ -516,40 +557,38 @@ class PaymentService {
     if (isIOS && purchase is AppStorePurchaseDetails) {
       final tx = purchase.skPaymentTransaction;
 
-      // ✅ CRITICAL: Use serverVerificationData for Apple's /verifyReceipt endpoint
-      // serverVerificationData is specifically designed for server-side verification
-      // localVerificationData is for on-device validation only
+      // ✅ CRITICAL FIX: Read app receipt from bundle (legacy base64 format)
+      // Backend requires the full app receipt file, not individual transaction data
+      // This contains all purchases and subscriptions for this app
       String receiptData = '';
       try {
         print('');
         print('🍎 iOS Receipt Data Extraction:');
-        print(
-          '   serverVerificationData length: ${ver.serverVerificationData.length}',
-        );
-        print(
-          '   localVerificationData length: ${ver.localVerificationData.length}',
-        );
 
-        // Use serverVerificationData - this contains the correct format for /verifyReceipt
-        // Works in StoreKit Testing, Sandbox, and Production
-        if (ver.serverVerificationData.isNotEmpty) {
-          receiptData = ver.serverVerificationData;
-          print('✅ Using serverVerificationData for backend verification');
-          print('   Receipt data length: ${receiptData.length} characters');
-        } else if (ver.localVerificationData.isNotEmpty) {
-          // Fallback (should not happen in normal flow)
-          receiptData = ver.localVerificationData;
-          print(
-            '⚠️ serverVerificationData empty, using localVerificationData as fallback',
-          );
+        // ✅ NEW: Get app receipt from bundle
+        final appReceipt = await _getAppReceiptData();
+
+        if (appReceipt != null && appReceipt.isNotEmpty) {
+          receiptData = appReceipt;
+          print('✅ Using app receipt from bundle');
+          print('   Receipt length: ${receiptData.length} characters');
+          print('   This is the full app receipt in base64 format');
         } else {
-          print('❌ No receipt data available');
+          // Receipt is empty - this can happen in TestFlight or fresh installs
+          print('⚠️ App receipt is empty');
+          print('   Possible reasons:');
+          print('   1. Fresh install with no completed purchases');
+          print('   2. TestFlight sandbox environment issue');
+          print('   3. Restored purchase with no valid receipt');
+          print('');
+          print('❌ Cannot verify without receipt data');
+          print('   Will return empty token - caller should handle gracefully');
         }
+
         print('');
       } catch (e, st) {
         print('❌ Error extracting App Store receipt: $e\n$st');
-        // Fallback to serverVerificationData if error occurs
-        receiptData = ver.serverVerificationData ?? '';
+        receiptData = ''; // Ensure empty on error
       }
 
       payload.addAll({
