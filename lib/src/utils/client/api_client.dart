@@ -31,6 +31,7 @@ import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:soloseaters/src/utils/urls/urls.dart';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
+import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 import '../../model/cafe_owner/auth/login/apple_login_request.dart';
 
@@ -46,7 +47,7 @@ class ApiClient {
   Dio dioDiceApp = Dio();
 
   BaseOptions _baseOptionsDiceApp = BaseOptions();
-  
+
   // Flag to prevent concurrent token refresh attempts
   bool _isRefreshing = false;
   Completer<String>? _refreshCompleter;
@@ -84,39 +85,23 @@ class ApiClient {
       },
     );
 
+    // ✅ Add pretty_dio_logger for enhanced HTTP logging
+    dioDiceApp.interceptors.add(
+      PrettyDioLogger(
+        requestHeader: true,
+        requestBody: true,
+        responseBody: true,
+        responseHeader: false,
+        error: true,
+        compact: true,
+        maxWidth: 90,
+      ),
+    );
+
     dioDiceApp.interceptors.add(
       InterceptorsWrapper(
-        onRequest: (options, handler) async {
-          print("======= API REQUEST BEGIN =======");
-          print("URL → ${options.uri}");
-          print("Method → ${options.method}");
-          print("Headers → ${options.headers}");
-
-          if (options.data is FormData) {
-            final formData = options.data as FormData;
-
-            print("----- FORM FIELDS -----");
-            for (var field in formData.fields) {
-              print("${field.key} = ${field.value}");
-            }
-
-            print("----- FORM FILES -----");
-            for (var file in formData.files) {
-              final fileData = file.value;
-              print("${file.key} -> filename: ${fileData.filename}");
-            }
-          } else {
-            print("Body → ${options.data}");
-          }
-
-          print("======= API REQUEST END =======");
-
-          return handler.next(options);
-        },
-
         onError: (dioError, handler) async {
           print("❌ API ERROR: ${dioError.message}");
-          print("Response → ${dioError.response?.data}");
           if (dioError.response?.statusCode == 401) {
             final RequestOptions options = dioError.response!.requestOptions;
 
@@ -124,7 +109,9 @@ class ApiClient {
             if (options.path != UrlsDiceApp.tokenRefresh) {
               // If already refreshing, wait for it to complete
               if (_isRefreshing && _refreshCompleter != null) {
-                print("Token refresh already in progress. Waiting for completion...");
+                print(
+                  "Token refresh already in progress. Waiting for completion...",
+                );
                 try {
                   final newToken = await _refreshCompleter!.future;
                   // Update the Authorization header and retry
@@ -144,18 +131,23 @@ class ApiClient {
 
               try {
                 // Determine the current user type (Cafe Owner or Customer)
-                final userCategory = ObjectFactory().prefs.getUserDecisionName();
+                final userCategory =
+                    ObjectFactory().prefs.getUserDecisionName();
                 final isPublicUser = userCategory == "PUBLIC_USER";
 
                 // Check if user is logged in before attempting refresh
-                final isLoggedIn = isPublicUser
-                    ? ObjectFactory().prefs.isCustomerLoggedIn() == true
-                    : ObjectFactory().prefs.isLoggedIn() == true;
+                final isLoggedIn =
+                    isPublicUser
+                        ? ObjectFactory().prefs.isCustomerLoggedIn() == true
+                        : ObjectFactory().prefs.isLoggedIn() == true;
 
                 if (!isLoggedIn) {
                   print("User is not logged in. Skipping token refresh.");
-                  if (_refreshCompleter != null && !_refreshCompleter!.isCompleted) {
-                    _refreshCompleter!.completeError(Exception("User not logged in"));
+                  if (_refreshCompleter != null &&
+                      !_refreshCompleter!.isCompleted) {
+                    _refreshCompleter!.completeError(
+                      Exception("User not logged in"),
+                    );
                   }
                   _isRefreshing = false;
                   _refreshCompleter = null;
@@ -170,10 +162,10 @@ class ApiClient {
                 if (refreshResponse.statusCode == 200 &&
                     refreshResponse.data != null) {
                   final responseData = refreshResponse.data;
-                  
+
                   // Extract token from response - the token is directly in 'token' field
                   final newAuthToken = responseData['token'] as String?;
-                  
+
                   if (newAuthToken != null && newAuthToken.isNotEmpty) {
                     // Save the new token based on user type
                     // Note: setAuthToken and setCustomerAuthToken automatically add "Bearer " prefix
@@ -181,23 +173,28 @@ class ApiClient {
                       ObjectFactory().prefs.setCustomerAuthToken(
                         token: newAuthToken,
                       );
-                      print("✅ Customer Token refreshed and updated successfully.");
+                      print(
+                        "✅ Customer Token refreshed and updated successfully.",
+                      );
                     } else {
                       ObjectFactory().prefs.setAuthToken(token: newAuthToken);
-                      print("✅ Cafe Owner Token refreshed and updated successfully.");
+                      print(
+                        "✅ Cafe Owner Token refreshed and updated successfully.",
+                      );
                     }
 
                     // Get the updated token (with Bearer prefix)
-                    final updatedToken = isPublicUser
-                        ? ObjectFactory().prefs.getCustomerAuthToken()!
-                        : ObjectFactory().prefs.getAuthToken()!;
+                    final updatedToken =
+                        isPublicUser
+                            ? ObjectFactory().prefs.getCustomerAuthToken()!
+                            : ObjectFactory().prefs.getAuthToken()!;
 
                     // Update the Authorization header for the failed request
                     options.headers["Authorization"] = updatedToken;
 
                     // Complete the refresh completer so waiting requests can proceed
                     _refreshCompleter!.complete(updatedToken);
-                    
+
                     // Retry the original request with the new token
                     print("🔄 Retrying original request with new token...");
                     try {
@@ -212,24 +209,27 @@ class ApiClient {
                       _isRefreshing = false;
                       _refreshCompleter = null;
                       _rejectPendingRequests(retryError);
-                      return handler.next(retryError is DioException
-                          ? retryError
-                          : dioError);
+                      return handler.next(
+                        retryError is DioException ? retryError : dioError,
+                      );
                     }
                   } else {
                     throw Exception(
-                        "Token refresh response missing or invalid token");
+                      "Token refresh response missing or invalid token",
+                    );
                   }
                 } else {
                   throw Exception(
-                      "Token refresh failed with status: ${refreshResponse.statusCode}");
+                    "Token refresh failed with status: ${refreshResponse.statusCode}",
+                  );
                 }
               } catch (e) {
                 // Token refresh failed - complete the completer with error
-                if (_refreshCompleter != null && !_refreshCompleter!.isCompleted) {
+                if (_refreshCompleter != null &&
+                    !_refreshCompleter!.isCompleted) {
                   _refreshCompleter!.completeError(e);
                 }
-                
+
                 // Token refresh failed - only logout if it's a real auth failure
                 print("❌ Token refresh failed: $e");
                 _isRefreshing = false;
@@ -250,32 +250,34 @@ class ApiClient {
         },
 
         onResponse: (res, handler) async {
-          print("✅ API RESPONSE: ${res.statusCode}");
-          print("Body → ${res.data}");
-
           // Check if response has status: false with Unauthorized message
           // Some APIs return 200 with error in body instead of 401
           if (res.statusCode == 200 && res.data != null) {
             final responseData = res.data;
             if (responseData is Map) {
               final status = responseData['status'];
-              final message = responseData['message']?.toString().toLowerCase() ?? '';
-              
+              final message =
+                  responseData['message']?.toString().toLowerCase() ?? '';
+
               // Check if this is an unauthorized response
-              if (status == false && 
-                  (message.contains('unauthorized') || 
-                   message.contains('unauthenticated') ||
-                   message.contains('token') && message.contains('expired'))) {
-                
+              if (status == false &&
+                  (message.contains('unauthorized') ||
+                      message.contains('unauthenticated') ||
+                      message.contains('token') &&
+                          message.contains('expired'))) {
                 final RequestOptions options = res.requestOptions;
-                
+
                 // Prevent infinite loop if the tokenRefresh API call also returns unauthorized
                 if (options.path != UrlsDiceApp.tokenRefresh) {
-                  print("⚠️ Detected unauthorized response in 200 status. Attempting token refresh...");
-                  
+                  print(
+                    "⚠️ Detected unauthorized response in 200 status. Attempting token refresh...",
+                  );
+
                   // If already refreshing, wait for it to complete
                   if (_isRefreshing && _refreshCompleter != null) {
-                    print("Token refresh already in progress. Waiting for completion...");
+                    print(
+                      "Token refresh already in progress. Waiting for completion...",
+                    );
                     try {
                       final newToken = await _refreshCompleter!.future;
                       // Update the Authorization header and retry
@@ -292,21 +294,26 @@ class ApiClient {
 
                   _isRefreshing = true;
                   _refreshCompleter = Completer<String>();
-                  
+
                   try {
                     // Determine the current user type
-                    final userCategory = ObjectFactory().prefs.getUserDecisionName();
+                    final userCategory =
+                        ObjectFactory().prefs.getUserDecisionName();
                     final isPublicUser = userCategory == "PUBLIC_USER";
 
                     // Check if user is logged in before attempting refresh
-                    final isLoggedIn = isPublicUser
-                        ? ObjectFactory().prefs.isCustomerLoggedIn() == true
-                        : ObjectFactory().prefs.isLoggedIn() == true;
+                    final isLoggedIn =
+                        isPublicUser
+                            ? ObjectFactory().prefs.isCustomerLoggedIn() == true
+                            : ObjectFactory().prefs.isLoggedIn() == true;
 
                     if (!isLoggedIn) {
                       print("User is not logged in. Skipping token refresh.");
-                      if (_refreshCompleter != null && !_refreshCompleter!.isCompleted) {
-                        _refreshCompleter!.completeError(Exception("User not logged in"));
+                      if (_refreshCompleter != null &&
+                          !_refreshCompleter!.isCompleted) {
+                        _refreshCompleter!.completeError(
+                          Exception("User not logged in"),
+                        );
                       }
                       _isRefreshing = false;
                       _refreshCompleter = null;
@@ -320,26 +327,33 @@ class ApiClient {
                     if (refreshResponse.statusCode == 200 &&
                         refreshResponse.data != null) {
                       final refreshData = refreshResponse.data;
-                      
+
                       // Extract token from response
                       final newAuthToken = refreshData['token'] as String?;
-                      
+
                       if (newAuthToken != null && newAuthToken.isNotEmpty) {
                         // Save the new token based on user type
                         if (isPublicUser) {
                           ObjectFactory().prefs.setCustomerAuthToken(
                             token: newAuthToken,
                           );
-                          print("✅ Customer Token refreshed and updated successfully.");
+                          print(
+                            "✅ Customer Token refreshed and updated successfully.",
+                          );
                         } else {
-                          ObjectFactory().prefs.setAuthToken(token: newAuthToken);
-                          print("✅ Cafe Owner Token refreshed and updated successfully.");
+                          ObjectFactory().prefs.setAuthToken(
+                            token: newAuthToken,
+                          );
+                          print(
+                            "✅ Cafe Owner Token refreshed and updated successfully.",
+                          );
                         }
 
                         // Get the updated token (with Bearer prefix)
-                        final updatedToken = isPublicUser
-                            ? ObjectFactory().prefs.getCustomerAuthToken()!
-                            : ObjectFactory().prefs.getAuthToken()!;
+                        final updatedToken =
+                            isPublicUser
+                                ? ObjectFactory().prefs.getCustomerAuthToken()!
+                                : ObjectFactory().prefs.getAuthToken()!;
 
                         // Complete the refresh completer so waiting requests can proceed
                         _refreshCompleter!.complete(updatedToken);
@@ -347,36 +361,43 @@ class ApiClient {
                         // Update the Authorization header and retry
                         options.headers["Authorization"] = updatedToken;
                         print("🔄 Retrying original request with new token...");
-                        
+
                         try {
                           final retryResponse = await dioDiceApp.fetch(options);
                           _isRefreshing = false;
                           _refreshCompleter = null;
                           return handler.resolve(retryResponse);
                         } catch (retryError) {
-                          print("⚠️ Retry failed after token refresh: $retryError");
+                          print(
+                            "⚠️ Retry failed after token refresh: $retryError",
+                          );
                           _isRefreshing = false;
                           _refreshCompleter = null;
                           // Return original response if retry fails
                           return handler.next(res);
                         }
                       } else {
-                        throw Exception("Token refresh response missing or invalid token");
+                        throw Exception(
+                          "Token refresh response missing or invalid token",
+                        );
                       }
                     } else {
-                      throw Exception("Token refresh failed with status: ${refreshResponse.statusCode}");
+                      throw Exception(
+                        "Token refresh failed with status: ${refreshResponse.statusCode}",
+                      );
                     }
                   } catch (e) {
                     // Token refresh failed
                     AuthSessionManager.markRefreshFailure();
-                    if (_refreshCompleter != null && !_refreshCompleter!.isCompleted) {
+                    if (_refreshCompleter != null &&
+                        !_refreshCompleter!.isCompleted) {
                       _refreshCompleter!.completeError(e);
                     }
-                    
+
                     print("❌ Token refresh failed: $e");
                     _isRefreshing = false;
                     _refreshCompleter = null;
-                    
+
                     // Return the original response so UI can handle logout
                     return handler.next(res);
                   }
@@ -396,20 +417,18 @@ class ApiClient {
     final isPublicUser = userCategory == "PUBLIC_USER";
     final venueToken = ObjectFactory().prefs.getAuthToken();
     final publicToken = ObjectFactory().prefs.getCustomerAuthToken();
-    
+
     // Get the current token (already includes "Bearer " prefix from prefs)
     final currentToken = isPublicUser ? publicToken : venueToken;
-    
+
     if (currentToken == null || currentToken.isEmpty) {
       throw Exception("No token available for refresh");
     }
-    
+
     return dioDiceApp.post(
       UrlsDiceApp.tokenRefresh,
       data: currentToken, // Send the full "Bearer <token>" string
-      options: Options(
-        headers: {"Authorization": currentToken},
-      ),
+      options: Options(headers: {"Authorization": currentToken}),
     );
   }
 
@@ -417,19 +436,25 @@ class ApiClient {
   void _resolvePendingRequests(String newToken) {
     for (var pendingRequest in _pendingRequests) {
       pendingRequest.options.headers["Authorization"] = newToken;
-      dioDiceApp.fetch(pendingRequest.options).then(
-        (response) {
-          pendingRequest.handler.resolve(response);
-          pendingRequest.completer.complete();
-        },
-        onError: (error) {
-          pendingRequest.handler.next(error is DioException ? error : DioException(
-            requestOptions: pendingRequest.options,
-            error: error,
-          ));
-          pendingRequest.completer.completeError(error);
-        },
-      );
+      dioDiceApp
+          .fetch(pendingRequest.options)
+          .then(
+            (response) {
+              pendingRequest.handler.resolve(response);
+              pendingRequest.completer.complete();
+            },
+            onError: (error) {
+              pendingRequest.handler.next(
+                error is DioException
+                    ? error
+                    : DioException(
+                      requestOptions: pendingRequest.options,
+                      error: error,
+                    ),
+              );
+              pendingRequest.completer.completeError(error);
+            },
+          );
     }
     _pendingRequests.clear();
   }
@@ -437,12 +462,14 @@ class ApiClient {
   // Reject all pending requests
   void _rejectPendingRequests(dynamic error) {
     for (var pendingRequest in _pendingRequests) {
-      pendingRequest.handler.next(error is DioException
-          ? error
-          : DioException(
+      pendingRequest.handler.next(
+        error is DioException
+            ? error
+            : DioException(
               requestOptions: pendingRequest.options,
               error: error,
-            ));
+            ),
+      );
       pendingRequest.completer.completeError(error);
     }
     _pendingRequests.clear();
@@ -1099,46 +1126,38 @@ class ApiClient {
   /// Verify purchase with backend
   Future<Response> verifyPurchase(VerifyPurchaseRequest request) {
     print('🔐 API: Verifying purchase - ${request.productId}');
-    
+
     final userCategory = ObjectFactory().prefs.getUserDecisionName();
     final isPublicUser = userCategory == "PUBLIC_USER";
-    final token = isPublicUser
-        ? ObjectFactory().prefs.getCustomerAuthToken()
-        : ObjectFactory().prefs.getAuthToken();
+    final token =
+        isPublicUser
+            ? ObjectFactory().prefs.getCustomerAuthToken()
+            : ObjectFactory().prefs.getAuthToken();
 
     return dioDiceApp.post(
       UrlsDiceApp.verifyPurchase,
       data: request.toJson(),
-      options: Options(
-        headers: {
-          "Authorization": token,
-        },
-      ),
+      options: Options(headers: {"Authorization": token}),
     );
   }
 
-    /// Fetch subscription status from backend
+  /// Fetch subscription status from backend
   Future<Response> getSubscriptionStatus(SubscriptionStatusRequest request) {
     print('🔄 API: Fetching subscription status');
 
     final userCategory = ObjectFactory().prefs.getUserDecisionName();
     final isPublicUser = userCategory == "PUBLIC_USER";
-    final token = isPublicUser
-        ? ObjectFactory().prefs.getCustomerAuthToken()
-        : ObjectFactory().prefs.getAuthToken();
+    final token =
+        isPublicUser
+            ? ObjectFactory().prefs.getCustomerAuthToken()
+            : ObjectFactory().prefs.getAuthToken();
 
     return dioDiceApp.post(
       UrlsDiceApp.subscriptionStatus,
       data: request.toJson(),
-      options: Options(
-        headers: {
-          "Authorization": token,
-        },
-      ),
+      options: Options(headers: {"Authorization": token}),
     );
   }
-
-
 }
 
 // Helper class for pending requests during token refresh
