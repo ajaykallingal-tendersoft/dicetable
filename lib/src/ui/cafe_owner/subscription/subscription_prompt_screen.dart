@@ -983,6 +983,41 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                 }
               }
 
+              // ✅ FIX: Handle 400 Bad Request errors (malformed receipt, etc.)
+              if (paymentState.status == PaymentPlanStatus.purchaseFailed) {
+                final errorMsg = paymentState.errorMessage ?? '';
+                if (errorMsg.contains('malformed') ||
+                    errorMsg.contains('Bad request') ||
+                    errorMsg.contains('400')) {
+                  EasyLoading.dismiss();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        '⚠️ Unable to verify your subscription. Our team has been notified. Please try again later.',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      backgroundColor: AppColors.appRedColor,
+                      behavior: SnackBarBehavior.floating,
+                      duration: const Duration(seconds: 5),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      action: SnackBarAction(
+                        label: 'Contact Support',
+                        textColor: Colors.white,
+                        onPressed: () {
+                          // User can add support contact logic here
+                        },
+                      ),
+                    ),
+                  );
+                  return;
+                }
+              }
+
               // ✅ Show restore success
               if (paymentState.status == PaymentPlanStatus.purchaseRestored) {
                 EasyLoading.dismiss();

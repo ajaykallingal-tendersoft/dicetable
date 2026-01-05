@@ -7,13 +7,20 @@ import 'package:path_provider/path_provider.dart';
 class PurchaseDebugLogger {
   /// Logs iOS payload to a file in the app's documents directory
   /// This is useful when console logs are not accessible during testing
+  ///
+  /// Set [forceLog] to true for TestFlight testing even in release builds
+  /// This allows you to inspect the payload via Xcode's Download Container
   static Future<String?> logPayloadToFile(
     Map<String, dynamic> payload, {
     String filename = 'ios_verification_payload.txt',
+    bool forceLog = false,
   }) async {
-    if (!kDebugMode) {
-      return null; // Only log in debug mode
+    // ✅ Allow logging in TestFlight with forceLog flag
+    if (!kDebugMode && !forceLog) {
+      return null; // Only log in debug mode or when force enabled
     }
+
+    print('🔍 [PurchaseDebugLogger] Starting payload file logging...');
 
     try {
       final directory = await getApplicationDocumentsDirectory();

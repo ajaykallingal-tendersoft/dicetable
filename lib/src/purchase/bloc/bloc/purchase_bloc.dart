@@ -14,11 +14,11 @@ import 'package:soloseaters/src/purchase/services/purchase_service.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:soloseaters/src/resources/api_providers/customer/profile_data_provider.dart';
 import 'package:soloseaters/src/model/state_model.dart';
-import 'package:soloseaters/src/utils/extension/state_model_extension.dart';
 
 class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
-  final PaymentService paymentService;
+  final PaymentService paymentService; // Public for compatibility
   final PaymentRepository _paymentRepository;
+  final PaymentService _paymentService; // Private for internal use
   StreamSubscription<List<PurchaseDetails>>? _purchaseSubscription;
   //NEW: Track current user to detect switches
   String? _currentUserId;
@@ -29,6 +29,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
     required PaymentRepository paymentRepository,
   }) : paymentService = paymentService,
        _paymentRepository = paymentRepository,
+       _paymentService = paymentService, // Reuse the same instance
        super(const PaymentPlanState()) {
     on<InitializePaymentEvent>(_onInitialize);
     on<LoadProductsEvent>(_onLoadProducts);
@@ -1001,8 +1002,29 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
 
             // Temporarily cache just for the status check
             final platform = Platform.isIOS ? 'ios' : 'android';
-            final tempToken =
-                purchaseDetails.verificationData.serverVerificationData;
+
+            // ✅ CRITICAL FIX: For iOS, use app receipt instead of JWT token
+            String tempToken;
+            if (Platform.isIOS) {
+              //  Extract base64 app receipt for iOS (backend requires legacy format)
+              final receiptPayload = await _paymentService
+                  .extractVerificationPayload(purchaseDetails);
+              tempToken = receiptPayload['receiptData'] as String? ?? '';
+
+              if (tempToken.isEmpty) {
+                print('❌ Failed to extract app receipt for status check');
+                tempToken =
+                    purchaseDetails.verificationData.serverVerificationData;
+                print('⚠️ Falling back to serverVerificationData (may fail)');
+              } else {
+                print('✅ Using base64 app receipt for status check');
+                print('   Receipt length: ${tempToken.length} characters');
+              }
+            } else {
+              // For Android, use the purchase token as before
+              tempToken =
+                  purchaseDetails.verificationData.serverVerificationData;
+            }
 
             // Make a temporary cache for the API call
             await _paymentRepository.cacheLatestPurchaseDetails(
@@ -1033,7 +1055,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
 
               // ✅ NOW cache the token since subscription is active
               await _paymentRepository.cacheLatestPurchaseDetails(
-                purchaseToken: tempToken,
+                purchaseToken: tempToken, // Use the same receipt we validated
                 platform: platform,
                 subscriptionId: purchaseDetails.productID,
               );

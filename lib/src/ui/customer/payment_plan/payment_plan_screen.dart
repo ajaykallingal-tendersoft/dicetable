@@ -163,6 +163,34 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
               }
             }
 
+            // ✅ FIX: Handle 400 Bad Request errors (e.g., malformed receipt)
+            if (state.status == PaymentPlanStatus.purchaseFailed) {
+              final errorMsg = state.errorMessage ?? '';
+              if (errorMsg.contains('malformed') ||
+                  errorMsg.contains('Bad request') ||
+                  errorMsg.contains('400')) {
+                EasyLoading.dismiss();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      '⚠️ Unable to verify your subscription. Please try again or contact support.',
+                      style: GoogleFonts.montserrat(
+                        color: AppColors.primaryWhiteColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    backgroundColor: AppColors.appRedColor,
+                    behavior: SnackBarBehavior.floating,
+                    duration: const Duration(seconds: 5),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                );
+                return;
+              }
+            }
+
             if (state.status == PaymentPlanStatus.needsRestore) {
               EasyLoading.show(
                 status: 'Restoring purchases...',

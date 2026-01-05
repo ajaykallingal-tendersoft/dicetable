@@ -642,15 +642,27 @@ class PaymentService {
       print('═══════════════════════════════════════════════════════════');
       print('');
 
-      // ✅ Also save to file for testing environments where console is not accessible
-      if (kDebugMode) {
-        final filePath = await PurchaseDebugLogger.logPayloadToFile(payload);
-        if (filePath != null) {
-          print('📁 Payload saved to: $filePath');
-          print(
-            '   You can retrieve this file from the device to inspect the payload',
-          );
-        }
+      // ✅ CRITICAL: Save to file for TestFlight testing (force enabled for iOS)
+      // This allows inspecting the receipt payload via Xcode's Download Container
+      // even when console logs are not accessible in TestFlight builds
+      print('📝 Logging payload to file for TestFlight inspection...');
+      final filePath = await PurchaseDebugLogger.logPayloadToFile(
+        payload,
+        forceLog: Platform.isIOS, // ✅ Force enable for iOS TestFlight debugging
+      );
+      if (filePath != null) {
+        print('📁 Payload saved to: $filePath');
+        print('   To inspect in TestFlight:');
+        print('   1. Connect device to Mac');
+        print('   2. Xcode → Window → Devices and Simulators');
+        print('   3. Select device → Installed Apps → Your App');
+        print('   4. Click gear icon → Download Container');
+        print('   5. Right-click .xcappdata → Show Package Contents');
+        print(
+          '   6. Navigate to AppData/Documents/ios_verification_payload.txt',
+        );
+      } else {
+        print('⚠️ Failed to save payload to file');
       }
 
       return payload;
