@@ -552,10 +552,23 @@ class PaymentService {
   Future<Map<String, dynamic>> extractVerificationPayload(
     PurchaseDetails purchase,
   ) async {
+    print('');
+    print('🚨🚨🚨 extractVerificationPayload() CALLED 🚨🚨🚨');
+    print('   Purchase ID: ${purchase.productID}');
+    print('   Purchase Status: ${purchase.status}');
+    print('');
+
     final ver = purchase.verificationData;
     // keep using defaultTargetPlatform as your file did originally
     final bool isIOS = defaultTargetPlatform == TargetPlatform.iOS;
     final bool isAndroid = defaultTargetPlatform == TargetPlatform.android;
+
+    print('🔍 Platform Detection:');
+    print('   defaultTargetPlatform: $defaultTargetPlatform');
+    print('   isIOS: $isIOS');
+    print('   isAndroid: $isAndroid');
+    print('   Platform.isIOS: ${Platform.isIOS}');
+    print('');
 
     // base payload (always include platform)
     final String resolvedPlatform =
