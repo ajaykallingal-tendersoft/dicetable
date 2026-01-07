@@ -108,10 +108,16 @@ class PaymentRepository {
       final verificationPayload = Map<String, dynamic>.from(payload);
       verificationPayload['platform'] = platform;
 
+      // ✅ CRITICAL FIX: For iOS, prioritize receipt_data (base64) over purchase_token (JWT)
+      // The backend expects base64 app receipt for iOS, not JWT transaction signatures
       final purchaseToken =
-          verificationPayload['purchase_token'] ??
-          verificationPayload['receipt_data'] ??
-          '';
+          platform == 'ios'
+              ? (verificationPayload['receipt_data'] ??
+                  verificationPayload['purchase_token'] ??
+                  '')
+              : (verificationPayload['purchase_token'] ??
+                  verificationPayload['receipt_data'] ??
+                  '');
 
       final productId = verificationPayload['product_id'] as String?;
 

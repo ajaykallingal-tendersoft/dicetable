@@ -570,12 +570,7 @@ class PaymentService {
       'order_id': purchase.purchaseID ?? '0',
       'transaction_date': purchase.transactionDate,
       'status': purchase.status.toString(),
-      'platform': resolvedPlatform, //
-      'verification_data': {
-        'local_verification_data': ver.localVerificationData,
-        'server_verification_data': ver.serverVerificationData,
-        'source': ver.source,
-      },
+      'platform': resolvedPlatform,
     };
 
     // ---------------- ANDROID ----------------
@@ -586,6 +581,12 @@ class PaymentService {
         // platform already included above
         'purchase_token': ver.serverVerificationData ?? '',
         'original_json': ver.localVerificationData ?? '',
+        // Android includes verification_data (iOS does not)
+        'verification_data': {
+          'local_verification_data': ver.localVerificationData,
+          'server_verification_data': ver.serverVerificationData,
+          'source': ver.source,
+        },
         // keep optional additional Android fields to help backend if it needs them
         'package_name': billing?.packageName,
         'order_id': purchase.purchaseID ?? billing?.orderId,
@@ -644,6 +645,10 @@ class PaymentService {
         'original_transaction_id':
             tx?.originalTransaction?.transactionIdentifier,
       });
+
+      // ✅ NOTE: We do NOT include verification_data for iOS
+      // The backend expects base64 app receipt only, not JWT tokens
+      // Including serverVerificationData (JWT) causes 400 "malformed receipt" errors
 
       // ✅ DEBUG: Print entire iOS verification payload
       print('');
