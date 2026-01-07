@@ -625,7 +625,7 @@ class PaymentService {
       print('⚠️ ENTERING iOS SECTION (removed type check)');
       final tx =
           purchase is AppStorePurchaseDetails
-              ? (purchase as AppStorePurchaseDetails).skPaymentTransaction
+              ? purchase.skPaymentTransaction
               : null;
 
       // ✅ CRITICAL FIX: Read app receipt from bundle (legacy base64 format)

@@ -1141,8 +1141,32 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
               continue; // ✅ Skip verification and allow new purchase
             }
           } catch (e) {
-            print('⚠️ Subscription status check failed: $e');
-            print('   Falling back to verification');
+            print('❌ Subscription status check failed: $e');
+            print('   Error type: ${e.runtimeType}');
+
+            // ✅ CRITICAL: Clear the temporarily cached token on error
+            await _paymentRepository.clearCachedPurchaseToken();
+            print('🗑️ Cleared temporarily cached token due to error');
+
+            // ✅ Emit error state to dismiss loading and show error to user
+            emit(
+              state.copyWith(
+                status: PaymentPlanStatus.purchaseFailed,
+                errorMessage: 'Failed to verify subscription: ${e.toString()}',
+                isProcessing: false,
+                pendingPurchase: null,
+                pendingPayload: null,
+              ),
+            );
+
+            // Mark as processed to prevent retry loops
+            _processedPurchases.add(purchaseId);
+
+            print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            print('❌ SUBSCRIPTION STATUS CHECK FAILED');
+            print('   User will see error message and can retry');
+            print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            continue; // Skip to next purchase
           }
         }
 
