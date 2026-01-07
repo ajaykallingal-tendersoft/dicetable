@@ -607,26 +607,44 @@ class PaymentService {
       String receiptData = '';
       try {
         print('');
-        print('🍎 iOS Receipt Data Extraction:');
+        print('═══════════════════════════════════════');
+        print('🍎 iOS Receipt Extraction - STARTING');
+        print('═══════════════════════════════════════');
+        print('📍 Platform check: iOS = $isIOS');
+        print('📍 Purchase details type: ${purchase.runtimeType}');
+        print('');
 
         // ✅ NEW: Get app receipt from bundle
+        print('🔄 Calling _getAppReceiptData()...');
         final appReceipt = await _getAppReceiptData();
+        print(
+          '✅ _getAppReceiptData() returned: ${appReceipt != null ? "${appReceipt.length} chars" : "null"}',
+        );
 
         if (appReceipt != null && appReceipt.isNotEmpty) {
           receiptData = appReceipt;
-          print('✅ Using app receipt from bundle');
-          print('   Receipt length: ${receiptData.length} characters');
-          print('   This is the full app receipt in base64 format');
-        } else {
-          // Receipt is empty - this can happen in TestFlight or fresh installs
-          print('⚠️ App receipt is empty');
-          print('   Possible reasons:');
-          print('   1. Fresh install with no completed purchases');
-          print('   2. TestFlight sandbox environment issue');
-          print('   3. Restored purchase with no valid receipt');
           print('');
-          print('❌ Cannot verify without receipt data');
-          print('   Will return empty token - caller should handle gracefully');
+          print('✅✅✅ SUCCESS: Using base64 app receipt');
+          print('   Receipt length: ${receiptData.length} characters');
+          print(
+            '   Format: Base64 encoded app receipt (legacy /verifyReceipt)',
+          );
+          print('   This will be sent to backend for verification');
+          print('');
+        } else {
+          // Receipt is empty - this is a CRITICAL ERROR
+          print('');
+          print('❌❌❌ CRITICAL: App receipt is EMPTY!');
+          print('   Possible reasons:');
+          print('   1. Receipt file missing from app bundle');
+          print('   2. Receipt refresh failed');
+          print('   3. No purchases exist for this Apple ID');
+          print('   4. Sandbox/StoreKit configuration issue');
+          print('');
+          print('⚠️ VERIFICATION WILL FAIL WITHOUT RECEIPT!');
+          print('   Payload will have empty receipt_data');
+          print('   Backend will reject with "malformed receipt" error');
+          print('');
         }
 
         print('');
