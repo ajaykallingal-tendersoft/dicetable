@@ -474,22 +474,65 @@ class PaymentService {
     try {
       if (!Platform.isIOS) return null;
 
+      print('🍎 Attempting to retrieve app receipt...');
+
       // Access the app's receipt using StoreKit
       // SKReceiptManager.retrieveReceiptData() returns base64-encoded receipt
-      final receiptData = await SKReceiptManager.retrieveReceiptData();
+      var receiptData = await SKReceiptManager.retrieveReceiptData();
 
+      // ✅ CRITICAL FIX: If receipt is empty, refresh it from Apple
+      // This commonly happens on fresh installs or after restore purchases
       if (receiptData == null || receiptData.isEmpty) {
-        print('⚠️ App receipt is empty - this can happen in:');
-        print('   1. Fresh TestFlight install (no purchases yet)');
-        print('   2. Simulator (no real purchases)');
-        print('   3. Receipt needs refresh from App Store');
-        print('   4. User canceled purchase before completion');
+        print(
+          '⚠️ App receipt is empty - attempting to refresh from App Store...',
+        );
+        print('   Common causes:');
+        print('   1. Fresh install with restored purchases');
+        print('   2. Receipt not yet synced from App Store');
+        print('   3. First purchase after app install');
+
+        try {
+          // Request receipt refresh from Apple
+          // Using SKRequestMaker to refresh the receipt
+          print('🔄 Requesting receipt refresh...');
+          final requestMaker = SKRequestMaker();
+          await requestMaker.startRefreshReceiptRequest();
+
+          // Wait a moment for receipt to be written to disk
+          await Future.delayed(const Duration(seconds: 2));
+
+          // Try to retrieve again
+          receiptData = await SKReceiptManager.retrieveReceiptData();
+
+          if (receiptData != null && receiptData.isNotEmpty) {
+            print('✅ Receipt successfully refreshed!');
+            print('   New receipt length: ${receiptData.length} characters');
+          } else {
+            print('❌ Receipt still empty after refresh');
+            print('   This likely means:');
+            print('   1. No valid purchases exist for this Apple ID');
+            print('   2. App Store connection issue');
+            print('   3. Sandbox environment not configured');
+            return null;
+          }
+        } catch (refreshError, st) {
+          print('❌ Failed to refresh receipt: $refreshError\n$st');
+          print('   Proceeding without receipt data');
+          return null;
+        }
+      } else {
+        print('✅ Retrieved app receipt from bundle (no refresh needed)');
+        print('   Receipt length: ${receiptData.length} characters');
+      }
+
+      if (receiptData.isEmpty) {
+        print('❌ Final receipt data is empty');
         return null;
       }
 
-      print('✅ Retrieved app receipt from bundle');
-      print('   Receipt length: ${receiptData.length} characters');
+      print('✅ App receipt ready for verification');
       print('   Format: Base64 encoded (legacy /verifyReceipt compatible)');
+      print('   Length: ${receiptData.length} characters');
 
       return receiptData; // Already base64 encoded
     } catch (e, st) {

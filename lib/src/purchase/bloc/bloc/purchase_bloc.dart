@@ -1159,6 +1159,59 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
           purchaseDetails,
         );
 
+        // ✅ CRITICAL CHECK: Ensure we have valid receipt data for iOS
+        if (defaultTargetPlatform == TargetPlatform.iOS) {
+          final hasReceiptData =
+              payload['receipt_data'] != null &&
+              payload['receipt_data'].toString().isNotEmpty;
+
+          if (!hasReceiptData) {
+            print('');
+            print('❌ VERIFICATION BLOCKED: No valid receipt data');
+            print('   Common causes:');
+            print('   1. Fresh install with restored purchase');
+            print('   2. Receipt refresh failed');
+            print('   3. Sandbox environment issue');
+            print('');
+            print('✅ SOLUTION: User should make a NEW purchase');
+            print('   Restored purchases without receipts cannot be verified');
+            print('');
+
+            // Complete the purchase to remove it from the queue
+            if (purchaseDetails.pendingCompletePurchase) {
+              await InAppPurchase.instance.completePurchase(purchaseDetails);
+              print('✅ Completed unverifiable purchase to clear queue');
+            }
+
+            // Remove from processed set so user can try again
+            _processedPurchases.remove(purchaseId);
+
+            // Emit error state to dismiss loader and allow user to retry
+            emit(
+              state.copyWith(
+                status: PaymentPlanStatus.purchaseFailed,
+                errorMessage:
+                    'Unable to verify purchase. Please try subscribing again.',
+                isProcessing: false,
+                pendingPurchase: null,
+                pendingPayload: null,
+              ),
+            );
+
+            print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            print('✅ USER CAN NOW MAKE A FRESH PURCHASE');
+            print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            print('');
+
+            continue; // Skip verification for this purchase
+          } else {
+            print('✅ Receipt data validated - proceeding with verification');
+            print(
+              '   Receipt length: ${payload['receipt_data'].toString().length} characters',
+            );
+          }
+        }
+
         emit(
           state.copyWith(
             pendingPurchase: purchaseDetails,
