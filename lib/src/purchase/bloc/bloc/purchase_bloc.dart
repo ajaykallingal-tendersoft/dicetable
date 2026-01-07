@@ -1009,7 +1009,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
               //  Extract base64 app receipt for iOS (backend requires legacy format)
               final receiptPayload = await _paymentService
                   .extractVerificationPayload(purchaseDetails);
-              tempToken = receiptPayload['receiptData'] as String? ?? '';
+              tempToken = receiptPayload['receipt_data'] as String? ?? '';
 
               if (tempToken.isEmpty) {
                 print('❌ Failed to extract app receipt for status check');
