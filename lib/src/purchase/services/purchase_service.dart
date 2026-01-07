@@ -611,8 +611,22 @@ class PaymentService {
     }
 
     // ---------------- iOS ----------------
-    if (isIOS && purchase is AppStorePurchaseDetails) {
-      final tx = purchase.skPaymentTransaction;
+    print('🔍 Type Check for iOS Section:');
+    print('   purchase.runtimeType: ${purchase.runtimeType}');
+    print(
+      '   purchase is AppStorePurchaseDetails: ${purchase is AppStorePurchaseDetails}',
+    );
+    print(
+      '   Will enter iOS section: ${isIOS && purchase is AppStorePurchaseDetails}',
+    );
+    print('');
+
+    if (isIOS) {
+      print('⚠️ ENTERING iOS SECTION (removed type check)');
+      final tx =
+          purchase is AppStorePurchaseDetails
+              ? (purchase as AppStorePurchaseDetails).skPaymentTransaction
+              : null;
 
       // ✅ CRITICAL FIX: Read app receipt from bundle (legacy base64 format)
       // Backend requires the full app receipt file, not individual transaction data
