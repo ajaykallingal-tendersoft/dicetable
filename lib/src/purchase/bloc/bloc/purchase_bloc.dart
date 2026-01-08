@@ -165,11 +165,6 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
     try {
       emit(state.copyWith(status: PaymentPlanStatus.loading));
 
-      // ✅ CRITICAL: Always clear processed purchases on init to allow restored purchases
-      // This is essential for logout/login cycles where purchases need re-verification
-      _processedPurchases.clear();
-      print('🔄 Cleared processed purchases set on initialization');
-
       // ✅ Detect user change and reset if needed
       final prefs = ObjectFactory().prefs;
       final newUserId =
@@ -185,8 +180,6 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         // Cancel old subscription
         await _purchaseSubscription?.cancel();
         _purchaseSubscription = null;
-        // ✅ CRITICAL: Clear processed purchases to allow restoration
-        _processedPurchases.clear();
         // Reset to initial state before proceeding
         emit(const PaymentPlanState());
       }
@@ -204,6 +197,12 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         );
         return;
       }
+
+      // ✅ CRITICAL FIX: Clear processed purchases RIGHT BEFORE subscribing to stream
+      // This ensures all restored purchases from the stream are processed fresh
+      // Fixes logout→login premium loss by allowing restored purchases to be re-verified
+      _processedPurchases.clear();
+      print('🔄 Cleared processed purchases before stream subscription');
 
       _purchaseSubscription = paymentService.purchaseStream.listen(
         (purchaseDetailsList) {
@@ -274,6 +273,11 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
   ) async {
     try {
       print('🔍 Checking for pending purchases...');
+
+      // ✅ CRITICAL FIX: Clear processed purchases to allow all pending purchases to be re-processed
+      // This ensures restored purchases are verified after login
+      _processedPurchases.clear();
+      print('🔄 Cleared processed purchases for pending check');
 
       // Query past purchases to find any that weren't completed
       await InAppPurchase.instance.restorePurchases();

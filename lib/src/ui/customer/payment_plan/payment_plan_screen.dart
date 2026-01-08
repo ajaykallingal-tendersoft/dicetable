@@ -83,6 +83,8 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
         ),
         body: BlocConsumer<PaymentPlanBloc, PaymentPlanState>(
           listener: (context, state) {
+            // ✅ CRITICAL: Use else-if chain to ensure only ONE handler executes per state
+
             // Reset success dialog flag when a new purchase starts
             if (state.status == PaymentPlanStatus.purchasing) {
               _successDialogShown = false;
@@ -91,26 +93,23 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                 maskType: EasyLoadingMaskType.black,
               );
             }
-
             // ✅ Show loading during verification
-            if (state.status == PaymentPlanStatus.verifying) {
+            else if (state.status == PaymentPlanStatus.verifying) {
               EasyLoading.show(
                 status: 'Verifying purchase...',
                 maskType: EasyLoadingMaskType.black,
               );
             }
-
-            // ✅ Show loading when restore starts (when isProcessing is true but status is still loading)
-            if (state.status == PaymentPlanStatus.loading &&
+            // ✅ Show loading when restore starts
+            else if (state.status == PaymentPlanStatus.loading &&
                 state.isProcessing) {
               EasyLoading.show(
                 status: 'Restoring purchases...',
                 maskType: EasyLoadingMaskType.black,
               );
             }
-
             // Handle verification states
-            if (state.status == PaymentPlanStatus.verificationFailed) {
+            else if (state.status == PaymentPlanStatus.verificationFailed) {
               EasyLoading.dismiss();
               final attempts = state.verificationAttempts ?? 0;
               if (attempts == 0) {
@@ -153,14 +152,13 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                         actions: [
                           TextButton(
                             onPressed: () {
-                              Navigator.pop(context);
+                              Navigator.of(context).pop();
+                              context.pop(); // Return to previous screen
                             },
-                            style: TextButton.styleFrom(
-                              foregroundColor: AppColors.primary,
-                            ),
                             child: Text(
-                              'Close',
+                              'Got it',
                               style: GoogleFonts.montserrat(
+                                color: AppColors.primary,
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -169,37 +167,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                       ),
                 );
               }
-            }
-
-            // ✅ FIX: Handle 400 Bad Request errors (e.g., malformed receipt)
-            if (state.status == PaymentPlanStatus.purchaseFailed) {
-              final errorMsg = state.errorMessage ?? '';
-              if (errorMsg.contains('malformed') ||
-                  errorMsg.contains('Bad request') ||
-                  errorMsg.contains('400')) {
-                EasyLoading.dismiss();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      '⚠️ Unable to verify your subscription. Please try again or contact support.',
-                      style: GoogleFonts.montserrat(
-                        color: AppColors.primaryWhiteColor,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    backgroundColor: AppColors.appRedColor,
-                    behavior: SnackBarBehavior.floating,
-                    duration: const Duration(seconds: 5),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                );
-                return;
-              }
-            }
-
-            if (state.status == PaymentPlanStatus.needsRestore) {
+            } else if (state.status == PaymentPlanStatus.needsRestore) {
               EasyLoading.show(
                 status: 'Restoring purchases...',
                 maskType: EasyLoadingMaskType.black,
@@ -218,9 +186,8 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                 ),
               );
             }
-
             // ✅ FIX: Only show success dialog once using flag
-            if (state.status == PaymentPlanStatus.purchaseSuccess &&
+            else if (state.status == PaymentPlanStatus.purchaseSuccess &&
                 !_successDialogShown) {
               EasyLoading.dismiss();
               _successDialogShown = true; // Set flag to prevent repeated shows
@@ -244,7 +211,10 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                   errorMsg.contains('ITEM_ALREADY_OWNED') ||
                   errorMsg.contains('already subscribed') ||
                   errorMsg.contains('Restoring') ||
-                  errorMsg.contains('Loading subscription plans');
+                  errorMsg.contains('Loading subscription plans') ||
+                  errorMsg.contains('malformed') || // Added malformed here
+                  errorMsg.contains('Bad request') || // Added Bad request here
+                  errorMsg.contains('400'); // Added 400 here
 
               if (!shouldSkipSnackbar) {
                 _showErrorSnackBar(context, errorMsg);
