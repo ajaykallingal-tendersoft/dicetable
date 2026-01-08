@@ -1033,14 +1033,38 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
               tempToken = receiptPayload['receipt_data'] as String? ?? '';
 
               if (tempToken.isEmpty) {
-                print('❌ Failed to extract app receipt for status check');
-                tempToken =
-                    purchaseDetails.verificationData.serverVerificationData;
-                print('⚠️ Falling back to serverVerificationData (may fail)');
-              } else {
-                print('✅ Using base64 app receipt for status check');
-                print('   Receipt length: ${tempToken.length} characters');
+                print('❌ CRITICAL: Failed to extract app receipt');
+                print(
+                  '   Backend requires legacy receipt format, not JWS token',
+                );
+                print(
+                  '   This purchase cannot be verified without receipt file',
+                );
+                print('');
+                print('🔴 ABORTING VERIFICATION - Receipt Not Available');
+
+                // Complete the purchase to acknowledge it
+                if (purchaseDetails.pendingCompletePurchase) {
+                  await InAppPurchase.instance.completePurchase(
+                    purchaseDetails,
+                  );
+                  print('✅ Purchase completed without verification');
+                }
+
+                // Show error to user
+                emit(
+                  state.copyWith(
+                    status: PaymentPlanStatus.purchaseFailed,
+                    errorMessage:
+                        'Unable to verify purchase. Please ensure you have an active internet connection and try again.',
+                    isProcessing: false,
+                  ),
+                );
+                continue; // Skip to next purchase
               }
+
+              print('✅ Using base64 app receipt for status check');
+              print('   Receipt length: ${tempToken.length} characters');
             } else {
               // For Android, use the purchase token as before
               tempToken =
