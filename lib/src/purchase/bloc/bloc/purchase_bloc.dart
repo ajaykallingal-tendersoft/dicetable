@@ -886,6 +886,18 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
       // ✅ CRITICAL FIX: Check if we've already processed this purchase
       final purchaseId = purchaseDetails.purchaseID ?? '';
 
+      //  ✅ CRITICAL FIX: Skip if already processed to prevent infinite loop
+      if (_processedPurchases.contains(purchaseId) && purchaseId.isNotEmpty) {
+        print('⏭️ Skipping already processed purchase: $purchaseId');
+
+        // Still complete it if needed to clear from store queue
+        if (purchaseDetails.pendingCompletePurchase) {
+          await InAppPurchase.instance.completePurchase(purchaseDetails);
+          print('✅ Completed duplicate purchase on store');
+        }
+        continue; // Skip to next purchase
+      }
+
       if (purchaseDetails.status == PurchaseStatus.purchased ||
           purchaseDetails.status == PurchaseStatus.restored) {
         // ✅ FIXED: For RESTORED purchases, check subscription status FIRST before caching
@@ -1033,9 +1045,24 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
               subscriptionId: purchaseDetails.productID,
             );
 
+            // ✅ CRITICAL FIX: Add 30-second timeout to prevent infinite hang
+            print(
+              '⏱️ Calling fetchSubscriptionStatusFromBackend with 30s timeout...',
+            );
             final statusResult = await _paymentRepository
                 .fetchSubscriptionStatusFromBackend(
                   productId: purchaseDetails.productID,
+                )
+                .timeout(
+                  const Duration(seconds: 30),
+                  onTimeout: () {
+                    print('❌ Backend verification timed out after 30 seconds');
+                    return {
+                      'isPremium': false,
+                      'premiumOverride': false,
+                      'timeout': true,
+                    };
+                  },
                 );
 
             // Check if we got valid subscription data
@@ -1043,11 +1070,43 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
             final premiumOverride =
                 statusResult['premiumOverride'] as bool? ?? false;
             final userType = statusResult['userType'] as UserType?;
+            final didTimeout = statusResult['timeout'] as bool? ?? false;
 
             print('📊 Status check result:');
             print('   isPremium: $isPremium');
             print('   premiumOverride: $premiumOverride');
             print('   userType: $userType');
+            print('   timeout: $didTimeout');
+
+            // ✅ CRITICAL FIX: Handle timeout case
+            if (didTimeout) {
+              print(
+                '⏱️ Backend verification timed out - completing purchase WITHOUT granting access',
+              );
+
+              // Complete the purchase to clear from queue
+              if (purchaseDetails.pendingCompletePurchase) {
+                await InAppPurchase.instance.completePurchase(purchaseDetails);
+                print('✅ Completed timed-out purchase on store');
+              }
+
+              // Mark as processed to prevent retry
+              _processedPurchases.add(purchaseId);
+
+              emit(
+                state.copyWith(
+                  status: PaymentPlanStatus.purchaseFailed,
+                  errorMessage:
+                      'Verification took too long. Please check your internet connection and try again.',
+                  isProcessing: false,
+                ),
+              );
+
+              print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+              print('⏱️ PURCHASE VERIFICATION TIMED OUT');
+              print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+              continue; // Move to next purchase
+            }
 
             if (isPremium || premiumOverride) {
               print('✅ Subscription is ACTIVE - caching token permanently');

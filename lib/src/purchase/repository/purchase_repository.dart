@@ -584,6 +584,35 @@ class PaymentRepository {
           print(
             '❌ Subscription status success=true but verification_data is null.',
           );
+          print('   Returning cache to avoid blocking user.');
+          return await getUserSubscriptionData();
+        }
+
+        // ✅ CRITICAL: Validate that backend returned subscription status fields
+        // The backend should return subscription_state
+        // If this is missing, the response is incomplete and we can't determine status
+        if (verificationData.subscriptionState == null) {
+          print('');
+          print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+          print('⚠️ INCOMPLETE BACKEND RESPONSE DETECTED');
+          print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+          print('   The backend verified the receipt successfully,');
+          print('   but did NOT return subscription status fields:');
+          print(
+            '   - subscription_state: ${verificationData.subscriptionState}',
+          );
+          print('   ');
+          print('   This is a BACKEND CONFIGURATION ISSUE.');
+          print(
+            '   The /verify-status endpoint should return subscription status.',
+          );
+          print('   ');
+          print('   Returning cache to avoid infinite loop.');
+          print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+          print('');
+
+          // Return cache but reset debounce to allow immediate retry
+          _lastStatusCheckTime = null;
           return await getUserSubscriptionData();
         }
 
@@ -689,7 +718,14 @@ class PaymentRepository {
       // Fallback: If status check fails (e.g., success: false, Purchase is pending)
       return await getUserSubscriptionData();
     } catch (e) {
-      // Catch network or parsing errors and fall back
+      // ✅ Catch network or parsing errors
+      // Reset debounce to allow immediate retry
+      print('❌ Repository: fetchSubscriptionStatusFromBackend failed: $e');
+      print('   Error type: ${e.runtimeType}');
+      print('   Resetting debounce and returning cache.');
+      _lastStatusCheckTime = null;
+
+      // Return cache to avoid blocking user
       return await getUserSubscriptionData();
     }
   }
