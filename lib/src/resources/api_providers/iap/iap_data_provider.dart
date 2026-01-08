@@ -163,36 +163,45 @@ class IapDataProvider {
         "Request failed with status ${response.statusCode}",
       );
     } on DioException catch (e) {
-      // ✅ NEW: Special handling for 400 responses with canceled subscriptions
+      // ✅ NEW: Special handling for 400 responses with canceled/expired subscriptions
       if (e.response?.statusCode == 400) {
         final responseData = e.response?.data;
 
         if (responseData is Map<String, dynamic>) {
           // Try to parse the response even though it's a 400 error
-          final parsed = _safeParse(
-            responseData,
-            (json) => SubscriptionStatusResponse.fromJson(json),
-          );
-
-          // ✅ CRITICAL: If we got verification_data with SUBSCRIPTION_STATE_CANCELED,
-          // return it as "success" so the repository can process the cancellation
-          if (parsed?.verificationData?.subscriptionState
-                  ?.toUpperCase()
-                  .contains('CANCEL') ==
-              true) {
-            print('⚠️ Detected canceled subscription in 400 response');
-            print(
-              '   Subscription state: ${parsed!.verificationData!.subscriptionState}',
+          try {
+            final parsed = _safeParse(
+              responseData,
+              (json) => SubscriptionStatusResponse.fromJson(json),
             );
-            print('   Returning as success for processing');
 
-            // Return success with the cancellation data
-            return StateModel.success(parsed);
+            // ✅ CRITICAL: If we got verification_data with CANCELED or EXPIRED state,
+            // return it as "success" so the repository can process the cancellation/expiration
+            final subscriptionState =
+                parsed?.verificationData?.subscriptionState?.toUpperCase() ??
+                '';
+
+            if (subscriptionState.contains('CANCEL') ||
+                subscriptionState.contains('EXPIRED')) {
+              print(
+                '⚠️ Detected $subscriptionState subscription in 400 response',
+              );
+              print(
+                '   Subscription state: ${parsed!.verificationData!.subscriptionState}',
+              );
+              print('   Returning as success for processing');
+
+              // Return success with the cancellation/expiration data
+              return StateModel.success(parsed);
+            }
+          } catch (parseError) {
+            print('❌ Failed to parse 400 response: $parseError');
+            // Fall through to regular error handling
           }
 
           // Regular 400 error handling
           final message = responseData['message']?.toString() ?? 'Bad request';
-          print('❌ 400 error without cancellation data: $message');
+          print('❌ 400 error without cancellation/expiration data: $message');
         }
       }
 

@@ -701,7 +701,7 @@ class PaymentRepository {
                   : null,
           'currentSubscriptionId': verificationData.productId,
           'premiumOverride':
-              hasActiveSub, // ✅ ADD: Set premium override when subscription is active
+              hasActiveSub, //  ADD: Set premium override when subscription is active
         };
         await cacheBackendSubscriptionState(
           isPaidUser: hasActiveSub,
@@ -710,7 +710,7 @@ class PaymentRepository {
           trialStartDate: result['trialStartDate'] as DateTime?,
           trialEndDate: result['trialEndDate'] as DateTime?,
           currentSubscriptionId: result['currentSubscriptionId'] as String?,
-          premiumOverride: hasActiveSub, // ✅ ADD: Cache premium override
+          premiumOverride: hasActiveSub, //  ADD: Cache premium override
         );
         return result;
       }
@@ -718,7 +718,7 @@ class PaymentRepository {
       // Fallback: If status check fails (e.g., success: false, Purchase is pending)
       return await getUserSubscriptionData();
     } catch (e) {
-      // ✅ Catch network or parsing errors
+      //  Catch network or parsing errors
       // Reset debounce to allow immediate retry
       print('❌ Repository: fetchSubscriptionStatusFromBackend failed: $e');
       print('   Error type: ${e.runtimeType}');

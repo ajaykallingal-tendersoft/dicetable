@@ -900,6 +900,13 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
 
       if (purchaseDetails.status == PurchaseStatus.purchased ||
           purchaseDetails.status == PurchaseStatus.restored) {
+        // ✅ CRITICAL FIX: Mark as processed IMMEDIATELY to prevent infinite loop
+        // This must happen BEFORE any async operations that might hang
+        print('🔒 Marking purchase as processed to prevent duplicate handling');
+        _processedPurchases.add(purchaseId);
+        print('   Purchase ID added to processed set: $purchaseId');
+        print('   Total processed purchases: ${_processedPurchases.length}');
+
         // ✅ FIXED: For RESTORED purchases, check subscription status FIRST before caching
         if (purchaseDetails.status == PurchaseStatus.restored) {
           print(
@@ -932,6 +939,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
             // Complete the purchase to acknowledge it
             if (purchaseDetails.pendingCompletePurchase) {
               await InAppPurchase.instance.completePurchase(purchaseDetails);
+              print('✅ Purchase completed on store');
             }
 
             // Clear any cached token
@@ -997,9 +1005,10 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
             // Complete the purchase to acknowledge it, but don't grant access
             if (purchaseDetails.pendingCompletePurchase) {
               await InAppPurchase.instance.completePurchase(purchaseDetails);
+              print('✅ Mismatched purchase completed on store');
             }
 
-            // Don't process this purchase further
+            // Don't process this purchase further - already marked as processed above
             return;
           }
 
@@ -1036,6 +1045,19 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
               // For Android, use the purchase token as before
               tempToken =
                   purchaseDetails.verificationData.serverVerificationData;
+            }
+
+            // ✅ CRITICAL FIX: Complete iOS purchase IMMEDIATELY after receipt extraction
+            // This removes it from the pending queue and prevents infinite re-processing
+            if (Platform.isIOS && purchaseDetails.pendingCompletePurchase) {
+              print(
+                '🍎 iOS: Completing purchase immediately to clear from queue',
+              );
+              print(
+                '   This prevents infinite loop while backend verification is pending',
+              );
+              await InAppPurchase.instance.completePurchase(purchaseDetails);
+              print('✅ iOS purchase completed - removed from pending queue');
             }
 
             // Make a temporary cache for the API call
@@ -1120,10 +1142,14 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
               );
               print('✅ Cached active subscription token');
 
-              // Complete the purchase
-              if (purchaseDetails.pendingCompletePurchase) {
+              // Complete the purchase (Android only - iOS already completed above)
+              if (!Platform.isIOS && purchaseDetails.pendingCompletePurchase) {
                 await InAppPurchase.instance.completePurchase(purchaseDetails);
-                print('✅ Purchase completed on store');
+                print('✅ Android purchase completed on store');
+              } else if (Platform.isIOS) {
+                print(
+                  'ℹ️  iOS purchase already completed earlier to prevent loop',
+                );
               }
 
               emit(
@@ -1145,8 +1171,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
                 ),
               );
 
-              // Mark as processed
-              _processedPurchases.add(purchaseId);
+              // Note: Already marked as processed at the start of this function
               print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
               print('✅ RESTORED PURCHASE HANDLED - ACTIVE SUBSCRIPTION');
               print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
@@ -1169,9 +1194,14 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
               print('🗑️ Cleared temporarily cached token');
 
               // ✅ Complete the purchase but do NOT emit premium state
-              if (purchaseDetails.pendingCompletePurchase) {
+              // (Android only - iOS already completed above)
+              if (!Platform.isIOS && purchaseDetails.pendingCompletePurchase) {
                 await InAppPurchase.instance.completePurchase(purchaseDetails);
-                print('✅ Purchase completed on store (but access denied)');
+                print(
+                  '✅ Android purchase completed on store (but access denied)',
+                );
+              } else if (Platform.isIOS) {
+                print('ℹ️  iOS purchase already completed earlier');
               }
 
               emit(
@@ -1192,8 +1222,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
                 ),
               );
 
-              // Mark as processed
-              _processedPurchases.add(purchaseId);
+              // Note: Already marked as processed at the start of this function
               print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
               print('✅ RESTORED PURCHASE CLEARED - USER CAN SUBSCRIBE AGAIN');
               print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
