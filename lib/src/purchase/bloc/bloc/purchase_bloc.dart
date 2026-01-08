@@ -165,6 +165,11 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
     try {
       emit(state.copyWith(status: PaymentPlanStatus.loading));
 
+      // ✅ CRITICAL: Always clear processed purchases on init to allow restored purchases
+      // This is essential for logout/login cycles where purchases need re-verification
+      _processedPurchases.clear();
+      print('🔄 Cleared processed purchases set on initialization');
+
       // ✅ Detect user change and reset if needed
       final prefs = ObjectFactory().prefs;
       final newUserId =

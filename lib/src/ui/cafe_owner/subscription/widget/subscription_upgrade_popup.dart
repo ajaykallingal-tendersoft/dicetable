@@ -227,6 +227,7 @@ class UpgradePopup extends StatelessWidget {
         if (state.status == PaymentPlanStatus.purchasing) {
           EasyLoading.show(status: 'Processing purchase...');
         } else if (state.status == PaymentPlanStatus.verifying) {
+          // ✅ Covers both receipt refresh AND backend verification
           EasyLoading.show(status: 'Verifying purchase...');
         } else if (state.status == PaymentPlanStatus.verificationFailed) {
           // ✅ CRITICAL FIX: Always dismiss EasyLoader first
