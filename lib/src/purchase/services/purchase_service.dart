@@ -11,6 +11,26 @@ import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 import 'package:in_app_purchase_storekit/store_kit_wrappers.dart';
 import '../utils/debug_logger.dart';
 
+/// Simple delegate to enable StoreKit 1 mode
+/// This forces the plugin to use AppStorePurchaseDetails with legacy receipt
+class _StoreKit1Delegate extends SKPaymentQueueDelegateWrapper {
+  @override
+  bool shouldContinueTransaction(
+    SKPaymentTransactionWrapper transaction,
+    SKStorefrontWrapper storefront,
+  ) {
+    // Return true to continue all transactions
+    // This is the default behavior
+    return true;
+  }
+
+  @override
+  bool shouldShowPriceConsent() {
+    // Return false - we handle price consent in the UI
+    return false;
+  }
+}
+
 class PaymentService {
   // ====== CORRECT PRODUCT IDs FOR GOOGLE PLAY ======
   // For Android: product IDs
@@ -51,6 +71,29 @@ class PaymentService {
       }
 
       print("⚙️ Initializing REAL In-App Purchase environment...");
+
+      // ✅ CRITICAL: Force StoreKit 1 API usage on iOS
+      // This ensures AppStorePurchaseDetails with legacy receipt is used
+      // instead of SK2PurchaseDetails which doesn't provide the receipt file
+      if (Platform.isIOS) {
+        print("🍎 Forcing StoreKit 1 API (legacy receipt support)...");
+
+        // Get the StoreKit platform addition to access payment queue
+        final platform =
+            _inAppPurchase
+                .getPlatformAddition<InAppPurchaseStoreKitPlatformAddition>();
+
+        // Setting a payment queue delegate forces StoreKit 1 mode
+        // This ensures we get AppStorePurchaseDetails with receipt data
+        await platform.setDelegate(_StoreKit1Delegate());
+
+        print("✅ StoreKit 1 mode enabled");
+        print("   AppStorePurchaseDetails will be used");
+        print(
+          "   Legacy base64 receipt will be available via verificationData",
+        );
+      }
+
       final isAvailable = await _inAppPurchase.isAvailable();
       print("⚙️ isAvailable => $isAvailable");
 
@@ -622,56 +665,75 @@ class PaymentService {
     print('');
 
     if (isIOS) {
-      print('⚠️ ENTERING iOS SECTION (removed type check)');
+      print('✅ ENTERING iOS SECTION (StoreKit 1 mode)');
       final tx =
           purchase is AppStorePurchaseDetails
               ? purchase.skPaymentTransaction
               : null;
 
-      // ✅ CRITICAL FIX: Read app receipt from bundle (legacy base64 format)
-      // Backend requires the full app receipt file, not individual transaction data
-      // This contains all purchases and subscriptions for this app
+      //  ✅ STOREKIT 1: Receipt is available in verificationData.serverVerificationData
+      // With StoreKit 1, the receipt is provided directly by the plugin
+      // No need to read from file system like StoreKit 2
       String receiptData = '';
       try {
         print('');
         print('═══════════════════════════════════════');
-        print('🍎 iOS Receipt Extraction - STARTING');
+        print('🍎 iOS Receipt Extraction - STOREKIT 1');
         print('═══════════════════════════════════════');
         print('📍 Platform check: iOS = $isIOS');
         print('📍 Purchase details type: ${purchase.runtimeType}');
         print('');
 
-        // ✅ NEW: Get app receipt from bundle
-        print('🔄 Calling _getAppReceiptData()...');
-        final appReceipt = await _getAppReceiptData();
+        // ✅ With StoreKit 1, verificationData.serverVerificationData contains the receipt
+        final verificationReceipt = ver.serverVerificationData;
+        print('🔍 Checking verificationData.serverVerificationData...');
+        print('   Length: ${verificationReceipt?.length ?? 0} characters');
         print(
-          '✅ _getAppReceiptData() returned: ${appReceipt != null ? "${appReceipt.length} chars" : "null"}',
+          '   Has data: ${verificationReceipt != null && verificationReceipt.isNotEmpty}',
         );
 
-        if (appReceipt != null && appReceipt.isNotEmpty) {
-          receiptData = appReceipt;
+        if (verificationReceipt != null && verificationReceipt.isNotEmpty) {
+          receiptData = verificationReceipt;
           print('');
-          print('✅✅✅ SUCCESS: Using base64 app receipt');
+          print('✅✅✅ SUCCESS: Using StoreKit 1 receipt');
           print('   Receipt length: ${receiptData.length} characters');
           print(
             '   Format: Base64 encoded app receipt (legacy /verifyReceipt)',
           );
+          print('   Source: verificationData.serverVerificationData');
           print('   This will be sent to backend for verification');
           print('');
         } else {
-          // Receipt is empty - this is a CRITICAL ERROR
-          print('');
-          print('❌❌❌ CRITICAL: App receipt is EMPTY!');
-          print('   Possible reasons:');
-          print('   1. Receipt file missing from app bundle');
-          print('   2. Receipt refresh failed');
-          print('   3. No purchases exist for this Apple ID');
-          print('   4. Sandbox/StoreKit configuration issue');
-          print('');
-          print('⚠️ VERIFICATION WILL FAIL WITHOUT RECEIPT!');
-          print('   Payload will have empty receipt_data');
-          print('   Backend will reject with "malformed receipt" error');
-          print('');
+          // Fallback: Try to read from receipt file as backup
+          print('⚠️ verificationData.serverVerificationData is empty');
+          print('   Falling back to _getAppReceiptData()...');
+
+          final appReceipt = await _getAppReceiptData();
+          print(
+            '   _getAppReceiptData() returned: ${appReceipt != null ? "${appReceipt.length} chars" : "null"}',
+          );
+
+          if (appReceipt != null && appReceipt.isNotEmpty) {
+            receiptData = appReceipt;
+            print('');
+            print('✅ SUCCESS: Using backup receipt from file');
+            print('   Receipt length: ${receiptData.length} characters');
+            print('');
+          } else {
+            // Receipt is empty - this is a CRITICAL ERROR
+            print('');
+            print('❌❌❌ CRITICAL: No receipt available!');
+            print('   Possible reasons:');
+            print('   1. StoreKit 1 not properly initialized');
+            print('   2. Receipt file missing from app bundle');
+            print('   3. No purchases exist for this Apple ID');
+            print('   4. Sandbox/StoreKit configuration issue');
+            print('');
+            print('⚠️ VERIFICATION WILL FAIL WITHOUT RECEIPT!');
+            print('   Payload will have empty receipt_data');
+            print('   Backend will reject with "malformed receipt" error');
+            print('');
+          }
         }
 
         print('');
