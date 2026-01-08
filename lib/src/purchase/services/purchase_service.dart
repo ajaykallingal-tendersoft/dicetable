@@ -684,54 +684,62 @@ class PaymentService {
         print('📍 Purchase details type: ${purchase.runtimeType}');
         print('');
 
-        // ✅ With StoreKit 1, verificationData.serverVerificationData contains the receipt
-        final verificationReceipt = ver.serverVerificationData;
-        print('🔍 Checking verificationData.serverVerificationData...');
-        print('   Length: ${verificationReceipt?.length ?? 0} characters');
+        // ✅ CRITICAL: Always read from receipt FILE, not verificationData
+        // Reason: verificationData.serverVerificationData may contain:
+        // - Base64 receipt (AppStorePurchaseDetails/StoreKit 1)
+        // - JWS token (SK2PurchaseDetails/StoreKit 2) ❌ Backend rejects this
+        // The app receipt FILE always contains the correct base64 format
+
         print(
-          '   Has data: ${verificationReceipt != null && verificationReceipt.isNotEmpty}',
+          '🔄 Reading app receipt from bundle (always use file for iOS)...',
+        );
+        final appReceipt = await _getAppReceiptData();
+        print(
+          '   _getAppReceiptData() returned: ${appReceipt != null ? "${appReceipt.length} chars" : "null"}',
         );
 
-        if (verificationReceipt != null && verificationReceipt.isNotEmpty) {
-          receiptData = verificationReceipt;
+        if (appReceipt != null && appReceipt.isNotEmpty) {
+          receiptData = appReceipt;
           print('');
-          print('✅✅✅ SUCCESS: Using StoreKit 1 receipt');
+          print('✅✅✅ SUCCESS: Using base64 app receipt from file');
           print('   Receipt length: ${receiptData.length} characters');
           print(
             '   Format: Base64 encoded app receipt (legacy /verifyReceipt)',
           );
-          print('   Source: verificationData.serverVerificationData');
+          print('   Source: App receipt file via SKReceiptManager');
           print('   This will be sent to backend for verification');
           print('');
         } else {
-          // Fallback: Try to read from receipt file as backup
-          print('⚠️ verificationData.serverVerificationData is empty');
-          print('   Falling back to _getAppReceiptData()...');
-
-          final appReceipt = await _getAppReceiptData();
+          // Fallback: Try verificationData (may be JWS token)
+          print('⚠️ App receipt file is empty');
           print(
-            '   _getAppReceiptData() returned: ${appReceipt != null ? "${appReceipt.length} chars" : "null"}',
+            '   Falling back to verificationData.serverVerificationData...',
+          );
+          print(
+            '   ⚠️ WARNING: This may be a JWS token and cause backend errors',
           );
 
-          if (appReceipt != null && appReceipt.isNotEmpty) {
-            receiptData = appReceipt;
+          final verificationReceipt = ver.serverVerificationData;
+          print('   Length: ${verificationReceipt?.length ?? 0} characters');
+
+          if (verificationReceipt != null && verificationReceipt.isNotEmpty) {
+            receiptData = verificationReceipt;
             print('');
-            print('✅ SUCCESS: Using backup receipt from file');
+            print('⚠️ Using verificationData (may be JWS, not base64 receipt)');
             print('   Receipt length: ${receiptData.length} characters');
+            print('   If this fails, receipt file needs to be refreshed');
             print('');
           } else {
-            // Receipt is empty - this is a CRITICAL ERROR
+            // No receipt available at all
             print('');
             print('❌❌❌ CRITICAL: No receipt available!');
             print('   Possible reasons:');
-            print('   1. StoreKit 1 not properly initialized');
-            print('   2. Receipt file missing from app bundle');
+            print('   1. Receipt file missing from app bundle');
+            print('   2. Receipt refresh failed');
             print('   3. No purchases exist for this Apple ID');
             print('   4. Sandbox/StoreKit configuration issue');
             print('');
             print('⚠️ VERIFICATION WILL FAIL WITHOUT RECEIPT!');
-            print('   Payload will have empty receipt_data');
-            print('   Backend will reject with "malformed receipt" error');
             print('');
           }
         }
