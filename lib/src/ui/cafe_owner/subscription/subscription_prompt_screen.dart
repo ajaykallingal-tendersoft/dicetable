@@ -939,6 +939,30 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
               print('💳 Premium Override: ${paymentState.premiumOverride}');
               print('💳 Is Premium: ${paymentState.isPremium}');
 
+              // ✅ Show loading during purchase
+              if (paymentState.status == PaymentPlanStatus.purchasing) {
+                EasyLoading.show(status: 'Processing purchase...');
+                return;
+              }
+
+              // ✅ Show loading during verification
+              if (paymentState.status == PaymentPlanStatus.verifying) {
+                EasyLoading.show(status: 'Verifying purchase...');
+                return;
+              }
+
+              // ✅ Show loading during restore
+              if (paymentState.status == PaymentPlanStatus.needsRestore) {
+                EasyLoading.show(status: 'Restoring subscription...');
+                return;
+              }
+
+              // ✅ Handle cancellation
+              if (paymentState.status == PaymentPlanStatus.cancelled) {
+                EasyLoading.dismiss();
+                return;
+              }
+
               if (paymentState.status == PaymentPlanStatus.purchaseSuccess) {
                 EasyLoading.dismiss();
                 Fluttertoast.showToast(

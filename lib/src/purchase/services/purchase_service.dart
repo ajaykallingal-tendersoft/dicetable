@@ -579,12 +579,49 @@ class PaymentService {
 
       return receiptData; // Already base64 encoded
     } catch (e, st) {
-      print('❌ Error reading app receipt: $e\n$st');
-      print('   This may indicate:');
-      print('   1. Receipt file is corrupted');
-      print('   2. App sandbox environment issue');
-      print('   3. iOS permissions problem');
-      return null;
+      // ✅ CRITICAL FIX: Check if error is "file not found" (error code 2/260)
+      // This happens on fresh installs before first purchase
+      final errorString = e.toString();
+      final isFileNotFound =
+          errorString.contains('code: 2') ||
+          errorString.contains('code=2') ||
+          errorString.contains('260');
+
+      if (isFileNotFound) {
+        print('❌ Receipt file does not exist (fresh install)');
+        print('   Error: $e');
+        print('   Attempting to refresh receipt from Apple...');
+
+        try {
+          final requestMaker = SKRequestMaker();
+          await requestMaker.startRefreshReceiptRequest();
+
+          // Wait for receipt to be generated
+          await Future.delayed(const Duration(seconds: 3));
+
+          // Try retrieving again
+          final receiptData = await SKReceiptManager.retrieveReceiptData();
+
+          if (receiptData != null && receiptData.isNotEmpty) {
+            print('✅ Receipt successfully generated!');
+            print('   Receipt length: ${receiptData.length} characters');
+            return receiptData;
+          } else {
+            print('❌ Receipt still missing after refresh');
+            return null;
+          }
+        } catch (refreshError) {
+          print('❌ Failed to refresh receipt: $refreshError');
+          return null;
+        }
+      } else {
+        print('❌ Error reading app receipt: $e\n$st');
+        print('   This may indicate:');
+        print('   1. Receipt file is corrupted');
+        print('   2. App sandbox environment issue');
+        print('   3. iOS permissions problem');
+        return null;
+      }
     }
   }
 

@@ -92,6 +92,14 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
               );
             }
 
+            // ✅ Show loading during verification
+            if (state.status == PaymentPlanStatus.verifying) {
+              EasyLoading.show(
+                status: 'Verifying purchase...',
+                maskType: EasyLoadingMaskType.black,
+              );
+            }
+
             // ✅ Show loading when restore starts (when isProcessing is true but status is still loading)
             if (state.status == PaymentPlanStatus.loading &&
                 state.isProcessing) {
