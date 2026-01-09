@@ -1159,6 +1159,15 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
               subscriptionId: purchaseDetails.productID,
             );
 
+            // ✅ CRITICAL UX FIX: Emit verifying status to show EasyLoading during restore
+            print('🔄 Emitting verifying status to show loading indicator...');
+            emit(
+              state.copyWith(
+                status: PaymentPlanStatus.verifying,
+                isProcessing: true,
+              ),
+            );
+
             // ✅ CRITICAL FIX: Add 30-second timeout to prevent infinite hang
             print(
               '⏱️ Calling fetchSubscriptionStatusFromBackend with 30s timeout...',
