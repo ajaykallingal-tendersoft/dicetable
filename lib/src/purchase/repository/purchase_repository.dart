@@ -9,7 +9,6 @@ import 'package:soloseaters/src/purchase/bloc/bloc/purchase_state.dart';
 import 'package:soloseaters/src/resources/api_providers/iap/iap_data_provider.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:soloseaters/src/utils/extension/state_model_extension.dart';
-import 'package:soloseaters/src/model/payment/subscription_status_request.dart';
 import 'package:soloseaters/src/model/payment/subscription_status_response.dart'; // Assuming this holds your provided model
 
 class PaymentRepository {
@@ -582,28 +581,37 @@ class PaymentRepository {
       final effectiveProductId = productId ?? currentSubscriptionId ?? '';
       final effectiveToken = purchaseToken ?? latestPurchaseToken ?? '';
 
-      final request = SubscriptionStatusRequest(
+      // MODIFIED: Use VerifyPurchaseRequest instead of SubscriptionStatusRequest
+      // This routes the status check through the robust /verify endpoint
+      final request = VerifyPurchaseRequest(
         purchaseToken: effectiveToken,
         productId: effectiveProductId, // ✅ Use provided or cached product ID
         platform: currentPlatform,
       );
       print(
-        '📤 Requesting status for product: ${request.productId.isNotEmpty ? request.productId : "(will be derived from token)"} (platform: ${request.platform})',
+        '📤 Requesting status via VERIFY endpoint for product: ${request.productId.isNotEmpty ? request.productId : "(will be derived from token)"} (platform: ${request.platform})',
       );
 
-      final stateModel = await _iapDataProvider.getSubscriptionStatus(
+      // MODIFIED: Call verifyPurchase instead of getSubscriptionStatus
+      final stateModel = await _iapDataProvider.verifyPurchase(
         request,
       ); // Pass the request
 
       if (stateModel == null) {
-        final data = await getUserSubscriptionData();
-        final mutableData = Map<String, dynamic>.from(data);
-        mutableData['fromCache'] = true;
-        return mutableData;
+        return await getUserSubscriptionData();
       }
 
       if (stateModel.isSuccess) {
         final response = stateModel.data!;
+
+        // ✅ NEW: Check if the verification itself considers the receipt valid
+        if (!response.valid) {
+          print(
+            '❌ Verification endpoint returned valid=false during status check.',
+          );
+          print('   Message: ${response.message}');
+          // If valid is false, we probably can't trust any data, but let's check if verificationData exists just in case
+        }
 
         // 🟢 FIX: Access verification properties through response.verificationData
         final verificationData = response.verificationData;
@@ -611,13 +619,10 @@ class PaymentRepository {
         // Check if verificationData is null before proceeding
         if (verificationData == null) {
           print(
-            '❌ Subscription status success=true but verification_data is null.',
+            '❌ Verify endpoint success=true but verification_data is null.',
           );
           print('   Returning cache to avoid blocking user.');
-          final data = await getUserSubscriptionData();
-          final mutableData = Map<String, dynamic>.from(data);
-          mutableData['fromCache'] = true;
-          return mutableData;
+          return await getUserSubscriptionData();
         }
 
         // ✅ CRITICAL: Validate that backend returned subscription status fields
@@ -805,10 +810,7 @@ class PaymentRepository {
       }
 
       // Fallback: If status check fails (e.g., success: false, Purchase is pending)
-      final data = await getUserSubscriptionData();
-      final mutableData = Map<String, dynamic>.from(data);
-      mutableData['fromCache'] = true;
-      return mutableData;
+      return await getUserSubscriptionData();
     } catch (e) {
       //  Catch network or parsing errors
       // Reset debounce to allow immediate retry
@@ -818,10 +820,7 @@ class PaymentRepository {
       _lastStatusCheckTime = null;
 
       // Return cache to avoid blocking user
-      final data = await getUserSubscriptionData();
-      final mutableData = Map<String, dynamic>.from(data);
-      mutableData['fromCache'] = true;
-      return mutableData;
+      return await getUserSubscriptionData();
     }
   }
 
