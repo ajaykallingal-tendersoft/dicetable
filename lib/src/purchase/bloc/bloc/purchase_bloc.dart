@@ -1269,56 +1269,115 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
               print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
               continue; // Skip verification
             } else {
-              print('⚠️ Subscription is CANCELED/EXPIRED - NOT caching token');
-              print('   This allows user to make a NEW subscription');
-              print('   Reasons:');
-              print('   1. Subscription has been canceled');
-              print('   2. Subscription has expired');
-              print('   3. Purchase token belongs to a different user');
-              print('');
-              print('❌ Will NOT cache token or grant premium access');
-              print('✅ User can now proceed with a NEW purchase');
-              print('');
+              // ✅ NEW: Check if subscription is auto-renewing
+              final autoRenewing =
+                  statusResult['autoRenewing'] as bool? ?? false;
 
-              // ✅ CRITICAL: Clear the temporarily cached token
-              // This ensures the old token doesn't interfere with new purchases
-              await _paymentRepository.clearCachedPurchaseToken();
-              print('🗑️ Cleared temporarily cached token');
-
-              // ✅ Complete the purchase but do NOT emit premium state
-              // (Android only - iOS already completed above)
-              if (!Platform.isIOS && purchaseDetails.pendingCompletePurchase) {
-                await InAppPurchase.instance.completePurchase(purchaseDetails);
+              if (autoRenewing) {
+                // ✅ CRITICAL: Subscription is expired BUT auto-renewing
+                // Preserve the token and subscription ID for automatic renewal
                 print(
-                  '✅ Android purchase completed on store (but access denied)',
+                  '⏳ Subscription expired but auto-renewing - preserving token',
                 );
-              } else if (Platform.isIOS) {
-                print('ℹ️  iOS purchase already completed earlier');
+                print('   Product ID: ${purchaseDetails.productID}');
+                print('   Token will be preserved for next renewal');
+                print('');
+
+                // ✅ Keep the temporarily cached token (don't clear it)
+                // The token was cached earlier in this function for verification
+                print('✅ Token preserved - subscription will auto-renew');
+
+                // Complete the purchase (Android only - iOS already completed above)
+                if (!Platform.isIOS &&
+                    purchaseDetails.pendingCompletePurchase) {
+                  await InAppPurchase.instance.completePurchase(
+                    purchaseDetails,
+                  );
+                  print('✅ Android purchase completed on store');
+                } else if (Platform.isIOS) {
+                  print('ℹ️  iOS purchase already completed earlier');
+                }
+
+                emit(
+                  state.copyWith(
+                    status:
+                        PaymentPlanStatus
+                            .initial, // ✅ Reset to initial, not failed
+                    isPremium: false, // ✅ No access until renewed
+                    premiumOverride: false,
+                    userType:
+                        state.isVenueUser
+                            ? UserType.venueTrial
+                            : UserType.publicFree,
+                    errorMessage: null, // ✅ No error - this is expected
+                    isProcessing: false,
+                    pendingPurchase: null,
+                    pendingPayload: null,
+                  ),
+                );
+
+                print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                print('⏳ AUTO-RENEWING SUBSCRIPTION - TOKEN PRESERVED');
+                print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                continue; // Skip to next purchase
+              } else {
+                // ✅ Truly cancelled or expired without auto-renew
+                print(
+                  '⚠️ Subscription is CANCELED/EXPIRED - NOT caching token',
+                );
+                print('   This allows user to make a NEW subscription');
+                print('   Reasons:');
+                print('   1. Subscription has been canceled');
+                print('   2. Subscription has expired without auto-renew');
+                print('   3. Purchase token belongs to a different user');
+                print('');
+                print('❌ Will NOT cache token or grant premium access');
+                print('✅ User can now proceed with a NEW purchase');
+                print('');
+
+                // ✅ CRITICAL: Clear the temporarily cached token
+                // This ensures the old token doesn't interfere with new purchases
+                await _paymentRepository.clearCachedPurchaseToken();
+                print('🗑️ Cleared temporarily cached token');
+
+                // ✅ Complete the purchase but do NOT emit premium state
+                // (Android only - iOS already completed above)
+                if (!Platform.isIOS &&
+                    purchaseDetails.pendingCompletePurchase) {
+                  await InAppPurchase.instance.completePurchase(
+                    purchaseDetails,
+                  );
+                  print(
+                    '✅ Android purchase completed on store (but access denied)',
+                  );
+                } else if (Platform.isIOS) {
+                  print('ℹ️  iOS purchase already completed earlier');
+                }
+
+                emit(
+                  state.copyWith(
+                    status:
+                        PaymentPlanStatus
+                            .initial, // ✅ Reset to initial, not failed
+                    isPremium: false,
+                    premiumOverride: false,
+                    userType:
+                        state.isVenueUser
+                            ? UserType.venueTrial
+                            : UserType.publicFree,
+                    errorMessage:
+                        null, // ✅ No error - this is expected behavior
+                    isProcessing: false,
+                    pendingPurchase: null,
+                    pendingPayload: null,
+                  ),
+                );
+
+                // Note: Already marked as processed at the start of this function
+                print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+                print('✅ RESTORED PURCHASE CLEARED - USER CAN SUBSCRIBE AGAIN');
+                print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
               }
-
-              emit(
-                state.copyWith(
-                  status:
-                      PaymentPlanStatus
-                          .initial, // ✅ Reset to initial, not failed
-                  isPremium: false,
-                  premiumOverride: false,
-                  userType:
-                      state.isVenueUser
-                          ? UserType.venueTrial
-                          : UserType.publicFree,
-                  errorMessage: null, // ✅ No error - this is expected behavior
-                  isProcessing: false,
-                  pendingPurchase: null,
-                  pendingPayload: null,
-                ),
-              );
-
-              // Note: Already marked as processed at the start of this function
-              print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-              print('✅ RESTORED PURCHASE CLEARED - USER CAN SUBSCRIBE AGAIN');
-              print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-              continue; // ✅ Skip verification and allow new purchase
             }
           } catch (e) {
             print('❌ Subscription status check failed: $e');

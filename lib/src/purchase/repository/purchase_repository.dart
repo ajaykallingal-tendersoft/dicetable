@@ -631,56 +631,113 @@ class PaymentRepository {
             verificationData.productId?.toLowerCase().contains('venue') ??
             false;
 
-        // ✅ CRITICAL: Check for canceled subscriptions
+        // ✅ CRITICAL: Check for canceled/expired subscriptions
         final bool isCanceled =
             subState == 'canceled' ||
             subState == 'subscription_state_canceled' ||
             subState?.contains('cancel') == true;
 
+        final bool isExpired =
+            subState == 'expired' ||
+            subState == 'subscription_state_expired' ||
+            subState?.contains('expired') == true;
+
         final bool hasActiveSub =
             (subState == 'active' || subState == 'subscription_state_active') &&
-            !isCanceled;
+            !isCanceled &&
+            !isExpired;
 
-        // ✅ CRITICAL: If canceled, revoke premium access
-        if (isCanceled) {
-          print('');
-          print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-          print('⚠️ SUBSCRIPTION CANCELED - REVOKING PREMIUM ACCESS');
-          print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-          print('   Subscription state: $subState');
-          print('   Product ID: ${verificationData.productId}');
-          print('   User type: ${isVenueUser ? "Venue" : "Public"}');
-          print(
-            '   Action: Clearing premiumOverride + setting isPremium=false',
-          );
-          print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-          print('');
+        // ✅ NEW: Check autoRenewing flag for expired subscriptions
+        final bool autoRenewing = verificationData.autoRenewing ?? false;
 
+        // ☰☰☰ CRITICAL FIX: Distinguish between expired+auto-renewing vs truly cancelled
+        if (isCanceled || isExpired) {
           final userType =
               isVenueUser ? UserType.venueTrial : UserType.publicFree;
 
-          final result = {
-            'userType': userType,
-            'isPremium': false, // ✅ Explicitly false
-            'trialStartDate': null,
-            'trialEndDate': null,
-            'subscriptionExpiryDate': null,
-            'currentSubscriptionId': verificationData.productId,
-            'premiumOverride': false, // ✅ Explicitly clear override
-          };
+          // ✅ NEW: If subscription is expired BUT auto-renewing, preserve the token
+          if (isExpired && autoRenewing) {
+            print('');
+            print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            print('⏳ SUBSCRIPTION EXPIRED - AUTO-RENEWING (TOKEN PRESERVED)');
+            print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            print('   Subscription state: $subState');
+            print('   Auto-renewing: $autoRenewing');
+            print('   Product ID: ${verificationData.productId}');
+            print('   User type: ${isVenueUser ? "Venue" : "Public"}');
+            print('   Action: Preserve token, set isPremium=false temporarily');
+            print('   ✅ Subscription will auto-renew soon');
+            print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            print('');
 
-          // ✅ Cache the canceled state
-          await cacheBackendSubscriptionState(
-            isPaidUser: false,
-            isVenueUser: isVenueUser,
-            subscriptionExpiryDate: null,
-            trialStartDate: null,
-            trialEndDate: null,
-            currentSubscriptionId: result['currentSubscriptionId'] as String?,
-            premiumOverride: false, // ✅ Explicitly clear
-          );
+            final result = {
+              'userType': userType,
+              'isPremium': false, // ✅ No access until renewed
+              'trialStartDate': null,
+              'trialEndDate': null,
+              'subscriptionExpiryDate':
+                  verificationData.expiryTime != null
+                      ? DateTime.tryParse(verificationData.expiryTime!)
+                      : null,
+              'currentSubscriptionId': verificationData.productId,
+              'premiumOverride': false, // ✅ No override until renewed
+              'autoRenewing':
+                  true, // ✅ NEW: Flag that subscription is auto-renewing
+            };
 
-          return result;
+            // ✅ Cache the expired state BUT keep token for auto-renewal
+            await cacheBackendSubscriptionState(
+              isPaidUser: false,
+              isVenueUser: isVenueUser,
+              subscriptionExpiryDate:
+                  result['subscriptionExpiryDate'] as DateTime?,
+              trialStartDate: null,
+              trialEndDate: null,
+              currentSubscriptionId: result['currentSubscriptionId'] as String?,
+              premiumOverride: false, // ✅ No access yet
+            );
+
+            return result;
+          } else {
+            // ✅ Truly cancelled or expired without auto-renew - clear everything
+            print('');
+            print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            print('⚠️ SUBSCRIPTION CANCELED - REVOKING PREMIUM ACCESS');
+            print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            print('   Subscription state: $subState');
+            print('   Auto-renewing: $autoRenewing');
+            print('   Product ID: ${verificationData.productId}');
+            print('   User type: ${isVenueUser ? "Venue" : "Public"}');
+            print(
+              '   Action: Clearing premiumOverride + setting isPremium=false',
+            );
+            print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            print('');
+
+            final result = {
+              'userType': userType,
+              'isPremium': false, // ✅ Explicitly false
+              'trialStartDate': null,
+              'trialEndDate': null,
+              'subscriptionExpiryDate': null,
+              'currentSubscriptionId': verificationData.productId,
+              'premiumOverride': false, // ✅ Explicitly clear override
+              'autoRenewing': false, // ✅ Not auto-renewing
+            };
+
+            // ✅ Cache the canceled state
+            await cacheBackendSubscriptionState(
+              isPaidUser: false,
+              isVenueUser: isVenueUser,
+              subscriptionExpiryDate: null,
+              trialStartDate: null,
+              trialEndDate: null,
+              currentSubscriptionId: result['currentSubscriptionId'] as String?,
+              premiumOverride: false, // ✅ Explicitly clear
+            );
+
+            return result;
+          }
         }
 
         // ✅ Active subscription - grant premium access
