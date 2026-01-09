@@ -378,6 +378,32 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                   EasyLoading.show(status: 'Restoring subscription...');
                 }
 
+                // ✅ Show loading during restore OR initial loading
+                if (paymentState.status == PaymentPlanStatus.loading) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (EasyLoading.isShow == false) {
+                      final message =
+                          paymentState.isProcessing
+                              ? 'Restoring subscription...'
+                              : 'Loading subscription...';
+                      EasyLoading.show(
+                        status: message,
+                        maskType: EasyLoadingMaskType.black,
+                      );
+                    }
+                  });
+                }
+
+                // Dismiss loading when complete
+                if (paymentState.status == PaymentPlanStatus.productsLoaded ||
+                    paymentState.status == PaymentPlanStatus.initial) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (EasyLoading.isShow) {
+                      EasyLoading.dismiss();
+                    }
+                  });
+                }
+
                 if (paymentState.status == PaymentPlanStatus.purchaseSuccess) {
                   context.read<SubscriptionBloc>().add(
                     StartSubscriptionEvent(
