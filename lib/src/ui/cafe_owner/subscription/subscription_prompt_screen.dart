@@ -19,7 +19,6 @@ import 'package:soloseaters/src/ui/cafe_owner/subscription/bloc/subscription_blo
 import 'package:soloseaters/src/ui/cafe_owner/subscription/widget/gradient.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
 
-
 class SubscriptionPromptScreen extends StatefulWidget {
   const SubscriptionPromptScreen({super.key});
 
@@ -512,12 +511,77 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
 
               if (paymentState.status == PaymentPlanStatus.purchaseSuccess) {
                 EasyLoading.dismiss();
-                Fluttertoast.showToast(
-                  fontSize: 14.sp,
-                  backgroundColor: AppColors.appGreenColor,
-                  textColor: AppColors.primaryWhiteColor,
-                  gravity: ToastGravity.BOTTOM,
-                  msg: 'Trial started successfully!',
+
+                // ✅ Show success dialog before triggering subscription start
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder:
+                      (dialogContext) => AlertDialog(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        title: Row(
+                          children: [
+                            const Icon(
+                              Icons.check_circle,
+                              color: Colors.green,
+                              size: 32,
+                            ),
+                            const SizedBox(width: 12),
+                            Text('Success!', style: TextStyle(fontSize: 18.sp)),
+                          ],
+                        ),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Your subscription has been activated!',
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'Enjoy all premium features! 🎉',
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(dialogContext).pop(); // Close dialog
+
+                              // Trigger subscription start in backend
+                              context.read<SubscriptionBloc>().add(
+                                StartSubscriptionEvent(
+                                  subscriptionStartRequest:
+                                      SubscriptionStartRequest(
+                                        cafeId: cafeId,
+                                        subscriptionTypeId: subscriptionTypeId,
+                                        paymentMethod: paymentMethod,
+                                        amount: amount,
+                                        autoRenew: true,
+                                      ),
+                                ),
+                              );
+                            },
+                            child: Text(
+                              'Continue',
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                 );
                 return;
               }
@@ -589,15 +653,76 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                 }
               }
 
-              // ✅ Show restore success
+              // ✅ FIX: Show success dialog for restored purchases (consistent with public user flow)
               if (paymentState.status == PaymentPlanStatus.purchaseRestored) {
                 EasyLoading.dismiss();
-                Fluttertoast.showToast(
-                  fontSize: 14.sp,
-                  backgroundColor: AppColors.appGreenColor,
-                  textColor: AppColors.primaryWhiteColor,
-                  gravity: ToastGravity.BOTTOM,
-                  msg: 'Subscription restored successfully!',
+
+                // Check subscription status after restore
+                context.read<PaymentPlanBloc>().add(
+                  const CheckSubscriptionStatusEvent(),
+                );
+
+                // Show success dialog
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder:
+                      (dialogContext) => AlertDialog(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        title: Row(
+                          children: [
+                            const Icon(
+                              Icons.check_circle,
+                              color: Colors.green,
+                              size: 32,
+                            ),
+                            const SizedBox(width: 12),
+                            Text(
+                              'Restored!',
+                              style: TextStyle(fontSize: 18.sp),
+                            ),
+                          ],
+                        ),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Your subscription has been restored successfully!',
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'All premium features are now active! 🎉',
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                                color: AppColors.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(dialogContext).pop(); // Close dialog
+                              // Navigate to home
+                              context.go('/home');
+                            },
+                            child: Text(
+                              'Continue',
+                              style: TextStyle(
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                 );
               }
             },

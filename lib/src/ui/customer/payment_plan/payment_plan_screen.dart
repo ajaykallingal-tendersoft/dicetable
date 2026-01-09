@@ -220,26 +220,20 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                 _showErrorSnackBar(context, errorMsg);
               }
             } else if (state.status == PaymentPlanStatus.purchaseRestored) {
-              EasyLoading.dismiss();
-              context.read<PaymentPlanBloc>().add(
-                const CheckSubscriptionStatusEvent(),
-              );
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    '✅ Purchases restored successfully',
-                    style: GoogleFonts.montserrat(
-                      color: AppColors.primaryWhiteColor,
-                    ),
-                  ),
-                  backgroundColor: Colors.green,
-                  behavior: SnackBarBehavior.floating,
-                  duration: const Duration(seconds: 3),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              );
+              // ✅ FIX: Show success dialog for restored purchases (consistent with Android new purchase flow)
+              // This ensures screen is properly dismissed after restore completes
+              if (!_successDialogShown) {
+                EasyLoading.dismiss();
+                _successDialogShown = true; // Prevent multiple dialogs
+
+                // Check subscription status after restore
+                context.read<PaymentPlanBloc>().add(
+                  const CheckSubscriptionStatusEvent(),
+                );
+
+                // Show success dialog (same as new purchases)
+                _showSuccessDialog(context, state);
+              }
             } else if (state.status == PaymentPlanStatus.initial &&
                 !state.isProcessing) {
               // ✅ Dismiss loading when restore completes with no active subscription found
