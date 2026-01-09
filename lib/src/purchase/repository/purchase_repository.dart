@@ -703,6 +703,10 @@ class PaymentRepository {
               'premiumOverride': false, // ✅ No override until renewed
               'autoRenewing':
                   true, // ✅ NEW: Flag that subscription is auto-renewing
+              'linkedPurchaseToken':
+                  verificationData.linkedPurchaseToken ??
+                  verificationData
+                      .orderId, // ✅ NEW: Transaction ID to clear from processed set
             };
 
             // ✅ Cache the expired state BUT keep token for auto-renewal

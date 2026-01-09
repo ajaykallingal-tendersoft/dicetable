@@ -1302,6 +1302,30 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
                 print('   Token will be preserved for next renewal');
                 print('');
 
+                // ✅ CRITICAL FIX: Remove from processed set to allow re-verification
+                // When the subscription expires, we need to remove its transaction ID
+                // from the processed set so it can be re-verified when it renews
+                final linkedToken =
+                    statusResult['linkedPurchaseToken'] as String?;
+                if (linkedToken != null && linkedToken.isNotEmpty) {
+                  if (_processedPurchases.contains(linkedToken)) {
+                    print('');
+                    print('🔄 Removing expired transaction from processed set');
+                    print('   Transaction ID: $linkedToken');
+                    print(
+                      '   Reason: Subscription expired but will auto-renew',
+                    );
+                    _processedPurchases.remove(linkedToken);
+                    print(
+                      '   ✅ Transaction can now be re-verified when renewed',
+                    );
+                    print(
+                      '   Processed set size: ${_processedPurchases.length}',
+                    );
+                    print('');
+                  }
+                }
+
                 // ✅ Keep the temporarily cached token (don't clear it)
                 // The token was cached earlier in this function for verification
                 print('✅ Token preserved - subscription will auto-renew');
