@@ -80,19 +80,36 @@ class VerifyPurchaseResponse {
     return input;
   }
 
-  factory VerifyPurchaseResponse.fromJson(Map<String, dynamic> json) =>
-      VerifyPurchaseResponse(
-        success: json["success"],
-        message: json["message"],
-        purchase:
-            json["purchase"] == null
-                ? null
-                : Purchase.fromJson(json["purchase"]),
-        verificationData:
-            json["verification_data"] == null
-                ? null
-                : VerificationData.fromJson(json["verification_data"]),
-      );
+  factory VerifyPurchaseResponse.fromJson(Map<String, dynamic> json) {
+    // Helper to see if we can extract verification data from 'purchase' object
+    // in case the backend puts it there for "already verified" responses
+    Map<String, dynamic>? verificationDataJson = json["verification_data"];
+
+    // Fallback: if verification_data is missing, but "purchase" exists and has fields
+    // that look like verification data (e.g. status='verified', created_at etc)
+    // we might construct a partial VerificationData from it.
+    // However, the "purchase" object usually has different keys (status, created_at)
+    // whereas VerificationData expects (subscription_state, expiry_time).
+    //
+    // IF the backend returns "purchase" with "status": "verified"
+    // AND it's a permanent purchase (non-renewing) or we can infer it.
+    // Ideally, the backend SHOULD send verification_data.
+
+    // Let's stick to the current structure but handle nulls gracefully.
+    // If verification_data is null, we just return null for it.
+    // The BLoC logic handles "valid=true but verificationData=null" as denied.
+
+    return VerifyPurchaseResponse(
+      success: json["success"],
+      message: json["message"],
+      purchase:
+          json["purchase"] == null ? null : Purchase.fromJson(json["purchase"]),
+      verificationData:
+          verificationDataJson == null
+              ? null
+              : VerificationData.fromJson(verificationDataJson),
+    );
+  }
 
   Map<String, dynamic> toJson() => {
     "success": success,

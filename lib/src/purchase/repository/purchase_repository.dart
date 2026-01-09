@@ -9,7 +9,8 @@ import 'package:soloseaters/src/purchase/bloc/bloc/purchase_state.dart';
 import 'package:soloseaters/src/resources/api_providers/iap/iap_data_provider.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:soloseaters/src/utils/extension/state_model_extension.dart';
-import 'package:soloseaters/src/model/payment/subscription_status_response.dart'; // Assuming this holds your provided model
+import 'package:soloseaters/src/model/payment/subscription_status_response.dart';
+import 'package:soloseaters/src/model/payment/subscription_status_request.dart';
 
 class PaymentRepository {
   final IapDataProvider _iapDataProvider;
@@ -581,19 +582,18 @@ class PaymentRepository {
       final effectiveProductId = productId ?? currentSubscriptionId ?? '';
       final effectiveToken = purchaseToken ?? latestPurchaseToken ?? '';
 
-      // MODIFIED: Use VerifyPurchaseRequest instead of SubscriptionStatusRequest
-      // This routes the status check through the robust /verify endpoint
-      final request = VerifyPurchaseRequest(
+      // MODIFIED: Reverting to SubscriptionStatusRequest
+      final request = SubscriptionStatusRequest(
         purchaseToken: effectiveToken,
         productId: effectiveProductId, // ✅ Use provided or cached product ID
         platform: currentPlatform,
       );
       print(
-        '📤 Requesting status via VERIFY endpoint for product: ${request.productId.isNotEmpty ? request.productId : "(will be derived from token)"} (platform: ${request.platform})',
+        '📤 Requesting status via STATUS endpoint for product: ${request.productId.isNotEmpty ? request.productId : "(will be derived from token)"} (platform: ${request.platform})',
       );
 
-      // MODIFIED: Call verifyPurchase instead of getSubscriptionStatus
-      final stateModel = await _iapDataProvider.verifyPurchase(
+      // MODIFIED: Reverting to getSubscriptionStatus
+      final stateModel = await _iapDataProvider.getSubscriptionStatus(
         request,
       ); // Pass the request
 
@@ -604,22 +604,13 @@ class PaymentRepository {
       if (stateModel.isSuccess) {
         final response = stateModel.data!;
 
-        // ✅ NEW: Check if the verification itself considers the receipt valid
-        if (!response.valid) {
-          print(
-            '❌ Verification endpoint returned valid=false during status check.',
-          );
-          print('   Message: ${response.message}');
-          // If valid is false, we probably can't trust any data, but let's check if verificationData exists just in case
-        }
-
         // 🟢 FIX: Access verification properties through response.verificationData
         final verificationData = response.verificationData;
 
         // Check if verificationData is null before proceeding
         if (verificationData == null) {
           print(
-            '❌ Verify endpoint success=true but verification_data is null.',
+            '❌ Status endpoint success=true but verification_data is null.',
           );
           print('   Returning cache to avoid blocking user.');
           return await getUserSubscriptionData();
