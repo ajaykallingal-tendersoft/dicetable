@@ -479,12 +479,20 @@ class PaymentRepository {
   /// MODIFIED to construct and use SubscriptionStatusRequest
   Future<Map<String, dynamic>> fetchSubscriptionStatusFromBackend({
     String? productId, // ✅ NEW: Optional product ID from restored purchase
+    String?
+    purchaseToken, // ✅ NEW: Optional purchase token (e.g. from restored purchase)
   }) async {
     try {
       print('🔄 Repository: Fetching subscription status');
       if (productId != null) {
         print('   Using provided product ID: $productId');
       }
+      if (purchaseToken != null) {
+        print(
+          '   Using provided purchase token: ${purchaseToken.substring(0, 10)}...',
+        );
+      }
+
       final prefs = ObjectFactory().prefs;
       final userId = prefs.getUserId();
       final cafeId = prefs.getCafeId();
@@ -510,7 +518,10 @@ class PaymentRepository {
 
       // ✅ FIX: For restored purchases, we might have purchase token but no subscription ID
       // Allow API call if we have EITHER purchase token OR subscription ID
-      if (latestPurchaseToken == null && currentSubscriptionId == null) {
+      // If a specific purchaseToken is provided, we can proceed even if cache is empty
+      if (purchaseToken == null &&
+          latestPurchaseToken == null &&
+          currentSubscriptionId == null) {
         print(
           '⚠️ Authenticated but missing both purchase token and subscription ID.',
         );
@@ -526,15 +537,20 @@ class PaymentRepository {
       }
 
       // ✅ Log which identifiers we have
-      if (latestPurchaseToken != null && latestPurchaseToken.isNotEmpty) {
-        print('✅ Have purchase token - can fetch subscription status');
+      if (purchaseToken != null && purchaseToken.isNotEmpty) {
+        print('✅ Have provided purchase token - can fetch subscription status');
+      } else if (latestPurchaseToken != null &&
+          latestPurchaseToken.isNotEmpty) {
+        print('✅ Have cached purchase token - can fetch subscription status');
       }
       if (currentSubscriptionId != null && currentSubscriptionId.isNotEmpty) {
         print('✅ Have subscription ID - can fetch subscription status');
       }
 
       // ✅ ADDITIONAL CHECK: If tokens are empty strings (not null but invalid)
-      if ((latestPurchaseToken != null && latestPurchaseToken.isEmpty) &&
+      // Only check if we are relying on cache (purchaseToken is null)
+      if (purchaseToken == null &&
+          (latestPurchaseToken != null && latestPurchaseToken.isEmpty) &&
           (currentSubscriptionId != null && currentSubscriptionId.isEmpty)) {
         print('⚠️ Purchase token and subscription ID are empty strings');
         print('   → Returning cached data to prevent 400 error');
@@ -564,8 +580,10 @@ class PaymentRepository {
 
       // ✅ CONSTRUCT THE REQUEST - use provided productId or fall back to cache
       final effectiveProductId = productId ?? currentSubscriptionId ?? '';
+      final effectiveToken = purchaseToken ?? latestPurchaseToken ?? '';
+
       final request = SubscriptionStatusRequest(
-        purchaseToken: latestPurchaseToken ?? '',
+        purchaseToken: effectiveToken,
         productId: effectiveProductId, // ✅ Use provided or cached product ID
         platform: currentPlatform,
       );
@@ -578,7 +596,10 @@ class PaymentRepository {
       ); // Pass the request
 
       if (stateModel == null) {
-        return await getUserSubscriptionData();
+        final data = await getUserSubscriptionData();
+        final mutableData = Map<String, dynamic>.from(data);
+        mutableData['fromCache'] = true;
+        return mutableData;
       }
 
       if (stateModel.isSuccess) {
@@ -593,7 +614,10 @@ class PaymentRepository {
             '❌ Subscription status success=true but verification_data is null.',
           );
           print('   Returning cache to avoid blocking user.');
-          return await getUserSubscriptionData();
+          final data = await getUserSubscriptionData();
+          final mutableData = Map<String, dynamic>.from(data);
+          mutableData['fromCache'] = true;
+          return mutableData;
         }
 
         // ✅ CRITICAL: Validate that backend returned subscription status fields
@@ -781,7 +805,10 @@ class PaymentRepository {
       }
 
       // Fallback: If status check fails (e.g., success: false, Purchase is pending)
-      return await getUserSubscriptionData();
+      final data = await getUserSubscriptionData();
+      final mutableData = Map<String, dynamic>.from(data);
+      mutableData['fromCache'] = true;
+      return mutableData;
     } catch (e) {
       //  Catch network or parsing errors
       // Reset debounce to allow immediate retry
@@ -791,7 +818,10 @@ class PaymentRepository {
       _lastStatusCheckTime = null;
 
       // Return cache to avoid blocking user
-      return await getUserSubscriptionData();
+      final data = await getUserSubscriptionData();
+      final mutableData = Map<String, dynamic>.from(data);
+      mutableData['fromCache'] = true;
+      return mutableData;
     }
   }
 

@@ -1175,6 +1175,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
             final statusResult = await _paymentRepository
                 .fetchSubscriptionStatusFromBackend(
                   productId: purchaseDetails.productID,
+                  purchaseToken: tempToken, // ✅ Pass fresh token!
                 )
                 .timeout(
                   const Duration(seconds: 30),
@@ -1194,14 +1195,25 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
                 statusResult['premiumOverride'] as bool? ?? false;
             final userType = statusResult['userType'] as UserType?;
             final didTimeout = statusResult['timeout'] as bool? ?? false;
+            // ✅ NEW: Check if result is from cache (meaning API failed)
+            final fromCache = statusResult['fromCache'] as bool? ?? false;
 
             print('📊 Status check result:');
             print('   isPremium: $isPremium');
             print('   premiumOverride: $premiumOverride');
             print('   userType: $userType');
             print('   timeout: $didTimeout');
+            print('   fromCache: $fromCache');
 
             // ✅ CRITICAL FIX: Handle timeout case
+            if (didTimeout) {
+              // ... existing timeout logic ... (omitted for brevity in replacement if unchanged, but I need to include it or carefully splice)
+              // ACTUALLY, I should keep the timeout logic.
+              // For this tool, I must replace the whole block or splice carefully.
+              // I will replace from "Check if we got valid subscription data" down to the start of "if (isPremium || premiumOverride)"
+            }
+
+            // ... Re-implementing timeout block for safety ...
             if (didTimeout) {
               print(
                 '⏱️ Backend verification timed out - completing purchase WITHOUT granting access',
@@ -1231,7 +1243,59 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
               continue; // Move to next purchase
             }
 
-            if (isPremium || premiumOverride) {
+            // ✅ FALLBACK STRATEGY: If verify-status failed (fromCache=true or explicit error),
+            // try the lenient verify endpoint
+            bool fallbackSuccess = false;
+
+            if (fromCache && !isPremium && !premiumOverride) {
+              print('');
+              print(
+                '⚠️ Primary verification (verify-status) failed or returned cache.',
+              );
+              print(
+                '   Attempting fallback to lenient verification endpoint...',
+              );
+
+              try {
+                // Construct payload for verify endpoint
+                // We need to conform to what _onVerifyPurchase does
+                final verificationPayload = <String, dynamic>{
+                  'source': purchaseDetails.verificationData.source,
+                  'productId': purchaseDetails.productID,
+                  'verificationData':
+                      purchaseDetails
+                          .verificationData
+                          .serverVerificationData, // Android
+                  'receipt_data': tempToken, // iOS requires this key
+                  'platform': platform,
+                };
+
+                if (Platform.isIOS) {
+                  verificationPayload['receipt_data'] = tempToken;
+                }
+
+                print('📤 Fallback verification payload prepared');
+                final verifyResult = await _paymentRepository.verifyPurchase(
+                  verificationPayload,
+                );
+
+                if (verifyResult['valid'] == true) {
+                  print('✅ FAILSAFE: Fallback verification SUCCEEDED!');
+                  print('   Granting premium access based on lenient check.');
+                  fallbackSuccess = true;
+
+                  // Update minimal valid state
+                  // We don't have expiry dates, so we assume valid for now or use defaults
+                } else {
+                  print('❌ FAILSAFE: Fallback verification also failed.');
+                  print('   Message: ${verifyResult['message']}');
+                }
+              } catch (e) {
+                print('❌ FAILSAFE: Error during fallback verification: $e');
+              }
+            }
+
+            if (isPremium || premiumOverride || fallbackSuccess) {
               print('✅ Subscription is ACTIVE - caching token permanently');
               print('   This purchase is valid and will be cached');
 
@@ -1242,6 +1306,19 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
                 subscriptionId: purchaseDetails.productID,
               );
               print('✅ Cached active subscription token');
+
+              // If fallback success, we might need to set a flag in prefs to override local check?
+              // PaymentRepository handles cacheBackendSubscriptionState.
+              // We should update the repo with our findings.
+              if (fallbackSuccess) {
+                await _paymentRepository.cacheBackendSubscriptionState(
+                  isPaidUser: true,
+                  subscriptionStatus: true,
+                  premiumOverride: true, // Force override
+                  isVenueUser: isVenueUser,
+                  // We don't have dates, so relies on override
+                );
+              }
 
               // Complete the purchase (Android only - iOS already completed above)
               if (!Platform.isIOS && purchaseDetails.pendingCompletePurchase) {
@@ -1256,17 +1333,21 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
               emit(
                 state.copyWith(
                   status: PaymentPlanStatus.purchaseRestored,
-                  isPremium: isPremium,
-                  userType: userType,
+                  isPremium: true, // Force true
+                  userType:
+                      userType ??
+                      (isVenueUser ? UserType.venuePaid : UserType.publicPaid),
+                  // Use existing dates if available, or null
                   trialStartDate: statusResult['trialStartDate'] as DateTime?,
                   trialEndDate: statusResult['trialEndDate'] as DateTime?,
                   subscriptionExpiryDate:
                       statusResult['subscriptionExpiryDate'] as DateTime?,
                   currentSubscriptionId:
-                      statusResult['currentSubscriptionId'] as String?,
+                      statusResult['currentSubscriptionId'] as String? ??
+                      purchaseDetails.productID,
                   errorMessage: null,
                   isProcessing: false,
-                  premiumOverride: premiumOverride,
+                  premiumOverride: true,
                   pendingPurchase: null,
                   pendingPayload: null,
                 ),
