@@ -1214,8 +1214,13 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
                 print('✅ Completed timed-out purchase on store');
               }
 
-              // Mark as processed to prevent retry
-              _processedPurchases.add(purchaseId);
+              // DO NOT mark as processed if it failed, so user can try again?
+              // Actually, if we complete it, it's gone from the queue.
+              // But if the user clicks "Buy" again, Apple might return the same transaction ID if it wasn't fully finished?
+              // Or a new one.
+              // If we keep it in _processedPurchases, and Apple returns the SAME ID, we will ignore it.
+              // So we should REMOVE it from processed purchases to allow re-processing if it re-appears.
+              _processedPurchases.remove(purchaseId);
 
               emit(
                 state.copyWith(
@@ -1388,6 +1393,11 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
                 );
 
                 // Note: Already marked as processed at the start of this function
+                // BUT since we are effectively canceling/resetting, we should probably remove it?
+                // If Apple returns the SAME transaction ID for a renew, we need to process it.
+                // If we don't remove it, we might ignore a valid renewal if it has the same ID (unlikely for new periods, but possible for restores).
+                _processedPurchases.remove(purchaseId);
+
                 print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
                 print('✅ RESTORED PURCHASE CLEARED - USER CAN SUBSCRIBE AGAIN');
                 print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
