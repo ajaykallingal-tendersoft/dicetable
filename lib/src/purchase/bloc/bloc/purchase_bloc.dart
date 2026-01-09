@@ -24,6 +24,9 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
   String? _currentUserId;
   final Set<String> _processedPurchases = {};
 
+  // ✅ NEW: Session-based restore tracking to prevent multiple restore calls
+  static bool _hasRestoredThisSession = false;
+
   PaymentPlanBloc({
     required PaymentService paymentService,
     required PaymentRepository paymentRepository,
@@ -182,6 +185,8 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         _purchaseSubscription = null;
         // Reset to initial state before proceeding
         emit(const PaymentPlanState());
+        // ✅ NEW: Reset session restore flag on user change
+        _hasRestoredThisSession = false;
       }
 
       _currentUserId = newUserId;
@@ -212,6 +217,26 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
           add(const ClearErrorEvent());
         },
       );
+
+      // ✅ NEW: Restore purchases (ONLY ONCE PER SESSION)
+      // This ensures subscriptions are available after login without requiring
+      // user to manually click "Restore Purchases" button
+      if (!_hasRestoredThisSession) {
+        print(
+          '🔄 First payment initialization - restoring purchases from store...',
+        );
+        await paymentService.restorePurchases();
+        _hasRestoredThisSession = true;
+
+        // Wait briefly for restore to complete and populate purchase stream
+        print('⏳ Waiting 1000ms for restore to complete...');
+        await Future.delayed(const Duration(milliseconds: 1000));
+        print('✅ Restore wait complete');
+      } else {
+        print(
+          '✅ Already restored this session - using cached subscription data',
+        );
+      }
 
       // Load initial local data
       final userData = await _paymentRepository.getUserSubscriptionData();

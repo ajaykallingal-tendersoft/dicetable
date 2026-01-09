@@ -526,11 +526,19 @@ class PaymentRepository {
       }
 
       // ✅ Log which identifiers we have
-      if (latestPurchaseToken != null) {
+      if (latestPurchaseToken != null && latestPurchaseToken.isNotEmpty) {
         print('✅ Have purchase token - can fetch subscription status');
       }
-      if (currentSubscriptionId != null) {
+      if (currentSubscriptionId != null && currentSubscriptionId.isNotEmpty) {
         print('✅ Have subscription ID - can fetch subscription status');
+      }
+
+      // ✅ ADDITIONAL CHECK: If tokens are empty strings (not null but invalid)
+      if ((latestPurchaseToken != null && latestPurchaseToken.isEmpty) &&
+          (currentSubscriptionId != null && currentSubscriptionId.isEmpty)) {
+        print('⚠️ Purchase token and subscription ID are empty strings');
+        print('   → Returning cached data to prevent 400 error');
+        return cachedData;
       }
 
       // ✅ NEW: Debouncing - prevent redundant API calls
