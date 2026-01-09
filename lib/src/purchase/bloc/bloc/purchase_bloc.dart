@@ -166,8 +166,6 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
     Emitter<PaymentPlanState> emit,
   ) async {
     try {
-      emit(state.copyWith(status: PaymentPlanStatus.loading));
-
       // ✅ Detect user change and reset if needed
       final prefs = ObjectFactory().prefs;
       final newUserId =
@@ -185,12 +183,38 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         _purchaseSubscription = null;
         // Reset to initial state before proceeding
         emit(const PaymentPlanState());
-        // ✅ NEW: Reset session restore flag on user change
+        // ✅ Reset session restore flag on user change
         _hasRestoredThisSession = false;
       }
 
       _currentUserId = newUserId;
       print('👤 Current user ID: $_currentUserId');
+
+      // ✅ CRITICAL FIX: Load cached data FIRST, before restore
+      // This ensures canAccessPremiumFeatures returns correct value immediately
+      final userData = await _paymentRepository.getUserSubscriptionData();
+      final premiumOverride = userData['premiumOverride'] as bool? ?? false;
+      final determinedUserType = userData['userType'] as UserType;
+
+      print("✅ Cached premium override: $premiumOverride");
+      print("✅ Determined user type: $determinedUserType");
+
+      // ✅ Emit initial state WITH cached premium override
+      // This prevents payment screens from showing during restore delay
+      emit(
+        state.copyWith(
+          status: PaymentPlanStatus.loading,
+          isProcessing: true, // Show loading in UI
+          userType: determinedUserType,
+          isPremium: userData['isPremium'] as bool,
+          trialStartDate: userData['trialStartDate'] as DateTime?,
+          trialEndDate: userData['trialEndDate'] as DateTime?,
+          subscriptionExpiryDate:
+              userData['subscriptionExpiryDate'] as DateTime?,
+          currentSubscriptionId: userData['currentSubscriptionId'] as String?,
+          premiumOverride: premiumOverride, // ✅ CRITICAL: Set immediately
+        ),
+      );
 
       final isAvailable = await paymentService.initialize();
       if (!isAvailable) {
@@ -198,6 +222,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
           state.copyWith(
             status: PaymentPlanStatus.purchaseFailed,
             errorMessage: 'In-app purchases are not available on this device',
+            isProcessing: false,
           ),
         );
         return;
@@ -218,13 +243,19 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         },
       );
 
-      // ✅ NEW: Restore purchases (ONLY ONCE PER SESSION)
+      // ✅ Restore purchases (ONLY ONCE PER SESSION)
       // This ensures subscriptions are available after login without requiring
       // user to manually click "Restore Purchases" button
       if (!_hasRestoredThisSession) {
         print(
           '🔄 First payment initialization - restoring purchases from store...',
         );
+
+        // Keep loading status with isProcessing=true during restore
+        emit(
+          state.copyWith(status: PaymentPlanStatus.loading, isProcessing: true),
+        );
+
         await paymentService.restorePurchases();
         _hasRestoredThisSession = true;
 
@@ -238,26 +269,29 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         );
       }
 
-      // Load initial local data
-      final userData = await _paymentRepository.getUserSubscriptionData();
-      print("DEBUG USER DATA: $userData");
+      // ✅ Refresh user data after restore (might have updated)
+      final refreshedUserData =
+          await _paymentRepository.getUserSubscriptionData();
+      final refreshedPremiumOverride =
+          refreshedUserData['premiumOverride'] as bool? ?? false;
 
-      final determinedUserType = userData['userType'] as UserType;
-      final premiumOverride = userData['premiumOverride'] as bool? ?? false;
-      print("✅ Determined user type: $determinedUserType");
-      print("✅ Premium override from cache: $premiumOverride");
+      print(
+        "✅ Refreshed premium override after restore: $refreshedPremiumOverride",
+      );
 
       emit(
         state.copyWith(
           status: PaymentPlanStatus.initial,
-          userType: determinedUserType,
-          isPremium: userData['isPremium'] as bool,
-          trialStartDate: userData['trialStartDate'] as DateTime?,
-          trialEndDate: userData['trialEndDate'] as DateTime?,
+          isProcessing: false, // ✅ Clear processing flag
+          userType: refreshedUserData['userType'] as UserType,
+          isPremium: refreshedUserData['isPremium'] as bool,
+          trialStartDate: refreshedUserData['trialStartDate'] as DateTime?,
+          trialEndDate: refreshedUserData['trialEndDate'] as DateTime?,
           subscriptionExpiryDate:
-              userData['subscriptionExpiryDate'] as DateTime?,
-          currentSubscriptionId: userData['currentSubscriptionId'] as String?,
-          premiumOverride: premiumOverride,
+              refreshedUserData['subscriptionExpiryDate'] as DateTime?,
+          currentSubscriptionId:
+              refreshedUserData['currentSubscriptionId'] as String?,
+          premiumOverride: refreshedPremiumOverride,
         ),
       );
 
@@ -268,10 +302,10 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
 
       // ✅ CONDITIONAL: Fetch backend status if cache appears stale
       // Only skip if we have a valid premium state (after recent purchase)
-      // This ensures subscription state is restored after logout/login
-      if (!premiumOverride &&
-          determinedUserType != UserType.venuePaid &&
-          determinedUserType != UserType.publicPaid) {
+      // This ensures subscription status is restored after logout/login
+      if (!refreshedPremiumOverride &&
+          refreshedUserData['userType'] != UserType.venuePaid &&
+          refreshedUserData['userType'] != UserType.publicPaid) {
         print(
           '🔄 Cache appears empty/stale - fetching subscription status from backend...',
         );

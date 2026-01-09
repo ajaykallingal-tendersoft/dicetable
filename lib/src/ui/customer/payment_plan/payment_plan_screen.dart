@@ -258,18 +258,23 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
             }
           },
           builder: (context, state) {
-            // Show loading with EasyLoading for initial product fetch
-            if (state.status == PaymentPlanStatus.loading &&
-                !state.isProcessing) {
-              // Use EasyLoading for consistency
+            // ✅ Show loading during restore OR initial product fetch
+            if (state.status == PaymentPlanStatus.loading) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (EasyLoading.isShow == false) {
+                  final message =
+                      state.isProcessing
+                          ? 'Restoring purchases...'
+                          : 'Loading plans...';
                   EasyLoading.show(
-                    status: 'Loading plans...',
+                    status: message,
                     maskType: EasyLoadingMaskType.black,
                   );
                 }
               });
+
+              // ✅ Return blank screen during loading (don't show payment plans yet)
+              return const Center(child: SizedBox.shrink());
             }
 
             // Dismiss EasyLoading when products are loaded
