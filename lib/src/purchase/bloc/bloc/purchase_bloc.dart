@@ -22,6 +22,8 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
   //NEW: Track current user to detect switches
   String? _currentUserId;
   final Set<String> _processedPurchases = {};
+  bool _isVerifying =
+      false; // ✅ NEW: Verification lock to prevent concurrent verification
 
   // ✅ NEW: Session-based restore tracking to prevent multiple restore calls
   static bool _hasRestoredThisSession = false;
@@ -120,6 +122,57 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
     }
   }
 
+  // ✅ NEW: Load processed purchases from SharedPreferences on init
+  Future<void> _loadProcessedPurchases() async {
+    try {
+      final prefs = ObjectFactory().prefs;
+      final sharedPrefs = prefs.getSharedPrefs;
+      if (sharedPrefs == null) return;
+
+      final stored = sharedPrefs.getString('processed_purchases') ?? '';
+      if (stored.isNotEmpty) {
+        _processedPurchases.addAll(stored.split(','));
+        print(
+          '📦 Loaded ${_processedPurchases.length} processed purchases from cache',
+        );
+      }
+    } catch (e) {
+      print('⚠️ Error loading processed purchases: $e');
+      // Non-fatal, continue without cached data
+    }
+  }
+
+  // ✅ NEW: Save processed purchases to SharedPreferences
+  Future<void> _persistProcessedPurchases() async {
+    try {
+      final prefs = ObjectFactory().prefs;
+      final sharedPrefs = prefs.getSharedPrefs;
+      if (sharedPrefs == null) return;
+
+      await sharedPrefs.setString(
+        'processed_purchases',
+        _processedPurchases.join(','),
+      );
+    } catch (e) {
+      print('⚠️ Error persisting processed purchases: $e');
+      // Non-fatal, continue
+    }
+  }
+
+  // ✅ NEW: Clear processed purchases from SharedPreferences
+  Future<void> _clearPersistedProcessedPurchases() async {
+    try {
+      final prefs = ObjectFactory().prefs;
+      final sharedPrefs = prefs.getSharedPrefs;
+      if (sharedPrefs == null) return;
+
+      await sharedPrefs.remove('processed_purchases');
+    } catch (e) {
+      print('⚠️ Error clearing processed purchases: $e');
+      // Non-fatal, continue
+    }
+  }
+
   //NEW: Reset state completely on user change
   Future<void> _onResetState(
     ResetStateEvent event,
@@ -132,6 +185,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
 
     // ✅ Clear processed purchases on reset
     _processedPurchases.clear();
+    await _clearPersistedProcessedPurchases(); // ✅ NEW: Clear from storage
 
     emit(const PaymentPlanState());
     _currentUserId = null;
@@ -214,6 +268,9 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         ),
       );
 
+      // ✅ Load processed purchases from storage
+      await _loadProcessedPurchases();
+
       final isAvailable = await paymentService.initialize();
       if (!isAvailable) {
         emit(
@@ -230,6 +287,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
       // This ensures all restored purchases from the stream are processed fresh
       // Fixes logout→login premium loss by allowing restored purchases to be re-verified
       _processedPurchases.clear();
+      await _clearPersistedProcessedPurchases(); // ✅ NEW: Clear from storage
       print('🔄 Cleared processed purchases before stream subscription');
 
       _purchaseSubscription = paymentService.purchaseStream.listen(
@@ -334,6 +392,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
       // ✅ CRITICAL FIX: Clear processed purchases to allow all pending purchases to be re-processed
       // This ensures restored purchases are verified after login
       _processedPurchases.clear();
+      await _clearPersistedProcessedPurchases(); // ✅ NEW: Clear from storage
       print('🔄 Cleared processed purchases for pending check');
 
       // Query past purchases to find any that weren't completed
@@ -1134,6 +1193,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         // Moving this BEFORE payload extraction closes the race condition window
         print('🔒 Marking purchase as processed to prevent duplicate handling');
         _processedPurchases.add(purchaseId);
+        await _persistProcessedPurchases(); // ✅ NEW: Save to storage
         print('   Purchase ID added to processed set: $purchaseId');
         print('   Total processed purchases: ${_processedPurchases.length}');
 
@@ -1167,6 +1227,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
 
             // Remove from processed set so user can try again
             _processedPurchases.remove(purchaseId);
+            await _persistProcessedPurchases(); // ✅ NEW: Save to storage
 
             // Emit error state to dismiss loader and allow user to retry
             emit(
@@ -1281,6 +1342,15 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
     VerifyPurchaseEvent event,
     Emitter<PaymentPlanState> emit,
   ) async {
+    // ✅ NEW: Check verification lock to prevent concurrent verification
+    if (_isVerifying) {
+      print('⚠️ Verification already in progress, skipping duplicate request');
+      print('   This prevents race conditions from rapid purchase attempts');
+      return;
+    }
+
+    _isVerifying = true; // ✅ Set lock
+
     try {
       emit(state.copyWith(status: PaymentPlanStatus.verifying));
 
@@ -1564,7 +1634,9 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
           currentSubscriptionId: userData['currentSubscriptionId'] as String?,
           isProcessing: false,
           verificationAttempts: 0,
-          premiumOverride: true,
+          premiumOverride:
+              userData['premiumOverride'] as bool? ??
+              false, // ✅ FIX: Use cached value, don't hardcode true
         ),
       );
 
@@ -1609,6 +1681,9 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
           verificationAttempts: 0,
         ),
       );
+    } finally {
+      // ✅ CRITICAL: Always reset lock, even if exception occurs
+      _isVerifying = false;
     }
   }
 
@@ -1724,10 +1799,11 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
   }
 
   @override
-  Future<void> close() {
+  Future<void> close() async {
     _purchaseSubscription?.cancel();
     paymentService.dispose();
     _processedPurchases.clear();
+    await _clearPersistedProcessedPurchases(); // ✅ NEW: Clear from storage
     return super.close();
   }
 }

@@ -736,8 +736,24 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                           TextButton(
                             onPressed: () {
                               Navigator.of(dialogContext).pop(); // Close dialog
-                              // Navigate to home
-                              context.go('/home');
+
+                              // ✅ FIX: Refresh state before navigating to ensure sync
+                              context.read<PaymentPlanBloc>().add(
+                                const CheckSubscriptionStatusEvent(),
+                              );
+
+                              // Navigate after short delay to ensure state is synced
+                              Future.delayed(
+                                const Duration(milliseconds: 500),
+                                () {
+                                  if (mounted) {
+                                    print(
+                                      '✅ Navigating to home with synced state (restore)',
+                                    );
+                                    context.go('/home');
+                                  }
+                                },
+                              );
                             },
                             child: Text(
                               'Continue',
