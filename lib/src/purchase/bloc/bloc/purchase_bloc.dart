@@ -944,7 +944,46 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
     HandlePurchaseUpdateEvent event,
     Emitter<PaymentPlanState> emit,
   ) async {
-    for (final purchaseDetails in event.purchaseDetailsList) {
+    // 🎯 OPTIMIZATION: Group purchases by product ID and keep only the latest
+    // This reduces verification attempts (e.g., 8 → 2)
+    // Safe because: Latest transaction is always the active one for iOS subscriptions
+    final Map<String, PurchaseDetails> latestPurchases = {};
+
+    print('');
+    print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    print('🎯 PURCHASE OPTIMIZATION: Grouping by product ID');
+    print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    print('   Total purchases received: ${event.purchaseDetailsList.length}');
+
+    for (final purchase in event.purchaseDetailsList) {
+      final productId = purchase.productID;
+      final existing = latestPurchases[productId];
+
+      if (existing == null) {
+        latestPurchases[productId] = purchase;
+        print('   ✅ Added: $productId (ID: ${purchase.purchaseID})');
+      } else {
+        // Compare purchase IDs - higher ID = more recent (iOS sequential IDs)
+        final currentId = int.tryParse(purchase.purchaseID ?? '0') ?? 0;
+        final existingId = int.tryParse(existing.purchaseID ?? '0') ?? 0;
+
+        if (currentId > existingId) {
+          latestPurchases[productId] = purchase;
+          print('   🔄 Updated: $productId (newer ID: ${purchase.purchaseID})');
+        } else {
+          print('   ⏭️ Skipped: $productId (older ID: ${purchase.purchaseID})');
+        }
+      }
+    }
+
+    print(
+      '   📊 Optimized: ${event.purchaseDetailsList.length} → ${latestPurchases.length} purchases',
+    );
+    print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    print('');
+
+    // Process only the latest purchases
+    for (final purchaseDetails in latestPurchases.values) {
       print(
         '📱 Purchase status: ${purchaseDetails.status} for ${purchaseDetails.productID}',
       );
