@@ -24,6 +24,8 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
   final Set<String> _processedPurchases = {};
   bool _isVerifying =
       false; // ✅ NEW: Verification lock to prevent concurrent verification
+  Timer?
+  _purchaseTimeoutTimer; // ✅ NEW: Purchase timeout timer for cancellation
 
   // ✅ NEW: Session-based restore tracking to prevent multiple restore calls
   static bool _hasRestoredThisSession = false;
@@ -200,6 +202,10 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
   ) async {
     print('🚫 Handling purchase cancellation...');
     print('   Current status before cancel: ${state.status}');
+
+    // ✅ Cancel timeout timer if it's running
+    _purchaseTimeoutTimer?.cancel();
+    _purchaseTimeoutTimer = null;
 
     emit(
       state.copyWith(
@@ -892,19 +898,25 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         ),
       );
 
-      // ✅ CRITICAL FIX: Start a timeout to handle iOS cancellation that doesn't emit event
-      // Reduced to 10 seconds for better UX when native sheet is dismissed
-      print('⏱️ Starting 10-second purchase timeout...');
-      Timer(const Duration(seconds: 10), () {
-        // ✅ FIX: Don't trigger timeout if purchase was successful or restored
-        if ((state.status == PaymentPlanStatus.purchasing ||
-                state.status == PaymentPlanStatus.verifying) &&
-            state.status != PaymentPlanStatus.purchaseSuccess &&
-            state.status != PaymentPlanStatus.purchaseRestored) {
+      // ✅ CRITICAL FIX: Start a timeout to handle iOS/Android sheet dismissal
+      // iOS Sandbox can be slower, so use longer timeout
+      final timeoutDuration =
+          Platform.isIOS
+              ? const Duration(seconds: 20)
+              : const Duration(seconds: 15);
+
+      print(
+        '⏱️ Starting ${timeoutDuration.inSeconds}-second purchase timeout...',
+      );
+      _purchaseTimeoutTimer?.cancel(); // Cancel any existing timer
+      _purchaseTimeoutTimer = Timer(timeoutDuration, () {
+        // Only trigger if purchase hasn't completed
+        if (state.status == PaymentPlanStatus.purchasing ||
+            state.status == PaymentPlanStatus.verifying) {
           print('');
           print('⏱️ ===== PURCHASE TIMEOUT TRIGGERED =====');
           print('   Current status: ${state.status}');
-          print('   This handles iOS sheet dismissal without stream event');
+          print('   This handles sheet dismissal without stream event');
           print('   Dispatching CancelPurchaseEvent to reset state');
           print('========================================');
           print('');
@@ -1417,6 +1429,10 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
           // Fetch fresh user data and emit success (fallback safe path)
           final userData = await _paymentRepository.getUserSubscriptionData();
 
+          // ✅ CRITICAL: Cancel timeout timer before emitting success
+          _purchaseTimeoutTimer?.cancel();
+          _purchaseTimeoutTimer = null;
+
           emit(
             state.copyWith(
               status: PaymentPlanStatus.purchaseSuccess,
@@ -1586,6 +1602,10 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         print('');
 
+        // ✅ CRITICAL: Cancel timeout timer before emitting success
+        _purchaseTimeoutTimer?.cancel();
+        _purchaseTimeoutTimer = null;
+
         // ✅ Emit success state with backend data
         emit(
           state.copyWith(
@@ -1624,6 +1644,10 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
         '⚠️ Backend response missing subscription fields, using cached data',
       );
       final userData = await _paymentRepository.getUserSubscriptionData();
+
+      // ✅ CRITICAL: Cancel timeout timer before emitting success
+      _purchaseTimeoutTimer?.cancel();
+      _purchaseTimeoutTimer = null;
 
       emit(
         state.copyWith(
