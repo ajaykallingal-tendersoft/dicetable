@@ -238,24 +238,9 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                 !state.isProcessing) {
               // ✅ Dismiss loading when restore completes with no active subscription found
               EasyLoading.dismiss();
-            } else if (state.status == PaymentPlanStatus.cancelled) {
-              EasyLoading.dismiss();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'Purchase was cancelled',
-                    style: GoogleFonts.montserrat(
-                      color: AppColors.primaryWhiteColor,
-                    ),
-                  ),
-                  behavior: SnackBarBehavior.floating,
-                  duration: const Duration(seconds: 3),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              );
             }
+            // ✅ REMOVED: Purchase cancelled snackbar
+            // Users don't need to see this - it's handled by dismissing the sheet
           },
           builder: (context, state) {
             // ✅ Show loading during restore OR initial product fetch
