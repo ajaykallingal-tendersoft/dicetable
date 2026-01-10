@@ -966,13 +966,6 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
 
       if (purchaseDetails.status == PurchaseStatus.purchased ||
           purchaseDetails.status == PurchaseStatus.restored) {
-        // ✅ CRITICAL FIX: Mark as processed IMMEDIATELY to prevent infinite loop
-        // This must happen BEFORE any async operations that might hang
-        print('🔒 Marking purchase as processed to prevent duplicate handling');
-        _processedPurchases.add(purchaseId);
-        print('   Purchase ID added to processed set: $purchaseId');
-        print('   Total processed purchases: ${_processedPurchases.length}');
-
         // ✅ FIXED: For RESTORED purchases, check subscription status FIRST before caching
         if (purchaseDetails.status == PurchaseStatus.restored) {
           print(
@@ -1074,7 +1067,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
               print('✅ Mismatched purchase completed on store');
             }
 
-            // Don't process this purchase further - already marked as processed above
+            // Don't process this purchase further
             return;
           }
 
@@ -1097,14 +1090,12 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
           print('');
         }
 
-        // Skip if already processing/processed
-        if (_processedPurchases.contains(purchaseId)) {
-          print('⏭️ Skipping duplicate purchase event for: $purchaseId');
-          continue;
-        }
-
-        // Mark as being processed
+        // ✅ CRITICAL FIX: Mark as processed AFTER validation, not before
+        // This prevents duplicate handling but allows verification to proceed
+        print('🔒 Marking purchase as processed to prevent duplicate handling');
         _processedPurchases.add(purchaseId);
+        print('   Purchase ID added to processed set: $purchaseId');
+        print('   Total processed purchases: ${_processedPurchases.length}');
 
         final payload = await paymentService.extractVerificationPayload(
           purchaseDetails,
