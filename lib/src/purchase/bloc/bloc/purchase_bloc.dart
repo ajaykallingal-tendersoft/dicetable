@@ -1090,8 +1090,9 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
           print('');
         }
 
-        // ✅ CRITICAL FIX: Mark as processed AFTER validation, not before
-        // This prevents duplicate handling but allows verification to proceed
+        // ✅ CRITICAL FIX: Mark as processed IMMEDIATELY after validation
+        // This prevents duplicate handling even if concurrent events arrive
+        // Moving this BEFORE payload extraction closes the race condition window
         print('🔒 Marking purchase as processed to prevent duplicate handling');
         _processedPurchases.add(purchaseId);
         print('   Purchase ID added to processed set: $purchaseId');
