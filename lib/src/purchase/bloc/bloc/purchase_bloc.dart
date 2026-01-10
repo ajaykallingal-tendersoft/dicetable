@@ -896,8 +896,11 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
       // Reduced to 10 seconds for better UX when native sheet is dismissed
       print('⏱️ Starting 10-second purchase timeout...');
       Timer(const Duration(seconds: 10), () {
-        if (state.status == PaymentPlanStatus.purchasing ||
-            state.status == PaymentPlanStatus.verifying) {
+        // ✅ FIX: Don't trigger timeout if purchase was successful or restored
+        if ((state.status == PaymentPlanStatus.purchasing ||
+                state.status == PaymentPlanStatus.verifying) &&
+            state.status != PaymentPlanStatus.purchaseSuccess &&
+            state.status != PaymentPlanStatus.purchaseRestored) {
           print('');
           print('⏱️ ===== PURCHASE TIMEOUT TRIGGERED =====');
           print('   Current status: ${state.status}');
