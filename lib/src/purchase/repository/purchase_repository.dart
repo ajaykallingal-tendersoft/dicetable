@@ -392,8 +392,81 @@ class PaymentRepository {
       // Not success
       print('❌ Repository: stateModel indicates failure: ${stateModel.error}');
 
-      // ✅ CHECK FOR DUPLICATE PURCHASE TOKEN ERROR (ownership conflict)
+      // ✅ WORKAROUND: Handle expired subscriptions from 400 errors
+      // Backend returns 400 for expired subscriptions, but we should treat as success with EXPIRED state
       final errorMessage = stateModel.error ?? '';
+      if (errorMessage.toLowerCase().contains('expired')) {
+        print('');
+        print('╔══════════════════════════════════════════╗');
+        print('⚠️ EXPIRED SUBSCRIPTION DETECTED (400 Error)');
+        print('╚══════════════════════════════════════════╝');
+        print('Backend returned 400 for expired subscription.');
+        print(
+          'Treating as success with EXPIRED state to allow resubscription.',
+        );
+        print('');
+
+        // Try to extract verification_data from the error response
+        final responseData = stateModel.data;
+        final verificationData = responseData?.verificationData;
+
+        if (verificationData != null) {
+          print('✅ Extracted verification data from error response');
+          print('   Subscription State: ${verificationData.subscriptionState}');
+          print('   Expiry Time: ${verificationData.expiryTime}');
+          print('   Product ID: ${verificationData.productId}');
+
+          // Cache as expired subscription (premium = false)
+          await cacheBackendSubscriptionState(
+            isPaidUser: false, // ❌ No premium access for expired
+            subscriptionStatus: false,
+            subscriptionExpiryDate:
+                verificationData.expiryTime != null
+                    ? DateTime.fromMillisecondsSinceEpoch(
+                      int.tryParse(verificationData.expiryTime!) ?? 0,
+                    )
+                    : null,
+
+            currentSubscriptionId: verificationData.productId,
+            isVenueUser:
+                verificationData.productId?.toLowerCase().contains('venue') ??
+                false,
+            premiumOverride: false, // ❌ Explicitly deny premium
+          );
+
+          print('✅ Cached expired subscription state');
+          print('   Premium access: DENIED ❌');
+          print('   User can now make new purchase ✅');
+          print('╚══════════════════════════════════════════╝');
+          print('');
+
+          // Return success with expired state
+          return {
+            'valid': true, // ✅ Treat as valid (not an error)
+            'has_active_subscription': false, // ❌ No active subscription
+            'subscription_expired': true, // ⚠️ But it's expired
+            'subscription_state': 'SUBSCRIPTION_STATE_EXPIRED',
+            'message': 'Subscription expired - user can resubscribe',
+          };
+        }
+
+        // If no verification_data, still treat as expired
+        print('⚠️ No verification data in error response');
+        print('   Treating as expired subscription anyway');
+        print('╚══════════════════════════════════════════╝');
+        print('');
+
+        return {
+          'valid': true, // ✅ Treat as valid (not an error)
+          'has_active_subscription': false,
+          'subscription_expired': true,
+          'subscription_state': 'SUBSCRIPTION_STATE_EXPIRED',
+          'message': 'Subscription expired - user can resubscribe',
+        };
+      }
+
+      // ✅ CHECK FOR DUPLICATE PURCHASE TOKEN ERROR (ownership conflict)
+
       if (errorMessage.contains('Duplicate entry') ||
           errorMessage.contains('purchases_purchase_token_unique') ||
           errorMessage.contains('subscription belongs to another user')) {
