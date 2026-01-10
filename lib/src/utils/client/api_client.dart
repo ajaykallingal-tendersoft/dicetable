@@ -31,7 +31,6 @@ import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:soloseaters/src/utils/urls/urls.dart';
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
-import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 
 import '../../model/cafe_owner/auth/login/apple_login_request.dart';
 
@@ -83,19 +82,6 @@ class ApiClient {
             ((X509Certificate cert, String host, int port) => true);
         return client;
       },
-    );
-
-    // ✅ Add pretty_dio_logger for enhanced HTTP logging
-    dioDiceApp.interceptors.add(
-      PrettyDioLogger(
-        requestHeader: true,
-        requestBody: true,
-        responseBody: true,
-        responseHeader: false,
-        error: true,
-        compact: true,
-        maxWidth: 90,
-      ),
     );
 
     dioDiceApp.interceptors.add(
