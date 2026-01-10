@@ -582,6 +582,32 @@ class PaymentRepository {
       final effectiveProductId = productId ?? currentSubscriptionId ?? '';
       final effectiveToken = purchaseToken ?? latestPurchaseToken ?? '';
 
+      // ✅ CRITICAL FIX: Validate that effectiveToken is not empty
+      // Empty tokens cause 422 "purchase_token field is required" errors from backend
+      if (effectiveToken.isEmpty) {
+        print('');
+        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        print('⚠️ EMPTY PURCHASE TOKEN - CANNOT CALL STATUS ENDPOINT');
+        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        print('   Effective Token: (empty string)');
+        print('   Product ID: $effectiveProductId');
+        print('   ');
+        print('   This would cause a 422 error from the backend.');
+        print('   Possible reasons:');
+        print('   1. Restored purchase being processed (will verify directly)');
+        print('   2. Fresh login with cleared cache');
+        print('   3. User has not made a purchase yet');
+        print('   ');
+        print('   → Returning cached data to prevent API error');
+        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        print('');
+        return cachedData;
+      }
+
+      print(
+        '✅ Effective token is valid (length: ${effectiveToken.length} chars)',
+      );
+
       // MODIFIED: Reverting to SubscriptionStatusRequest
       final request = SubscriptionStatusRequest(
         purchaseToken: effectiveToken,
