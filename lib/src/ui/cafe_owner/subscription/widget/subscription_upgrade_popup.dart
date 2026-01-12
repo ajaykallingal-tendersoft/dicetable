@@ -243,15 +243,28 @@ class UpgradePopup extends StatelessWidget {
               context: context,
               builder:
                   (ctx) => AlertDialog(
-                    title: const Text('Verification Issue'),
+                    title: Text(
+                      'Verification Issue',
+                      style: GoogleFonts.montserrat(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                     content: Text(
                       state.errorMessage ??
                           'Unable to verify your purchase. Please contact support.',
+                      style: GoogleFonts.montserrat(color: AppColors.primary),
                     ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.of(ctx).pop(),
-                        child: const Text('OK'),
+                        child: Text(
+                          'OK',
+                          style: GoogleFonts.montserrat(
+                            color: AppColors.secondary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ],
                   ),

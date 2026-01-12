@@ -345,10 +345,19 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                     barrierDismissible: false,
                     builder:
                         (context) => AlertDialog(
-                          title: const Text('Verification Issue'),
+                          title: Text(
+                            'Verification Issue',
+                            style: TextTheme.of(context).titleLarge!.copyWith(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           content: Text(
                             paymentState.errorMessage ??
                                 'Unable to verify your purchase. Please contact support.',
+                            style: TextTheme.of(
+                              context,
+                            ).bodyMedium!.copyWith(color: AppColors.primary),
                           ),
                           actions: [
                             TextButton(
@@ -356,7 +365,15 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                                 Navigator.pop(context);
                                 // User can try again or contact support
                               },
-                              child: const Text('Contact Support'),
+                              child: Text(
+                                'Contact Support',
+                                style: TextTheme.of(
+                                  context,
+                                ).labelLarge!.copyWith(
+                                  color: AppColors.secondary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                             TextButton(
                               onPressed: () {
@@ -366,7 +383,15 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                                   const RestorePurchasesEvent(),
                                 );
                               },
-                              child: const Text('Retry'),
+                              child: Text(
+                                'Retry',
+                                style: TextTheme.of(
+                                  context,
+                                ).labelLarge!.copyWith(
+                                  color: AppColors.secondary,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
                           ],
                         ),
