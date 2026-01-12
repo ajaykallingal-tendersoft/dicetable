@@ -367,7 +367,7 @@ class PaymentRepository {
             premiumOverride: true,
           );
 
-          // ✅ Return all necessary fields for the BLoC
+          //  Return all necessary fields for the BLoC
           return {
             'valid': true,
             'has_active_subscription': hasActiveSubscription,
@@ -434,15 +434,9 @@ class PaymentRepository {
             premiumOverride: false, // ❌ Explicitly deny premium
           );
 
-          print('✅ Cached expired subscription state');
-          print('   Premium access: DENIED ❌');
-          print('   User can now make new purchase ✅');
-          print('╚══════════════════════════════════════════╝');
-          print('');
-
           // Return success with expired state
           return {
-            'valid': true, // ✅ Treat as valid (not an error)
+            'valid': true, //  Treat as valid (not an error)
             'has_active_subscription': false, // ❌ No active subscription
             'subscription_expired': true, // ⚠️ But it's expired
             'subscription_state': 'SUBSCRIPTION_STATE_EXPIRED',
@@ -465,29 +459,11 @@ class PaymentRepository {
         };
       }
 
-      // ✅ CHECK FOR DUPLICATE PURCHASE TOKEN ERROR (ownership conflict)
+      //  CHECK FOR DUPLICATE PURCHASE TOKEN ERROR (ownership conflict)
 
       if (errorMessage.contains('Duplicate entry') ||
           errorMessage.contains('purchases_purchase_token_unique') ||
           errorMessage.contains('subscription belongs to another user')) {
-        print('');
-        print('╔══════════════════════════════════════════╗');
-        print('⚠️ DUPLICATE PURCHASE TOKEN DETECTED');
-        print('╚══════════════════════════════════════════╗');
-        print('This purchase token belongs to another user.');
-        print(
-          'Purchase token: ${payload['purchase_token']?.toString().substring(0, 20)}...',
-        );
-        print('Attempting user ID: ${_currentUserScope()}');
-        print('');
-        print('🔒 This is likely because:');
-        print('   1. Different app users sharing the same Google Play account');
-        print('   2. Or a cached purchase from a previous user session');
-        print('');
-        print('❌ Rejecting verification - user cannot claim this purchase');
-        print('╚══════════════════════════════════════════╝');
-        print('');
-
         // Return failure - don't grant access
         return {
           'valid': false,
@@ -512,15 +488,6 @@ class PaymentRepository {
       final errorMessage = e.toString();
       if (errorMessage.contains('Duplicate entry') ||
           errorMessage.contains('purchases_purchase_token_unique')) {
-        print('');
-        print('╔══════════════════════════════════════════╗');
-        print('⚠️ DUPLICATE PURCHASE TOKEN (Exception)');
-        print('╚══════════════════════════════════════════╝');
-        print('This purchase token belongs to another user.');
-        print('❌ Rejecting verification');
-        print('╚══════════════════════════════════════════╝');
-        print('');
-
         return {
           'valid': false,
           'message':
@@ -598,13 +565,6 @@ class PaymentRepository {
         print(
           '⚠️ Authenticated but missing both purchase token and subscription ID.',
         );
-        print('   This may indicate:');
-        print('   1. Fresh login after logout (cache was cleared)');
-        print('   2. User has not made a purchase yet');
-        print('   3. Restored purchase has not been processed yet');
-        print(
-          '   → Returning cached data. Restored purchases will trigger verification.',
-        );
 
         return cachedData; // Return existing cached or default data
       }
@@ -658,22 +618,6 @@ class PaymentRepository {
       // ✅ CRITICAL FIX: Validate that effectiveToken is not empty
       // Empty tokens cause 422 "purchase_token field is required" errors from backend
       if (effectiveToken.isEmpty) {
-        print('');
-        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        print('⚠️ EMPTY PURCHASE TOKEN - CANNOT CALL STATUS ENDPOINT');
-        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        print('   Effective Token: (empty string)');
-        print('   Product ID: $effectiveProductId');
-        print('   ');
-        print('   This would cause a 422 error from the backend.');
-        print('   Possible reasons:');
-        print('   1. Restored purchase being processed (will verify directly)');
-        print('   2. Fresh login with cleared cache');
-        print('   3. User has not made a purchase yet');
-        print('   ');
-        print('   → Returning cached data to prevent API error');
-        print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-        print('');
         return cachedData;
       }
 
@@ -719,25 +663,6 @@ class PaymentRepository {
         // The backend should return subscription_state
         // If this is missing, the response is incomplete and we can't determine status
         if (verificationData.subscriptionState == null) {
-          print('');
-          print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-          print('⚠️ INCOMPLETE BACKEND RESPONSE DETECTED');
-          print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-          print('   The backend verified the receipt successfully,');
-          print('   but did NOT return subscription status fields:');
-          print(
-            '   - subscription_state: ${verificationData.subscriptionState}',
-          );
-          print('   ');
-          print('   This is a BACKEND CONFIGURATION ISSUE.');
-          print(
-            '   The /verify-status endpoint should return subscription status.',
-          );
-          print('   ');
-          print('   Returning cache to avoid infinite loop.');
-          print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-          print('');
-
           // Return cache but reset debounce to allow immediate retry
           _lastStatusCheckTime = null;
           return await getUserSubscriptionData();
@@ -776,19 +701,6 @@ class PaymentRepository {
 
           // ✅ NEW: If subscription is expired BUT auto-renewing, preserve the token
           if (isExpired && autoRenewing) {
-            print('');
-            print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            print('⏳ SUBSCRIPTION EXPIRED - AUTO-RENEWING (TOKEN PRESERVED)');
-            print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            print('   Subscription state: $subState');
-            print('   Auto-renewing: $autoRenewing');
-            print('   Product ID: ${verificationData.productId}');
-            print('   User type: ${isVenueUser ? "Venue" : "Public"}');
-            print('   Action: Preserve token, set isPremium=false temporarily');
-            print('   ✅ Subscription will auto-renew soon');
-            print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            print('');
-
             final result = {
               'userType': userType,
               'isPremium': false, // ✅ No access until renewed
@@ -822,20 +734,7 @@ class PaymentRepository {
 
             return result;
           } else {
-            // ✅ Truly cancelled or expired without auto-renew - clear everything
-            print('');
-            print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            print('⚠️ SUBSCRIPTION CANCELED - REVOKING PREMIUM ACCESS');
-            print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            print('   Subscription state: $subState');
-            print('   Auto-renewing: $autoRenewing');
-            print('   Product ID: ${verificationData.productId}');
-            print('   User type: ${isVenueUser ? "Venue" : "Public"}');
-            print(
-              '   Action: Clearing premiumOverride + setting isPremium=false',
-            );
-            print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            print('');
+            //  Truly cancelled or expired without auto-renew - clear everything
 
             final result = {
               'userType': userType,
@@ -907,10 +806,7 @@ class PaymentRepository {
       return await getUserSubscriptionData();
     } catch (e) {
       //  Catch network or parsing errors
-      // Reset debounce to allow immediate retry
-      print('❌ Repository: fetchSubscriptionStatusFromBackend failed: $e');
-      print('   Error type: ${e.runtimeType}');
-      print('   Resetting debounce and returning cache.');
+
       _lastStatusCheckTime = null;
 
       // Return cache to avoid blocking user
@@ -1094,12 +990,6 @@ class PaymentRepository {
                 )
                 : UserType.publicFree;
       }
-      print('📖 Loaded from cache:');
-      print('   userType: $userType');
-      print('   isPremium: $isPremium');
-      print('   premiumOverride: $premiumOverride'); // ✅ Log it
-      print('   subscriptionExpiry: $subscriptionExpiryDate');
-      print('   trialEnd: $trialEndDate');
 
       return {
         'userType': userType,
