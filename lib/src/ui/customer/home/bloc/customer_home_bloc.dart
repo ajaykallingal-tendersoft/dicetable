@@ -29,6 +29,7 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
   TimeOfDay _openTime = const TimeOfDay(hour: 0, minute: 0);
   TimeOfDay _closeTime = const TimeOfDay(hour: 0, minute: 0);
   GetFilterOptionsResponse? _cachedFilterOptions; // Cache for filter options
+  bool _hasUserSearched = false; // Track if user has performed a manual search
 
   Set<String> get selectedTableTypes => Set.from(_selectedTableTypes);
 
@@ -53,6 +54,15 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
     SearchCafesEvent event,
     Emitter<CustomerHomeState> emit,
   ) async {
+    // If user has manually searched, don't override with automatic searches
+    if (_hasUserSearched && !event.isUserInitiated) {
+      return;
+    }
+
+    if (event.isUserInitiated) {
+      _hasUserSearched = true;
+    }
+
     emit(CafeSearchLoading());
 
     final result = await cafeDataProvider.cafeSearch(event.request);
@@ -100,6 +110,7 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
   }
 
   void _onResetSearch(ResetSearchEvent event, Emitter<CustomerHomeState> emit) {
+    _hasUserSearched = false; // Reset the flag to allow initial search again
     emit(CafeSearchInitial());
   }
 
@@ -107,19 +118,42 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
     if (response.cafes == null) return [];
 
     return response.cafes!
-        .where(
-          (cafe) =>
-              cafe.latitude != null &&
-              cafe.longitude != null &&
-              cafe.id != null &&
-              cafe.name != null,
-        )
+        .where((cafe) {
+          // Filter out cafes with null or empty fields
+          if (cafe.latitude == null ||
+              cafe.longitude == null ||
+              cafe.id == null ||
+              cafe.name == null) {
+            return false;
+          }
+
+          // Filter out cafes with empty coordinate strings
+          final latStr = cafe.latitude!.trim();
+          final lngStr = cafe.longitude!.trim();
+          if (latStr.isEmpty || lngStr.isEmpty) {
+            return false;
+          }
+
+          // Parse coordinates
+          final lat = double.tryParse(latStr);
+          final lng = double.tryParse(lngStr);
+
+          // Filter out cafes with invalid or 0.0 coordinates (Null Island)
+          if (lat == null || lng == null || (lat == 0.0 && lng == 0.0)) {
+            debugPrint(
+              'Filtering out cafe "${cafe.name}" with invalid coordinates: ($latStr, $lngStr)',
+            );
+            return false;
+          }
+
+          return true;
+        })
         .map(
           (cafe) => CafeLocation(
             id: cafe.id!,
             name: cafe.name!,
-            latitude: double.tryParse(cafe.latitude!) ?? 0.0,
-            longitude: double.tryParse(cafe.longitude!) ?? 0.0,
+            latitude: double.parse(cafe.latitude!.trim()),
+            longitude: double.parse(cafe.longitude!.trim()),
             photo: cafe.photo,
             description: cafe.venueDescription,
           ),
@@ -199,7 +233,7 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
     }
   }
 
-   Future<void> _onFetchLocation(
+  Future<void> _onFetchLocation(
     FetchLocationEvent event,
     Emitter<CustomerHomeState> emit,
   ) async {
@@ -276,7 +310,7 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
     }
   }
 
-   Future<LocationPermissionResult> _handleLocationPermission(
+  Future<LocationPermissionResult> _handleLocationPermission(
     BuildContext context,
   ) async {
     LocationPermission permission = await Geolocator.checkPermission();
@@ -351,7 +385,6 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
     );
   }
 
-
   // Future<void> _onFetchLocation(
   //   FetchLocationEvent event,
   //   Emitter<CustomerHomeState> emit,
@@ -418,59 +451,59 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
   //   }
   // }
 
-//   Future<LocationPermissionResult> _handleLocationPermission(
-//     BuildContext context,
-//   ) async {
-//     LocationPermission permission = await Geolocator.checkPermission();
-// print('Initial permission: $permission');
-//     if (permission == LocationPermission.denied) {
-//       permission = await Geolocator.requestPermission();
-//     }
+  //   Future<LocationPermissionResult> _handleLocationPermission(
+  //     BuildContext context,
+  //   ) async {
+  //     LocationPermission permission = await Geolocator.checkPermission();
+  // print('Initial permission: $permission');
+  //     if (permission == LocationPermission.denied) {
+  //       permission = await Geolocator.requestPermission();
+  //     }
 
-//     if (permission == LocationPermission.denied) {
-//       await _showLocationSettingsDialog(
-//         context,
-//         'Location Permission Denied',
-//         'Location access is required to fetch your current location.',
-//         showSettings: false,
-//       );
-//       return LocationPermissionResult(
-//         isGranted: false,
-//         message: 'Location permission denied by user',
-//         errorType: LocationErrorType.permissionDenied,
-//       );
-//     }
+  //     if (permission == LocationPermission.denied) {
+  //       await _showLocationSettingsDialog(
+  //         context,
+  //         'Location Permission Denied',
+  //         'Location access is required to fetch your current location.',
+  //         showSettings: false,
+  //       );
+  //       return LocationPermissionResult(
+  //         isGranted: false,
+  //         message: 'Location permission denied by user',
+  //         errorType: LocationErrorType.permissionDenied,
+  //       );
+  //     }
 
-//     if (permission == LocationPermission.deniedForever) {
-//       await _showLocationSettingsDialog(
-//         context,
-//         'Location Permission Permanently Denied',
-//         'Location access is permanently denied. Please open app settings to enable it.',
-//         showSettings: true,
-//       );
-//       return LocationPermissionResult(
-//         isGranted: false,
-//         message: 'Location permission permanently denied.',
-//         errorType: LocationErrorType.permissionDeniedForever,
-//       );
-//     }
+  //     if (permission == LocationPermission.deniedForever) {
+  //       await _showLocationSettingsDialog(
+  //         context,
+  //         'Location Permission Permanently Denied',
+  //         'Location access is permanently denied. Please open app settings to enable it.',
+  //         showSettings: true,
+  //       );
+  //       return LocationPermissionResult(
+  //         isGranted: false,
+  //         message: 'Location permission permanently denied.',
+  //         errorType: LocationErrorType.permissionDeniedForever,
+  //       );
+  //     }
 
-//     // For iOS: check if location is restricted
-//     if (permission == LocationPermission.unableToDetermine) {
-//       return LocationPermissionResult(
-//         isGranted: false,
-//         message: 'Location access is restricted or not available.',
-//         errorType: LocationErrorType.permissionRestricted,
-//       );
-//     }
+  //     // For iOS: check if location is restricted
+  //     if (permission == LocationPermission.unableToDetermine) {
+  //       return LocationPermissionResult(
+  //         isGranted: false,
+  //         message: 'Location access is restricted or not available.',
+  //         errorType: LocationErrorType.permissionRestricted,
+  //       );
+  //     }
 
-//     // Granted (WhileInUse or Always)
-//     return LocationPermissionResult(
-//       isGranted: true,
-//       message: 'Location permission granted.',
-//       errorType: LocationErrorType.none,
-//     );
-//   }
+  //     // Granted (WhileInUse or Always)
+  //     return LocationPermissionResult(
+  //       isGranted: true,
+  //       message: 'Location permission granted.',
+  //       errorType: LocationErrorType.none,
+  //     );
+  //   }
 
   // Future<LocationPermissionResult> _handleLocationPermission(BuildContext context) async {
   //   // Check current permission status

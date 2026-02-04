@@ -216,8 +216,6 @@ class _EnhancedAvailableDaysDialogState
     setState(() {
       alwaysAvailable = value;
 
-
-
       if (value) {
         // ✅ When toggled ON: Select ALL days using their default open-close timings
         print(
@@ -250,12 +248,9 @@ class _EnhancedAvailableDaysDialogState
               TimeSlot(from: defaultOpen, to: defaultClose, isDefault: true),
             ],
           );
-
-
         }
       } else {
         // ✅ When toggled OFF: Keep only days that have custom event slots
-
 
         for (var entry in daySelections.entries) {
           final hasCustomSlots = entry.value.timeSlots.length > 1;
@@ -279,10 +274,7 @@ class _EnhancedAvailableDaysDialogState
           );
 
           if (hasCustomSlots) {
-
-          } else {
-
-          }
+          } else {}
         }
       }
     });
@@ -293,7 +285,6 @@ class _EnhancedAvailableDaysDialogState
             .where((e) => e.value.isSelected)
             .map((e) => e.key)
             .toList();
-
   }
 
   void _toggleDay(String day) {
@@ -347,7 +338,6 @@ class _EnhancedAvailableDaysDialogState
       }
     }
 
-
     print(
       '🔍 Existing slots: ${userSlots.map((s) => '${s.from}-${s.to}').toList()}',
     );
@@ -368,8 +358,6 @@ class _EnhancedAvailableDaysDialogState
         '${(nextStartMin ~/ 60).toString().padLeft(2, '0')}:${(nextStartMin % 60).toString().padLeft(2, '0')}:00';
     final newEnd =
         '${(nextEndMin ~/ 60).toString().padLeft(2, '0')}:${(nextEndMin % 60).toString().padLeft(2, '0')}:00';
-
-
 
     if (_validateNewSlot(day, newStart, newEnd)) {
       setState(() {
@@ -450,7 +438,7 @@ class _EnhancedAvailableDaysDialogState
       return false;
     }
 
-    // ✅ FIX: Only check overlap with OTHER CUSTOM slots (skip default)
+    // Only check overlap with OTHER CUSTOM slots (skip default)
     // Adjacent slots are OK (one ends at 11:00 AM, next starts at 11:00 AM)
     for (final slot in selection.timeSlots) {
       if (slot.isDefault) continue; // Skip the default café hours slot
@@ -458,7 +446,7 @@ class _EnhancedAvailableDaysDialogState
       final existingStart = _timeToMinutes(slot.from);
       final existingEnd = _timeToMinutes(slot.to);
 
-      // ✅ TRUE OVERLAP: New slot must start STRICTLY BEFORE existing ends
+      // TRUE OVERLAP: New slot must start STRICTLY BEFORE existing ends
       //    AND end STRICTLY AFTER existing starts (not equal)
       final overlaps =
           (newStartMins < existingEnd && newEndMins > existingStart);
@@ -862,7 +850,7 @@ class _EnhancedAvailableDaysDialogState
                         ],
                       ),
                       Gap(8),
-              
+
                       ...widget.availableDays.map((day) {
                         return _buildDayTile(
                           day.day!.toLowerCase(),
@@ -1013,19 +1001,31 @@ class _EnhancedAvailableDaysDialogState
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              const Icon(Icons.access_time, size: 16, color: Color(0xFF9E9E9E)),
-              const SizedBox(width: 6),
-              Text(
-                _formatTime(time),
-                style: GoogleFonts.montserrat(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: const Color(0xFF1A1A1A),
+          Expanded(
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.access_time,
+                  size: 16,
+                  color: Color(0xFF9E9E9E),
                 ),
-              ),
-            ],
+                const SizedBox(width: 6),
+                Expanded(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      _formatTime(time),
+                      style: GoogleFonts.montserrat(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFF1A1A1A),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           const Icon(Icons.unfold_more, size: 18, color: Color(0xFF9E9E9E)),
         ],
@@ -1060,13 +1060,15 @@ class _EnhancedAvailableDaysDialogState
                         height: 24,
                         decoration: BoxDecoration(
                           color: AppColors.primaryWhiteColor,
-                          border: Border.all(color: AppColors.primary, width: 2),
+                          border: Border.all(
+                            color: AppColors.primary,
+                            width: 2,
+                          ),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child:
                             selection.isSelected
-                                ? 
-                                SvgPicture.asset(
+                                ? SvgPicture.asset(
                                   Assets.CHECK,
                                   fit: BoxFit.scaleDown,
                                   height: 10,
@@ -1209,6 +1211,7 @@ class TimeSlot {
 
   TimeSlot({required this.from, required this.to, required this.isDefault});
 }
+
 class NoGlowScrollBehavior extends ScrollBehavior {
   @override
   Widget buildOverscrollIndicator(

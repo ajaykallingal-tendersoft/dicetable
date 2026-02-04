@@ -338,7 +338,7 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
             Gap(30),
             BlocConsumer<PaymentPlanBloc, PaymentPlanState>(
               listener: (context, paymentState) {
-                // ✅ Handle verification failure with support info
+                //  Handle verification failure with support info
                 if (paymentState.status ==
                     PaymentPlanStatus.verificationFailed) {
                   showDialog(
@@ -374,7 +374,7 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                   );
                 }
 
-                // ✅ Handle "already owned" scenario
+                //  Handle "already owned" scenario
                 if (paymentState.status == PaymentPlanStatus.needsRestore) {
                   EasyLoading.show(status: 'Restoring subscription...');
                 }
@@ -481,19 +481,19 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
           ),
           child: BlocListener<PaymentPlanBloc, PaymentPlanState>(
             listener: (context, paymentState) {
-              // ✅ Debug logging to track state changes
+              //  Debug logging to track state changes
 
-              // ✅ Show loading when purchase is initiated
+              //  Show loading when purchase is initiated
               if (paymentState.status == PaymentPlanStatus.purchasing) {
                 EasyLoading.show(status: 'Processing payment...');
               }
 
-              // ✅ Show loading when verifying purchase
+              //  Show loading when verifying purchase
               if (paymentState.status == PaymentPlanStatus.verifying) {
                 EasyLoading.show(status: 'Verifying purchase...');
               }
 
-              // ✅ Dismiss loading when purchase is cancelled
+              //  Dismiss loading when purchase is cancelled
               if (paymentState.status == PaymentPlanStatus.cancelled) {
                 EasyLoading.dismiss();
                 Fluttertoast.showToast(
@@ -528,7 +528,7 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                 );
               }
 
-              // ✅ Show restore success
+              // Show restore success
               if (paymentState.status == PaymentPlanStatus.purchaseRestored) {
                 EasyLoading.dismiss();
                 Fluttertoast.showToast(
@@ -566,14 +566,14 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                     msg: msg,
                   );
 
-                  // ✅ CRITICAL: Refresh subscription status from backend to update cache
+                  // CRITICAL: Refresh subscription status from backend to update cache
                   // This ensures premiumOverride and all subscription data is properly synced
 
                   context.read<PaymentPlanBloc>().add(
                     const CheckSubscriptionStatusEvent(),
                   );
 
-                  // ✅ Navigate after a short delay to ensure state is synced
+                  // Navigate after a short delay to ensure state is synced
                   Future.delayed(const Duration(milliseconds: 500), () {
                     if (mounted) {
                       context.go('/home');

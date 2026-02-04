@@ -175,20 +175,19 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       Positioned(
-                        top: 50,
+                        top: 50.h,
                         left: 0,
                         right: 0,
-                        bottom: 650.h,
                         child: Align(
                           alignment: Alignment.topCenter,
                           child: ConstrainedBox(
                             constraints: BoxConstraints(
-                              maxWidth: 200,
-                              maxHeight: 200,
+                              maxWidth: 200.w,
+                              maxHeight: 200.h,
                             ),
                             child: Container(
-                                  height: 200,
-                                  width: 200,
+                                  height: 200.h,
+                                  width: 200.w,
                                   decoration: BoxDecoration(
                                     color: AppColors.primary,
                                     borderRadius: BorderRadius.circular(20),
@@ -215,10 +214,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
 
                       Positioned(
+                        top: 270.h,
                         bottom: 0,
                         left: 0,
                         right: 0,
-                        height: MediaQuery.of(context).size.height * 0.72,
                         child: ClipRRect(
                           borderRadius: BorderRadius.vertical(
                             top: Radius.circular(53),

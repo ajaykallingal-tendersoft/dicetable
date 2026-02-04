@@ -195,7 +195,9 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
       longitude: lon!,
     );
 
-    context.read<CustomerHomeBloc>().add(SearchCafesEvent(searchRequest));
+    context.read<CustomerHomeBloc>().add(
+      SearchCafesEvent(searchRequest, isUserInitiated: true),
+    );
     context.pop();
   }
 

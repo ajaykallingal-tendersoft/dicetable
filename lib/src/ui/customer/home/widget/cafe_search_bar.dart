@@ -1,5 +1,3 @@
-
-
 import 'dart:async';
 
 import 'package:soloseaters/src/constants/app_colors.dart';
@@ -16,8 +14,11 @@ import 'package:go_router/go_router.dart';
 class CafeSearchBar extends StatefulWidget {
   final Function(String) onSearch;
   final VoidCallback onFilterTap;
-  const CafeSearchBar({super.key,   required this.onSearch,
-    required this.onFilterTap,});
+  const CafeSearchBar({
+    super.key,
+    required this.onSearch,
+    required this.onFilterTap,
+  });
 
   @override
   State<CafeSearchBar> createState() => _CafeSearchBarState();
@@ -36,7 +37,6 @@ class _CafeSearchBarState extends State<CafeSearchBar> {
     longitude = ObjectFactory().prefs.getLongitude().toString();
   }
 
-
   @override
   void dispose() {
     _debounce?.cancel();
@@ -51,12 +51,12 @@ class _CafeSearchBarState extends State<CafeSearchBar> {
     });
   }
 
-
   void _performSearch(String searchQuery) {
     final isGuest = ObjectFactory().prefs.isGuestUser() == true;
-    final deviceToken = isGuest ? ObjectFactory().prefs.getDeviceID() ?? '' : '';
-    final double? lat = latitude != null ? double.tryParse(latitude) : 0.0;
-    final double? lon = longitude != null ? double.tryParse(longitude) : 0.0;
+    final deviceToken =
+        isGuest ? ObjectFactory().prefs.getDeviceID() ?? '' : '';
+    final double lat = double.tryParse(latitude) ?? 0.0;
+    final double lon = double.tryParse(longitude) ?? 0.0;
     final searchRequest = CafeSearchRequest(
       search: searchQuery,
       openTime: '',
@@ -64,14 +64,17 @@ class _CafeSearchBarState extends State<CafeSearchBar> {
       diceTableFilter: [],
       accommodationsFilter: [],
       deviceToken: deviceToken,
-      latitude: lat!,
-      longitude: lon!,
+      latitude: lat,
+      longitude: lon,
     );
 
+    // Empty searches are automatic (loading all cafes), non-empty are user-initiated
+    final bool isUserSearch = searchQuery.isNotEmpty;
 
-    context.read<CustomerHomeBloc>().add(SearchCafesEvent(searchRequest));
+    context.read<CustomerHomeBloc>().add(
+      SearchCafesEvent(searchRequest, isUserInitiated: isUserSearch),
+    );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -82,11 +85,7 @@ class _CafeSearchBarState extends State<CafeSearchBar> {
         color: AppColors.primaryWhiteColor,
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
-          BoxShadow(
-            color: Colors.black12,
-            blurRadius: 6,
-            offset: Offset(0, 2),
-          )
+          BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 2)),
         ],
       ),
       child: Row(
@@ -102,15 +101,15 @@ class _CafeSearchBarState extends State<CafeSearchBar> {
               ),
               controller: _controller,
               onChanged: _onSearchChanged,
-              decoration:  InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'Search Near By Cafe',
                 border: InputBorder.none,
-                contentPadding: EdgeInsets.all( 10),
+                contentPadding: EdgeInsets.all(10),
                 hintStyle: TextTheme.of(context).bodySmall!.copyWith(
-                color: AppColors.textPrimaryGrey,
-                fontWeight: FontWeight.w600,
-                fontSize: 12.sp,
-              ),
+                  color: AppColors.textPrimaryGrey,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12.sp,
+                ),
               ),
             ),
           ),
@@ -122,10 +121,8 @@ class _CafeSearchBarState extends State<CafeSearchBar> {
             ),
             onPressed: widget.onFilterTap,
           ), // Adjust as needed
-
         ],
       ),
     );
   }
 }
-

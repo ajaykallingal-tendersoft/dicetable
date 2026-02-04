@@ -70,7 +70,7 @@ class CafeListCard extends StatelessWidget {
                             ),
                           )
                           : cafes.favourites!
-                          ? SvgPicture.asset(
+                          ?  SvgPicture.asset(
                             'assets/svg/favourite1-active.svg',
                             fit: BoxFit.scaleDown,
                           )
@@ -207,7 +207,7 @@ class CafeListCard extends StatelessWidget {
                           fontSize: 11.sp,
                         ),
                       ),
-                      Gap(10),
+                      const Gap(10),
                       Align(
                         alignment: Alignment.bottomRight,
                         child: TextButton(
