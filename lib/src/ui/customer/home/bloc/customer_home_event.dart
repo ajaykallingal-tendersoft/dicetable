@@ -6,11 +6,12 @@ sealed class CustomerHomeEvent extends Equatable {
 
 class SearchCafesEvent extends CustomerHomeEvent {
   final CafeSearchRequest request;
+  final bool isUserInitiated;
 
-  const SearchCafesEvent(this.request);
+  const SearchCafesEvent(this.request, {this.isUserInitiated = true});
 
   @override
-  List<Object?> get props => [request];
+  List<Object?> get props => [request, isUserInitiated];
 }
 
 class FilterCafesEvent extends CustomerHomeEvent {
@@ -31,6 +32,7 @@ class GetFilterOptionsEvent extends CustomerHomeEvent {
   @override
   List<Object?> get props => [];
 }
+
 class UpdateFiltersEvent extends CustomerHomeEvent {
   final Set<String> selectedTableTypes;
   final Set<String> selectedVenueTypes;
@@ -45,7 +47,12 @@ class UpdateFiltersEvent extends CustomerHomeEvent {
   });
 
   @override
-  List<Object> get props => [selectedTableTypes, selectedVenueTypes, openTime, closeTime];
+  List<Object> get props => [
+    selectedTableTypes,
+    selectedVenueTypes,
+    openTime,
+    closeTime,
+  ];
 }
 
 class ClearFiltersEvent extends CustomerHomeEvent {
@@ -54,7 +61,6 @@ class ClearFiltersEvent extends CustomerHomeEvent {
   @override
   List<Object> get props => [];
 }
-
 
 class FetchLocationEvent extends CustomerHomeEvent {
   final BuildContext context;

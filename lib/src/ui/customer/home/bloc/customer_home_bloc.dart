@@ -29,6 +29,7 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
   TimeOfDay _openTime = const TimeOfDay(hour: 0, minute: 0);
   TimeOfDay _closeTime = const TimeOfDay(hour: 0, minute: 0);
   GetFilterOptionsResponse? _cachedFilterOptions; // Cache for filter options
+  bool _hasUserSearched = false; 
 
   Set<String> get selectedTableTypes => Set.from(_selectedTableTypes);
 
@@ -53,6 +54,14 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
     SearchCafesEvent event,
     Emitter<CustomerHomeState> emit,
   ) async {
+     // If user has manually searched, don't override with automatic searches
+    if (_hasUserSearched && !event.isUserInitiated) {
+      return;
+    }
+
+    if (event.isUserInitiated) {
+      _hasUserSearched = true;
+    }
     emit(CafeSearchLoading());
 
     final result = await cafeDataProvider.cafeSearch(event.request);
@@ -100,6 +109,7 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
   }
 
   void _onResetSearch(ResetSearchEvent event, Emitter<CustomerHomeState> emit) {
+     _hasUserSearched = false;
     emit(CafeSearchInitial());
   }
 
@@ -107,19 +117,42 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
     if (response.cafes == null) return [];
 
     return response.cafes!
-        .where(
-          (cafe) =>
-              cafe.latitude != null &&
-              cafe.longitude != null &&
-              cafe.id != null &&
-              cafe.name != null,
-        )
+        .where((cafe) {
+          // Filter out cafes with null or empty fields
+          if (cafe.latitude == null ||
+              cafe.longitude == null ||
+              cafe.id == null ||
+              cafe.name == null) {
+            return false;
+          }
+
+          // Filter out cafes with empty coordinate strings
+          final latStr = cafe.latitude!.trim();
+          final lngStr = cafe.longitude!.trim();
+          if (latStr.isEmpty || lngStr.isEmpty) {
+            return false;
+          }
+
+          // Parse coordinates
+          final lat = double.tryParse(latStr);
+          final lng = double.tryParse(lngStr);
+
+          // Filter out cafes with invalid or 0.0 coordinates (Null Island)
+          if (lat == null || lng == null || (lat == 0.0 && lng == 0.0)) {
+            debugPrint(
+              'Filtering out cafe "${cafe.name}" with invalid coordinates: ($latStr, $lngStr)',
+            );
+            return false;
+          }
+
+          return true;
+        })
         .map(
           (cafe) => CafeLocation(
             id: cafe.id!,
             name: cafe.name!,
-            latitude: double.tryParse(cafe.latitude!) ?? 0.0,
-            longitude: double.tryParse(cafe.longitude!) ?? 0.0,
+            latitude: double.parse(cafe.latitude!.trim()),
+            longitude: double.parse(cafe.longitude!.trim()),
             photo: cafe.photo,
             description: cafe.venueDescription,
           ),

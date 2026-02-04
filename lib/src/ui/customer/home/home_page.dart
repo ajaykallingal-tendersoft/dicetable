@@ -34,22 +34,34 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
   String? longitude;
   final CounterController controller = Get.find<CounterController>();
   final isGuest = ObjectFactory().prefs.isGuestUser() == true;
+  bool _hasUserSearched = false; // Track if user has performed a manual search
   @override
   void initState() {
     super.initState();
 
+    // Reset the BLoC's search tracking when returning to home screen
+    context.read<CustomerHomeBloc>().add(ResetSearchEvent());
+
     latitude = ObjectFactory().prefs.getLatitude().toString();
     longitude = ObjectFactory().prefs.getLongitude().toString();
-    _performSearch();
+    _performSearch(isUserInitiated: false);
 
-    // ✅ Trigger subscription check on home page load.
+    // Trigger subscription check on home page load.
     // This ensures the payment state is correct after a hot restart.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<PaymentPlanBloc>().add(const CheckSubscriptionStatusEvent());
     });
   }
 
-  void _performSearch() {
+  void _performSearch({bool isUserInitiated = false}) {
+    // If user has manually searched, don't override with automatic searches
+    if (_hasUserSearched && !isUserInitiated) {
+      return;
+    }
+
+    if (isUserInitiated) {
+      _hasUserSearched = true;
+    }
     final isGuest = ObjectFactory().prefs.isGuestUser() == true;
     final deviceToken =
         isGuest ? ObjectFactory().prefs.getDeviceID() ?? '' : '';
@@ -69,7 +81,9 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
       longitude: lon,
     );
 
-    context.read<CustomerHomeBloc>().add(SearchCafesEvent(searchRequest));
+    context.read<CustomerHomeBloc>().add(
+      SearchCafesEvent(searchRequest, isUserInitiated: isUserInitiated),
+    );
   }
 
   void showFilterBottomSheet(BuildContext context) {
@@ -155,13 +169,16 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                                             position: badges
                                                 .BadgePosition.topEnd(
                                               top: 0,
-                                             end: int.parse(
-                                          controller
-                                              .notificationBadgeAmount
-                                              .value
-                                              .toString(),
-                                        ) >
-                                        99 ? -12 :-2,
+                                              end:
+                                                  int.parse(
+                                                            controller
+                                                                .notificationBadgeAmount
+                                                                .value
+                                                                .toString(),
+                                                          ) >
+                                                          99
+                                                      ? -12
+                                                      : -2,
                                             ),
                                             badgeAnimation:
                                                 badges.BadgeAnimation.slide(),
@@ -241,7 +258,8 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                     latitude = state.latitude.toString();
                     longitude = state.longitude.toString();
                   });
-                  _performSearch();
+                  // Only perform automatic search if user hasn't manually searched
+                  _performSearch(isUserInitiated: false);
                 }
                 if (state is CafeSearchLoading) {
                   EasyLoading.show();

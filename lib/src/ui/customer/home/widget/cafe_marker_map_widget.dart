@@ -59,8 +59,23 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
 
     _markers.clear();
 
-    for (int i = 0; i < cafeLocations.length; i++) {
-      final cafe = cafeLocations[i];
+    // Filter out cafes with invalid coordinates (0.0, 0.0)
+    final validCafes =
+        cafeLocations.where((cafe) {
+          final isValid = cafe.latitude != 0.0 && cafe.longitude != 0.0;
+          if (!isValid) {
+            debugPrint(
+              'Skipping cafe marker "${cafe.name}" with invalid coordinates: (${cafe.latitude}, ${cafe.longitude})',
+            );
+          }
+          return isValid;
+        }).toList();
+
+    debugPrint('Total cafes received: ${cafeLocations.length}');
+    debugPrint('Valid cafes with coordinates: ${validCafes.length}');
+
+    for (int i = 0; i < validCafes.length; i++) {
+      final cafe = validCafes[i];
       _markers.add(
         Marker(
           markerId: MarkerId(cafe.id.toString()),
@@ -79,8 +94,25 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
       );
     }
 
-    if (cafeLocations.isNotEmpty) {
-      _updateCameraToShowAllMarkers(cafeLocations);
+    if (validCafes.isNotEmpty) {
+      _updateCameraToShowAllMarkers(validCafes);
+    } else if (_mapInitialized) {
+      // If no valid cafes, zoom to user's location or NZ default at country-level
+      final GoogleMapController controller = await _controller.future;
+      final LatLng referencePoint = _userLocation ?? _kDefaultPosition.target;
+      controller.animateCamera(CameraUpdate.newLatLngZoom(referencePoint, 6));
+
+      // Show message if we received cafes but none had valid coordinates
+      if (cafeLocations.isNotEmpty) {
+        Fluttertoast.showToast(
+          fontSize: 14.sp,
+          backgroundColor: AppColors.primaryWhiteColor,
+          textColor: AppColors.appRedColor,
+          gravity: ToastGravity.BOTTOM,
+          msg:
+              "Search returned ${cafeLocations.length} cafe(s), but none have valid location coordinates.",
+        );
+      }
     }
     setState(() {});
   }
@@ -92,64 +124,49 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
   Future<void> _updateCameraToShowAllMarkers(
     List<CafeLocation> cafeLocations,
   ) async {
-    final GoogleMapController controller = await _controller.future;
-
-    if (cafeLocations.length == 1) {
-      controller.animateCamera(
-        CameraUpdate.newLatLngZoom(
-          LatLng(
-            double.parse(cafeLocations.first.latitude.toString()),
-            double.parse(cafeLocations.first.longitude.toString()),
-          ),
-          16,
-        ),
-      );
+    if (!_mapInitialized) {
+      debugPrint('⚠️ Camera update skipped - map not initialized yet');
       return;
     }
 
-    double minLat = double.infinity;
-    double maxLat = -double.infinity;
-    double minLng = double.infinity;
-    double maxLng = -double.infinity;
+    debugPrint(
+      '📍 Keeping camera focused on user location at country-level zoom',
+    );
 
-    for (final cafe in cafeLocations) {
-      final lat = double.parse(cafe.latitude.toString());
-      final lng = double.parse(cafe.longitude.toString());
+    // Small delay to ensure map is ready for camera updates
+    await Future.delayed(const Duration(milliseconds: 100));
 
-      minLat = lat < minLat ? lat : minLat;
-      maxLat = lat > maxLat ? lat : maxLat;
-      minLng = lng < minLng ? lng : minLng;
-      maxLng = lng > maxLng ? lng : maxLng;
-    }
+    final GoogleMapController controller = await _controller.future;
 
-    final latDiff = maxLat - minLat;
-    final lngDiff = maxLng - minLng;
+    // Use user location if available, otherwise default to New Zealand
+    final LatLng targetLocation = _userLocation ?? _kDefaultPosition.target;
 
-    if (latDiff < 0.005 && lngDiff < 0.005) {
-      final centerLat = (minLat + maxLat) / 2;
-      final centerLng = (minLng + maxLng) / 2;
-      controller.animateCamera(
-        CameraUpdate.newLatLngZoom(LatLng(centerLat, centerLng), 16),
-      );
-    } else {
-      final bounds = LatLngBounds(
-        southwest: LatLng(minLat, minLng),
-        northeast: LatLng(maxLat, maxLng),
-      );
+    debugPrint(
+      '�️ Zooming to ${_userLocation != null ? "user location" : "New Zealand"} at country-level zoom (6)',
+    );
 
-      controller.animateCamera(
-        CameraUpdate.newLatLngBounds(bounds, 80.0), // 80px padding
-      );
-    }
+    // Always zoom to user's location (or NZ default) at country-level zoom
+    controller.animateCamera(CameraUpdate.newLatLngZoom(targetLocation, 6));
   }
 
-  void _handleLocationState(CustomerHomeState state) {
+  void _handleLocationState(CustomerHomeState state) async {
     if (state is LocationLoaded) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
         setState(() {
           _hasLocationPermission = true;
           _userLocation = LatLng(state.latitude, state.longitude);
         });
+
+        // Move camera to user's location when location is loaded
+        if (_mapInitialized) {
+          final GoogleMapController controller = await _controller.future;
+          controller.animateCamera(
+            CameraUpdate.newLatLngZoom(
+              LatLng(state.latitude, state.longitude),
+              6, // Country-level zoom
+            ),
+          );
+        }
       });
     }
 
@@ -194,7 +211,9 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
             if (state is CafeSearchSuccess) {
               if (state.response.status == false) {
                 if ((state.response.message!.contains("Unauthorized") ||
-                        state.response.message!.contains("status code of 401")) &&
+                        state.response.message!.contains(
+                          "status code of 401",
+                        )) &&
                     AuthSessionManager.consumeRefreshFailureFlag()) {
                   EasyLoading.dismiss();
                   WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -235,9 +254,7 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
               padding: EdgeInsets.only(
                 bottom:
                     Platform.isIOS || Platform.isAndroid
-                        ? MediaQuery.of(context).padding.bottom +
-                            kBottomNavigationBarHeight +
-                            244.0.h
+                        ? kBottomNavigationBarHeight + 80.0
                         : 0.0,
               ),
               mapToolbarEnabled: true,

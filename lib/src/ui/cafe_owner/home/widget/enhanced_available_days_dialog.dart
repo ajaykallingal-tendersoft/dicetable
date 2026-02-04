@@ -1000,7 +1000,7 @@ class _EnhancedAvailableDaysDialogState
       return DateFormat.jm().format(parsed); // Converts to "10:00 AM"
     }
 
-    return Container(
+     return Container(
       height: 42.h,
       decoration: BoxDecoration(
         color: AppColors.primaryWhiteColor,
@@ -1013,19 +1013,31 @@ class _EnhancedAvailableDaysDialogState
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              const Icon(Icons.access_time, size: 16, color: Color(0xFF9E9E9E)),
-              const SizedBox(width: 6),
-              Text(
-                _formatTime(time),
-                style: GoogleFonts.montserrat(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: const Color(0xFF1A1A1A),
+          Expanded(
+            child: Row(
+              children: [
+                const Icon(
+                  Icons.access_time,
+                  size: 16,
+                  color: Color(0xFF9E9E9E),
                 ),
-              ),
-            ],
+                const SizedBox(width: 6),
+                Expanded(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      _formatTime(time),
+                      style: GoogleFonts.montserrat(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: const Color(0xFF1A1A1A),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           const Icon(Icons.unfold_more, size: 18, color: Color(0xFF9E9E9E)),
         ],

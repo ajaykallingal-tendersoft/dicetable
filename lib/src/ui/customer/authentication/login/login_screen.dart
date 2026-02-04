@@ -379,12 +379,12 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                           alignment: Alignment.topCenter,
                           child: ConstrainedBox(
                             constraints: BoxConstraints(
-                              maxWidth: 200,
-                              maxHeight: 200,
+                              maxWidth: 200.w,
+                              maxHeight: 200.h,
                             ),
                             child: Container(
-                                  height: 200,
-                                  width: 200,
+                                  height: 200.h,
+                                  width: 200.w,
                                   decoration: BoxDecoration(
                                     color: AppColors.primary,
                                     borderRadius: BorderRadius.circular(20),
@@ -411,6 +411,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                       ),
 
                       Positioned(
+                        top: 270.h,
                         bottom: 0,
                         left: 0,
                         right: 0,

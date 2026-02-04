@@ -62,7 +62,9 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<CustomerHomeBloc>().add(FetchLocationEvent(context: context));
+      context.read<CustomerHomeBloc>().add(
+        FetchLocationEvent(context: context),
+      );
       context.read<NotificationBloc>().add(FetchNotifications());
     });
   }
@@ -76,22 +78,28 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       child: Scaffold(
         extendBody: true,
 
-        body: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          transitionBuilder: (Widget child, Animation<double> animation) {
-            return FadeTransition(opacity: animation, child: child);
+        body: GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
           },
-          child: BlocConsumer<NotificationBloc, NotificationState>(
-            listener: (context, state) async {
-              if (state is NotificationLoaded) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  controller.notificationBadgeAmount.value = state.notificationItems.data.unread.length;
-                });
-              }
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            transitionBuilder: (Widget child, Animation<double> animation) {
+              return FadeTransition(opacity: animation, child: child);
             },
-            builder: (context, state) {
-              return _buildPage(_selectedIndex, isGuest);
-            },
+            child: BlocConsumer<NotificationBloc, NotificationState>(
+              listener: (context, state) async {
+                if (state is NotificationLoaded) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    controller.notificationBadgeAmount.value =
+                        state.notificationItems.data.unread.length;
+                  });
+                }
+              },
+              builder: (context, state) {
+                return _buildPage(_selectedIndex, isGuest);
+              },
+            ),
           ),
         ),
 
@@ -124,13 +132,13 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                 text: 'CAFE LIST',
               ),
               if (!isGuest)
-              FABBottomAppBarItem(
-                iconData: SvgPicture.asset(
-                  'assets/svg/favourites.svg',
-                  fit: BoxFit.scaleDown,
+                FABBottomAppBarItem(
+                  iconData: SvgPicture.asset(
+                    'assets/svg/favourites.svg',
+                    fit: BoxFit.scaleDown,
+                  ),
+                  text: 'FAVOURITES',
                 ),
-                text: 'FAVOURITES',
-              ),
               if (!isGuest)
                 FABBottomAppBarItem(
                   iconData: SvgPicture.asset(
@@ -166,8 +174,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         return CafeListScreen(key: ValueKey('cafe_list'));
       case 2:
         return isGuest
-          ? CustomerHomePage()
-          : FavouritesScreen(key: ValueKey('fav'));
+            ? CustomerHomePage()
+            : FavouritesScreen(key: ValueKey('fav'));
       case 3:
         return isGuest
             ? const CustomerHomePage()
