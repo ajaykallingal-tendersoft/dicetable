@@ -79,12 +79,17 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Scaffold(
         extendBody: true,
         appBar: _buildAppBar(_selectedIndex, context, controller),
-        body: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          transitionBuilder: (Widget child, Animation<double> animation) {
-            return FadeTransition(opacity: animation, child: child);
+        body: GestureDetector(
+          onTap: () {
+            FocusScope.of(context).unfocus();
           },
-          child: _buildPage(_selectedIndex),
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            transitionBuilder: (Widget child, Animation<double> animation) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+            child: _buildPage(_selectedIndex),
+          ),
         ),
 
         bottomNavigationBar: PhysicalShape(
