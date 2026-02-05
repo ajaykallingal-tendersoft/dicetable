@@ -13,7 +13,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:geolocator/geolocator.dart';
 
 class CafeMarkerMapWidget extends StatefulWidget {
   const CafeMarkerMapWidget({super.key});
@@ -95,7 +94,7 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
     }
 
     if (validCafes.isNotEmpty) {
-      _updateCameraToShowAllMarkers(validCafes);
+      _centerMapOnUserLocation();
     } else if (_mapInitialized) {
       // If no valid cafes, zoom to user's location or NZ default at country-level
       final GoogleMapController controller = await _controller.future;
@@ -121,9 +120,7 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
     print('Cafe tapped: ${cafe.name}');
   }
 
-  Future<void> _updateCameraToShowAllMarkers(
-    List<CafeLocation> cafeLocations,
-  ) async {
+  Future<void> _centerMapOnUserLocation() async {
     if (!_mapInitialized) {
       debugPrint('⚠️ Camera update skipped - map not initialized yet');
       return;
