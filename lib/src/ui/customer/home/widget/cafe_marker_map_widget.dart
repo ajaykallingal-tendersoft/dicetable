@@ -70,8 +70,7 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
           return isValid;
         }).toList();
 
-    debugPrint('Total cafes received: ${cafeLocations.length}');
-    debugPrint('Valid cafes with coordinates: ${validCafes.length}');
+ 
 
     for (int i = 0; i < validCafes.length; i++) {
       final cafe = validCafes[i];
@@ -122,13 +121,9 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
 
   Future<void> _centerMapOnUserLocation() async {
     if (!_mapInitialized) {
-      debugPrint('⚠️ Camera update skipped - map not initialized yet');
       return;
     }
 
-    debugPrint(
-      '📍 Keeping camera focused on user location at country-level zoom',
-    );
 
     // Small delay to ensure map is ready for camera updates
     await Future.delayed(const Duration(milliseconds: 100));
@@ -137,10 +132,6 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
 
     // Use user location if available, otherwise default to New Zealand
     final LatLng targetLocation = _userLocation ?? _kDefaultPosition.target;
-
-    debugPrint(
-      '�️ Zooming to ${_userLocation != null ? "user location" : "New Zealand"} at country-level zoom (6)',
-    );
 
     // Always zoom to user's location (or NZ default) at country-level zoom
     controller.animateCamera(CameraUpdate.newLatLngZoom(targetLocation, 6));
@@ -249,11 +240,12 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
 
             return GoogleMap(
               padding: EdgeInsets.only(
-                bottom:
-                    Platform.isIOS || Platform.isAndroid
-                        ? kBottomNavigationBarHeight + 80.0
-                        : 0.0,
-              ),
+  bottom: Platform.isIOS 
+      ? kBottomNavigationBarHeight + 250.0
+      : Platform.isAndroid 
+          ? 80.0 
+          : 0.0,
+),
               mapToolbarEnabled: true,
               zoomControlsEnabled: false,
               initialCameraPosition: _kDefaultPosition,
