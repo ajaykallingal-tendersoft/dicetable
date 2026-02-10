@@ -145,14 +145,17 @@ class _CafeDetailsCardState extends State<CafeDetailsCard> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                widget.name,
-                style: TextTheme.of(context).labelMedium!.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16.sp,
+              Expanded(
+                child: Text(
+                  widget.name,
+                  style: TextTheme.of(context).labelMedium!.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16.sp,
+                  ),
                 ),
               ),
+              const Gap(10),
 
               BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
                 builder: (context, paymentState) {
