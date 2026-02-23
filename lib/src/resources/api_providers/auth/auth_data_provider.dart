@@ -223,7 +223,6 @@ class AuthDataProvider {
       final response = await ObjectFactory().apiClient.resendOtp(
         resendOtpRequest,
       );
-      // print(response.toString());
 
       final responseData =
           response.data is Map<String, dynamic>
@@ -279,7 +278,6 @@ class AuthDataProvider {
       final response = await ObjectFactory().apiClient.passwordReset(
         passwordReset,
       );
-      // print(response.toString());
 
       final responseData =
           response.data is Map<String, dynamic>
@@ -363,33 +361,8 @@ class AuthDataProvider {
     GoogleSignUpRequest googleSignUpRequest,
   ) async {
     try {
-      final payload = {
-        'name': googleSignUpRequest.name,
-        'venue_description': googleSignUpRequest.venueDescription,
-        'email': googleSignUpRequest.email,
-        'phone': googleSignUpRequest.phone,
-        'login_type': googleSignUpRequest.loginType,
-        'country': googleSignUpRequest.country,
-        'region': googleSignUpRequest.region,
-        'address': googleSignUpRequest.address,
-        'postcode': googleSignUpRequest.postcode,
-        'fcm_token': googleSignUpRequest.fcmToken,
-        'blob': googleSignUpRequest.blob,
-        'accommodations': googleSignUpRequest.accommodations,
-        'working_days': googleSignUpRequest.workingDays,
-        'has_image': googleSignUpRequest.image != null,
-        'gallery_count': googleSignUpRequest.multipleImages?.length ?? 0,
-      };
-      print("🔍 Google Sign-Up Request Payload: ${jsonEncode(payload)}");
-
       final response = await ObjectFactory().apiClient.googleRegisterUser(
         googleSignUpRequest,
-      );
-      print(
-        "🔍 [Provider] Google Sign-Up Response Status: ${response.statusCode}",
-      );
-      print(
-        "🔍 [Provider] Google Sign-Up Response Data: ${jsonEncode(response.data)}",
       );
 
       if (response.statusCode == 200) {
@@ -416,9 +389,6 @@ class AuthDataProvider {
       }
     } on DioException catch (e) {
       if (e.response != null) {
-        print("🔍 Google Sign-Up Error Status: ${e.response!.statusCode}");
-        print("🔍 Google Sign-Up Error Data: ${e.response!.data}");
-        // Try to parse the error response
         try {
           final errorResponse = GoogleSignUpRequestResponse.fromJson(
             e.response!.data,
@@ -652,37 +622,8 @@ class AuthDataProvider {
     AppleSignUpRequest appleSignUpRequest,
   ) async {
     try {
-      final payload = {
-        'name': appleSignUpRequest.name,
-        'venue_description': appleSignUpRequest.venueDescription,
-        'email': appleSignUpRequest.email,
-        'phone': appleSignUpRequest.phone,
-        'login_type': appleSignUpRequest.loginType,
-        'country': appleSignUpRequest.country,
-        'region': appleSignUpRequest.region,
-        'address': appleSignUpRequest.address,
-        'postcode': appleSignUpRequest.postcode,
-        'fcm_token': appleSignUpRequest.fcmToken,
-        'blob': appleSignUpRequest.blob,
-        'apple_id': appleSignUpRequest.apple_id,
-        'accommodations': appleSignUpRequest.accommodations,
-        'working_days': appleSignUpRequest.workingDays,
-        'has_image': appleSignUpRequest.image != null,
-        'gallery_count': appleSignUpRequest.multipleImages?.length ?? 0,
-      };
-      print(
-        "🔍 [Provider] Apple Sign-Up Request Payload: ${jsonEncode(payload)}",
-      );
-
       final response = await ObjectFactory().apiClient.appleRegisterUser(
         appleSignUpRequest,
-      );
-
-      print(
-        "🔍 [Provider] Apple Sign-Up Response Status: ${response.statusCode}",
-      );
-      print(
-        "🔍 [Provider] Apple Sign-Up Response Data: ${jsonEncode(response.data)}",
       );
 
       if (response.statusCode == 200) {
