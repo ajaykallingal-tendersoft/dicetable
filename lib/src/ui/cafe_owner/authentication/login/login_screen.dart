@@ -219,7 +219,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         bottom: 0,
                         left: 0,
                         right: 0,
-                        height: MediaQuery.of(context).size.height * 0.72,
+                        // height: MediaQuery.of(context).size.height * 0.72,
                         child: ClipRRect(
                           borderRadius: BorderRadius.vertical(
                             top: Radius.circular(53),

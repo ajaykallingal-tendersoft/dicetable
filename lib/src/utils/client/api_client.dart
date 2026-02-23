@@ -565,7 +565,7 @@ class ApiClient {
 
   //Initial subscription plan
   Future<Response> getInitialSubscription() {
-    print("Bearer ${ObjectFactory().prefs.getAuthToken()}");
+    print("${ObjectFactory().prefs.getAuthToken()}");
     return dioDiceApp.get(
       UrlsDiceApp.subscriptionInitial,
       options: Options(
@@ -580,7 +580,7 @@ class ApiClient {
     final cafeID = ObjectFactory().prefs.getCafeId(); // Ensure this exists
     final url = '${UrlsDiceApp.subscriptionOverView}/$cafeID';
 
-    print("Bearer $token");
+    print("$token");
     print("URL: $url");
 
     return dioDiceApp.get(
@@ -617,7 +617,7 @@ class ApiClient {
     final cafeID = ObjectFactory().prefs.getCafeId(); // Ensure this exists
     final url = '${UrlsDiceApp.getProfile}$cafeID';
 
-    print("Bearer $token");
+    print("$token");
     print("URL: $url");
 
     return dioDiceApp.get(
@@ -631,7 +631,7 @@ class ApiClient {
     final cafeID = ObjectFactory().prefs.getCafeId(); // Ensure this exists
     final url = '${UrlsDiceApp.getCafeNotification}/$cafeID';
 
-    print("Bearer $token");
+    print("$token");
     print("URL: $url");
 
     return dioDiceApp.get(
@@ -645,7 +645,7 @@ class ApiClient {
     final userID = ObjectFactory().prefs.getUserId(); // Ensure this exists
     final url = '${UrlsDiceApp.getCustomerNotification}/$userID';
 
-    print("Bearer $token");
+    print("$token");
     print("URL: $url");
 
     return dioDiceApp.get(
@@ -661,7 +661,7 @@ class ApiClient {
             : ObjectFactory().prefs.getAuthToken();
     final url = UrlsDiceApp.markNotificationAsRead;
 
-    print("Bearer $token");
+    print("$token");
     print("URL: $url");
 
     return dioDiceApp.post(
@@ -678,7 +678,7 @@ class ApiClient {
             : ObjectFactory().prefs.getAuthToken();
     final url = UrlsDiceApp.updateNotificationStatus;
 
-    print("Bearer $token");
+    print("$token");
     print("URL: $url");
 
     return dioDiceApp.post(
@@ -693,7 +693,7 @@ class ApiClient {
     final cafeID = ObjectFactory().prefs.getCafeId(); // Ensure this exists
     final url = '${UrlsDiceApp.getEditProfile}$cafeID';
 
-    print("Bearer $token");
+    print("$token");
     print("URL: $url");
 
     return dioDiceApp.get(
@@ -713,10 +713,7 @@ class ApiClient {
       url,
       data: formData,
       options: Options(
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-        },
+        headers: {'Authorization': token, 'Accept': 'application/json'},
         contentType: 'multipart/form-data',
       ),
     );
@@ -744,7 +741,7 @@ class ApiClient {
     final cafeID = ObjectFactory().prefs.getCafeId(); // Ensure this exists
     final url = '${UrlsDiceApp.cafeProfileDelete}/$cafeID';
 
-    print("Bearer $token");
+    print("$token");
     print("URL: $url");
 
     return dioDiceApp.post(
@@ -782,10 +779,7 @@ class ApiClient {
           url,
           data: formData, // Data is now the FormData object
           options: Options(
-            headers: {
-              'Authorization': 'Bearer $token',
-              'Accept': 'application/json',
-            },
+            headers: {'Authorization': token, 'Accept': 'application/json'},
             contentType: 'multipart/form-data',
           ),
         )
@@ -812,10 +806,7 @@ class ApiClient {
           url,
           data: formData,
           options: Options(
-            headers: {
-              'Authorization': 'Bearer $token',
-              'Accept': 'application/json',
-            },
+            headers: {'Authorization': token, 'Accept': 'application/json'},
             contentType: 'multipart/form-data',
           ),
         )
@@ -838,7 +829,7 @@ class ApiClient {
     final url = '/api/delete-gallery-image';
 
     print("Deleting gallery photo");
-    print("Bearer $token");
+    print("$token");
     print("URL: $url");
     print("Photo ID: ${photoIdRequest.toQueryParams()}");
 
@@ -854,7 +845,7 @@ class ApiClient {
   ///
   //Favourite
   Future<Response> getFavourite() {
-    print("Bearer ${ObjectFactory().prefs.getCustomerAuthToken()}");
+    print("${ObjectFactory().prefs.getCustomerAuthToken()}");
     return dioDiceApp.get(
       UrlsDiceApp.getFavourite,
       options: Options(
@@ -881,7 +872,7 @@ class ApiClient {
 
   ///CafeList
   Future<Response> getCafeList(CafeListRequest request) {
-    print("Bearer ${ObjectFactory().prefs.getCustomerAuthToken()}");
+    print("${ObjectFactory().prefs.getCustomerAuthToken()}");
     final isGuest = ObjectFactory().prefs.isGuestUser();
     final headers =
         isGuest == true
@@ -939,7 +930,7 @@ class ApiClient {
     final userID = ObjectFactory().prefs.getUserId(); // Ensure this exists
     final url = '${UrlsDiceApp.history}/$userID';
 
-    print("Bearer $token");
+    print("$token");
     print("URL: $url");
 
     return dioDiceApp.get(
@@ -954,7 +945,7 @@ class ApiClient {
     final userID = ObjectFactory().prefs.getUserId();
     final url = '${UrlsDiceApp.getCustomerProfile}/$userID';
 
-    print("Bearer $token");
+    print("$token");
     print("URL: $url");
 
     return dioDiceApp.get(
@@ -969,7 +960,7 @@ class ApiClient {
     final userID = ObjectFactory().prefs.getUserId();
     final url = '${UrlsDiceApp.updateCustomerProfile}/$userID';
 
-    print("Bearer $token");
+    print("$token");
     print("URL: $url");
     return dioDiceApp.post(
       url,
@@ -1002,7 +993,7 @@ class ApiClient {
 
   ///Get Filter Options
   Future<Response> getFilterOptions() {
-    print("Bearer ${ObjectFactory().prefs.getCustomerAuthToken()}");
+    print("${ObjectFactory().prefs.getCustomerAuthToken()}");
 
     final isGuest = ObjectFactory().prefs.isGuestUser();
     final deviceToken = ObjectFactory().prefs.getDeviceID() ?? '';
@@ -1041,7 +1032,7 @@ class ApiClient {
     final userID = ObjectFactory().prefs.getUserId();
     final url = '${UrlsDiceApp.deleteCustomerAccount}/$userID';
 
-    print("Bearer $token");
+    print("$token");
     print("URL: $url");
 
     return dioDiceApp.post(
@@ -1067,7 +1058,7 @@ class ApiClient {
     final userID = ObjectFactory().prefs.getUserId(); // Ensure this exists
     final url = '${UrlsDiceApp.getPaidCustomerProfileById}$userID';
 
-    print("Bearer $token");
+    print("$token");
     print("URL: $url");
 
     return dioDiceApp.get(
