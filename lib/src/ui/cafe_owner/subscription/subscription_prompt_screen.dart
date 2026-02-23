@@ -388,7 +388,7 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                                     '\$${data.data!.amount}';
 
                                 return Text(
-                                  'Get all the benefits for just $price ${data.data!.type.toString().toLowerCase()}.',
+                                  'Get all the benefits of ${venueProduct?.title ?? 'Premium'} for just $price ${data.data!.type.toString().toLowerCase()}.',
                                   textAlign: TextAlign.center,
                                   style: TextTheme.of(
                                     context,

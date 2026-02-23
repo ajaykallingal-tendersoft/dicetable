@@ -281,7 +281,7 @@ class UpgradePopup extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Get all the benefits for just $price yearly.',
+                      'Get all the benefits of ${venueProduct?.title ?? 'Premium'} for just $price yearly.',
                       textAlign: TextAlign.center,
                       style: GoogleFonts.montserrat(
                         fontSize: 12,
