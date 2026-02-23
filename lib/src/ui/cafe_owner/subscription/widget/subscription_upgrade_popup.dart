@@ -12,8 +12,6 @@ import 'package:soloseaters/src/purchase/bloc/bloc/purchase_state.dart';
 import 'package:soloseaters/src/purchase/services/purchase_service.dart';
 import 'package:soloseaters/src/utils/data/privacy_terms.dart';
 
-
-
 class UpgradePopup extends StatelessWidget {
   const UpgradePopup({super.key});
 
@@ -24,10 +22,10 @@ class UpgradePopup extends StatelessWidget {
         if (state.status == PaymentPlanStatus.purchasing) {
           EasyLoading.show(status: 'Processing purchase...');
         } else if (state.status == PaymentPlanStatus.verifying) {
-          // ✅ Covers both receipt refresh AND backend verification
+          // Covers both receipt refresh AND backend verification
           EasyLoading.show(status: 'Verifying purchase...');
         } else if (state.status == PaymentPlanStatus.verificationFailed) {
-          // ✅ CRITICAL FIX: Always dismiss EasyLoader first
+          // CRITICAL FIX: Always dismiss EasyLoader first
           EasyLoading.dismiss();
 
           final attempts = state.verificationAttempts ?? 0;
@@ -87,10 +85,10 @@ class UpgradePopup extends StatelessWidget {
             msg: state.errorMessage ?? 'Purchase failed. Please try again.',
           );
         } else if (state.status == PaymentPlanStatus.needsRestore) {
-          // ✅ Automatically handle restore
+          // Automatically handle restore
           EasyLoading.show(status: 'Restoring subscription...');
         } else if (state.status == PaymentPlanStatus.purchaseRestored) {
-          // ✅ FIX: Show success dialog for restored purchases (consistent with other flows)
+          // FIX: Show success dialog for restored purchases (consistent with other flows)
           EasyLoading.dismiss();
 
           // Check subscription status after restore
@@ -250,7 +248,10 @@ class UpgradePopup extends StatelessWidget {
                             Icons.trending_up,
                           ),
                           const SizedBox(height: 8),
-                          _buildBenefitItem('View event attendees', Icons.people),
+                          _buildBenefitItem(
+                            'View event attendees',
+                            Icons.people,
+                          ),
                         ],
                       ),
                     ),
@@ -269,7 +270,7 @@ class UpgradePopup extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          ' /Year',
+                          ' / yearly',
                           style: GoogleFonts.montserrat(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -280,7 +281,7 @@ class UpgradePopup extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      'Get all the benefits for just $price per year.',
+                      'Get all the benefits for just $price yearly.',
                       textAlign: TextAlign.center,
                       style: GoogleFonts.montserrat(
                         fontSize: 12,
@@ -288,11 +289,11 @@ class UpgradePopup extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    // ✅ AUTO-RENEWAL DISCLOSURE (Required by Play Store & App Store)
+                    // AUTO-RENEWAL DISCLOSURE (Required by Play Store & App Store)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Text(
-                        'Subscription automatically renews unless canceled at least 24 hours before the end of the current period. You can manage and cancel subscriptions in your account settings.',
+                        "Subscriptions automatically renew unless cancelled at least 24 hours before the end of the current billing period.Your Apple ID account will be charged for renewal within 24 hours prior to the end of the current period.You can manage or cancel your subscription at any time in your Apple ID account settings.",
                         textAlign: TextAlign.center,
                         style: GoogleFonts.montserrat(
                           fontSize: 10,
@@ -324,8 +325,6 @@ class UpgradePopup extends StatelessWidget {
                                       PurchaseProductEvent(venueProduct.id),
                                     );
                                   } else {
-                                    // ✅ FIX: Don't show error toast, just load products
-                                    // The EasyLoading indicator will show loading state
                                     context.read<PaymentPlanBloc>().add(
                                       const LoadProductsEvent(),
                                     );
@@ -353,7 +352,7 @@ class UpgradePopup extends StatelessWidget {
                                     ),
                                   ),
                                 )
-                                :  Text(
+                                : Text(
                                   'SUBSCRIBE HERE',
                                   softWrap: true,
                                   textAlign: TextAlign.center,
@@ -363,6 +362,25 @@ class UpgradePopup extends StatelessWidget {
                                     color: AppColors.primaryWhiteColor,
                                   ),
                                 ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Center(
+                      child: TextButton(
+                        onPressed: () {
+                          context.read<PaymentPlanBloc>().add(
+                            const RestorePurchasesEvent(),
+                          );
+                        },
+                        child: Text(
+                          'Restore Purchases',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 12,
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w600,
+                            decoration: TextDecoration.underline,
+                          ),
+                        ),
                       ),
                     ),
                   ],

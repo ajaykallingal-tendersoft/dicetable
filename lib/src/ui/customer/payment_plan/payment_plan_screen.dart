@@ -381,12 +381,13 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: Text(
-                        'Subscription automatically renews unless canceled at least 24 hours before the end of the current period. Manage subscriptions in your account settings.',
+                        "Subscriptions automatically renew unless cancelled at least 24 hours before the end of the current billing period.Your Apple ID account will be charged for renewal within 24 hours prior to the end of the current period.You can manage or cancel your subscription at any time in your Apple ID account settings.",
                         textAlign: TextAlign.center,
                         style: GoogleFonts.montserrat(
                           fontSize: 11,
                           color: AppColors.primaryWhiteColor.withOpacity(0.7),
                           height: 1.3,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ),
@@ -629,7 +630,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
     if (billingPeriod != null && billingPeriod.isNotEmpty) {
       // Parse ISO 8601 duration (e.g., "P1Y", "P1M")
       if (billingPeriod.contains('Y')) {
-        period = 'Year';
+        period = 'yearly';
         planName = 'Yearly plan';
         assetPath = Assets.CALENDAR;
       } else if (billingPeriod.contains('M')) {
@@ -637,11 +638,11 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
         if (monthMatch != null) {
           final months = int.parse(monthMatch.group(1)!);
           if (months >= 12) {
-            period = 'Year';
+            period = 'yearly';
             planName = 'Yearly plan';
             assetPath = Assets.CALENDAR;
           } else if (months == 1) {
-            period = 'Month';
+            period = 'monthly';
             planName = 'Monthly plan';
             assetPath = Assets.CLOCK_YEARLY;
           } else {
@@ -650,16 +651,16 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
             assetPath = Assets.CLOCK_YEARLY;
           }
         } else {
-          period = 'Month';
+          period = 'monthly';
           planName = 'Monthly plan';
           assetPath = Assets.CLOCK_YEARLY;
         }
       } else if (billingPeriod.contains('W')) {
-        period = 'Week';
+        period = 'weekly';
         planName = 'Weekly plan';
         assetPath = Assets.CLOCK_YEARLY;
       } else if (billingPeriod.contains('D')) {
-        period = 'Day';
+        period = 'daily';
         planName = 'Daily plan';
         assetPath = Assets.CLOCK_YEARLY;
       }
@@ -667,11 +668,11 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
       // Fallback: Use base plan ID
       final basePlanLower = basePlanId.toLowerCase();
       if (basePlanLower.contains('month')) {
-        period = 'Month';
+        period = 'monthly';
         planName = 'Monthly plan';
         assetPath = Assets.CLOCK_YEARLY;
       } else if (basePlanLower.contains('year')) {
-        period = 'Year';
+        period = 'yearly';
         planName = 'Yearly plan';
         assetPath = Assets.CALENDAR;
       }
@@ -711,17 +712,38 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                         ),
                     const SizedBox(width: 16.0),
                     Expanded(
-                      child: Text(
-                        productPriceText,
-                        style: GoogleFonts.montserrat(
-                          color:
-                              isSelected
-                                  ? AppColors.primary
-                                  : AppColors.primaryWhiteColor,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        overflow: TextOverflow.ellipsis,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            product.title,
+                            style: GoogleFonts.montserrat(
+                              color:
+                                  isSelected
+                                      ? AppColors.primary
+                                      : AppColors.primaryWhiteColor,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            productPriceText,
+                            style: GoogleFonts.montserrat(
+                              color:
+                                  isSelected
+                                      ? AppColors.primary
+                                      : AppColors.primaryWhiteColor.withOpacity(
+                                        0.8,
+                                      ),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
                     ),
                   ],

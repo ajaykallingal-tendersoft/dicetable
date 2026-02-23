@@ -8,6 +8,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:soloseaters/src/common/elevated_button_widget.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/model/cafe_owner/subscription/initial_subscription_plan_response.dart';
@@ -15,9 +16,11 @@ import 'package:soloseaters/src/model/cafe_owner/subscription/subscription_start
 import 'package:soloseaters/src/purchase/bloc/bloc/purchase_bloc.dart';
 import 'package:soloseaters/src/purchase/bloc/bloc/purchase_event.dart';
 import 'package:soloseaters/src/purchase/bloc/bloc/purchase_state.dart';
+import 'package:soloseaters/src/purchase/services/purchase_service.dart';
 import 'package:soloseaters/src/ui/cafe_owner/subscription/bloc/subscription_bloc.dart';
 import 'package:soloseaters/src/ui/cafe_owner/subscription/widget/gradient.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
+import 'package:soloseaters/src/utils/data/privacy_terms.dart';
 
 class SubscriptionPromptScreen extends StatefulWidget {
   const SubscriptionPromptScreen({super.key});
@@ -127,20 +130,42 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(
-                              'Start With A Free 1-Month Trial,\nThen \$ ${data.data!.amount} Per Year!',
-                              textAlign: TextAlign.center,
-                              style: TextTheme.of(
-                                context,
-                              ).labelMedium!.copyWith(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18.sp,
-                              ),
+                            BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
+                              builder: (context, state) {
+                                ProductDetails? venueProduct;
+                                try {
+                                  venueProduct = state.products.firstWhere(
+                                    (product) =>
+                                        product.id ==
+                                        PaymentService.venueYearlyProductId,
+                                  );
+                                } catch (e) {
+                                  venueProduct =
+                                      state.products.isNotEmpty
+                                          ? state.products.first
+                                          : null;
+                                }
+
+                                final price =
+                                    venueProduct?.price ??
+                                    '\$${data.data!.amount}';
+
+                                return Text(
+                                  'Start With A Free 1-Month Trial,\nThen $price per year!',
+                                  textAlign: TextAlign.center,
+                                  style: TextTheme.of(
+                                    context,
+                                  ).labelMedium!.copyWith(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18.sp,
+                                  ),
+                                );
+                              },
                             ),
                             SizedBox(height: 10.h),
                             Text(
-                              'Enjoy all premium features for ${data.data!.trialDuration} ${data.data!.trialType},\nabsolutely free!',
+                              'Enjoy all premium features for ${data.data!.trialDuration} ${data.data!.trialType.toString().toLowerCase()},\nabsolutely free!',
                               textAlign: TextAlign.center,
                               style: TextTheme.of(context).bodySmall!.copyWith(
                                 color: AppColors.primary,
@@ -290,41 +315,90 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                               ),
                             ),
                             SizedBox(height: 5.h),
-                            Text.rich(
-                              TextSpan(
-                                children: [
+                            BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
+                              builder: (context, state) {
+                                ProductDetails? venueProduct;
+                                try {
+                                  venueProduct = state.products.firstWhere(
+                                    (product) =>
+                                        product.id ==
+                                        PaymentService.venueYearlyProductId,
+                                  );
+                                } catch (e) {
+                                  venueProduct =
+                                      state.products.isNotEmpty
+                                          ? state.products.first
+                                          : null;
+                                }
+
+                                final price =
+                                    venueProduct?.price ??
+                                    '\$${data.data!.amount}';
+
+                                return Text.rich(
                                   TextSpan(
-                                    text: '\$${data.data!.amount}',
-                                    style: TextTheme.of(
-                                      context,
-                                    ).bodyLarge!.copyWith(
-                                      color: AppColors.primary,
-                                      fontSize: 24.sp,
-                                    ),
+                                    children: [
+                                      TextSpan(
+                                        text: price,
+                                        style: TextTheme.of(
+                                          context,
+                                        ).bodyLarge!.copyWith(
+                                          color: AppColors.primary,
+                                          fontSize: 24.sp,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text:
+                                            ' / ${data.data!.type.toString().toLowerCase()}',
+                                        style: TextTheme.of(
+                                          context,
+                                        ).bodyMedium!.copyWith(
+                                          color:
+                                              AppColors
+                                                  .subscriptionPriceSubColor,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14.sp,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  TextSpan(
-                                    text: ' / ${data.data!.type}',
-                                    style: TextTheme.of(
-                                      context,
-                                    ).bodyMedium!.copyWith(
-                                      color:
-                                          AppColors.subscriptionPriceSubColor,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 14.sp,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                );
+                              },
                             ),
                             SizedBox(height: 5.h),
-                            Text(
-                              'Get all the benefits for just \$${data.data!.amount} ${data.data!.type}.',
-                              textAlign: TextAlign.center,
-                              style: TextTheme.of(context).bodyMedium!.copyWith(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 12.sp,
-                              ),
+                            BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
+                              builder: (context, state) {
+                                ProductDetails? venueProduct;
+                                try {
+                                  venueProduct = state.products.firstWhere(
+                                    (product) =>
+                                        product.id ==
+                                        PaymentService.venueYearlyProductId,
+                                  );
+                                } catch (e) {
+                                  venueProduct =
+                                      state.products.isNotEmpty
+                                          ? state.products.first
+                                          : null;
+                                }
+
+                                final price =
+                                    venueProduct?.price ??
+                                    '\$${data.data!.amount}';
+
+                                return Text(
+                                  'Get all the benefits for just $price ${data.data!.type.toString().toLowerCase()}.',
+                                  textAlign: TextAlign.center,
+                                  style: TextTheme.of(
+                                    context,
+                                  ).bodyMedium!.copyWith(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12.sp,
+                                  ),
+                                );
+                              },
                             ),
                           ],
                         ),
@@ -398,12 +472,12 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                   );
                 }
 
-                // ✅ Handle "already owned" scenario
+                //Handle "already owned" scenario
                 if (paymentState.status == PaymentPlanStatus.needsRestore) {
                   EasyLoading.show(status: 'Restoring subscription...');
                 }
 
-                // ✅ Show loading during restore OR initial loading
+                //Show loading during restore OR initial loading
                 if (paymentState.status == PaymentPlanStatus.loading) {
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     if (EasyLoading.isShow == false) {
@@ -483,6 +557,43 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                 );
               },
             ).animate().fadeIn(duration: 450.ms).slideY(begin: 0.2, delay: 600.ms),
+            Gap(15),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                "Subscriptions automatically renew unless cancelled at least 24 hours before the end of the current billing period.Your Apple ID account will be charged for renewal within 24 hours prior to the end of the current period.You can manage or cancel your subscription at any time in your Apple ID account settings.",
+                textAlign: TextAlign.center,
+                style: TextTheme.of(context).bodySmall!.copyWith(
+                  fontSize: 10.sp,
+                  color: AppColors.primaryWhiteColor.withOpacity(0.7),
+                  height: 1.3,
+                ),
+              ),
+            ),
+            Gap(10),
+            Center(
+              child: TextButton(
+                onPressed: () {
+                  context.read<PaymentPlanBloc>().add(
+                    const RestorePurchasesEvent(),
+                  );
+                },
+                child: Text(
+                  'Restore Purchases',
+                  style: TextTheme.of(context).labelMedium!.copyWith(
+                    color: AppColors.primaryWhiteColor,
+                    fontWeight: FontWeight.w600,
+                    decoration: TextDecoration.underline,
+                    decorationColor: AppColors.primaryWhiteColor,
+                  ),
+                ),
+              ),
+            ),
+            Gap(10),
+            PrivacyAndTermsText(
+              textColor: AppColors.primaryWhiteColor.withOpacity(0.8),
+              linkColor: AppColors.primaryWhiteColor,
+            ),
             Gap(30),
           ],
         ),
@@ -531,30 +642,30 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
           ),
           child: BlocListener<PaymentPlanBloc, PaymentPlanState>(
             listener: (context, paymentState) {
-              // ✅ Debug logging to track state changes
+              // Debug logging to track state changes
               print('💳 Payment State: ${paymentState.status}');
               print('💳 Premium Override: ${paymentState.premiumOverride}');
               print('💳 Is Premium: ${paymentState.isPremium}');
 
-              // ✅ Show loading during purchase
+              // Show loading during purchase
               if (paymentState.status == PaymentPlanStatus.purchasing) {
                 EasyLoading.show(status: 'Processing purchase...');
                 return;
               }
 
-              // ✅ Show loading during verification
+              // Show loading during verification
               if (paymentState.status == PaymentPlanStatus.verifying) {
                 EasyLoading.show(status: 'Verifying purchase...');
                 return;
               }
 
-              // ✅ Show loading during restore
+              // Show loading during restore
               if (paymentState.status == PaymentPlanStatus.needsRestore) {
                 EasyLoading.show(status: 'Restoring subscription...');
                 return;
               }
 
-              // ✅ Handle cancellation
+              // Handle cancellation
               if (paymentState.status == PaymentPlanStatus.cancelled) {
                 EasyLoading.dismiss();
                 return;
@@ -563,7 +674,7 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
               if (paymentState.status == PaymentPlanStatus.purchaseSuccess) {
                 EasyLoading.dismiss();
 
-                // ✅ Show success dialog before triggering subscription start
+                // Show success dialog before triggering subscription start
                 showDialog(
                   context: context,
                   barrierDismissible: false,
@@ -648,7 +759,7 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                 );
               }
 
-              // ✅ FIX: Handle verification failure with EasyLoader dismissal
+              // FIX: Handle verification failure with EasyLoader dismissal
               if (paymentState.status == PaymentPlanStatus.verificationFailed) {
                 final attempts = paymentState.verificationAttempts ?? 0;
                 if (attempts > 0) {
@@ -669,7 +780,7 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                 }
               }
 
-              // ✅ FIX: Handle 400 Bad Request errors (malformed receipt, etc.)
+              // FIX: Handle 400 Bad Request errors (malformed receipt, etc.)
               if (paymentState.status == PaymentPlanStatus.purchaseFailed) {
                 final errorMsg = paymentState.errorMessage ?? '';
                 if (errorMsg.contains('malformed') ||
@@ -704,7 +815,7 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                 }
               }
 
-              // ✅ FIX: Show success dialog for restored purchases (consistent with public user flow)
+              // FIX: Show success dialog for restored purchases (consistent with public user flow)
               if (paymentState.status == PaymentPlanStatus.purchaseRestored) {
                 EasyLoading.dismiss();
 
@@ -762,7 +873,7 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                             onPressed: () {
                               Navigator.of(dialogContext).pop(); // Close dialog
 
-                              // ✅ FIX: Refresh state before navigating to ensure sync
+                              // FIX: Refresh state before navigating to ensure sync
                               context.read<PaymentPlanBloc>().add(
                                 const CheckSubscriptionStatusEvent(),
                               );
@@ -773,7 +884,7 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                                 () {
                                   if (mounted) {
                                     print(
-                                      '✅ Navigating to home with synced state (restore)',
+                                      'Navigating to home with synced state (restore)',
                                     );
                                     context.go('/home');
                                   }
@@ -819,7 +930,7 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                     msg: msg,
                   );
 
-                  // ✅ CRITICAL: Refresh subscription status from backend to update cache
+                  // CRITICAL: Refresh subscription status from backend to update cache
                   // This ensures premiumOverride and all subscription data is properly synced
                   print('🔄 Refreshing subscription status from backend...');
                   context.read<PaymentPlanBloc>().add(
@@ -829,7 +940,7 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                   // ✅ Navigate after a short delay to ensure state is synced
                   Future.delayed(const Duration(milliseconds: 500), () {
                     if (mounted) {
-                      print('✅ Navigating to home with synced state');
+                      print('Navigating to home with synced state');
                       context.go('/home');
                     }
                   });
