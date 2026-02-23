@@ -39,14 +39,24 @@ class AppleSignUpRequestResponse {
       status: json['status'] ?? false,
       token: json['token'],
       user:
-          json['user'] != null && json['user'].isNotEmpty
+          json['user'] != null &&
+                  json['user'] is Map &&
+                  (json['user'] as Map).isNotEmpty
               ? User.fromJson(Map<String, dynamic>.from(json['user']))
               : null,
       message: json['message'],
-      cafeId: json['cafe_id'],
+      cafeId: json['cafe_id']?.toString(),
       expiresAt: json['expires_at'],
-      otpLength: json['otp_length'],
-      resendAvailableInSeconds: json['resend_available_in_seconds'],
+      otpLength:
+          json['otp_length'] is int
+              ? json['otp_length']
+              : int.tryParse(json['otp_length']?.toString() ?? ''),
+      resendAvailableInSeconds:
+          json['resend_available_in_seconds'] is int
+              ? json['resend_available_in_seconds']
+              : int.tryParse(
+                json['resend_available_in_seconds']?.toString() ?? '',
+              ),
       errors:
           json['errors'] != null
               ? Map<String, List<String>>.from(
@@ -93,13 +103,19 @@ class User {
       userLogin: json['user_login'] ?? '',
       name: json['name'] ?? '',
       email: json['email'] ?? '',
-      phone: json['phone'] ?? '',
-      loginType: json['login_type'] ?? 0,
+      phone: json['phone']?.toString() ?? '',
+      loginType:
+          json['login_type'] is int
+              ? json['login_type']
+              : int.tryParse(json['login_type']?.toString() ?? '') ?? 0,
       country: json['country'],
       state: json['state'],
       updatedAt: json['updated_at'] ?? '',
       createdAt: json['created_at'] ?? '',
-      id: json['id'] ?? 0,
+      id:
+          json['id'] is int
+              ? json['id']
+              : int.tryParse(json['id']?.toString() ?? '') ?? 0,
     );
   }
 }

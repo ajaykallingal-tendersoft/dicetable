@@ -10,3 +10,9 @@ class NetworkNotify extends NetworkConnectivityEvent {
 
   NetworkNotify({this.isConnected = false});
 }
+
+class _DebounceNotify extends NetworkConnectivityEvent {
+  final bool isConnected;
+
+  _DebounceNotify({required this.isConnected});
+}
