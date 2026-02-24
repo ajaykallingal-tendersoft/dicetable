@@ -234,9 +234,10 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                 // Show success dialog (same as new purchases)
                 _showSuccessDialog(context, state);
               }
-            } else if (state.status == PaymentPlanStatus.initial &&
-                !state.isProcessing) {
-              // ✅ Dismiss loading when restore completes with no active subscription found
+            } else if (state.status == PaymentPlanStatus.cancelled ||
+                (state.status == PaymentPlanStatus.initial &&
+                    !state.isProcessing)) {
+              // ✅ Dismiss loading when cancelled OR when restore completes with no active subscription found
               EasyLoading.dismiss();
             }
             // ✅ REMOVED: Purchase cancelled snackbar

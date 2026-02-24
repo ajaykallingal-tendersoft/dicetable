@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:in_app_purchase_android/billing_client_wrappers.dart';
@@ -979,6 +980,13 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
       );
 
       if (errorMessage != null) {
+        if (errorMessage == 'user_cancelled') {
+          // ✅ CRITICAL FIX: Gracefully handle Auth popup cancellation
+          print('🛡️ BLoC: Detected internal user_cancelled signal');
+          add(const CancelPurchaseEvent());
+          return;
+        }
+
         if (errorMessage.contains('ITEM_ALREADY_OWNED') ||
             errorMessage.contains('already subscribed')) {
           print('⚠️ Item already owned, triggering restore...');
@@ -1002,6 +1010,26 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
             ),
           );
         }
+      }
+    } on PlatformException catch (e) {
+      // ✅ Defensively catch any PlatformException (cancellation) that reaches BLoC
+      final isCancelled =
+          e.code == 'userCancelled' ||
+          e.code == 'E_USER_CANCELLED' ||
+          e.message?.contains('userCancelled') == true ||
+          e.message?.contains('SKErrorDomain code 2') == true;
+
+      if (isCancelled) {
+        print('🛡️ BLoC: Caught PlatformException cancellation');
+        add(const CancelPurchaseEvent());
+      } else {
+        emit(
+          state.copyWith(
+            status: PaymentPlanStatus.purchaseFailed,
+            errorMessage: 'Purchase error: ${e.message ?? e.toString()}',
+            isProcessing: false,
+          ),
+        );
       }
     } catch (e) {
       emit(
