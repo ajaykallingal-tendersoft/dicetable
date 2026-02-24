@@ -31,7 +31,6 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
     super.initState();
     // ✅ CRITICAL: Force fresh initialization for current user
     WidgetsBinding.instance.addPostFrameCallback((_) {
-
       context.read<PaymentPlanBloc>()
         ..add(const ResetStateEvent()) // Reset first
         ..add(const InitializePaymentEvent()); // Then initialize fresh
@@ -92,7 +91,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
               );
             }
 
-            // ✅ Show loading when restore starts (when isProcessing is true but status is still loading)
+            // Show loading when restore starts (when isProcessing is true but status is still loading)
             if (state.status == PaymentPlanStatus.loading &&
                 state.isProcessing) {
               EasyLoading.show(
@@ -183,13 +182,13 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
               );
             }
 
-            // ✅ FIX: Only show success dialog once using flag
+            // FIX: Only show success dialog once using flag
             if (state.status == PaymentPlanStatus.purchaseSuccess &&
                 !_successDialogShown) {
               EasyLoading.dismiss();
               _successDialogShown = true; // Set flag to prevent repeated shows
 
-              // ✅ Preference sync now happens automatically in PaymentPlanBloc
+              // Preference sync now happens automatically in PaymentPlanBloc
               // after successful verification via _syncPaidProfilePreferences()
 
               context.read<PaymentPlanBloc>().add(
@@ -199,7 +198,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
             } else if (state.status == PaymentPlanStatus.purchaseFailed) {
               EasyLoading.dismiss();
 
-              // ✅ FIX: Filter out inappropriate error messages
+              // FIX: Filter out inappropriate error messages
               final errorMsg = state.errorMessage ?? 'Purchase failed';
 
               // Don't show snackbar for these expected/handled states
@@ -221,7 +220,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                    '✅ Purchases restored successfully',
+                    'Purchases restored successfully',
                     style: GoogleFonts.montserrat(
                       color: AppColors.primaryWhiteColor,
                     ),
@@ -236,7 +235,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
               );
             } else if (state.status == PaymentPlanStatus.initial &&
                 !state.isProcessing) {
-              // ✅ Dismiss loading when restore completes with no active subscription found
+              // Dismiss loading when restore completes with no active subscription found
               EasyLoading.dismiss();
             } else if (state.status == PaymentPlanStatus.cancelled) {
               EasyLoading.dismiss();
@@ -323,11 +322,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
               );
             }
 
-            // ✅ Debug info (remove in production)
-
-
-
-
+            // Debug info (remove in production)
 
             // Main content
             return SafeArea(
@@ -338,7 +333,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                   children: [
                     const SizedBox(height: 16.0),
 
-                    // ✅ Show user type for debugging (remove in production)
+                    // Show user type for debugging (remove in production)
                     if (kDebugMode)
                       Container(
                         padding: const EdgeInsets.all(8),
@@ -387,16 +382,16 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
 
                     const SizedBox(height: 40.0),
 
-                    // ✅ AUTO-RENEWAL DISCLOSURE (Required by Play Store & App Store)
+                    // AUTO-RENEWAL DISCLOSURE (Required by Play Store & App Store)
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16.0),
                       child: Text(
-                        'Subscription automatically renews unless canceled at least 24 hours before the end of the current period. Manage subscriptions in your account settings.',
+                        'Subscription automatically renews unless canceled at least 24 hours before the end of the current period. Manage subscriptions in your Google Play account settings.',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.montserrat(
-                          fontSize: 11,
                           color: AppColors.primaryWhiteColor.withOpacity(0.7),
-                          height: 1.3,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w400,
                         ),
                       ),
                     ),
@@ -408,7 +403,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
 
                     const SizedBox(height: 16.0),
 
-                    // ✅ RESTORE PURCHASES BUTTON (Required for iOS App Store)
+                    // RESTORE PURCHASES BUTTON (Required for iOS App Store)
                     Center(
                       child: TextButton(
                         onPressed: () {
@@ -430,7 +425,7 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
 
                     const SizedBox(height: 12.0),
 
-                    // ✅ TERMS & PRIVACY LINKS (Required by both stores)
+                    // TERMS & PRIVACY LINKS (Required by both stores)
                     // Use light colors for dark background
                     PrivacyAndTermsText(
                       textColor: AppColors.primaryWhiteColor.withOpacity(0.9),
@@ -555,13 +550,11 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
       return bPrice.compareTo(aPrice); // Descending
     });
 
-
     for (var item in sortedProducts) {
       final product = item['product'] as ProductDetails;
       final basePlanId = item['basePlanId'] as String?;
       final price = item['formattedPrice'] as String?;
       final billingPeriod = item['billingPeriod'] as String?;
-
     }
 
     for (var expandedProduct in sortedProducts) {
@@ -587,12 +580,6 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
           formattedPrice: formattedPrice,
           isSelected: isSelected,
           onTap: () {
-
-
-
-
-
-
             context.read<PaymentPlanBloc>().add(
               SelectPlanEvent(
                 product.id,
@@ -721,17 +708,36 @@ class _ChoosePlanScreenState extends State<ChoosePlanScreen> {
                         ),
                     const SizedBox(width: 16.0),
                     Expanded(
-                      child: Text(
-                        productPriceText,
-                        style: GoogleFonts.montserrat(
-                          color:
-                              isSelected
-                                  ? AppColors.primary
-                                  : AppColors.primaryWhiteColor,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        overflow: TextOverflow.ellipsis,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            product.title,
+                            style: GoogleFonts.montserrat(
+                              color:
+                                  isSelected
+                                      ? AppColors.primary
+                                      : AppColors.primaryWhiteColor,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            productPriceText,
+                            style: GoogleFonts.montserrat(
+                              color:
+                                  isSelected
+                                      ? AppColors.primary
+                                      : AppColors.primaryWhiteColor,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
                       ),
                     ),
                   ],

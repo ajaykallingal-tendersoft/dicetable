@@ -219,7 +219,7 @@ class UpgradePopup extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: Text(
-                        'Subscription automatically renews unless canceled at least 24 hours before the end of the current period. You can manage and cancel subscriptions in your account settings.',
+                        "Subscriptions automatically renew unless cancelled at least 24 hours before the end of the current billing period. Your Google Play account will be charged for renewal within 24 hours prior to the end of the current period. You can manage or cancel your subscription at any time in your Google Play account settings.",
                         textAlign: TextAlign.center,
                         style: GoogleFonts.montserrat(
                           fontSize: 10,
@@ -288,6 +288,23 @@ class UpgradePopup extends StatelessWidget {
                                     color: AppColors.primaryWhiteColor,
                                   ),
                                 ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextButton(
+                      onPressed: () {
+                        context.read<PaymentPlanBloc>().add(
+                          const RestorePurchasesEvent(),
+                        );
+                      },
+                      child: Text(
+                        'Restore Purchases',
+                        style: GoogleFonts.montserrat(
+                          fontSize: 13,
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w600,
+                          decoration: TextDecoration.underline,
+                        ),
                       ),
                     ),
                   ],

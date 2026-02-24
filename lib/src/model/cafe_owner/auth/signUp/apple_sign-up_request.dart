@@ -39,7 +39,7 @@ class AppleSignUpRequest {
     this.multipleImages,
   });
 
-  /// ✅ Build multipart form for Dio
+  ///  Build multipart form for Dio
   FormData toFormData() {
     final formData = FormData();
 
@@ -68,12 +68,12 @@ class AppleSignUpRequest {
       );
     }
 
-    // ✅ working days JSON
+    //  working days JSON
     if (workingDays != null && workingDays!.isNotEmpty) {
       formData.fields.add(MapEntry('working_days', jsonEncode(workingDays)));
     }
 
-    // ✅ Main image (avatar)
+    //  Main image (avatar)
     if (image != null) {
       formData.files.add(
         MapEntry(
@@ -83,7 +83,7 @@ class AppleSignUpRequest {
       );
     }
 
-    // ✅ Multiple gallery images
+    //  Multiple gallery images
     if (multipleImages != null && multipleImages!.isNotEmpty) {
       for (int i = 0; i < multipleImages!.length; i++) {
         formData.files.add(
