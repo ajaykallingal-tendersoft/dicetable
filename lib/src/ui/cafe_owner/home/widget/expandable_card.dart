@@ -299,7 +299,15 @@ class _ExpandableCardState extends State<ExpandableCard> {
 
                                   for (var d in sortedDays) {
                                     final timings = d.timings ?? [];
-                                    for (var t in timings) {
+                                    // timings[0] = venue hours record (always present).
+                                    // timings[1+] = user-configured event slots.
+                                    // Show event slots only; fall back to timings[0]
+                                    // if no event slots have been saved yet.
+                                    final displayTimings =
+                                        timings.length > 1
+                                            ? timings.sublist(1)
+                                            : timings;
+                                    for (var t in displayTimings) {
                                       displayWidgets.add(
                                         Text(
                                           "${capitalizeFirstLetter(d.day ?? '')}: ${_formatTime(t.open)} - ${_formatTime(t.close)}",
@@ -348,13 +356,14 @@ class _ExpandableCardState extends State<ExpandableCard> {
                         BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
                           builder: (context, paymentState) {
                             // ✅ Log debug info when building
-
+                            print(paymentState.debugPremiumAccess());
                             // 🔑 KEY FIX: Premium users should NOT need upgrade
                             final bool hasPremiumAccess =
                                 paymentState.premiumOverride ||
                                 paymentState.canAccessPremiumFeatures;
 
                             final bool needsUpgrade = !hasPremiumAccess;
+                            // final bool needsUpgrade = false;
 
                             return InkWell(
                               onTap: () {
@@ -428,13 +437,14 @@ class _ExpandableCardState extends State<ExpandableCard> {
                       BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
                         builder: (context, paymentState) {
                           // ✅ Log debug info when building
-
+                          print(paymentState.debugPremiumAccess());
                           // 🔑 KEY FIX: Premium users should NOT need upgrade
                           final bool hasPremiumAccess =
                               paymentState.premiumOverride ||
                               paymentState.canAccessPremiumFeatures;
 
                           final bool needsUpgrade = !hasPremiumAccess;
+                          // final bool needsUpgrade = false;
 
                           return ElevatedButton.icon(
                             style: ElevatedButton.styleFrom(
@@ -608,13 +618,14 @@ class _ExpandableCardState extends State<ExpandableCard> {
     return BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
       builder: (context, paymentState) {
         // ✅ Log debug info when building
-
+        print(paymentState.debugPremiumAccess());
         // 🔑 KEY FIX: Premium users should NOT need upgrade
         final bool hasPremiumAccess =
             paymentState.premiumOverride ||
             paymentState.canAccessPremiumFeatures;
 
-        final bool needsUpgrade = !hasPremiumAccess;
+        // final bool needsUpgrade = !hasPremiumAccess;
+        final bool needsUpgrade = false;
 
         return InkWell(
           onTap: () {
@@ -689,7 +700,7 @@ class _ExpandableCardState extends State<ExpandableCard> {
           (state is DiceTableUpdateLoading || !isDaysNotEmpty)
               ? null
               : () {
-
+                print('Selected days being sent: $selectedDays');
 
                 context.read<HomeBloc>().add(
                   UpdatePromoTextEvent(widget.index, _promoController.text),
@@ -771,8 +782,8 @@ class _ExpandableCardState extends State<ExpandableCard> {
                       }
                     }).toList();
 
-
-
+                print('📤 Sending to API:');
+                print('  always_available: $finalAlwaysAvailable');
                 for (var day in availableDaysForApi) {
                   print(
                     '  ${day.day}: is_open=${day.isOpen}, timings=${day.timings?.length}',

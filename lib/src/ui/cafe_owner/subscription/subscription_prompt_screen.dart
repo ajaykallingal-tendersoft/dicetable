@@ -9,7 +9,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
-import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:soloseaters/src/common/elevated_button_widget.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/model/cafe_owner/subscription/initial_subscription_plan_response.dart';
@@ -18,11 +17,9 @@ import 'package:soloseaters/src/purchase/bloc/bloc/purchase_bloc.dart';
 import 'package:soloseaters/src/purchase/bloc/bloc/purchase_event.dart';
 import 'package:soloseaters/src/purchase/bloc/bloc/purchase_state.dart';
 import 'package:soloseaters/src/purchase/services/purchase_service.dart';
-import 'package:soloseaters/src/purchase/services/purchase_service.dart';
 import 'package:soloseaters/src/ui/cafe_owner/subscription/bloc/subscription_bloc.dart';
 import 'package:soloseaters/src/ui/cafe_owner/subscription/widget/gradient.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
-import 'package:soloseaters/src/utils/data/privacy_terms.dart';
 import 'package:soloseaters/src/utils/data/privacy_terms.dart';
 
 class SubscriptionPromptScreen extends StatefulWidget {
@@ -133,38 +130,7 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
-                              builder: (context, state) {
-                                ProductDetails? venueProduct;
-                                try {
-                                  venueProduct = state.products.firstWhere(
-                                    (product) =>
-                                        product.id ==
-                                        PaymentService.venueYearlyProductId,
-                                  );
-                                } catch (e) {
-                                  venueProduct =
-                                      state.products.isNotEmpty
-                                          ? state.products.first
-                                          : null;
-                                }
 
-                                final price =
-                                    venueProduct?.price ??
-                                    '\$${data.data!.amount}';
-
-                                return Text(
-                                  'Start With A Free 1-Month Trial,\nThen $price Per Year!',
-                                  textAlign: TextAlign.center,
-                                  style: TextTheme.of(
-                                    context,
-                                  ).labelMedium!.copyWith(
-                                    color: AppColors.primary,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18.sp,
-                                  ),
-                                );
-                              },
                             BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
                               builder: (context, state) {
                                 ProductDetails? venueProduct;
@@ -201,7 +167,7 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                             SizedBox(height: 10.h),
                             Text(
                               'Enjoy all premium features for ${data.data!.trialDuration} ${data.data!.trialType.toString().toLowerCase()},\nabsolutely free!',
-                              'Enjoy all premium features for ${data.data!.trialDuration} ${data.data!.trialType.toString().toLowerCase()},\nabsolutely free!',
+
                               textAlign: TextAlign.center,
                               style: TextTheme.of(context).bodySmall!.copyWith(
                                 color: AppColors.primary,
@@ -225,22 +191,7 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                                 ),
                               ),
                             ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                              ),
-                              child: Text(
-                                'Subscriptions automatically renew unless cancelled at least 24 hours before the end of the current billing period. Your Google Play account will be charged for renewal within 24 hours prior to the end of the current period. You can manage or cancel your subscription at any time in your Google Play account settings.',
-                                textAlign: TextAlign.center,
-                                style: TextTheme.of(
-                                  context,
-                                ).bodySmall!.copyWith(
-                                  fontSize: 10.sp,
-                                  color: AppColors.primary.withOpacity(0.7),
-                                  height: 1.3,
-                                ),
-                              ),
-                            ),
+
                             SizedBox(height: 20.h),
                             // Premium Benefits Section
                             Container(

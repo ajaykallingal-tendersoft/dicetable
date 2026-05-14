@@ -108,10 +108,17 @@ factory CardModel.fromDiceTable(
   
   final bool apiAlwaysAvailable = diceTable.alwaysAvailable ?? false;
 
-  // ✅ Debug: Print each day's is_open value BEFORE filtering
-  print('🔍 Checking is_open values for "${diceTable.title}":');
+  // ✅ Debug: Print each day's is_open value and boundaries BEFORE filtering
+  print('🔍 DEBUG: Table "${diceTable.title}" (ID: ${diceTable.id})');
   for (var day in availableDaysList) {
-    print('  ${day.day}: is_open=${day.isOpen} (type: ${day.isOpen.runtimeType})');
+    final venueHours = (day.timings?.isNotEmpty ?? false) 
+        ? "${day.timings!.first.open} - ${day.timings!.first.close}" 
+        : "MISSING";
+    final userSlots = (day.timings?.length ?? 0) > 1 
+        ? day.timings!.skip(1).map((t) => "${t.open}-${t.close}").join(", ") 
+        : "NONE";
+    
+    print('  📅 ${day.day}: is_open=${day.isOpen} | VenueHours (timings[0]): $venueHours | Slots: $userSlots');
   }
 
   List<AvailableDay> initialSelectedDaysForCard;

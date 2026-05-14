@@ -53,7 +53,11 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
     zoom: 6,
   );
 
-  Future<void> _updateMarkersFromCafes(List<CafeLocation> cafeLocations) async {
+  Future<void> _updateMarkersFromCafes({
+    required List<CafeLocation> cafeLocations,
+    bool isFilterResult = false,
+    String searchQuery = '',
+  }) async {
     await _loadMarkerIcon();
 
     _markers.clear();
@@ -90,8 +94,26 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
       );
     }
 
-    if (validCafes.isNotEmpty) {
-      _centerMapOnUserLocation();
+    if (validCafes.isNotEmpty && _mapInitialized) {
+      final GoogleMapController controller = await _controller.future;
+
+      if (isFilterResult) {
+        // If it's a filter result, fit all markers in view
+        final bounds = _buildBounds(_markers);
+        controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, 50));
+      } else if (searchQuery.isNotEmpty) {
+        // If it's a search result, center on the first match
+        final firstCafe = validCafes.first;
+        controller.animateCamera(
+          CameraUpdate.newLatLngZoom(
+            LatLng(firstCafe.latitude, firstCafe.longitude),
+            14, // Zoom in for specific search
+          ),
+        );
+      } else {
+        // Default behavior (e.g. initial load)
+        _centerMapOnUserLocation();
+      }
     } else if (_mapInitialized) {
       // If no valid cafes, zoom to user's location or NZ default at country-level
       final GoogleMapController controller = await _controller.future;
@@ -115,6 +137,30 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
 
   void _onMarkerTapped(CafeLocation cafe) {
     print('Cafe tapped: ${cafe.name}');
+  }
+
+  LatLngBounds _buildBounds(List<Marker> markers) {
+    double? minLat, maxLat, minLng, maxLng;
+
+    for (final m in markers) {
+      if (minLat == null || m.position.latitude < minLat) {
+        minLat = m.position.latitude;
+      }
+      if (maxLat == null || m.position.latitude > maxLat) {
+        maxLat = m.position.latitude;
+      }
+      if (minLng == null || m.position.longitude < minLng) {
+        minLng = m.position.longitude;
+      }
+      if (maxLng == null || m.position.longitude > maxLng) {
+        maxLng = m.position.longitude;
+      }
+    }
+
+    return LatLngBounds(
+      southwest: LatLng(minLat!, minLng!),
+      northeast: LatLng(maxLat!, maxLng!),
+    );
   }
 
   Future<void> _centerMapOnUserLocation() async {
@@ -187,7 +233,11 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
             }
             if (state is CafeSearchSuccess) {
               EasyLoading.dismiss();
-              _updateMarkersFromCafes(state.cafeLocations);
+              _updateMarkersFromCafes(
+                cafeLocations: state.cafeLocations,
+                isFilterResult: state.isFilterResult,
+                searchQuery: state.searchQuery,
+              );
             } else if (state is CafeSearchInitial) {
               setState(() {
                 _markers.clear();
@@ -239,7 +289,7 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
               padding: EdgeInsets.only(
                 bottom:
                     Platform.isIOS
-                        ? kBottomNavigationBarHeight + 244.0
+                        ? kBottomNavigationBarHeight + 250.0
                         : Platform.isAndroid
                         ? 80.0
                         : 0.0,

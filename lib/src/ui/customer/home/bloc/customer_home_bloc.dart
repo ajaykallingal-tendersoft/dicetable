@@ -30,6 +30,7 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
   TimeOfDay _closeTime = const TimeOfDay(hour: 0, minute: 0);
   GetFilterOptionsResponse? _cachedFilterOptions; // Cache for filter options
   bool _hasUserSearched = false; // Track if user has performed a manual search
+  bool _isFetchingLocation = false; // Guard against concurrent location requests
 
   Set<String> get selectedTableTypes => Set.from(_selectedTableTypes);
 
@@ -75,7 +76,12 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
     if (result.isSuccess && result.data != null) {
       final cafeLocations = _extractCafeLocations(result.data!);
       emit(
-        CafeSearchSuccess(response: result.data!, cafeLocations: cafeLocations),
+        CafeSearchSuccess(
+          response: result.data!,
+          cafeLocations: cafeLocations,
+          isFilterResult: false,
+          searchQuery: event.request.search ?? '',
+        ),
       );
     } else if (result.isError) {
       emit(CafeSearchError(result.error ?? 'Unknown error occurred'));
@@ -100,7 +106,12 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
     if (result.isSuccess && result.data != null) {
       final cafeLocations = _extractCafeLocations(result.data!);
       emit(
-        CafeSearchSuccess(response: result.data!, cafeLocations: cafeLocations),
+        CafeSearchSuccess(
+          response: result.data!,
+          cafeLocations: cafeLocations,
+          isFilterResult: true,
+          searchQuery: event.filterRequest.search ?? '',
+        ),
       );
     } else if (result.isError) {
       emit(CafeSearchError(result.error ?? 'Unknown error occurred'));
@@ -237,6 +248,13 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
     FetchLocationEvent event,
     Emitter<CustomerHomeState> emit,
   ) async {
+    // ✅ Change 4: Guard against concurrent location requests
+    if (_isFetchingLocation) {
+      debugPrint('📍 Already fetching location, ignoring duplicate request.');
+      return;
+    }
+
+    _isFetchingLocation = true;
     emit(LocationLoading());
 
     try {
@@ -307,6 +325,8 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
           errorType: LocationErrorType.unknown,
         ),
       );
+    } finally {
+      _isFetchingLocation = false; // ✅ Reset guard
     }
   }
 

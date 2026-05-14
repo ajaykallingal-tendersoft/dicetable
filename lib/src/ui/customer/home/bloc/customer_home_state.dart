@@ -8,6 +8,7 @@ final class CustomerHomeInitial extends CustomerHomeState {
   @override
   List<Object> get props => [];
 }
+
 final class CafeSearchInitial extends CustomerHomeState {
   @override
   List<Object> get props => [];
@@ -21,14 +22,19 @@ class CafeSearchLoading extends CustomerHomeState {
 class CafeSearchSuccess extends CustomerHomeState {
   final SearchRequestResponse response;
   final List<CafeLocation> cafeLocations;
+  final bool isFilterResult;
+  final String searchQuery;
 
   const CafeSearchSuccess({
     required this.response,
     required this.cafeLocations,
+    this.isFilterResult = false,
+    this.searchQuery = '',
   });
 
   @override
-  List<Object?> get props => [response, cafeLocations];
+  List<Object?> get props =>
+      [response, cafeLocations, isFilterResult, searchQuery];
 }
 
 class CafeSearchError extends CustomerHomeState {
@@ -51,6 +57,7 @@ class FilterOptionsLoaded extends CustomerHomeState {
   @override
   List<Object> get props => [getFilterOptionsResponse];
 }
+
 class FilterOptionsError extends CustomerHomeState {
   final String message;
 
@@ -59,6 +66,7 @@ class FilterOptionsError extends CustomerHomeState {
   @override
   List<Object?> get props => [message];
 }
+
 class FiltersUpdated extends CustomerHomeState {
   final Set<String> selectedTableTypes;
   final Set<String> selectedVenueTypes;
@@ -73,7 +81,12 @@ class FiltersUpdated extends CustomerHomeState {
   });
 
   @override
-  List<Object> get props => [selectedTableTypes, selectedVenueTypes, openTime, closeTime];
+  List<Object> get props => [
+    selectedTableTypes,
+    selectedVenueTypes,
+    openTime,
+    closeTime,
+  ];
 }
 
 class FiltersCleared extends CustomerHomeState {
@@ -102,7 +115,14 @@ class CafeLocation extends Equatable {
   });
 
   @override
-  List<Object?> get props => [id, name, latitude, longitude, photo, description];
+  List<Object?> get props => [
+    id,
+    name,
+    latitude,
+    longitude,
+    photo,
+    description,
+  ];
 }
 
 class LocationLoading extends CustomerHomeState {
@@ -114,10 +134,7 @@ class LocationLoaded extends CustomerHomeState {
   final double latitude;
   final double longitude;
 
-  const LocationLoaded({
-    required this.latitude,
-    required this.longitude,
-  });
+  const LocationLoaded({required this.latitude, required this.longitude});
 
   @override
   List<Object?> get props => [latitude, longitude];
@@ -127,10 +144,7 @@ class LocationError extends CustomerHomeState {
   final String errorMessage;
   final LocationErrorType errorType;
 
-  const LocationError({
-    required this.errorMessage,
-    required this.errorType,
-  });
+  const LocationError({required this.errorMessage, required this.errorType});
 
   @override
   List<Object?> get props => [errorMessage, errorType];

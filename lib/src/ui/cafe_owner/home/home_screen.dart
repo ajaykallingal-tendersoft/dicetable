@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:soloseaters/src/purchase/bloc/bloc/purchase_bloc.dart';
 import 'package:soloseaters/src/purchase/bloc/bloc/purchase_event.dart';
 import 'package:soloseaters/src/ui/cafe_owner/home/bloc/home_bloc.dart';
+import 'package:soloseaters/src/ui/cafe_owner/profile/bloc/profile_bloc.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/bloc/notification_bloc.dart';
 import 'package:soloseaters/src/ui/cafe_owner/notification/count_controller.dart';
 import 'package:flutter/services.dart';
@@ -65,6 +66,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<NotificationBloc>().add(FetchNotifications());
+      // 🚀 Load Profile on startup to ensure Master Opening Hours are available for seating dialogs
+      context.read<ProfileBloc>().add(GetProfileViewEvent());
+      // 🏠 Ensure Home data is fresh
+      context.read<HomeBloc>().add(GetHomeDataEvent());
     });
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<PaymentPlanBloc>().add(InitializePaymentEvent());

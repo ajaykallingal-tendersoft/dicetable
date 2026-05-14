@@ -9,6 +9,7 @@ import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/model/cafe_owner/profile/delete_image_request.dart';
 import 'package:soloseaters/src/model/cafe_owner/profile/profile_update_request.dart';
 import 'package:soloseaters/src/model/country_response.dart';
+import 'package:soloseaters/src/ui/cafe_owner/home/bloc/home_bloc.dart';
 import 'package:soloseaters/src/ui/cafe_owner/profile/bloc/profile_bloc.dart';
 import 'package:soloseaters/src/ui/cafe_owner/profile/widget/cafe_gallery_edit_widget.dart';
 import 'package:soloseaters/src/ui/cafe_owner/profile/widget/profile_opening_hour_widget.dart';
@@ -428,6 +429,12 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           }
 
           _initialValuesSet = false; // Reset to allow update on next load
+
+          // 🔄 Refresh HomeBloc to ensure updated opening hours are reflected in event creation
+          if (mounted) {
+            print('🔄 EditProfileScreen: Triggering HomeBloc refresh after successful profile save');
+            context.read<HomeBloc>().add(GetHomeDataEvent());
+          }
         }
 
         // Handle gallery delete success

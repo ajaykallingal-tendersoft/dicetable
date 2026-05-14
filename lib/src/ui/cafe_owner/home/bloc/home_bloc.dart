@@ -171,6 +171,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     GetHomeDataEvent event,
     Emitter<HomeState> emit,
   ) async {
+    print('🏠 HomeBloc: Fetching fresh home data... [${DateTime.now().toIso8601String()}]');
     emit(HomeLoading());
     try {
       final response = await homeDataProvider.getVenueOwnerHomeData();
