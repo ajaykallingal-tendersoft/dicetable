@@ -53,7 +53,11 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
     zoom: 6,
   );
 
-  Future<void> _updateMarkersFromCafes(List<CafeLocation> cafeLocations) async {
+  Future<void> _updateMarkersFromCafes(
+    List<CafeLocation> cafeLocations, {
+    bool isFilterResult = false,
+    String searchQuery = '',
+  }) async {
     await _loadMarkerIcon();
 
     _markers.clear();
@@ -70,8 +74,6 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
           return isValid;
         }).toList();
 
- 
-
     for (int i = 0; i < validCafes.length; i++) {
       final cafe = validCafes[i];
       _markers.add(
@@ -83,7 +85,6 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
             title: cafe.name,
             snippet: cafe.description ?? 'Cafe Location',
           ),
-          // Added anchor to position the marker's bottom-center at the coordinates
           anchor: const Offset(0.5, 1.0),
           onTap: () {
             _onMarkerTapped(cafe);
@@ -92,15 +93,42 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
       );
     }
 
-    if (validCafes.isNotEmpty) {
-      _centerMapOnUserLocation();
-    } else if (_mapInitialized) {
-      // If no valid cafes, zoom to user's location or NZ default at country-level
+    if (validCafes.isNotEmpty && _mapInitialized) {
+      final GoogleMapController controller = await _controller.future;
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      if (isFilterResult) {
+        // Filter result: fit all markers in view
+        if (validCafes.length == 1) {
+          controller.animateCamera(
+            CameraUpdate.newLatLngZoom(
+              LatLng(validCafes.first.latitude, validCafes.first.longitude),
+              14,
+            ),
+          );
+        } else {
+          controller.animateCamera(
+            CameraUpdate.newLatLngBounds(_buildBounds(validCafes), 80.0),
+          );
+        }
+      } else if (searchQuery.isNotEmpty) {
+        // Text search: animate camera to the searched venue
+        controller.animateCamera(
+          CameraUpdate.newLatLngZoom(
+            LatLng(validCafes.first.latitude, validCafes.first.longitude),
+            14,
+          ),
+        );
+      } else {
+        // Initial load / clear filter: centre on user location
+        _centerMapOnUserLocation();
+      }
+    } else if (_mapInitialized && validCafes.isEmpty) {
+      // No valid cafes — fall back to user location or NZ default
       final GoogleMapController controller = await _controller.future;
       final LatLng referencePoint = _userLocation ?? _kDefaultPosition.target;
       controller.animateCamera(CameraUpdate.newLatLngZoom(referencePoint, 6));
 
-      // Show message if we received cafes but none had valid coordinates
       if (cafeLocations.isNotEmpty) {
         Fluttertoast.showToast(
           fontSize: 14.sp,
@@ -113,6 +141,26 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
       }
     }
     setState(() {});
+  }
+
+  /// Computes a LatLngBounds that encapsulates all [cafes].
+  LatLngBounds _buildBounds(List<CafeLocation> cafes) {
+    double minLat = cafes.first.latitude;
+    double maxLat = cafes.first.latitude;
+    double minLng = cafes.first.longitude;
+    double maxLng = cafes.first.longitude;
+
+    for (final c in cafes) {
+      if (c.latitude < minLat) minLat = c.latitude;
+      if (c.latitude > maxLat) maxLat = c.latitude;
+      if (c.longitude < minLng) minLng = c.longitude;
+      if (c.longitude > maxLng) maxLng = c.longitude;
+    }
+
+    return LatLngBounds(
+      southwest: LatLng(minLat, minLng),
+      northeast: LatLng(maxLat, maxLng),
+    );
   }
 
   void _onMarkerTapped(CafeLocation cafe) {
@@ -190,7 +238,11 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
             }
             if (state is CafeSearchSuccess) {
               EasyLoading.dismiss();
-              _updateMarkersFromCafes(state.cafeLocations);
+              _updateMarkersFromCafes(
+                state.cafeLocations,
+                isFilterResult: state.isFilterResult,
+                searchQuery: state.searchQuery,
+              );
             } else if (state is CafeSearchInitial) {
               setState(() {
                 _markers.clear();

@@ -21,14 +21,19 @@ class CafeSearchLoading extends CustomerHomeState {
 class CafeSearchSuccess extends CustomerHomeState {
   final SearchRequestResponse response;
   final List<CafeLocation> cafeLocations;
+  final bool isFilterResult;
+  final String searchQuery;
 
   const CafeSearchSuccess({
     required this.response,
     required this.cafeLocations,
+    this.isFilterResult = false,
+    this.searchQuery = '',
   });
 
   @override
-  List<Object?> get props => [response, cafeLocations];
+  List<Object?> get props =>
+      [response, cafeLocations, isFilterResult, searchQuery];
 }
 
 class CafeSearchError extends CustomerHomeState {

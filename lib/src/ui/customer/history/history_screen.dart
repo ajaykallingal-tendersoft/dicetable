@@ -304,82 +304,98 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
+  /// Parses the backend title string into a styled RichText matching the design.
+  ///
+  /// Backend title format:
+  ///   "[User Name] Expressed interest in cafe [Cafe Name] at DD-MM-YYYY: HH:MM AM"
+  ///   "[User Name] added cafe [Cafe Name] to favourites at DD-MM-YYYY: HH:MM AM"
+  ///   "[User Name] Removed [Cafe Name] from favourites at DD-MM-YYYY: HH:MM AM"
+  ///   "[User Name] Withdrew interest in cafe [Cafe Name] at DD-MM-YYYY: HH:MM AM"
+  ///
+  /// Design output:
+  ///   "Expressed interest in [CafeName bold]"
+  ///   "[CafeName bold] has been added to the favourite list."
+  ///   "[CafeName bold] has been removed from favourites."
+  ///   "Withdrew interest in [CafeName bold]"
   Widget buildHistoryRichText(String title, BuildContext context) {
-    String action = '';
-    String cafeName = '';
+    // Strip the trailing timestamp "at DD-MM-YYYY: HH:MM AM/PM" from the title.
+    // Pattern: " at " followed by a date-like string.
+    final cleanTitle = title
+        .replaceAll(RegExp(r'\s+at\s+\d{2}-\d{2}-\d{4}:\s*\d{2}:\d{2}\s*(AM|PM)?', caseSensitive: false), '')
+        .trim();
 
-    // Remove username (first word) and timestamp from the end
-    List<String> words = title.split(' ');
+    String plainText = '';   // rendered in normal weight
+    String boldText = '';    // rendered in primary colour + bold
+    bool boldFirst = false;  // true when cafe name comes before the plain text
 
-    // Find where the timestamp starts (pattern: "at DD-MM-YYYY:")
-    int timestampIndex = -1;
-    for (int i = 0; i < words.length; i++) {
-      if (words[i] == 'at' &&
-          i + 1 < words.length &&
-          RegExp(r'^\d{2}-\d{2}-\d{4}:$').hasMatch(words[i + 1])) {
-        timestampIndex = i;
-        break;
-      }
-    }
+    // ── Pattern 1: "... Expressed interest in cafe [Name]" ──────────────────
+    final expressedMatch = RegExp(
+      r'Expressed interest in cafe\s+(.+)$',
+      caseSensitive: false,
+    ).firstMatch(cleanTitle);
 
-    List<String> mainWords = words.sublist(
-      1,
-      timestampIndex == -1 ? words.length : timestampIndex,
-    );
-    String mainContent = mainWords.join(' ');
+    // ── Pattern 2: "... Withdrew interest in cafe [Name]" ───────────────────
+    final withdrewMatch = RegExp(
+      r'Withdrew interest in cafe\s+(.+)$',
+      caseSensitive: false,
+    ).firstMatch(cleanTitle);
 
-    if (mainContent.contains('Expressed interest in cafe')) {
-      action = 'Expressed interest in';
-      cafeName = mainContent.replaceFirst('Expressed interest in cafe ', '');
-    } else if (mainContent.contains('added cafe') &&
-        mainContent.contains('to favourites')) {
-      action = 'Added';
-      RegExp regex = RegExp(r'added cafe\s+(.+?)\s+to favourites');
-      Match? match = regex.firstMatch(mainContent);
-      if (match != null) {
-        cafeName = '${match.group(1)} to favourites';
-      }
-    } else if (mainContent.contains('removed cafe') &&
-        mainContent.contains('from favourites')) {
-      action = 'Removed';
-      RegExp regex = RegExp(r'removed cafe\s+(.+?)\s+from favourites');
-      Match? match = regex.firstMatch(mainContent);
-      if (match != null) {
-        cafeName = '${match.group(1)} from favourites';
-      }
+    // ── Pattern 3: "... added cafe [Name] to favourites" ────────────────────
+    final addedMatch = RegExp(
+      r'added cafe\s+(.+?)\s+to favourites',
+      caseSensitive: false,
+    ).firstMatch(cleanTitle);
+
+    // ── Pattern 4: "... Removed [Name] from favourites" ─────────────────────
+    final removedMatch = RegExp(
+      r'[Rr]emoved\s+(.+?)\s+from favourites',
+      caseSensitive: false,
+    ).firstMatch(cleanTitle);
+
+    if (expressedMatch != null) {
+      plainText = 'Expressed interest in ';
+      boldText = expressedMatch.group(1)!.trim();
+      boldFirst = false;
+    } else if (withdrewMatch != null) {
+      plainText = 'Withdrew interest in ';
+      boldText = withdrewMatch.group(1)!.trim();
+      boldFirst = false;
+    } else if (addedMatch != null) {
+      boldText = addedMatch.group(1)!.trim();
+      plainText = ' has been added to the favourite list.';
+      boldFirst = true;
+    } else if (removedMatch != null) {
+      boldText = removedMatch.group(1)!.trim();
+      plainText = ' has been removed from favourites.';
+      boldFirst = true;
     } else {
-      if (mainContent.contains('cafe ')) {
-        List<String> parts = mainContent.split('cafe ');
-        if (parts.length >= 2) {
-          action = parts[0].trim();
-          cafeName = parts[1].trim();
-        }
-      } else {
-        action = mainContent;
-      }
+      // Fallback: show the cleaned title as plain text (no bold portion)
+      plainText = cleanTitle;
+      boldFirst = false;
     }
+
+    final plainStyle = TextTheme.of(context).labelMedium!.copyWith(
+      color: AppColors.historyActionTextColor,
+      fontWeight: FontWeight.w500,
+      fontSize: 14.sp,
+    );
+    final boldStyle = TextTheme.of(context).labelMedium!.copyWith(
+      color: AppColors.primary,
+      fontWeight: FontWeight.w600,
+      fontSize: 14.sp,
+    );
 
     return Text.rich(
       TextSpan(
-        children: [
-          TextSpan(
-            text: "$action ",
-            style: TextTheme.of(context).labelMedium!.copyWith(
-              color: AppColors.historyActionTextColor,
-              fontWeight: FontWeight.w500,
-              fontSize: 14.sp,
-            ),
-          ),
-          if (cafeName.isNotEmpty)
-            TextSpan(
-              text: cafeName,
-              style: TextTheme.of(context).labelMedium!.copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w600,
-                fontSize: 14.sp,
-              ),
-            ),
-        ],
+        children: boldFirst
+            ? [
+                if (boldText.isNotEmpty) TextSpan(text: boldText, style: boldStyle),
+                if (plainText.isNotEmpty) TextSpan(text: plainText, style: plainStyle),
+              ]
+            : [
+                if (plainText.isNotEmpty) TextSpan(text: plainText, style: plainStyle),
+                if (boldText.isNotEmpty) TextSpan(text: boldText, style: boldStyle),
+              ],
       ),
     );
   }

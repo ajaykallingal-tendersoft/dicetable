@@ -299,7 +299,15 @@ class _ExpandableCardState extends State<ExpandableCard> {
 
                                   for (var d in sortedDays) {
                                     final timings = d.timings ?? [];
-                                    for (var t in timings) {
+                                    // timings[0] = venue hours record (always present).
+                                    // timings[1+] = user-configured event slots.
+                                    // Show event slots only; fall back to timings[0]
+                                    // if no event slots have been saved yet.
+                                    final displayTimings =
+                                        timings.length > 1
+                                            ? timings.sublist(1)
+                                            : timings;
+                                    for (var t in displayTimings) {
                                       displayWidgets.add(
                                         Text(
                                           "${capitalizeFirstLetter(d.day ?? '')}: ${_formatTime(t.open)} - ${_formatTime(t.close)}",
@@ -354,7 +362,8 @@ class _ExpandableCardState extends State<ExpandableCard> {
                                 paymentState.premiumOverride ||
                                 paymentState.canAccessPremiumFeatures;
 
-                            final bool needsUpgrade = !hasPremiumAccess;
+                            // final bool needsUpgrade = !hasPremiumAccess;
+                            final bool needsUpgrade = false;
 
                             return InkWell(
                               onTap: () {
@@ -434,7 +443,8 @@ class _ExpandableCardState extends State<ExpandableCard> {
                               paymentState.premiumOverride ||
                               paymentState.canAccessPremiumFeatures;
 
-                          final bool needsUpgrade = !hasPremiumAccess;
+                          final bool needsUpgrade = false; // 🧪 TEMP: ungated for testing
+                          // final bool needsUpgrade = !hasPremiumAccess; // ← restore for production
 
                           return ElevatedButton.icon(
                             style: ElevatedButton.styleFrom(

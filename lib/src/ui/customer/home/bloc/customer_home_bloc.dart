@@ -29,7 +29,8 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
   TimeOfDay _openTime = const TimeOfDay(hour: 0, minute: 0);
   TimeOfDay _closeTime = const TimeOfDay(hour: 0, minute: 0);
   GetFilterOptionsResponse? _cachedFilterOptions; // Cache for filter options
-  bool _hasUserSearched = false; 
+  bool _hasUserSearched = false;
+  bool _isFetchingLocation = false;
 
   Set<String> get selectedTableTypes => Set.from(_selectedTableTypes);
 
@@ -54,7 +55,7 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
     SearchCafesEvent event,
     Emitter<CustomerHomeState> emit,
   ) async {
-     // If user has manually searched, don't override with automatic searches
+    // If user has manually searched, don't override with automatic searches
     if (_hasUserSearched && !event.isUserInitiated) {
       return;
     }
@@ -74,7 +75,12 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
     if (result.isSuccess && result.data != null) {
       final cafeLocations = _extractCafeLocations(result.data!);
       emit(
-        CafeSearchSuccess(response: result.data!, cafeLocations: cafeLocations),
+        CafeSearchSuccess(
+          response: result.data!,
+          cafeLocations: cafeLocations,
+          isFilterResult: event.isFilterResult,
+          searchQuery: event.request.search,
+        ),
       );
     } else if (result.isError) {
       emit(CafeSearchError(result.error ?? 'Unknown error occurred'));
@@ -109,7 +115,7 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
   }
 
   void _onResetSearch(ResetSearchEvent event, Emitter<CustomerHomeState> emit) {
-     _hasUserSearched = false;
+    _hasUserSearched = false;
     emit(CafeSearchInitial());
   }
 
@@ -230,12 +236,41 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
       // Fetch filter options if cache is empty
       add(GetFilterOptionsEvent());
     }
+
+    // Reload all cafes with no active filters so the map refreshes
+    final double lat =
+        double.tryParse(ObjectFactory().prefs.getLatitude().toString()) ?? 0.0;
+    final double lng =
+        double.tryParse(ObjectFactory().prefs.getLongitude().toString()) ?? 0.0;
+    final bool isGuest = ObjectFactory().prefs.isGuestUser() == true;
+    final String deviceToken =
+        isGuest ? ObjectFactory().prefs.getDeviceID() ?? '' : '';
+
+    add(
+      SearchCafesEvent(
+        CafeSearchRequest(
+          search: '',
+          openTime: '',
+          closeTime: '',
+          diceTableFilter: [],
+          accommodationsFilter: [],
+          deviceToken: deviceToken,
+          latitude: lat,
+          longitude: lng,
+        ),
+        isUserInitiated: true,
+        isFilterResult: false,
+      ),
+    );
   }
 
-   Future<void> _onFetchLocation(
+  Future<void> _onFetchLocation(
     FetchLocationEvent event,
     Emitter<CustomerHomeState> emit,
   ) async {
+    if (_isFetchingLocation) return;
+    _isFetchingLocation = true;
+
     emit(LocationLoading());
 
     try {
@@ -306,10 +341,12 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
           errorType: LocationErrorType.unknown,
         ),
       );
+    } finally {
+      _isFetchingLocation = false;
     }
   }
 
-   Future<LocationPermissionResult> _handleLocationPermission(
+  Future<LocationPermissionResult> _handleLocationPermission(
     BuildContext context,
   ) async {
     LocationPermission permission = await Geolocator.checkPermission();
@@ -383,189 +420,6 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
       errorType: LocationErrorType.unknown,
     );
   }
-
-
-  // Future<void> _onFetchLocation(
-  //   FetchLocationEvent event,
-  //   Emitter<CustomerHomeState> emit,
-  // ) async {
-  //   emit(LocationLoading());
-
-  //   try {
-  //     // Check if location services are enabled
-  //     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-  //     if (!serviceEnabled) {
-  //       emit(
-  //         const LocationError(
-  //           errorMessage:
-  //               'Location services disabled. Enable in device settings.',
-  //           errorType: LocationErrorType.serviceDisabled,
-  //         ),
-  //       );
-  //       await _showLocationSettingsDialog(
-  //         event.context,
-  //         'Location Services Disabled',
-  //         'Please enable location services in your device settings to use this feature.',
-  //         showSettings: true,
-  //       );
-  //       return;
-  //     }
-
-  //     final locationPermissionResult = await _handleLocationPermission(
-  //       event.context,
-  //     );
-
-  //     if (!locationPermissionResult.isGranted) {
-  //       emit(
-  //         LocationError(
-  //           errorMessage: locationPermissionResult.message,
-  //           errorType: locationPermissionResult.errorType,
-  //         ),
-  //       );
-  //       return;
-  //     }
-
-  //     Position position = await _getCurrentPositionWithRetry();
-
-  //     await _saveLocationToPreferences(position);
-
-  //     // Emit the location loaded state with the fetched coordinates
-  //     await Future.delayed(const Duration(milliseconds: 500));
-
-  //     emit(
-  //       LocationLoaded(
-  //         latitude: position.latitude,
-  //         longitude: position.longitude,
-  //       ),
-  //     );
-  //   } catch (e, stackTrace) {
-  //     debugPrint('Location fetch error: $e');
-  //     debugPrint('Stack trace: $stackTrace');
-
-  //     emit(
-  //       LocationError(
-  //         errorMessage: _getErrorMessage(e),
-  //         errorType: LocationErrorType.unknown,
-  //       ),
-  //     );
-  //   }
-  // }
-
-//   Future<LocationPermissionResult> _handleLocationPermission(
-//     BuildContext context,
-//   ) async {
-//     LocationPermission permission = await Geolocator.checkPermission();
-// print('Initial permission: $permission');
-//     if (permission == LocationPermission.denied) {
-//       permission = await Geolocator.requestPermission();
-//     }
-
-//     if (permission == LocationPermission.denied) {
-//       await _showLocationSettingsDialog(
-//         context,
-//         'Location Permission Denied',
-//         'Location access is required to fetch your current location.',
-//         showSettings: false,
-//       );
-//       return LocationPermissionResult(
-//         isGranted: false,
-//         message: 'Location permission denied by user',
-//         errorType: LocationErrorType.permissionDenied,
-//       );
-//     }
-
-//     if (permission == LocationPermission.deniedForever) {
-//       await _showLocationSettingsDialog(
-//         context,
-//         'Location Permission Permanently Denied',
-//         'Location access is permanently denied. Please open app settings to enable it.',
-//         showSettings: true,
-//       );
-//       return LocationPermissionResult(
-//         isGranted: false,
-//         message: 'Location permission permanently denied.',
-//         errorType: LocationErrorType.permissionDeniedForever,
-//       );
-//     }
-
-//     // For iOS: check if location is restricted
-//     if (permission == LocationPermission.unableToDetermine) {
-//       return LocationPermissionResult(
-//         isGranted: false,
-//         message: 'Location access is restricted or not available.',
-//         errorType: LocationErrorType.permissionRestricted,
-//       );
-//     }
-
-//     // Granted (WhileInUse or Always)
-//     return LocationPermissionResult(
-//       isGranted: true,
-//       message: 'Location permission granted.',
-//       errorType: LocationErrorType.none,
-//     );
-//   }
-
-  // Future<LocationPermissionResult> _handleLocationPermission(BuildContext context) async {
-  //   // Check current permission status
-  //   PermissionStatus status = await Permission.location.status;
-
-  //   switch (status) {
-  //     case PermissionStatus.granted:
-  //       return LocationPermissionResult(
-  //         isGranted: true,
-  //         message: 'Location permission granted',
-  //         errorType: LocationErrorType.none,
-  //       );
-
-  //     case PermissionStatus.denied:
-  //     // First time asking or user previously denied
-  //       status = await Permission.location.request();
-  //       return _handlePermissionResponse(context, status);
-
-  //     case PermissionStatus.permanentlyDenied:
-  //     // User permanently denied permission
-  //       await _showLocationSettingsDialog(
-  //         context,
-  //         'Location Permission Required',
-  //         'Location access is permanently denied. Please enable it in app settings to use this feature.',
-  //         showSettings: true,
-  //       );
-  //       return LocationPermissionResult(
-  //         isGranted: false,
-  //         message: 'Location permission permanently denied. Enable in app settings.',
-  //         errorType: LocationErrorType.permissionDeniedForever,
-  //       );
-
-  //     case PermissionStatus.restricted:
-  //     // iOS: Permission restricted (e.g., parental controls)
-  //       return LocationPermissionResult(
-  //         isGranted: false,
-  //         message: 'Location access is restricted on this device.',
-  //         errorType: LocationErrorType.permissionRestricted,
-  //       );
-
-  //     case PermissionStatus.limited:
-  //     // iOS 14+: Limited location access
-  //       await _showLocationSettingsDialog(
-  //         context,
-  //         'Limited Location Access',
-  //         'You have granted limited location access. For better accuracy, please allow precise location in app settings.',
-  //         showSettings: true,
-  //       );
-  //       return LocationPermissionResult(
-  //         isGranted: true, // Still usable but limited
-  //         message: 'Limited location access granted',
-  //         errorType: LocationErrorType.permissionLimited,
-  //       );
-
-  //     default:
-  //       return LocationPermissionResult(
-  //         isGranted: false,
-  //         message: 'Unknown permission status',
-  //         errorType: LocationErrorType.unknown,
-  //       );
-  //   }
-  // }
 
   Future<LocationPermissionResult> _handlePermissionResponse(
     BuildContext context,
@@ -748,261 +602,6 @@ class CustomerHomeBloc extends Bloc<CustomerHomeEvent, CustomerHomeState> {
     }
   }
 }
-
-/// Extended location error types
-
-// Future<void> _onFetchLocation(
-//     FetchLocationEvent event,
-//     Emitter<CustomerHomeState> emit,
-//     ) async {
-//   emit(LocationLoading());
-//
-//   try {
-//     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-//     LocationPermission permission = await Geolocator.checkPermission();
-//
-//     if (!serviceEnabled) {
-//       emit(const LocationError(
-//         errorMessage: 'Location services disabled. Enable in device settings.',
-//         errorType: LocationErrorType.serviceDisabled,
-//       ));
-//       _showLocationSettingsDialog(
-//             event.context,
-//             'Location Services Disabled',
-//             'Please enable location services in your device settings to use this feature.');
-//       return;
-//     }
-//
-//     if (permission == LocationPermission.denied) {
-//       permission = await Geolocator.requestPermission();
-//       if (permission != LocationPermission.whileInUse &&
-//           permission != LocationPermission.always) {
-//         emit(const LocationError(
-//           errorMessage: 'Location permission required for full functionality',
-//           errorType: LocationErrorType.permissionDenied,
-//         ));
-//         return;
-//       }
-//     }
-//
-//     if (permission == LocationPermission.deniedForever) {
-//       emit(const LocationError(
-//         errorMessage: 'Enable location in app settings',
-//         errorType: LocationErrorType.permissionDeniedForever,
-//       ));
-//       _showLocationSettingsDialog(
-//         event.context,
-//         'Location Permission Denied',
-//         'Location access is required for this feature. Please grant permission in app settings.',
-//       );// Uncomment and use
-//       return;
-//     }
-//
-//     Position position = await Geolocator.getCurrentPosition(
-//       desiredAccuracy: LocationAccuracy.high,
-//     );
-//
-//     ObjectFactory().prefs.setLatitude(lat: position.latitude.toString());
-//     ObjectFactory().prefs.setLongitude(long: position.longitude.toString());
-//
-//     emit(LocationLoaded(
-//       latitude: position.latitude,
-//       longitude: position.longitude,
-//     ));
-//
-//   } catch (e, stackTrace) {
-//     emit(LocationError(
-//       errorMessage: 'Error: ${e.toString()}',
-//       errorType: LocationErrorType.unknown,
-//     ));
-//   }
-// }
-
-// Future<void> _onFetchLocation(
-//   FetchLocationEvent event,
-//   Emitter<CustomerHomeState> emit,
-// ) async {
-//   emit(LocationLoading());
-//
-//   try {
-//     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-//     if (!serviceEnabled) {
-//       emit(
-//         const LocationError(
-//           errorMessage:
-//           'Location services are disabled. Please enable location services.',
-//           errorType: LocationErrorType.serviceDisabled,
-//         ),
-//       );
-//       LocationPermission permission = await Geolocator.checkPermission();
-//       permission = await Geolocator.requestPermission();
-//
-//       // Fluttertoast.showToast(
-//       //   msg: 'Please enable location services.',
-//       //   toastLength: Toast.LENGTH_LONG,
-//       //   gravity: ToastGravity.BOTTOM,
-//       //   backgroundColor: AppColors.appRedColor,
-//       //   textColor: AppColors.primaryWhiteColor,
-//       // );
-//       LocationPermission permission = await Geolocator.checkPermission();
-//       permission = await Geolocator.requestPermission();
-//       // _showLocationSettingsDialog(
-//       //     event.context,
-//       //     'Location Services Disabled',
-//       //     'Please enable location services in your device settings to use this feature.');
-//       return;
-//     }
-//
-//     LocationPermission permission = await Geolocator.checkPermission();
-//     if (permission == LocationPermission.denied) {
-//       permission = await Geolocator.requestPermission();
-//       if (permission == LocationPermission.denied) {
-//         emit(
-//           const LocationError(
-//             errorMessage:
-//                 'Location permission denied. Please allow location access.',
-//             errorType: LocationErrorType.permissionDenied,
-//           ),
-//         );
-//         Fluttertoast.showToast(
-//           msg: 'Please allow location access.',
-//           toastLength: Toast.LENGTH_LONG,
-//           gravity: ToastGravity.BOTTOM,
-//           backgroundColor: AppColors.appRedColor,
-//           textColor: AppColors.primaryWhiteColor,
-//         );
-//         _showLocationSettingsDialog(
-//           event.context,
-//           'Location Permission Denied',
-//           'Location access is required for this feature. Please grant permission in app settings.',
-//         );
-//         return;
-//       }
-//     }
-//
-//     if (permission == LocationPermission.deniedForever) {
-//       permission = await Geolocator.requestPermission();
-//       emit(
-//         const LocationError(
-//           errorMessage:
-//               'Location permission permanently denied. Please enable location access in settings.',
-//           errorType: LocationErrorType.permissionDeniedForever,
-//         ),
-//       );
-//       Fluttertoast.showToast(
-//         msg: 'Please enable location access in settings.',
-//         toastLength: Toast.LENGTH_LONG,
-//         gravity: ToastGravity.BOTTOM,
-//         backgroundColor: AppColors.appRedColor,
-//         textColor: AppColors.primaryWhiteColor,
-//       );
-//       _showLocationSettingsDialog(
-//         event.context,
-//         'Location Permission Permanently Denied',
-//         'Location access was permanently denied. Please go to app settings and enable location.',
-//       );
-//       return;
-//     }
-//
-//     // Fetch location
-//     Position position = await Geolocator.getCurrentPosition(
-//       desiredAccuracy: LocationAccuracy.high,
-//     );
-//
-//     ObjectFactory().prefs.setLatitude(lat: position.latitude.toString());
-//     ObjectFactory().prefs.setLongitude(long: position.longitude.toString());
-//
-//     emit(
-//       LocationLoaded(
-//         latitude: position.latitude,
-//         longitude: position.longitude,
-//       ),
-//     );
-//
-//     // Fluttertoast.showToast(
-//     //   msg: 'Location saved successfully.',
-//     //   toastLength: Toast.LENGTH_SHORT,
-//     //   gravity: ToastGravity.BOTTOM,
-//     //   backgroundColor: AppColors.primary,
-//     //   textColor: AppColors.primaryWhiteColor,
-//     // );
-//   } catch (e, stackTrace) {
-//     print('Location Fetch Error: $e');
-//     print('StackTrace: $stackTrace');
-//     emit(
-//       LocationError(
-//         errorMessage: 'Error fetching location: $e',
-//         errorType: LocationErrorType.unknown,
-//       ),
-//     );
-//     Fluttertoast.showToast(
-//       msg: 'Unable to fetch location. Please try again.',
-//       toastLength: Toast.LENGTH_LONG,
-//       gravity: ToastGravity.BOTTOM,
-//       backgroundColor: AppColors.appRedColor,
-//       textColor: AppColors.primaryWhiteColor,
-//     );
-//   }
-// }
-
-// void _showLocationSettingsDialog(
-//   BuildContext context,
-//   String title,
-//   String message,
-// ) {
-//   showDialog(
-//     context: context,
-//     barrierDismissible: false,
-//     builder: (BuildContext dialogContext) {
-//       return AlertDialog(
-//         title: Text(
-//           title,
-//           style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-//             color: AppColors.primary,
-//             fontWeight: FontWeight.w600,
-//             fontSize: 16.sp,
-//           ),
-//         ),
-//         content: Text(message),
-//         actions: <Widget>[
-//           TextButton(
-//             child: Text(
-//               'Cancel',
-//               style: Theme.of(context).textTheme.bodySmall!.copyWith(
-//                 color: AppColors.shadowColor,
-//                 fontWeight: FontWeight.w500,
-//                 fontSize: 14.sp,
-//               ),
-//             ),
-//             onPressed: () {
-//               context.pop(); // Dismiss dialog
-//             },
-//           ),
-//           TextButton(
-//             style: TextButton.styleFrom(
-//               backgroundColor: AppColors.primary,
-//               shape: RoundedRectangleBorder(
-//                 borderRadius: BorderRadius.circular(8),
-//               ),
-//             ),
-//             child: Text(
-//               'Open Settings',
-//               style: Theme.of(context).textTheme.bodySmall!.copyWith(
-//                 color: AppColors.primaryWhiteColor,
-//                 fontWeight: FontWeight.w500,
-//                 fontSize: 14.sp,
-//               ),
-//             ),
-//             onPressed: () {
-//               dialogContext.pop(); // Dismiss dialog
-//               openAppSettings(); // Opens app settings
-//             },
-//           ),
-//         ],
-//       );
-//     },
-//   );
-// }
 
 enum LocationErrorType {
   none,

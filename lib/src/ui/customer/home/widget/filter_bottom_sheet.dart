@@ -196,7 +196,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
     );
 
       context.read<CustomerHomeBloc>().add(
-      SearchCafesEvent(searchRequest, isUserInitiated: true),
+      SearchCafesEvent(searchRequest, isUserInitiated: true, isFilterResult: true),
     );
     context.pop();
   }

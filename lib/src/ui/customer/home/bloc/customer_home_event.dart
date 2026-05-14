@@ -7,11 +7,16 @@ sealed class CustomerHomeEvent extends Equatable {
 class SearchCafesEvent extends CustomerHomeEvent {
   final CafeSearchRequest request;
   final bool isUserInitiated;
+  final bool isFilterResult;
 
-  const SearchCafesEvent(this.request, {this.isUserInitiated = true});
+  const SearchCafesEvent(
+    this.request, {
+    this.isUserInitiated = true,
+    this.isFilterResult = false,
+  });
 
   @override
-  List<Object?> get props => [request, isUserInitiated];
+  List<Object?> get props => [request, isUserInitiated, isFilterResult];
 }
 
 class FilterCafesEvent extends CustomerHomeEvent {
