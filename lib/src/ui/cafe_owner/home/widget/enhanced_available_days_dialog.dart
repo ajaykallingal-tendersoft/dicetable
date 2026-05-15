@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
@@ -9,6 +10,7 @@ import 'package:soloseaters/src/constants/assets.dart';
 import 'package:soloseaters/src/model/cafe_owner/home/available_days.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:soloseaters/src/ui/cafe_owner/profile/bloc/profile_bloc.dart';
 
 class EnhancedAvailableDaysDialog extends StatefulWidget {
   final List<AvailableDay> availableDays;
@@ -84,17 +86,14 @@ class _EnhancedAvailableDaysDialogState
 
     if (hasPm || hasAm) {
       // Strip AM/PM and any surrounding spaces
-      final cleaned = upper
-          .replaceAll('PM', '')
-          .replaceAll('AM', '')
-          .trim();
+      final cleaned = upper.replaceAll('PM', '').replaceAll('AM', '').trim();
       final parts = cleaned.split(':').map((p) => p.trim()).toList();
       int hh = int.tryParse(parts.isNotEmpty ? parts[0] : '0') ?? 0;
       int mm = int.tryParse(parts.length > 1 ? parts[1] : '0') ?? 0;
 
       // 12-hour → 24-hour conversion
-      if (hasPm && hh != 12) hh += 12;   // 1 PM–11 PM → 13–23
-      if (hasAm && hh == 12) hh = 0;     // 12 AM (midnight) → 0
+      if (hasPm && hh != 12) hh += 12; // 1 PM–11 PM → 13–23
+      if (hasAm && hh == 12) hh = 0; // 12 AM (midnight) → 0
 
       return '${hh.toString().padLeft(2, '0')}:${mm.toString().padLeft(2, '0')}:00';
     }
@@ -134,23 +133,49 @@ class _EnhancedAvailableDaysDialogState
       print('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       print('📅 DAY: ${day.day} | hasDefaultTiming: $hasDefaultTiming');
       if (hasDefaultTiming) {
-        print('  🌐 RAW API open  = "${day.timings!.first.open}"  (exact string from server)');
-        print('  🌐 RAW API close = "${day.timings!.first.close}"  (exact string from server)');
+        print(
+          '  🌐 RAW API open  = "${day.timings!.first.open}"  (exact string from server)',
+        );
+        print(
+          '  🌐 RAW API close = "${day.timings!.first.close}"  (exact string from server)',
+        );
       } else {
-        print('  ⚠️  No timings from API — using fallback: open=10:00:00 close=22:00:00');
+        print(
+          '  ⚠️  No timings from API — using fallback: open=10:00:00 close=22:00:00',
+        );
       }
 
-      final defaultOpen = _normalizeTime(
+      String defaultOpen = _normalizeTime(
         hasDefaultTiming ? day.timings!.first.open : "10:00:00",
       );
-      final defaultClose = _normalizeTime(
+      String defaultClose = _normalizeTime(
         hasDefaultTiming ? day.timings!.first.close : "22:00:00",
       );
 
+      // 🚨 MASTER OVERRIDE: Use hours from ProfileBloc if available
+      final profileState = context.read<ProfileBloc>().state;
+      final masterHour = profileState.openingHours[day.day?.toLowerCase()];
+      if (masterHour != null && masterHour.isEnabled) {
+        final masterOpen =
+            '${masterHour.from.hour.toString().padLeft(2, '0')}:${masterHour.from.minute.toString().padLeft(2, '0')}:00';
+        final masterClose =
+            '${masterHour.to.hour.toString().padLeft(2, '0')}:${masterHour.to.minute.toString().padLeft(2, '0')}:00';
+
+        print(
+          '⭐ Master Override for ${day.day}: Using Profile Hours ($masterOpen - $masterClose) instead of Table API ($defaultOpen - $defaultClose)',
+        );
+        defaultOpen = masterOpen;
+        defaultClose = masterClose;
+      }
+
       print('  ✅ NORMALISED open  = "$defaultOpen"  (24h HH:mm:ss)');
       print('  ✅ NORMALISED close = "$defaultClose"  (24h HH:mm:ss)');
-      print('  🕑 OPEN  as minutes = ${int.parse(defaultOpen.split(":")[0]) * 60 + int.parse(defaultOpen.split(":")[1])}');
-      print('  🕑 CLOSE as minutes = ${int.parse(defaultClose.split(":")[0]) * 60 + int.parse(defaultClose.split(":")[1])}');
+      print(
+        '  🕑 OPEN  as minutes = ${int.parse(defaultOpen.split(":")[0]) * 60 + int.parse(defaultOpen.split(":")[1])}',
+      );
+      print(
+        '  🕑 CLOSE as minutes = ${int.parse(defaultClose.split(":")[0]) * 60 + int.parse(defaultClose.split(":")[1])}',
+      );
       // ─────────────────────────────────────────────────────────────────────
 
       // Find if this day is in initialSelectedDays
@@ -176,17 +201,25 @@ class _EnhancedAvailableDaysDialogState
       List<TimeSlot> slots;
       if (initialDay != null && (initialDay.timings ?? []).length > 1) {
         // API returned timings[1+] = user-configured event slots
-        print('  📦 Loading ${initialDay.timings!.length - 1} saved event slot(s) from API (skipping timings[0]=venue hours)');
-        slots = initialDay.timings!.skip(1).map(
-          (t) => TimeSlot(
-            from: _normalizeTime(t.open ?? defaultOpen),
-            to: _normalizeTime(t.close ?? defaultClose),
-            isDefault: false,
-          ),
-        ).toList();
+        print(
+          '  📦 Loading ${initialDay.timings!.length - 1} saved event slot(s) from API (skipping timings[0]=venue hours)',
+        );
+        slots =
+            initialDay.timings!
+                .skip(1)
+                .map(
+                  (t) => TimeSlot(
+                    from: _normalizeTime(t.open ?? defaultOpen),
+                    to: _normalizeTime(t.close ?? defaultClose),
+                    isDefault: false,
+                  ),
+                )
+                .toList();
       } else {
         // No saved event slots yet — seed with one pre-populated from venue hours
-        print('  🌱 No saved event slots — seeding first slot with venue hours: $defaultOpen – $defaultClose');
+        print(
+          '  🌱 No saved event slots — seeding first slot with venue hours: $defaultOpen – $defaultClose',
+        );
         slots = [
           TimeSlot(from: defaultOpen, to: defaultClose, isDefault: false),
         ];
@@ -205,11 +238,12 @@ class _EnhancedAvailableDaysDialogState
       }
 
       // Day is expanded if it has saved event slots
-      final hasCustomSlots = slots.isNotEmpty &&
+      final hasCustomSlots =
+          slots.isNotEmpty &&
           !(slots.length == 1 &&
-            slots.first.from == defaultOpen &&
-            slots.first.to == defaultClose);
-            
+              slots.first.from == defaultOpen &&
+              slots.first.to == defaultClose);
+
       daySelections[day.day!.toLowerCase()] = DaySelection(
         isSelected: isDaySelected,
         isExpanded: hasCustomSlots,
@@ -382,8 +416,9 @@ class _EnhancedAvailableDaysDialogState
     final closeMins = _timeToMinutes(_normalizeTime(selection.cafeCloseTime));
 
     // All user slots sorted by start time (no isDefault distinction)
-    final userSlots = List<TimeSlot>.from(selection.timeSlots)
-      ..sort((a, b) => _timeToMinutes(a.from).compareTo(_timeToMinutes(b.from)));
+    final userSlots = List<TimeSlot>.from(
+      selection.timeSlots,
+    )..sort((a, b) => _timeToMinutes(a.from).compareTo(_timeToMinutes(b.from)));
 
     // ✅ FIX: Find the latest end time among all custom slots
     int nextStartMin = openMins;
@@ -433,7 +468,8 @@ class _EnhancedAvailableDaysDialogState
     final slots = daySelections[day]!.timeSlots;
     if (slots.length <= 1) {
       Fluttertoast.showToast(
-        msg: 'At least one time slot is required. Uncheck the day to remove it entirely.',
+        msg:
+            'At least one time slot is required. Uncheck the day to remove it entirely.',
       );
       return;
     }
@@ -467,10 +503,18 @@ class _EnhancedAvailableDaysDialogState
       final maxMinutes = _timeToMinutes(_normalizeTime(maxTime));
 
       // ─── TIME PICKER DEBUG ────────────────────────────────────────────────
-      print('🕐 Time picker selected: ${picked.hour}:${picked.minute.toString().padLeft(2,"0")} = $selectedMinutes min');
-      print('   minTime raw="$minTime" → normalised="${_normalizeTime(minTime)}" → $minMinutes min');
-      print('   maxTime raw="$maxTime" → normalised="${_normalizeTime(maxTime)}" → $maxMinutes min');
-      print('   In range? ${selectedMinutes >= minMinutes && selectedMinutes <= maxMinutes}');
+      print(
+        '🕐 Time picker selected: ${picked.hour}:${picked.minute.toString().padLeft(2, "0")} = $selectedMinutes min',
+      );
+      print(
+        '   minTime raw="$minTime" → normalised="${_normalizeTime(minTime)}" → $minMinutes min',
+      );
+      print(
+        '   maxTime raw="$maxTime" → normalised="${_normalizeTime(maxTime)}" → $maxMinutes min',
+      );
+      print(
+        '   In range? ${selectedMinutes >= minMinutes && selectedMinutes <= maxMinutes}',
+      );
       // ─────────────────────────────────────────────────────────────────────
 
       if (selectedMinutes < minMinutes || selectedMinutes > maxMinutes) {
@@ -520,7 +564,8 @@ class _EnhancedAvailableDaysDialogState
       final overlaps = newStartMins < existingEnd && newEndMins > existingStart;
       if (overlaps) {
         Fluttertoast.showToast(
-          msg: 'Time slot overlaps with an existing one (${slot.from} - ${slot.to})',
+          msg:
+              'Time slot overlaps with an existing one (${slot.from} - ${slot.to})',
         );
         return false;
       }
@@ -529,8 +574,7 @@ class _EnhancedAvailableDaysDialogState
     // Prevent exact duplicate
     final duplicateExists = selection.timeSlots.any(
       (s) =>
-          _normalizeTime(s.from) == newStart &&
-          _normalizeTime(s.to) == newEnd,
+          _normalizeTime(s.from) == newStart && _normalizeTime(s.to) == newEnd,
     );
     if (duplicateExists) {
       Fluttertoast.showToast(msg: 'This time slot already exists');
@@ -606,14 +650,16 @@ class _EnhancedAvailableDaysDialogState
 
         if (endMins <= startMins) {
           Fluttertoast.showToast(
-            msg: '${_capitalizeFirstLetter(entry.key)} has invalid time range (${slot.from} - ${slot.to})',
+            msg:
+                '${_capitalizeFirstLetter(entry.key)} has invalid time range (${slot.from} - ${slot.to})',
           );
           return false;
         }
 
         if (startMins < openMins || endMins > closeMins) {
           Fluttertoast.showToast(
-            msg: '${_capitalizeFirstLetter(entry.key)} slot must be within café hours ($open - $close)',
+            msg:
+                '${_capitalizeFirstLetter(entry.key)} slot must be within café hours ($open - $close)',
           );
           return false;
         }
@@ -627,7 +673,8 @@ class _EnhancedAvailableDaysDialogState
           final overlaps = startMins < otherEnd && endMins > otherStart;
           if (overlaps) {
             Fluttertoast.showToast(
-              msg: '${_capitalizeFirstLetter(entry.key)} has overlapping slots (${slot.from} - ${slot.to}) and (${other.from} - ${other.to})',
+              msg:
+                  '${_capitalizeFirstLetter(entry.key)} has overlapping slots (${slot.from} - ${slot.to}) and (${other.from} - ${other.to})',
             );
             return false;
           }
@@ -701,20 +748,23 @@ class _EnhancedAvailableDaysDialogState
 
         // timings[1+] — all user-configured event slots
         for (final slot in selection.timeSlots) {
-          timings.add(Timing(
-            open: _normalizeTime(slot.from),
-            close: _normalizeTime(slot.to),
-          ));
+          timings.add(
+            Timing(
+              open: _normalizeTime(slot.from),
+              close: _normalizeTime(slot.to),
+            ),
+          );
         }
 
         selected.add(
           AvailableDay(
-            id: widget.availableDays
-                .firstWhere(
-                  (d) => d.day?.toLowerCase() == day.toLowerCase(),
-                  orElse: () => AvailableDay(),
-                )
-                .id,
+            id:
+                widget.availableDays
+                    .firstWhere(
+                      (d) => d.day?.toLowerCase() == day.toLowerCase(),
+                      orElse: () => AvailableDay(),
+                    )
+                    .id,
             day: day,
             timings: timings,
             isOpen: true,
@@ -897,7 +947,7 @@ class _EnhancedAvailableDaysDialogState
                         ],
                       ),
                       Gap(8),
-              
+
                       ...widget.availableDays.map((day) {
                         return _buildDayTile(
                           day.day!.toLowerCase(),
@@ -974,7 +1024,12 @@ class _EnhancedAvailableDaysDialogState
           setState(() => selection.timeSlots[index].from = newTime);
         } else {
           // TO edit: validate the fully-assembled slot.
-          if (_validateEditedSlot(day, selection.timeSlots[index].from, newTime, index)) {
+          if (_validateEditedSlot(
+            day,
+            selection.timeSlots[index].from,
+            newTime,
+            index,
+          )) {
             setState(() => selection.timeSlots[index].to = newTime);
           }
         }
@@ -1024,7 +1079,7 @@ class _EnhancedAvailableDaysDialogState
       return DateFormat.jm().format(parsed); // Converts to "10:00 AM"
     }
 
-     return Container(
+    return Container(
       height: 42.h,
       decoration: BoxDecoration(
         color: AppColors.primaryWhiteColor,
@@ -1096,13 +1151,15 @@ class _EnhancedAvailableDaysDialogState
                         height: 24,
                         decoration: BoxDecoration(
                           color: AppColors.primaryWhiteColor,
-                          border: Border.all(color: AppColors.primary, width: 2),
+                          border: Border.all(
+                            color: AppColors.primary,
+                            width: 2,
+                          ),
                           borderRadius: BorderRadius.circular(4),
                         ),
                         child:
                             selection.isSelected
-                                ? 
-                                SvgPicture.asset(
+                                ? SvgPicture.asset(
                                   Assets.CHECK,
                                   fit: BoxFit.scaleDown,
                                   height: 10,
@@ -1245,6 +1302,7 @@ class TimeSlot {
 
   TimeSlot({required this.from, required this.to, required this.isDefault});
 }
+
 class NoGlowScrollBehavior extends ScrollBehavior {
   @override
   Widget buildOverscrollIndicator(
