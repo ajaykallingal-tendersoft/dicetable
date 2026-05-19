@@ -13,6 +13,7 @@ import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 
 import 'bloc/history_bloc.dart';
 
@@ -237,7 +238,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                           ),
                                         ),
                                         Text(
-                                          entry.dateTime!,
+                                          _formatLocalTime(entry.dateTime),
                                           style: TextTheme.of(
                                             context,
                                           ).bodySmall!.copyWith(
@@ -341,6 +342,23 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
+  /// Formats UTC ISO string to device local time
+  String _formatLocalTime(String? utcDateTimeStr) {
+    if (utcDateTimeStr == null || utcDateTimeStr.isEmpty) return '';
+    try {
+      DateTime parsed = DateTime.parse(utcDateTimeStr);
+      // Ensure it's treated as UTC if it doesn't have timezone info
+      if (!parsed.isUtc && !utcDateTimeStr.toUpperCase().endsWith('Z')) {
+        parsed = DateTime.parse('${utcDateTimeStr}Z');
+      }
+      final localDateTime = parsed.toLocal();
+      return DateFormat('dd MMM, yyyy | hh:mm a').format(localDateTime);
+    } catch (e) {
+      // Fallback to original string if parsing fails
+      return utcDateTimeStr;
+    }
+  }
+
   /// Parses the backend title string into a styled RichText matching the design.
   ///
   /// Backend title format:
@@ -355,10 +373,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
   ///   "[CafeName bold] has been removed from favourites."
   ///   "Withdrew interest in [CafeName bold]"
   Widget buildHistoryRichText(String title, BuildContext context) {
-    // Strip the trailing timestamp "at DD-MM-YYYY: HH:MM AM/PM" from the title.
-    // Pattern: " at " followed by a date-like string.
+    // Strip the trailing timestamp "at DD-MM-YYYY: HH:MM AM/PM" or ISO format from the title.
     final cleanTitle = title
         .replaceAll(RegExp(r'\s+at\s+\d{2}-\d{2}-\d{4}:\s*\d{2}:\d{2}\s*(AM|PM)?', caseSensitive: false), '')
+        .replaceAll(RegExp(r'\s+at\s+\d{4}-\d{2}-\d{2}.*', caseSensitive: false), '')
         .trim();
 
     String plainText = '';   // rendered in normal weight
