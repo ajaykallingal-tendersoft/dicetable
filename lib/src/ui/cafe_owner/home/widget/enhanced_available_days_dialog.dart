@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
@@ -438,15 +439,7 @@ class _EnhancedAvailableDaysDialogState
     final remainingTime = closeMins - nextStartMin;
 
     if (remainingTime < 15) {
-      ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Not enough time left to create a new slot.', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.black87,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+      Fluttertoast.showToast(msg: 'Not enough time left to create a new slot.');
       return;
     }
 
@@ -474,15 +467,10 @@ class _EnhancedAvailableDaysDialogState
   void _removeTimeSlot(String day, int index) {
     final slots = daySelections[day]!.timeSlots;
     if (slots.length <= 1) {
-      ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('At least one time slot is required. Uncheck the day to remove it entirely.', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.black87,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+      Fluttertoast.showToast(
+        msg:
+            'At least one time slot is required. Uncheck the day to remove it entirely.',
+      );
       return;
     }
     setState(() {
@@ -530,15 +518,9 @@ class _EnhancedAvailableDaysDialogState
       // ─────────────────────────────────────────────────────────────────────
 
       if (selectedMinutes < minMinutes || selectedMinutes > maxMinutes) {
-        ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Time must be between $minTime and $maxTime', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.black87,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+        Fluttertoast.showToast(
+          msg: 'Time must be between $minTime and $maxTime',
+        );
 
         return null;
       }
@@ -563,29 +545,15 @@ class _EnhancedAvailableDaysDialogState
 
     // Validate: must lie inside the default café hours
     if (newStartMins < openMins || newEndMins > closeMins) {
-      ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Time slot must be within café hours $open - $close', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.black87,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+      Fluttertoast.showToast(
+        msg: 'Time slot must be within café hours $open - $close',
+      );
       return false;
     }
 
     // Validate: start must be before end
     if (newEndMins <= newStartMins) {
-      ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('End time must be after start time', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.black87,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+      Fluttertoast.showToast(msg: 'End time must be after start time');
       return false;
     }
 
@@ -595,15 +563,10 @@ class _EnhancedAvailableDaysDialogState
       final existingEnd = _timeToMinutes(slot.to);
       final overlaps = newStartMins < existingEnd && newEndMins > existingStart;
       if (overlaps) {
-        ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Time slot overlaps with an existing one (${slot.from} - ${slot.to})', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.black87,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+        Fluttertoast.showToast(
+          msg:
+              'Time slot overlaps with an existing one (${slot.from} - ${slot.to})',
+        );
         return false;
       }
     }
@@ -614,15 +577,7 @@ class _EnhancedAvailableDaysDialogState
           _normalizeTime(s.from) == newStart && _normalizeTime(s.to) == newEnd,
     );
     if (duplicateExists) {
-      ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('This time slot already exists', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.black87,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+      Fluttertoast.showToast(msg: 'This time slot already exists');
       return false;
     }
 
@@ -646,29 +601,15 @@ class _EnhancedAvailableDaysDialogState
 
     // Inside open–close
     if (newStartMins < openMins || newEndMins > closeMins) {
-      ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Time must be within café hours ($open - $close)', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.black87,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+      Fluttertoast.showToast(
+        msg: 'Time must be within café hours ($open - $close)',
+      );
       return false;
     }
 
     // Start before end
     if (newEndMins <= newStartMins) {
-      ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('End time must be after start time', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.black87,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+      Fluttertoast.showToast(msg: 'End time must be after start time');
       return false;
     }
 
@@ -680,15 +621,9 @@ class _EnhancedAvailableDaysDialogState
       final sEnd = _timeToMinutes(_normalizeTime(s.to));
       final overlaps = newStartMins < sEnd && newEndMins > sStart;
       if (overlaps) {
-        ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('This time overlaps with another slot (${s.from} - ${s.to})', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.black87,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+        Fluttertoast.showToast(
+          msg: 'This time overlaps with another slot (${s.from} - ${s.to})',
+        );
         return false;
       }
     }
@@ -714,28 +649,18 @@ class _EnhancedAvailableDaysDialogState
         final endMins = _timeToMinutes(_normalizeTime(slot.to));
 
         if (endMins <= startMins) {
-          ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${_capitalizeFirstLetter(entry.key)} has invalid time range (${slot.from} - ${slot.to})', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.black87,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+          Fluttertoast.showToast(
+            msg:
+                '${_capitalizeFirstLetter(entry.key)} has invalid time range (${slot.from} - ${slot.to})',
+          );
           return false;
         }
 
         if (startMins < openMins || endMins > closeMins) {
-          ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${_capitalizeFirstLetter(entry.key)} slot must be within café hours ($open - $close)', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.black87,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+          Fluttertoast.showToast(
+            msg:
+                '${_capitalizeFirstLetter(entry.key)} slot must be within café hours ($open - $close)',
+          );
           return false;
         }
 
@@ -747,15 +672,10 @@ class _EnhancedAvailableDaysDialogState
           final otherEnd = _timeToMinutes(_normalizeTime(other.to));
           final overlaps = startMins < otherEnd && endMins > otherStart;
           if (overlaps) {
-            ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${_capitalizeFirstLetter(entry.key)} has overlapping slots (${slot.from} - ${slot.to}) and (${other.from} - ${other.to})', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.black87,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+            Fluttertoast.showToast(
+              msg:
+                  '${_capitalizeFirstLetter(entry.key)} has overlapping slots (${slot.from} - ${slot.to}) and (${other.from} - ${other.to})',
+            );
             return false;
           }
         }
