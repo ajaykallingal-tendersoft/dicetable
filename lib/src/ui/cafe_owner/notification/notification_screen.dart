@@ -10,7 +10,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -122,13 +121,15 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     SignOut().logout(context);
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       SignOut().logout(context);
-                      Fluttertoast.showToast(
-                        fontSize: 14.sp,
-                        backgroundColor: AppColors.primaryWhiteColor,
-                        textColor: AppColors.appRedColor,
-                        gravity: ToastGravity.BOTTOM,
-                        msg: "Your session has expired. Please sign in again.",
-                      );
+                      ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Your session has expired. Please sign in again.", style: TextStyle(color: AppColors.appRedColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
                     });
                   }
                 }
@@ -145,13 +146,15 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     SignOut().logout(context);
                     WidgetsBinding.instance.addPostFrameCallback((_) {
                       SignOut().logout(context);
-                      Fluttertoast.showToast(
-                        fontSize: 14.sp,
-                        backgroundColor: AppColors.primaryWhiteColor,
-                        textColor: AppColors.appRedColor,
-                        gravity: ToastGravity.BOTTOM,
-                        msg: "Your session has expired. Please sign in again.",
-                      );
+                      ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Your session has expired. Please sign in again.", style: TextStyle(color: AppColors.appRedColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
                     });
                   }
                 }
@@ -170,13 +173,15 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     // Persist the new status
                     _saveNotificationStatus(isNotificationEnabled.value);
 
-                    Fluttertoast.showToast(
-                      fontSize: 14.sp,
-                      backgroundColor: AppColors.primaryWhiteColor,
-                      textColor: AppColors.appGreenColor,
-                      gravity: ToastGravity.BOTTOM,
-                      msg: state.notificationStatusResponse.message ?? "",
-                    );
+                    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(state.notificationStatusResponse.message ?? "", style: TextStyle(color: AppColors.appGreenColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
 
                     context.read<NotificationBloc>().add(FetchNotifications());
                   }

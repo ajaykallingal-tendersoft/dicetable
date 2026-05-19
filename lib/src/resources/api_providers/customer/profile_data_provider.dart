@@ -52,10 +52,9 @@ class CustomerProfileDataProvider {
         );
       } else if (e.response != null && e.response!.statusCode == 401) {
         return StateModel.error("UnAuthorized error");
+      } else if (e.type == DioExceptionType.connectionError) {
+        return StateModel.error("No internet connection");
       } else if (e.response == null) {
-        if (e.message == "No internet connection") {
-          return StateModel.error("No internet connection");
-        }
         return StateModel.error("Unable to reach server. Try again later.");
       } else {
         return StateModel.error('Network error: ${e.message}');

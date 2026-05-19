@@ -8,7 +8,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 
@@ -29,13 +28,15 @@ class _CategoryScreenState extends State<CategoryScreen> {
     if (currentBackPressTime == null ||
         now.difference(currentBackPressTime!) > const Duration(seconds: 3)) {
       currentBackPressTime = now;
-      Fluttertoast.showToast(
-        fontSize: 14.sp,
+      ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Press again to exit", style: TextStyle(color: AppColors.primaryWhiteColor)),
         backgroundColor: AppColors.secondary,
-        textColor: AppColors.primaryWhiteColor,
-        gravity: ToastGravity.BOTTOM,
-        msg: "Press again to exit",
-      );
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
       return Future.value(false);
     }
     SystemNavigator.pop();

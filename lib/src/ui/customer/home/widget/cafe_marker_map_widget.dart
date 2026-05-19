@@ -10,7 +10,6 @@ import 'package:soloseaters/src/utils/data/sign_out.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 
@@ -130,14 +129,15 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
       controller.animateCamera(CameraUpdate.newLatLngZoom(referencePoint, 6));
 
       if (cafeLocations.isNotEmpty) {
-        Fluttertoast.showToast(
-          fontSize: 14.sp,
-          backgroundColor: AppColors.primaryWhiteColor,
-          textColor: AppColors.appRedColor,
-          gravity: ToastGravity.BOTTOM,
-          msg:
-              "Search returned ${cafeLocations.length} cafe(s), but none have valid location coordinates.",
-        );
+        ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Search returned ${cafeLocations.length} cafe(s) but they don't have valid coordinates.", style: TextStyle(color: AppColors.appRedColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
       }
     }
     setState(() {});
@@ -258,26 +258,30 @@ class _CafeMarkerMapWidgetState extends State<CafeMarkerMapWidget> {
                   EasyLoading.dismiss();
                   WidgetsBinding.instance.addPostFrameCallback((_) {
                     SignOut().logout(context);
-                    Fluttertoast.showToast(
-                      fontSize: 14.sp,
-                      backgroundColor: AppColors.primaryWhiteColor,
-                      textColor: AppColors.appRedColor,
-                      gravity: ToastGravity.BOTTOM,
-                      msg: "Your session has expired. Please sign in again.",
-                    );
+                    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Your session has expired. Please sign in again.", style: TextStyle(color: AppColors.appRedColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
                   });
                 }
               }
             }
             if (state is CafeSearchSuccess) {
               if (state.response.cafes!.isEmpty) {
-                Fluttertoast.showToast(
-                  fontSize: 14.sp,
-                  backgroundColor: AppColors.primaryWhiteColor,
-                  textColor: AppColors.appRedColor,
-                  gravity: ToastGravity.BOTTOM,
-                  msg: "No Cafes Found.",
-                );
+                ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("No Cafes Found.", style: TextStyle(color: AppColors.appRedColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
               }
             }
 

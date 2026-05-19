@@ -12,7 +12,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../model/cafe_owner/auth/signUp/google_sign-up_request.dart';
@@ -173,13 +172,15 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                   type: "register",
                 ),
               );
-              Fluttertoast.showToast(
-                fontSize: 14.sp,
-                backgroundColor: AppColors.primaryWhiteColor,
-                textColor: AppColors.appGreenColor,
-                gravity: ToastGravity.BOTTOM,
-                msg: state.signUpRequestResponse.message!,
-              );
+              ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(state.signUpRequestResponse.message!, style: TextStyle(color: AppColors.appGreenColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
             }
           }
           if (state is GoogleSignUpSuccessState) {
@@ -189,13 +190,15 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                 final firstErrorField = response.errors!.keys.first;
                 final firstErrorMessage =
                     response.errors![firstErrorField]?.first;
-                Fluttertoast.showToast(
-                  fontSize: 14.sp,
-                  backgroundColor: AppColors.primaryWhiteColor,
-                  textColor: AppColors.appGreenColor,
-                  gravity: ToastGravity.BOTTOM,
-                  msg: firstErrorMessage ?? "Something went wrong",
-                );
+                ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(firstErrorMessage ?? "Something went wrong", style: TextStyle(color: AppColors.appGreenColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(firstErrorMessage ?? 'Something went wrong'),
@@ -209,17 +212,15 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                 );
               }
             } else if (response.status == true) {
-              Fluttertoast.showToast(
-                msg: state.googleSignUpRequestResponse.message!,
-                backgroundColor: AppColors.primaryWhiteColor,
-                textColor: AppColors.appGreenColor,
-                gravity: ToastGravity.BOTTOM,
-                toastLength: Toast.LENGTH_SHORT,
-                timeInSecForIosWeb: 1,
-                fontSize: 14.sp,
-                webPosition:
-                    "bottom: 80px; left: 50%; transform: translateX(-50%);",
-              );
+              ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(state.googleSignUpRequestResponse.message!, style: TextStyle(color: AppColors.appGreenColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
 
               ObjectFactory().prefs.setCustomerAuthToken(
                 token: state.googleSignUpRequestResponse.token,
@@ -245,13 +246,15 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                 final firstErrorField = response.errors!.keys.first;
                 final firstErrorMessage =
                     response.errors![firstErrorField]?.first;
-                Fluttertoast.showToast(
-                  fontSize: 14.sp,
-                  backgroundColor: AppColors.primaryWhiteColor,
-                  textColor: AppColors.appGreenColor,
-                  gravity: ToastGravity.BOTTOM,
-                  msg: firstErrorMessage ?? "Something went wrong",
-                );
+                ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(firstErrorMessage ?? "Something went wrong", style: TextStyle(color: AppColors.appGreenColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(firstErrorMessage ?? 'Something went wrong'),
@@ -265,15 +268,15 @@ class _CustomerSignUpScreenState extends State<CustomerSignUpScreen> {
                 );
               }
             } else if (response.status == true) {
-              Fluttertoast.showToast(
-                msg: state.appleSignUpRequestResponse.message!,
-                backgroundColor: AppColors.primaryWhiteColor,
-                textColor: AppColors.appGreenColor,
-                gravity: ToastGravity.BOTTOM,
-                toastLength: Toast.LENGTH_SHORT,
-                timeInSecForIosWeb: 1,
-                fontSize: 14.sp,
-              );
+              ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(state.appleSignUpRequestResponse.message!, style: TextStyle(color: AppColors.appGreenColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
 
               ObjectFactory().prefs.setCustomerAuthToken(
                 token: state.appleSignUpRequestResponse.token,

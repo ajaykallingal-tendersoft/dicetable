@@ -21,7 +21,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 
@@ -219,23 +218,29 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                     customerUserName: state.googleLoginResponse.user!.name,
                   );
                   context.go('/customer_home');
-                  Fluttertoast.showToast(
-                    fontSize: 14.sp,
-                    msg: response.message!,
-                    backgroundColor: AppColors.primaryWhiteColor,
-                    textColor: AppColors.appGreenColor,
-                  );
+                  ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(response.message!, style: TextStyle(color: AppColors.appGreenColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
                 }
               }
               if (state is GoogleLoginErrorState) {
                 EasyLoading.dismiss();
                 print('GoogleLoginErrorState reached');
-                Fluttertoast.showToast(
-                  fontSize: 14.sp,
-                  msg: state.msg,
-                  backgroundColor: AppColors.primaryWhiteColor,
-                  textColor: AppColors.appRedColor,
-                );
+                ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(state.msg, style: TextStyle(color: AppColors.appRedColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
 
                 if (state.msg ==
                     "You are not registered in our app. Please complete the signup process!") {
@@ -275,12 +280,15 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                         state.appleLoginRequestResponse.user!.name,
                   );
                   context.go('/customer_home');
-                  Fluttertoast.showToast(
-                    fontSize: 14.sp,
-                    msg: response.message!,
-                    backgroundColor: AppColors.primaryWhiteColor,
-                    textColor: AppColors.appGreenColor,
-                  );
+                  ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(response.message!, style: TextStyle(color: AppColors.appGreenColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
                 }
               }
               if (state is LoginWithAppleError) {
@@ -289,12 +297,15 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                 );
                 EasyLoading.dismiss();
                 print('AppleLoginErrorState reached');
-                Fluttertoast.showToast(
-                  fontSize: 14.sp,
-                  msg: state.errorMsg,
-                  backgroundColor: AppColors.primaryWhiteColor,
-                  textColor: AppColors.appRedColor,
-                );
+                ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(state.errorMsg, style: TextStyle(color: AppColors.appRedColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
 
                 if (state.errorMsg ==
                     "You are not registered in our app. Please complete the signup process!") {
@@ -856,12 +867,14 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
   void _showToast(String message, Color textColor) {
     if (!_isMounted) return;
 
-    Fluttertoast.showToast(
-      fontSize: 14.sp,
-      backgroundColor: AppColors.primaryWhiteColor,
-      textColor: textColor,
-      gravity: ToastGravity.BOTTOM,
-      msg: message,
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: TextStyle(color: textColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
     );
   }
 

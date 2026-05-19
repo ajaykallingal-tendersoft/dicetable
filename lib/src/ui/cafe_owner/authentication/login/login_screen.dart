@@ -26,7 +26,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:soloseaters/src/ui/cafe_owner/authentication/login/widget/login_with_apple_widget.dart';
@@ -727,20 +726,26 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _showErrorToast(String message) {
-    Fluttertoast.showToast(
-      fontSize: 14.sp,
-      msg: message,
-      backgroundColor: AppColors.primaryWhiteColor,
-      textColor: AppColors.appRedColor,
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: TextStyle(color: AppColors.appRedColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
     );
   }
 
   void _showEmailVerificationToast(String message) {
-    Fluttertoast.showToast(
-      fontSize: 14.sp,
-      msg: message,
-      backgroundColor: AppColors.primaryWhiteColor,
-      textColor: AppColors.appRedColor,
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: TextStyle(color: AppColors.appRedColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
     );
   }
 

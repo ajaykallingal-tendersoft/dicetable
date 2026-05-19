@@ -18,7 +18,6 @@ import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:soloseaters/src/utils/data/auth_session_manager.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 
 class CafeListScreen extends StatefulWidget {
@@ -83,14 +82,15 @@ class _CafeListScreenState extends State<CafeListScreen> {
           ),
         ),
       );
-      Fluttertoast.showToast(
-        fontSize: 14.sp,
-        msg: "Location data unavailable. Using default location.",
-        toastLength: Toast.LENGTH_LONG,
-        gravity: ToastGravity.BOTTOM,
+      ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Location data unavailable. Using default location.", style: TextStyle(color: AppColors.primaryWhiteColor)),
         backgroundColor: AppColors.appRedColor,
-        textColor: AppColors.primaryWhiteColor,
-      );
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
     }
   }
 
@@ -288,14 +288,15 @@ class _CafeListScreenState extends State<CafeListScreen> {
                           if (AuthSessionManager.consumeRefreshFailureFlag()) {
                             WidgetsBinding.instance.addPostFrameCallback((_) {
                               SignOut().logout(context);
-                              Fluttertoast.showToast(
-                                fontSize: 14.sp,
-                                backgroundColor: AppColors.primaryWhiteColor,
-                                textColor: AppColors.appRedColor,
-                                gravity: ToastGravity.BOTTOM,
-                                msg:
-                                    "Your session has expired. Please sign in again.",
-                              );
+                              ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Your session has expired. Please sign in again.", style: TextStyle(color: AppColors.appRedColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
                             });
                           }
                         }
@@ -308,14 +309,15 @@ class _CafeListScreenState extends State<CafeListScreen> {
                         if (AuthSessionManager.consumeRefreshFailureFlag()) {
                           WidgetsBinding.instance.addPostFrameCallback((_) {
                             SignOut().logout(context);
-                            Fluttertoast.showToast(
-                              fontSize: 14.sp,
-                              backgroundColor: AppColors.primaryWhiteColor,
-                              textColor: AppColors.appRedColor,
-                              gravity: ToastGravity.BOTTOM,
-                              msg:
-                                  "Your session has expired. Please sign in again.",
-                            );
+                            ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Your session has expired. Please sign in again.", style: TextStyle(color: AppColors.appRedColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
                           });
                         }
                       }

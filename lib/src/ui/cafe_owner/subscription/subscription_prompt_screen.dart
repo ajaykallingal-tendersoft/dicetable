@@ -5,7 +5,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
@@ -53,13 +52,15 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
     if (currentBackPressTime == null ||
         now.difference(currentBackPressTime!) > const Duration(seconds: 3)) {
       currentBackPressTime = now;
-      Fluttertoast.showToast(
-        fontSize: 14.sp,
+      ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Press again to exit", style: TextStyle(color: AppColors.primaryWhiteColor)),
         backgroundColor: AppColors.secondary,
-        textColor: AppColors.primaryWhiteColor,
-        gravity: ToastGravity.BOTTOM,
-        msg: "Press again to exit",
-      );
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
       return Future.value(false);
     }
     SystemNavigator.pop();
@@ -750,13 +751,15 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
 
               if (paymentState.status == PaymentPlanStatus.purchaseFailed) {
                 EasyLoading.dismiss();
-                Fluttertoast.showToast(
-                  fontSize: 14.sp,
-                  backgroundColor: AppColors.appRedColor,
-                  textColor: AppColors.primaryWhiteColor,
-                  gravity: ToastGravity.BOTTOM,
-                  msg: paymentState.errorMessage ?? 'Failed to start trial',
-                );
+                ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(paymentState.errorMessage ?? 'Failed to start trial', style: TextStyle(color: AppColors.primaryWhiteColor)),
+        backgroundColor: AppColors.appRedColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
               }
 
               // FIX: Handle verification failure with EasyLoader dismissal
@@ -768,15 +771,16 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                 } else {
                   // Max retries reached - dismiss loader and show error
                   EasyLoading.dismiss();
-                  Fluttertoast.showToast(
-                    fontSize: 14.sp,
-                    backgroundColor: AppColors.appRedColor,
-                    textColor: AppColors.primaryWhiteColor,
-                    gravity: ToastGravity.BOTTOM,
-                    msg:
-                        paymentState.errorMessage ??
-                        'Unable to verify purchase. Please contact support.',
-                  );
+                  ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(paymentState.errorMessage ??
+                        'Unable to verify purchase. Please contact support.', style: TextStyle(color: AppColors.primaryWhiteColor)),
+        backgroundColor: AppColors.appRedColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
                 }
               }
 
@@ -922,13 +926,15 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
                       state.subscriptionStartResponse.message?.toString() ??
                       "Your subscription was successful.";
 
-                  Fluttertoast.showToast(
-                    fontSize: 14.sp,
-                    backgroundColor: AppColors.primaryWhiteColor,
-                    textColor: AppColors.appGreenColor,
-                    gravity: ToastGravity.BOTTOM,
-                    msg: msg,
-                  );
+                  ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(msg, style: TextStyle(color: AppColors.appGreenColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
 
                   // CRITICAL: Refresh subscription status from backend to update cache
                   // This ensures premiumOverride and all subscription data is properly synced
@@ -948,13 +954,15 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
 
                 if (state is StartSubscriptionError) {
                   EasyLoading.dismiss();
-                  Fluttertoast.showToast(
-                    fontSize: 14.sp,
-                    backgroundColor: AppColors.primaryWhiteColor,
-                    textColor: AppColors.appGreenColor,
-                    gravity: ToastGravity.BOTTOM,
-                    msg: state.errorMessage,
-                  );
+                  ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(state.errorMessage, style: TextStyle(color: AppColors.appGreenColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
                 }
               },
               builder: (context, state) {

@@ -13,7 +13,6 @@ import 'package:flutter_svg/svg.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:lottie/lottie.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 
 class CafeListFilter extends StatefulWidget {
   const CafeListFilter({super.key});
@@ -174,14 +173,15 @@ class _CafeListFilterState extends State<CafeListFilter> {
     final bool hasVenueTypeFilter = selectedVenueTypes.isNotEmpty;
 
     if (!hasTimeFilter && !hasTableTypeFilter && !hasVenueTypeFilter) {
-      Fluttertoast.showToast(
-        fontSize: 14.sp,
-        msg: "Please select at least one filter",
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
+      ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Please select at least one filter", style: TextStyle(color: AppColors.appRedColor)),
         backgroundColor: AppColors.primaryWhiteColor,
-        textColor: AppColors.appRedColor,
-      );
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
       return;
     }
 

@@ -13,7 +13,6 @@ import 'package:soloseaters/src/ui/customer/profile/customer_profile_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'bloc/customer_home_bloc.dart';
 
@@ -42,13 +41,15 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
     if (currentBackPressTime == null ||
         now.difference(currentBackPressTime!) > const Duration(seconds: 3)) {
       currentBackPressTime = now;
-      Fluttertoast.showToast(
+      ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Press again to exit", style: TextStyle(color: AppColors.primaryWhiteColor)),
         backgroundColor: AppColors.secondary,
-        textColor: AppColors.primaryWhiteColor,
-        gravity: ToastGravity.BOTTOM,
-        msg: "Press again to exit",
-        fontSize: 14.sp,
-      );
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
       return Future.value(false);
     }
     if (Theme.of(context).platform == TargetPlatform.android) {
