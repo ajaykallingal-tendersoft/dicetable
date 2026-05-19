@@ -22,22 +22,26 @@ class HomeDataProvider {
       return null;
     } on DioException catch (e) {
 
-      if (e.response!.statusCode == 500) {
+      if (e.response != null && e.response!.statusCode == 500) {
         return StateModel.error(
             "The server isn't responding! Please try again later.");
-      } else if (e.response!.statusCode == 408) {
+      } else if (e.response != null && e.response!.statusCode == 408) {
         return StateModel.error(
             "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-      } else if (e.response!.statusCode == 401) {
+      } else if (e.response != null && e.response!.statusCode == 401) {
         return StateModel.error(
             "UnAuthorized error");
-      }else if(e.response == null) {
-        return StateModel.error(
-            "The server isn't responding! Please try again later.");
+      } else if (e.response == null) {
+        if (e.message == "No internet connection") {
+          return StateModel.error("No internet connection");
+        }
+        return StateModel.error("Unable to reach server. Try again later.");
       }
       else if (e.type.name == "connectionError") {
-        return StateModel.error(
-            "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!");
+        if (e.message == "No internet connection") {
+          return StateModel.error("No internet connection");
+        }
+        return StateModel.error("Unable to reach server. Try again later.");
       }
 
     }
@@ -58,21 +62,20 @@ class HomeDataProvider {
       return null;
     } on DioException catch (e) {
 
-      if (e.response!.statusCode == 500) {
+      if (e.response != null && e.response!.statusCode == 500) {
         return StateModel.error(
             "The server isn't responding! Please try again later.");
-      } else if (e.response!.statusCode == 408) {
+      } else if (e.response != null && e.response!.statusCode == 408) {
         return StateModel.error(
             "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-      } else if (e.response!.statusCode == 401) {
+      } else if (e.response != null && e.response!.statusCode == 401) {
         return StateModel.error(
             "UnAuthorized error");
-      } else if (e.type.name == "connectionError") {
-        return StateModel.error(
-            "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-      }else if(e.response == null) {
-        return StateModel.error(
-            "The server isn't responding! Please try again later.");
+      } else if (e.type.name == "connectionError" || e.response == null) {
+        if (e.message == "No internet connection") {
+          return StateModel.error("No internet connection");
+        }
+        return StateModel.error("Unable to reach server. Try again later.");
       }
 
     }

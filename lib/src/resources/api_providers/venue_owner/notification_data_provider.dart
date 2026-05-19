@@ -110,14 +110,14 @@ class NotificationDataProvider {
           // Silent error while parsing error response
         }
 
-        if (e.response!.statusCode == 500) {
+        if (e.response != null && e.response!.statusCode == 500) {
           return StateModel.error("The server isn't responding! Please try again later.");
-        } else if (e.response!.statusCode == 408) {
+        } else if (e.response != null && e.response!.statusCode == 408) {
           return StateModel.error("Request timed out. Please try again later.");
-        } else if (e.response!.statusCode == 401) {
+        } else if (e.response != null && e.response!.statusCode == 401) {
           return StateModel.error(
               "UnAuthorized error");
-        } else if (e.response!.statusCode == 422) {
+        } else if (e.response != null && e.response!.statusCode == 422) {
           return StateModel.error("Validation failed. Please check your input.");
         } else {
           return StateModel.error("Error: ${e.response!.statusCode}");
@@ -173,14 +173,14 @@ class NotificationDataProvider {
           // Silent parse error
         }
 
-        if (e.response!.statusCode == 500) {
+        if (e.response != null && e.response!.statusCode == 500) {
           return StateModel.error("The server isn't responding! Please try again later.");
-        } else if (e.response!.statusCode == 408) {
+        } else if (e.response != null && e.response!.statusCode == 408) {
           return StateModel.error("Request timed out. Please try again later.");
-        } else if (e.response!.statusCode == 401) {
+        } else if (e.response != null && e.response!.statusCode == 401) {
           return StateModel.error(
               "UnAuthorized error");
-        } else if (e.response!.statusCode == 422) {
+        } else if (e.response != null && e.response!.statusCode == 422) {
           return StateModel.error("Validation failed. Please check your input.");
         } else {
           return StateModel.error("Error: ${e.response!.statusCode}");
