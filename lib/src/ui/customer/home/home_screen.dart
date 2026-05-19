@@ -42,14 +42,19 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         now.difference(currentBackPressTime!) > const Duration(seconds: 3)) {
       currentBackPressTime = now;
       ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("Press again to exit", style: TextStyle(color: AppColors.primaryWhiteColor)),
-        backgroundColor: AppColors.secondary,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+        SnackBar(
+          content: Text(
+            "Press again to exit",
+            style: TextStyle(color: AppColors.primaryWhiteColor),
+          ),
+          backgroundColor: AppColors.secondary,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
       return Future.value(false);
     }
     if (Theme.of(context).platform == TargetPlatform.android) {
@@ -119,16 +124,19 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
             iconSize: 20.h,
             items: [
               FABBottomAppBarItem(
-                iconData: SvgPicture.asset(
-                  'assets/svg/home.svg',
-                  fit: BoxFit.scaleDown,
+                iconData: Padding(
+                  padding: EdgeInsets.only(bottom: 3.h),
+                  child: SvgPicture.asset(
+                    'assets/svg/home.svg',
+                    fit: BoxFit.scaleDown,
+                  ),
                 ),
                 text: 'HOME',
               ),
               FABBottomAppBarItem(
                 iconData: SvgPicture.asset(
                   'assets/svg/cafe-list.svg',
-                  fit: BoxFit.contain,
+                  fit: BoxFit.scaleDown,
                 ),
                 text: 'CAFE LIST',
               ),

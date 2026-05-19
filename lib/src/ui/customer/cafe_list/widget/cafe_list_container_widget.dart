@@ -40,7 +40,7 @@ class CafeListCard extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.all(15.0),
+        padding: const EdgeInsets.all(10.0),
         child: Column(
           children: [
             Row(
@@ -70,7 +70,7 @@ class CafeListCard extends StatelessWidget {
                             ),
                           )
                           : cafes.favourites!
-                          ?  SvgPicture.asset(
+                          ? SvgPicture.asset(
                             'assets/svg/favourite1-active.svg',
                             fit: BoxFit.scaleDown,
                           )
@@ -85,169 +85,177 @@ class CafeListCard extends StatelessWidget {
                 ),
               ],
             ),
-            Row(
-              // mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Expanded(
-                  flex: 1,
-                  child: Hero(
-                    tag: cafes.id ?? 'unknown',
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(15),
-                      child: SizedBox(
-                        height:
-                            MediaQuery.of(context).size.height *
-                            0.15, // 15% of screen height for better responsiveness
-                        width:
-                            double
-                                .infinity, // Takes full width of the Expanded widget
-                        child: CachedNetworkImage(
-                          imageUrl: cafes.photo ?? '',
-                          fit: BoxFit.cover,
-                          httpHeaders: {
-                            'User-Agent':
-                                'Mozilla/5.0 (compatible; Flutter app)',
-                          },
-                          fadeInDuration: Duration(milliseconds: 300),
-                          fadeOutDuration: Duration(milliseconds: 300),
-                          maxHeightDiskCache: 1000,
-                          maxWidthDiskCache: 1000,
-                          memCacheHeight: 500,
-                          memCacheWidth: 500,
-                          placeholder:
-                              (context, url) => Container(
+            IntrinsicHeight(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                // mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: Hero(
+                      tag: cafes.id ?? 'unknown',
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(15),
+                        child: SizedBox(
+                          height:
+                              MediaQuery.of(context).size.height *
+                              0.15, // 15% of screen height for better responsiveness
+                          width:
+                              double
+                                  .infinity, // Takes full width of the Expanded widget
+                          child: CachedNetworkImage(
+                            imageUrl: cafes.photo ?? '',
+                            fit: BoxFit.cover,
+                            httpHeaders: {
+                              'User-Agent':
+                                  'Mozilla/5.0 (compatible; Flutter app)',
+                            },
+                            fadeInDuration: Duration(milliseconds: 300),
+                            fadeOutDuration: Duration(milliseconds: 300),
+                            maxHeightDiskCache: 1000,
+                            maxWidthDiskCache: 1000,
+                            memCacheHeight: 500,
+                            memCacheWidth: 500,
+                            placeholder:
+                                (context, url) => Container(
+                                  height:
+                                      MediaQuery.of(context).size.height * 0.15,
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey[200],
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  child: Center(
+                                    child: Lottie.asset(
+                                      Assets.JUMBING_DOT,
+                                      height: 20,
+                                      width: 20,
+                                    ),
+                                  ),
+                                ),
+                            errorWidget: (context, url, error) {
+                              // Log the error for debugging
+                              print('Image load error for URL: $url');
+                              print('Error details: $error');
+
+                              return Container(
                                 height:
                                     MediaQuery.of(context).size.height * 0.15,
                                 width: double.infinity,
                                 decoration: BoxDecoration(
-                                  color: Colors.grey[200],
+                                  color: Colors.grey[100],
                                   borderRadius: BorderRadius.circular(15),
                                 ),
                                 child: Center(
-                                  child: Lottie.asset(
-                                    Assets.JUMBING_DOT,
-                                    height: 20,
-                                    width: 20,
+                                  child: SvgPicture.asset(
+                                    'assets/svg/cafe-list.svg',
+                                    height: 60,
+                                    width: 60,
                                   ),
                                 ),
-                              ),
-                          errorWidget: (context, url, error) {
-                            // Log the error for debugging
-                            print('Image load error for URL: $url');
-                            print('Error details: $error');
-
-                            return Container(
-                              height: MediaQuery.of(context).size.height * 0.15,
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                color: Colors.grey[100],
-                                borderRadius: BorderRadius.circular(15),
-                              ),
-                              child: Center(
-                                child: SvgPicture.asset(
-                                  'assets/svg/cafe-list.svg',
-                                  height: 60,
-                                  width: 60,
-                                ),
-                              ),
-                            );
-                          },
+                              );
+                            },
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
 
-                Gap(10),
-                Expanded(
-                  flex: 2,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    mainAxisSize: MainAxisSize.max,
-                    children: [
-                      RichText(
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: 'Table Type:\n',
-                              style: TextTheme.of(context).bodySmall!.copyWith(
-                                color: AppColors.textPrimary,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 10.sp,
+                  Gap(8),
+                  Expanded(
+                    flex: 2,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        RichText(
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: 'Table Type:\n',
+                                style: TextTheme.of(
+                                  context,
+                                ).bodySmall!.copyWith(
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 10.sp,
+                                ),
                               ),
-                            ),
-                            WidgetSpan(
-                              child: SizedBox(height: 15), // vertical spacing
-                            ),
-                            TextSpan(
-                              text:
-                                  cafes.tableTypes != null &&
-                                          cafes.tableTypes!.isNotEmpty
-                                      ? cafes.tableTypes!.join(', ')
-                                      : 'No table types available',
-                              style: TextTheme.of(context).bodySmall!.copyWith(
-                                color: AppColors.textPrimary,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 12.sp,
+                              WidgetSpan(
+                                child: SizedBox(height: 15), // vertical spacing
                               ),
-                            ),
-                          ],
+                              TextSpan(
+                                text:
+                                    cafes.tableTypes != null &&
+                                            cafes.tableTypes!.isNotEmpty
+                                        ? cafes.tableTypes!.join(', ')
+                                        : 'No table types available',
+                                style: TextTheme.of(
+                                  context,
+                                ).bodySmall!.copyWith(
+                                  color: AppColors.textPrimary,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12.sp,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      Gap(8),
-                      Text(
-                        cafes.venueDescription ?? "",
-                        maxLines: 5,
-                        textAlign: TextAlign.left,
-                        // overflow: TextOverflow.visible,
-                        style: TextTheme.of(context).bodySmall!.copyWith(
-                          color: AppColors.textPrimary,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 11.sp,
+                        Gap(8),
+                        Text(
+                          cafes.venueDescription ?? "",
+                          maxLines: 5,
+                          textAlign: TextAlign.left,
+                          // overflow: TextOverflow.visible,
+                          style: TextTheme.of(context).bodySmall!.copyWith(
+                            color: AppColors.textPrimary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 11.sp,
+                          ),
                         ),
-                      ),
-                      const Gap(10),
-                      Align(
-                        alignment: Alignment.bottomRight,
-                        child: TextButton(
-                          onPressed: () {
-                            context.push(
-                              '/cafe_details',
-                              extra: CafeDetailsArguments(
-                                from: "CafeList",
-                                name: cafes.name ?? "Unknown Cafe",
-                                tableType: cafes.tableTypes ?? [],
-                                description:
-                                    cafes.venueDescription ?? "No description",
-                                image: cafes.photo ?? '',
-                                openingHours: cafes.workingHours,
-                                id: cafes.id.toString(),
-                                bookingStatus: cafes.bookingStatus ?? false, 
-                                gallery: cafes.gallery ?? [], 
-                                attendes: cafes.attendes ?? [],
-                                upcomingEvents: cafes.upcomingEvents ?? [],
+                        const Spacer(),
+                        Align(
+                          alignment: Alignment.bottomRight,
+                          child: TextButton(
+                            onPressed: () {
+                              context.push(
+                                '/cafe_details',
+                                extra: CafeDetailsArguments(
+                                  from: "CafeList",
+                                  name: cafes.name ?? "Unknown Cafe",
+                                  tableType: cafes.tableTypes ?? [],
+                                  description:
+                                      cafes.venueDescription ??
+                                      "No description",
+                                  image: cafes.photo ?? '',
+                                  openingHours: cafes.workingHours,
+                                  id: cafes.id.toString(),
+                                  bookingStatus: cafes.bookingStatus ?? false,
+                                  gallery: cafes.gallery ?? [],
+                                  attendes: cafes.attendes ?? [],
+                                  upcomingEvents: cafes.upcomingEvents ?? [],
+                                ),
+                              );
+                            },
+                            child: Text(
+                              "VIEW MORE",
+                              style: TextTheme.of(context).bodyLarge!.copyWith(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 11.sp,
+                                decoration: TextDecoration.underline,
+                                decorationColor: AppColors.primary,
                               ),
-                            );
-                          },
-                          child: Text(
-                            "VIEW MORE",
-                            style: TextTheme.of(context).bodyLarge!.copyWith(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 11.sp,
-                              decoration: TextDecoration.underline,
-                              decorationColor: AppColors.primary,
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-           
           ],
         ),
       ),

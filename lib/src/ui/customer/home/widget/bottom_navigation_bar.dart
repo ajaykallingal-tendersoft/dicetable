@@ -88,27 +88,21 @@ class BottomNavigationAppBarState extends State<BottomNavigationAppBar> {
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: <Widget>[
-                Expanded(
-                  // flex: 2,
-                  child: ColorFiltered(
-                    colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-                    child: SizedBox(
-                      height: iconSize,
-                      width: iconSize,
-                      child: item.iconData,
-                    ),
+                ColorFiltered(
+                  colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+                  child: SizedBox(
+                    height: iconSize,
+                    width: iconSize,
+                    child: item.iconData,
                   ),
                 ),
-
-                Expanded(
-                  // flex: 1,
-                  child: Text(
-                    item.text,
-                    style: GoogleFonts.montserrat(
-                      color: color,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                      fontSize: 10.sp,
-                    ),
+                Gap(4.h),
+                Text(
+                  item.text,
+                  style: GoogleFonts.montserrat(
+                    color: color,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    fontSize: 10.sp,
                   ),
                 ),
               ],
