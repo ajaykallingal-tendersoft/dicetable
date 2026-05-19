@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:soloseaters/src/purchase/bloc/bloc/purchase_bloc.dart';
 import 'package:soloseaters/src/purchase/bloc/bloc/purchase_state.dart';
@@ -71,15 +72,13 @@ class _SubscriptionOverviewScreenState
                 AuthSessionManager.consumeRefreshFailureFlag()) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 SignOut().logout(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("Your session has expired. Please sign in again.", style: TextStyle(color: AppColors.appRedColor)),
-        backgroundColor: AppColors.primaryWhiteColor,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+                Fluttertoast.showToast(
+                  fontSize: 14.sp,
+                  backgroundColor: AppColors.primaryWhiteColor,
+                  textColor: AppColors.appRedColor,
+                  gravity: ToastGravity.BOTTOM,
+                  msg: "Your session has expired. Please sign in again.",
+                );
               });
             }
           }

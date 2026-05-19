@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
@@ -66,27 +67,23 @@ class UpgradePopup extends StatelessWidget {
           }
         } else if (state.status == PaymentPlanStatus.purchaseSuccess) {
           EasyLoading.dismiss();
-          ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Subscription activated successfully!', style: TextStyle(color: AppColors.primaryWhiteColor)),
-        backgroundColor: AppColors.appGreenColor,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+          Fluttertoast.showToast(
+            fontSize: 14.sp,
+            backgroundColor: AppColors.appGreenColor,
+            textColor: AppColors.primaryWhiteColor,
+            gravity: ToastGravity.BOTTOM,
+            msg: 'Subscription activated successfully!',
+          );
           Navigator.of(context).pop();
         } else if (state.status == PaymentPlanStatus.purchaseFailed) {
           EasyLoading.dismiss();
-          ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(state.errorMessage ?? 'Purchase failed. Please try again.', style: TextStyle(color: AppColors.primaryWhiteColor)),
-        backgroundColor: AppColors.appRedColor,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+          Fluttertoast.showToast(
+            fontSize: 14.sp,
+            backgroundColor: AppColors.appRedColor,
+            textColor: AppColors.primaryWhiteColor,
+            gravity: ToastGravity.BOTTOM,
+            msg: state.errorMessage ?? 'Purchase failed. Please try again.',
+          );
         } else if (state.status == PaymentPlanStatus.needsRestore) {
           // Automatically handle restore
           EasyLoading.show(status: 'Restoring subscription...');
