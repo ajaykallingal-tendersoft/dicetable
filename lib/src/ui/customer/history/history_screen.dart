@@ -347,17 +347,21 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
   /// Formats UTC ISO string to device local time
   String _formatLocalTime(String? utcDateTimeStr) {
-    if (utcDateTimeStr == null || utcDateTimeStr.isEmpty) return '';
+    if (utcDateTimeStr == null || utcDateTimeStr.trim().isEmpty) {
+      return '';
+    }
+
     try {
-      DateTime parsed = DateTime.parse(utcDateTimeStr);
-      // Ensure it's treated as UTC if it doesn't have timezone info
-      if (!parsed.isUtc && !utcDateTimeStr.toUpperCase().endsWith('Z')) {
-        parsed = DateTime.parse('${utcDateTimeStr}Z');
-      }
-      final localDateTime = parsed.toLocal();
+      // Parse backend UTC timestamp
+      final utcDateTime = DateTime.parse(utcDateTimeStr).toUtc();
+
+      // Convert to device local timezone
+      final localDateTime = utcDateTime.toLocal();
+
+      // Preserve existing UI format
       return DateFormat('dd MMM, yyyy | hh:mm a').format(localDateTime);
     } catch (e) {
-      // Fallback to original string if parsing fails
+      // Fallback to original value to avoid breaking UI
       return utcDateTimeStr;
     }
   }
