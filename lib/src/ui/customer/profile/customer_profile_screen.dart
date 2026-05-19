@@ -184,8 +184,62 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                   });
                   if (state.errorMessage != null) {
                     WidgetsBinding.instance.addPostFrameCallback((_) {
-                      EasyLoading.showError(state.errorMessage!);
+                      EasyLoading.dismiss();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(state.errorMessage!),
+                          backgroundColor: AppColors.appRedColor,
+                        ),
+                      );
                     });
+                  }
+
+                  if (state.errorMessage != null && state.profile.data == null) {
+                    return Center(
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(vertical: 20.h),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.error_outline,
+                              size: 64,
+                              color: AppColors.primaryWhiteColor,
+                            ),
+                            SizedBox(height: 16.h),
+                            Text(
+                              state.errorMessage!,
+                              style: TextStyle(
+                                color: AppColors.primaryWhiteColor,
+                                fontSize: 16.sp,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            SizedBox(height: 16.h),
+                            ElevatedButton(
+                              onPressed: () {
+                                context.read<CustomerProfileBloc>().add(GetCustomerProfileEvent());
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryWhiteColor,
+                                foregroundColor: AppColors.primary,
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 20.w,
+                                  vertical: 10.h,
+                                ),
+                                textStyle: TextStyle(
+                                  fontSize: 14.sp,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              child: const Text('Retry'),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
                   }
 
                   if (state.profile.data != null) {
