@@ -167,6 +167,13 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
                 msg: "Your session has expired. Please sign in again.",
               );
             });
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.errorMessage),
+                backgroundColor: AppColors.appRedColor,
+              ),
+            );
           }
         }
         _venueNameController.text = state.venueName;
@@ -244,7 +251,47 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
       },
       builder: (context, state) {
         if (state is ProfileViewError) {
-          return Center(child: Text(state.errorMessage));
+          return Container(
+            decoration: const BoxDecoration(color: AppColors.primary),
+            child: SafeArea(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(50.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 64,
+                        color: AppColors.primaryWhiteColor,
+                      ),
+                      const Gap(16),
+                      Text(
+                        state.errorMessage,
+                        style: TextStyle(
+                          color: AppColors.primaryWhiteColor,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const Gap(16),
+                      ElevatedButton(
+                        onPressed: () {
+                          context.read<ProfileBloc>().add(GetProfileViewEvent());
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primaryWhiteColor,
+                          foregroundColor: AppColors.primary,
+                        ),
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
         }
         if (state is ProfileViewLoading) {
           EasyLoading.show();

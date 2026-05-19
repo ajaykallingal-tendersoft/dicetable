@@ -48,12 +48,18 @@ class IapDataProvider {
     if (e.type == DioExceptionType.connectionError ||
         e.type == DioExceptionType.unknown ||
         e.type == DioExceptionType.connectionTimeout) {
+      if (e.message == "No internet connection") {
+        return StateModel.error("No internet connection");
+      }
       return StateModel.error(
-        "Connection error. Check your internet connection.",
+        "Unable to reach server. Try again later.",
       );
     }
 
     if (e.response == null) {
+      if (e.message == "No internet connection") {
+        return StateModel.error("No internet connection");
+      }
       return StateModel.error("Unable to reach server. Try again later.");
     }
 

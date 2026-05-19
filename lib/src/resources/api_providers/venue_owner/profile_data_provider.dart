@@ -31,21 +31,20 @@ class ProfileDataProvider {
       return null;
     } on DioException catch (e) {
 
-      if (e.response!.statusCode == 500) {
+      if (e.response != null && e.response!.statusCode == 500) {
         return StateModel.error(
             "The server isn't responding! Please try again later.");
-      } else if (e.response!.statusCode == 408) {
+      } else if (e.response != null && e.response!.statusCode == 408) {
         return StateModel.error(
             "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-      }else if (e.response!.statusCode == 401) {
+      }else if (e.response != null && e.response!.statusCode == 401) {
         return StateModel.error(
             "UnAuthorized error");
-      } else if (e.type.name == "connectionError") {
-        return StateModel.error(
-            "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-      }else if(e.response == null) {
-        return StateModel.error(
-            "The server isn't responding! Please try again later.");
+      } else if (e.type.name == "connectionError" || e.response == null) {
+        if (e.message == "No internet connection") {
+          return StateModel.error("No internet connection");
+        }
+        return StateModel.error("Unable to reach server. Try again later.");
       }
 
     }
@@ -65,21 +64,20 @@ class ProfileDataProvider {
       return null;
     } on DioException catch (e) {
 
-      if (e.response!.statusCode == 500) {
+      if (e.response != null && e.response!.statusCode == 500) {
         return StateModel.error(
             "The server isn't responding! Please try again later.");
-      } else if (e.response!.statusCode == 408) {
+      } else if (e.response != null && e.response!.statusCode == 408) {
         return StateModel.error(
             "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-      } else if (e.response!.statusCode == 401) {
+      } else if (e.response != null && e.response!.statusCode == 401) {
         return StateModel.error(
             "UnAuthorized error");
-      } else if (e.type.name == "connectionError") {
-        return StateModel.error(
-            "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-      }else if(e.response == null) {
-        return StateModel.error(
-            "The server isn't responding! Please try again later.");
+      } else if (e.type.name == "connectionError" || e.response == null) {
+        if (e.message == "No internet connection") {
+          return StateModel.error("No internet connection");
+        }
+        return StateModel.error("Unable to reach server. Try again later.");
       }
 
     }
@@ -169,16 +167,16 @@ Future<StateModel<dynamic>> profileUpdateById(
       } catch (_) {}
 
       // Status Code Handling
-      if (e.response!.statusCode == 500) {
+      if (e.response != null && e.response!.statusCode == 500) {
         return StateModel.error(
             "The server isn't responding! Please try again later.");
-      } else if (e.response!.statusCode == 408) {
+      } else if (e.response != null && e.response!.statusCode == 408) {
         return StateModel.error("Request timed out. Please try again later.");
-      } else if (e.response!.statusCode == 401) {
+      } else if (e.response != null && e.response!.statusCode == 401) {
         return StateModel.error("UnAuthorized error");
-      } else if (e.response!.statusCode == 403) {
+      } else if (e.response != null && e.response!.statusCode == 403) {
         return StateModel.error("Email not verified");
-      } else if (e.response!.statusCode == 422) {
+      } else if (e.response != null && e.response!.statusCode == 422) {
         return StateModel.error("Validation failed. Please check your inputs.");
       } else {
         return StateModel.error("Error: ${e.response!.statusCode}");
@@ -260,15 +258,15 @@ Future<StateModel<dynamic>> profileUpdateById(
   //       }
 
   //       // Status code based error handling
-  //       if (e.response!.statusCode == 500) {
+  //       if (e.response != null && e.response!.statusCode == 500) {
   //         return StateModel.error("The server isn't responding! Please try again later.");
-  //       } else if (e.response!.statusCode == 408) {
+  //       } else if (e.response != null && e.response!.statusCode == 408) {
   //         return StateModel.error("Request timed out. Please try again later.");
-  //       } else if (e.response!.statusCode == 401) {
+  //       } else if (e.response != null && e.response!.statusCode == 401) {
   //         return StateModel.error("UnAuthorized error");
-  //       } else if (e.response!.statusCode == 403) {
+  //       } else if (e.response != null && e.response!.statusCode == 403) {
   //         return StateModel.error("Email not verified");
-  //       } else if (e.response!.statusCode == 422) {
+  //       } else if (e.response != null && e.response!.statusCode == 422) {
   //         return StateModel.error("Validation failed. Please check your inputs.");
   //       } else {
   //         return StateModel.error("Error: ${e.response!.statusCode}");
@@ -297,21 +295,20 @@ Future<StateModel<dynamic>> profileUpdateById(
       return null;
     } on DioException catch (e) {
 
-      if (e.response!.statusCode == 500) {
+      if (e.response != null && e.response!.statusCode == 500) {
         return StateModel.error(
             "The server isn't responding! Please try again later.");
-      } else if (e.response!.statusCode == 408) {
+      } else if (e.response != null && e.response!.statusCode == 408) {
         return StateModel.error(
             "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-      } else if (e.response!.statusCode == 401) {
+      } else if (e.response != null && e.response!.statusCode == 401) {
         return StateModel.error(
             "UnAuthorized error");
-      } else if (e.type.name == "connectionError") {
-        return StateModel.error(
-            "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!");
-      }else if(e.response == null) {
-        return StateModel.error(
-            "The server isn't responding! Please try again later.");
+      } else if (e.type.name == "connectionError" || e.response == null) {
+        if (e.message == "No internet connection") {
+          return StateModel.error("No internet connection");
+        }
+        return StateModel.error("Unable to reach server. Try again later.");
       }
 
     }
@@ -444,12 +441,12 @@ Future<StateModel<dynamic>> uploadCafeGalleryImages(CafeGalleryUploadRequest req
 // 💡 You should have a separate function like this to handle common Dio errors:
 String _getDioErrorMessage(DioException e) {
   if (e.response != null) {
-    if (e.response!.statusCode == 500) {
+    if (e.response != null && e.response!.statusCode == 500) {
       return "The server isn't responding! Please try again later.";
-    } else if (e.response!.statusCode == 401) {
+    } else if (e.response != null && e.response!.statusCode == 401) {
       // You can try to parse the 401 response body here too if needed
       return "UnAuthorized error";
-    } else if (e.response!.statusCode == 408) {
+    } else if (e.response != null && e.response!.statusCode == 408) {
       return "Request timed out. Please try again later.";
     }
     // ... add other specific status code checks ...
@@ -633,18 +630,19 @@ Future<StateModel<dynamic>> deleteGalleryPhoto(DeleteGalleryImageRequest photoId
       }
       return null;
     } on DioException catch (e) {
-      if (e.response!.statusCode == 500) {
+      if (e.response != null && e.response!.statusCode == 500) {
         return StateModel.error(
           "The server isn't responding! Please try again later.",
         );
-      } else if (e.response!.statusCode == 408) {
+      } else if (e.response != null && e.response!.statusCode == 408) {
         return StateModel.error(
           "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!",
         );
       } else if (e.type.name == "connectionError") {
-        return StateModel.error(
-          "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!",
-        );
+        if (e.message == "No internet connection") {
+          return StateModel.error("No internet connection");
+        }
+        return StateModel.error("Unable to reach server. Try again later.");
       }
     }
     return null;

@@ -127,17 +127,17 @@ class AuthDataProvider {
         } catch (_) {}
 
         // Status code based error handling
-        if (e.response!.statusCode == 500) {
+        if (e.response != null && e.response!.statusCode == 500) {
           return StateModel.error(
             "The server isn't responding! Please try again later.",
           );
-        } else if (e.response!.statusCode == 408) {
+        } else if (e.response != null && e.response!.statusCode == 408) {
           return StateModel.error("Request timed out. Please try again later.");
-        } else if (e.response!.statusCode == 401) {
+        } else if (e.response != null && e.response!.statusCode == 401) {
           return StateModel.error("Invalid credentials provided");
-        } else if (e.response!.statusCode == 403) {
+        } else if (e.response != null && e.response!.statusCode == 403) {
           return StateModel.error("Email not verified");
-        } else if (e.response!.statusCode == 422) {
+        } else if (e.response != null && e.response!.statusCode == 422) {
           return StateModel.error(
             "Validation failed. Please check your inputs.",
           );
@@ -408,15 +408,15 @@ class AuthDataProvider {
         }
 
         // Status code based error handling
-        if (e.response!.statusCode == 500) {
+        if (e.response != null && e.response!.statusCode == 500) {
           return StateModel.error(
             "The server isn't responding! Please try again later.",
           );
-        } else if (e.response!.statusCode == 408) {
+        } else if (e.response != null && e.response!.statusCode == 408) {
           return StateModel.error(
             "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!",
           );
-        } else if (e.response!.statusCode == 422) {
+        } else if (e.response != null && e.response!.statusCode == 422) {
           return StateModel.error(
             "Validation failed. Please check your inputs.",
           );
@@ -424,9 +424,10 @@ class AuthDataProvider {
           return StateModel.error("Error: ${e.response!.statusCode}");
         }
       } else if (e.type.name == "connectionError") {
-        return StateModel.error(
-          "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!",
-        );
+        if (e.message == "No internet connection") {
+          return StateModel.error("No internet connection");
+        }
+        return StateModel.error("Unable to reach server. Try again later.");
       }
 
       return StateModel.error(
@@ -452,22 +453,23 @@ class AuthDataProvider {
 
       return null;
     } on DioException catch (e) {
-      if (e.response!.statusCode == 500) {
+      if (e.response != null && e.response!.statusCode == 500) {
         return StateModel.error(
           "The server isn't responding! Please try again later.",
         );
         // return response!;
-      } else if (e.response!.statusCode == 408) {
+      } else if (e.response != null && e.response!.statusCode == 408) {
         return StateModel.error(
           "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!",
         );
         // Something happened in setting up or sending the request that triggered an Error
       } else if (e.type.name == "connectionError") {
-        return StateModel.error(
-          "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!",
-        );
-        // Something happened in setting up or sending the request that triggered an Error
+        if (e.message == "No internet connection") {
+          return StateModel.error("No internet connection");
+        }
+        return StateModel.error("Unable to reach server. Try again later.");
       }
+        // Something happened in setting up or sending the request that triggered an Error
     }
     return null;
   }
@@ -484,18 +486,19 @@ class AuthDataProvider {
       }
       return null;
     } on DioException catch (e) {
-      if (e.response!.statusCode == 500) {
+      if (e.response != null && e.response!.statusCode == 500) {
         return StateModel.error(
           "The server isn't responding! Please try again later.",
         );
-      } else if (e.response!.statusCode == 408) {
+      } else if (e.response != null && e.response!.statusCode == 408) {
         return StateModel.error(
           "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!",
         );
       } else if (e.type.name == "connectionError") {
-        return StateModel.error(
-          "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!",
-        );
+        if (e.message == "No internet connection") {
+          return StateModel.error("No internet connection");
+        }
+        return StateModel.error("Unable to reach server. Try again later.");
       }
     }
     return null;
@@ -514,18 +517,19 @@ class AuthDataProvider {
       }
       return null;
     } on DioException catch (e) {
-      if (e.response!.statusCode == 500) {
+      if (e.response != null && e.response!.statusCode == 500) {
         return StateModel.error(
           "The server isn't responding! Please try again later.",
         );
-      } else if (e.response!.statusCode == 408) {
+      } else if (e.response != null && e.response!.statusCode == 408) {
         return StateModel.error(
           "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!",
         );
       } else if (e.type.name == "connectionError") {
-        return StateModel.error(
-          "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!",
-        );
+        if (e.message == "No internet connection") {
+          return StateModel.error("No internet connection");
+        }
+        return StateModel.error("Unable to reach server. Try again later.");
       }
     }
     return null;
@@ -670,15 +674,15 @@ class AuthDataProvider {
         }
 
         // Status code based error handling
-        if (e.response!.statusCode == 500) {
+        if (e.response != null && e.response!.statusCode == 500) {
           return StateModel.error(
             "The server isn't responding! Please try again later.",
           );
-        } else if (e.response!.statusCode == 408) {
+        } else if (e.response != null && e.response!.statusCode == 408) {
           return StateModel.error(
             "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!",
           );
-        } else if (e.response!.statusCode == 422) {
+        } else if (e.response != null && e.response!.statusCode == 422) {
           final errorResponse = AppleSignUpRequestResponse.fromJson(
             e.response!.data,
           );
@@ -694,9 +698,10 @@ class AuthDataProvider {
           return StateModel.error("Error: ${e.response!.statusCode}");
         }
       } else if (e.type.name == "connectionError") {
-        return StateModel.error(
-          "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!",
-        );
+        if (e.message == "No internet connection") {
+          return StateModel.error("No internet connection");
+        }
+        return StateModel.error("Unable to reach server. Try again later.");
       }
 
       return StateModel.error(
@@ -717,18 +722,19 @@ class AuthDataProvider {
       }
       return null;
     } on DioException catch (e) {
-      if (e.response!.statusCode == 500) {
+      if (e.response != null && e.response!.statusCode == 500) {
         return StateModel.error(
           "The server isn't responding! Please try again later.",
         );
-      } else if (e.response!.statusCode == 408) {
+      } else if (e.response != null && e.response!.statusCode == 408) {
         return StateModel.error(
           "Hello there! It seems like your request took longer than expected to process. We apologize for the inconvenience. Please try again later or reach out to our support team for assistance. Thank you for your patience!",
         );
       } else if (e.type.name == "connectionError") {
-        return StateModel.error(
-          "Connection refused This indicates an error which most likely cannot be solved by the library.Please try again later or reach out to our support team for assistance. Thank you for your patience!",
-        );
+        if (e.message == "No internet connection") {
+          return StateModel.error("No internet connection");
+        }
+        return StateModel.error("Unable to reach server. Try again later.");
       }
     }
     return null;

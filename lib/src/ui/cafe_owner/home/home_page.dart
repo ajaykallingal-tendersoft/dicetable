@@ -253,7 +253,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                             const Gap(16),
                             Text(
-                              'Something went wrong!',
+                              state.errorMessage ?? 'Something went wrong!',
                               style: TextStyle(
                                 color: Colors.grey[600],
                                 fontSize: 16,
@@ -326,12 +326,11 @@ class _HomePageState extends State<HomePage> {
                         );
                       });
                     } else {
-                      Fluttertoast.showToast(
-                        fontSize: 14.sp,
-                        backgroundColor: AppColors.primaryWhiteColor,
-                        textColor: AppColors.appRedColor,
-                        gravity: ToastGravity.BOTTOM,
-                        msg: state.errorMessage,
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(state.errorMessage),
+                          backgroundColor: AppColors.appRedColor,
+                        ),
                       );
                     }
                   }

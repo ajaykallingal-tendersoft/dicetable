@@ -27,6 +27,7 @@ import 'package:soloseaters/src/ui/customer/cafe_details/bloc/cafe_details_bloc.
 import 'package:soloseaters/src/ui/customer/cafe_list/bloc/cafe_list_bloc.dart';
 import 'package:soloseaters/src/ui/verification/bloc/verification_bloc.dart';
 import 'package:soloseaters/src/utils/network_connectivity/network_connectivity_bloc.dart';
+import 'package:soloseaters/src/utils/network_connectivity/network_toast_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -151,11 +152,18 @@ class App extends StatelessWidget {
                 adjustedTextScale = 0.85;
               }
 
-              return MediaQuery(
-                data: mediaQuery.copyWith(
-                  textScaler: TextScaler.linear(adjustedTextScale),
+              return BlocListener<NetworkConnectivityBloc, NetworkConnectivityState>(
+                listener: (context, state) {
+                  if (state is NetworkFailure) {
+                    NetworkToastManager.handleStateChange(state);
+                  }
+                },
+                child: MediaQuery(
+                  data: mediaQuery.copyWith(
+                    textScaler: TextScaler.linear(adjustedTextScale),
+                  ),
+                  child: widget!,
                 ),
-                child: widget!,
               );
             },
           );

@@ -259,6 +259,44 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           );
                         },
                       );
+                    } else if (state is HistoryError) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        EasyLoading.dismiss();
+                      });
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(50.0),
+                          child: Column(
+                            children: [
+                              Icon(
+                                Icons.error_outline,
+                                size: 60,
+                                color: AppColors.primaryWhiteColor,
+                              ),
+                              Gap(16),
+                              Text(
+                                'Failed to load history',
+                                style: TextStyle(
+                                  color: AppColors.primaryWhiteColor,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Gap(16),
+                              ElevatedButton(
+                                onPressed: () {
+                                  context.read<HistoryBloc>().add(GetHistoryListEvent());
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primaryWhiteColor,
+                                  foregroundColor: AppColors.primary,
+                                ),
+                                child: Text('Retry'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
                     } else {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         EasyLoading.show();
@@ -289,12 +327,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
                     }
                     if (state is HistoryError) {
                       EasyLoading.dismiss();
-                      Fluttertoast.showToast(
-                        fontSize: 14.sp,
-                        backgroundColor: AppColors.primaryWhiteColor,
-                        textColor: AppColors.appRedColor,
-                        gravity: ToastGravity.BOTTOM,
-                        msg: state.errorMessage,
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(state.errorMessage),
+                          backgroundColor: AppColors.appRedColor,
+                        ),
                       );
                     }
                   },

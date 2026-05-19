@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/forgot_password/forgot_password_request.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/forgot_password/password_reset_request.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/forgot_password/resend_otp_request.dart';
@@ -86,8 +88,30 @@ class ApiClient {
 
     dioDiceApp.interceptors.add(
       InterceptorsWrapper(
+        onRequest: (options, handler) async {
+          try {
+            await _ensureConnected(options);
+            return handler.next(options);
+          } on DioException catch (dioError) {
+            EasyLoading.dismiss();
+            return handler.reject(dioError);
+          } catch (e) {
+            EasyLoading.dismiss();
+            return handler.reject(
+              DioException(
+                requestOptions: options,
+                error: e,
+                type: DioExceptionType.connectionError,
+                message: e.toString(),
+              ),
+            );
+          }
+        },
         onError: (dioError, handler) async {
           print("❌ API ERROR: ${dioError.message}");
+          if (dioError.type == DioExceptionType.connectionError) {
+            EasyLoading.dismiss();
+          }
           if (dioError.response?.statusCode == 401) {
             final RequestOptions options = dioError.response!.requestOptions;
 
@@ -1134,6 +1158,27 @@ class ApiClient {
       data: request.toJson(),
       options: Options(headers: {"Authorization": token}),
     );
+  }
+
+  Future<bool> _hasRobustConnection() async {
+    final connectivity = Connectivity();
+    var results = await connectivity.checkConnectivity();
+    if (results.isEmpty || results.every((r) => r == ConnectivityResult.none)) {
+      await Future.delayed(const Duration(seconds: 1));
+      results = await connectivity.checkConnectivity();
+    }
+    return !(results.isEmpty || results.every((r) => r == ConnectivityResult.none));
+  }
+
+  Future<void> _ensureConnected([RequestOptions? options]) async {
+    final connected = await _hasRobustConnection();
+    if (!connected) {
+      throw DioException(
+        requestOptions: options ?? RequestOptions(path: ''),
+        type: DioExceptionType.connectionError,
+        message: "No internet connection",
+      );
+    }
   }
 }
 

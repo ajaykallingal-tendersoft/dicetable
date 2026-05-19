@@ -51,7 +51,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final GlobalKey _emailFieldKey = GlobalKey();
   final GlobalKey _passwordFieldKey = GlobalKey();
   String? _navigationSource;
-  NetworkConnectivityState? _networkState;
 
   @override
   void initState() {
@@ -405,22 +404,6 @@ class _LoginScreenState extends State<LoginScreen> {
                                                         isLoading
                                                             ? null
                                                             : () {
-                                                              if (_networkState
-                                                                  is NetworkFailure) {
-                                                                Fluttertoast.showToast(
-                                                                  fontSize:
-                                                                      14.sp,
-                                                                  msg:
-                                                                      "No internet connection",
-                                                                  backgroundColor:
-                                                                      AppColors
-                                                                          .primaryWhiteColor,
-                                                                  textColor:
-                                                                      AppColors
-                                                                          .appRedColor,
-                                                                );
-                                                                return;
-                                                              }
                                                               context
                                                                   .read<
                                                                     LoginBloc

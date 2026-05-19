@@ -21,9 +21,11 @@ class HistoryDataProvider {
       } else if (e.response != null && e.response!.statusCode == 401) {
         return StateModel.error(
             "UnAuthorized error");
-      }else if(e.response == null) {
-        return StateModel.error(
-            "The server isn't responding! Please try again later.");
+      } else if (e.response == null) {
+        if (e.message == "No internet connection") {
+          return StateModel.error("No internet connection");
+        }
+        return StateModel.error("Unable to reach server. Try again later.");
       }
     }
     return null;

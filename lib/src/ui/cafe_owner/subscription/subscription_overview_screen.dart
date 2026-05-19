@@ -61,11 +61,11 @@ class _SubscriptionOverviewScreenState
           }
           if (state is SubscriptionOverviewError) {
             EasyLoading.dismiss();
-            Fluttertoast.showToast(
-              fontSize: 14.sp,
-              msg: "Failed to load subscription data.",
-              backgroundColor: AppColors.primaryWhiteColor,
-              textColor: AppColors.appRedColor,
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.errorMessage),
+                backgroundColor: AppColors.appRedColor,
+              ),
             );
             if ((state.errorMessage.contains("UnAuthorized") ||
                     state.errorMessage.contains("status code of 401")) &&
@@ -117,23 +117,41 @@ class _SubscriptionOverviewScreenState
             );
           } else if (state is SubscriptionOverviewError) {
             child = Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    "Something went wrong.",
-                    style: TextStyle(color: AppColors.appRedColor),
-                  ),
-                  const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: () {
-                      context.read<SubscriptionBloc>().add(
-                        FetchSubscriptionOverview(),
-                      );
-                    },
-                    child: const Text("Retry"),
-                  ),
-                ],
+              child: Padding(
+                padding: const EdgeInsets.all(50.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: AppColors.primaryWhiteColor,
+                    ),
+                    const Gap(16),
+                    Text(
+                      state.errorMessage,
+                      style: TextStyle(
+                        color: AppColors.primaryWhiteColor,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const Gap(16),
+                    ElevatedButton(
+                      onPressed: () {
+                        context.read<SubscriptionBloc>().add(
+                          FetchSubscriptionOverview(),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryWhiteColor,
+                        foregroundColor: AppColors.primary,
+                      ),
+                      child: const Text("Retry"),
+                    ),
+                  ],
+                ),
               ),
             );
           } else {
