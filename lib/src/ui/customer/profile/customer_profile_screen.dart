@@ -15,7 +15,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
@@ -194,7 +193,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                     });
                   }
 
-                  if (state.errorMessage != null && state.profile.data == null) {
+                  if (state.errorMessage != null && state.profile.status == false) {
                     return Center(
                       child: Padding(
                         padding: EdgeInsets.symmetric(vertical: 20.h),
@@ -539,14 +538,15 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                         AuthSessionManager.consumeRefreshFailureFlag()) {
                       WidgetsBinding.instance.addPostFrameCallback((_) {
                         SignOut().logout(context);
-                        Fluttertoast.showToast(
-                          backgroundColor: AppColors.primaryWhiteColor,
-                          textColor: AppColors.appRedColor,
-                          gravity: ToastGravity.BOTTOM,
-                          msg:
-                              "Your session has expired. Please sign in again.",
-                          fontSize: 14.sp,
-                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Your session has expired. Please sign in again.", style: TextStyle(color: AppColors.appRedColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
                       });
                     }
                   }
@@ -583,12 +583,14 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
   void _showToast(String message, Color textColor) {
     if (!_isMounted) return;
 
-    Fluttertoast.showToast(
-      backgroundColor: AppColors.primaryWhiteColor,
-      textColor: textColor,
-      gravity: ToastGravity.BOTTOM,
-      msg: message,
-      fontSize: 14.sp,
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: TextStyle(color: textColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
     );
   }
 

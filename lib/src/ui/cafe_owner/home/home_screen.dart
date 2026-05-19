@@ -17,7 +17,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 
@@ -44,13 +43,15 @@ class _HomeScreenState extends State<HomeScreen> {
     if (currentBackPressTime == null ||
         now.difference(currentBackPressTime!) > const Duration(seconds: 3)) {
       currentBackPressTime = now;
-      Fluttertoast.showToast(
-        fontSize: 14.sp,
+      ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Press again to exit", style: TextStyle(color: AppColors.primaryWhiteColor)),
         backgroundColor: AppColors.secondary,
-        textColor: AppColors.primaryWhiteColor,
-        gravity: ToastGravity.BOTTOM,
-        msg: "Press again to exit",
-      );
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
       return Future.value(false);
     }
     if (Theme.of(context).platform == TargetPlatform.android) {

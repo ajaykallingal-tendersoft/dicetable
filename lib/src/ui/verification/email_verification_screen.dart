@@ -10,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pinput/pinput.dart';
@@ -106,12 +105,14 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   void _showToast(String message, Color textColor) {
     if (!_isMounted) return;
 
-    Fluttertoast.showToast(
-      backgroundColor: AppColors.primaryWhiteColor,
-      textColor: textColor,
-      gravity: ToastGravity.BOTTOM,
-      msg: message,
-      fontSize: 14.sp,
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: TextStyle(color: textColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
     );
   }
 
@@ -129,13 +130,15 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     if (currentBackPressTime == null ||
         now.difference(currentBackPressTime!) > const Duration(seconds: 3)) {
       currentBackPressTime = now;
-      Fluttertoast.showToast(
+      ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Please verify your email before leaving this screen.", style: TextStyle(color: AppColors.primaryWhiteColor)),
         backgroundColor: AppColors.secondary,
-        textColor: AppColors.primaryWhiteColor,
-        gravity: ToastGravity.BOTTOM,
-        msg: "Please verify your email before leaving this screen.",
-        fontSize: 14.sp,
-      );
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
       return Future.value(false);
     }
     if (Theme.of(context).platform == TargetPlatform.android) {

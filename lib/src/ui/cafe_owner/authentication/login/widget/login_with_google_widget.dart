@@ -13,7 +13,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:soloseaters/src/utils/network_connectivity/network_connectivity_bloc.dart';
@@ -118,11 +117,15 @@ class LoginWithGoogleWidget extends StatelessWidget {
                         ? null
                         : () {
                           if (_networkState is NetworkFailure) {
-                            Fluttertoast.showToast(
-                              msg: "No internet connection",
-                              backgroundColor: AppColors.primaryWhiteColor,
-                              textColor: AppColors.appRedColor,
-                            );
+                            ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("No internet connection", style: TextStyle(color: AppColors.appRedColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
                             return;
                           }
                           context.read<GoogleSignInCubit>().login(

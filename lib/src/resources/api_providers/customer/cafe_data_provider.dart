@@ -34,9 +34,11 @@ class CafeDataProvider {
       } else if (e.response != null && e.response!.statusCode == 401) {
         return StateModel.error(
             "UnAuthorized error");
+      } else if (e.type == DioExceptionType.connectionError) {
+        return StateModel.error("No internet connection");
       }
     }
-    return null;
+    return StateModel.error("Unable to reach server. Try again later.");
   }
 
   ///Add fav

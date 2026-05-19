@@ -12,7 +12,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pinput/pinput.dart';
@@ -110,12 +109,14 @@ class _ForgotPasswordOtpScreenState extends State<ForgotPasswordOtpScreen> {
   void _showToast(String message, Color textColor) {
     if (!mounted) return;
 
-    Fluttertoast.showToast(
-      fontSize: 14.sp,
-      backgroundColor: AppColors.primaryWhiteColor,
-      textColor: textColor,
-      gravity: ToastGravity.BOTTOM,
-      msg: message,
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: TextStyle(color: textColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
     );
   }
 

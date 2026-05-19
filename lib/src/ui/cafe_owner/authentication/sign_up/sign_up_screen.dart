@@ -19,7 +19,6 @@ import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'bloc/sign_up/sign_up_bloc.dart';
@@ -260,13 +259,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       );
                     }
                   } else {
-                    Fluttertoast.showToast(
-                      fontSize: 14.sp,
-                      backgroundColor: AppColors.primaryWhiteColor,
-                      textColor: AppColors.appGreenColor,
-                      gravity: ToastGravity.BOTTOM,
-                      msg: state.signUpRequestResponse.message!,
-                    );
+                    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(state.signUpRequestResponse.message!, style: TextStyle(color: AppColors.appGreenColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
                     ObjectFactory().prefs.setAuthToken(
                       token: state.signUpRequestResponse.token,
                     );
@@ -314,13 +315,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       );
                     }
                   } else {
-                    Fluttertoast.showToast(
-                      fontSize: 14.sp,
-                      backgroundColor: AppColors.primaryWhiteColor,
-                      textColor: AppColors.appGreenColor,
-                      gravity: ToastGravity.BOTTOM,
-                      msg: state.googleSignUpRequestResponse.message!,
-                    );
+                    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(state.googleSignUpRequestResponse.message!, style: TextStyle(color: AppColors.appGreenColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
                     ObjectFactory().prefs.setAuthToken(
                       token: state.googleSignUpRequestResponse.token,
                     );
@@ -358,13 +361,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       );
                     }
                   } else {
-                    Fluttertoast.showToast(
-                      fontSize: 14.sp,
-                      backgroundColor: AppColors.primaryWhiteColor,
-                      textColor: AppColors.appGreenColor,
-                      gravity: ToastGravity.BOTTOM,
-                      msg: state.appleSignUpRequestResponse.message!,
-                    );
+                    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(state.appleSignUpRequestResponse.message!, style: TextStyle(color: AppColors.appGreenColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
                     ObjectFactory().prefs.setAuthToken(
                       token: state.appleSignUpRequestResponse.token,
                     );

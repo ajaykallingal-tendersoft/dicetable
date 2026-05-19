@@ -18,7 +18,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -384,12 +383,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
         // Handle no changes detected
         if (state is ProfileNoChangeDetected) {
-          Fluttertoast.showToast(
-            msg: state.message,
-            backgroundColor: AppColors.primaryWhiteColor,
-            textColor: AppColors.primary,
-            fontSize: 14.sp,
-          );
+          ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(state.message, style: TextStyle(color: AppColors.primary)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
         }
 
         // Handle final save success (may include partial errors)
@@ -439,12 +441,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
         // Handle gallery delete success
         if (state is GalleryPhotoDeleteSuccess) {
-          Fluttertoast.showToast(
-            msg: 'Photo deleted successfully',
-            backgroundColor: AppColors.primaryWhiteColor,
-            textColor: AppColors.appGreenColor,
-            fontSize: 14.sp,
-          );
+          ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Photo deleted successfully', style: TextStyle(color: AppColors.appGreenColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
         }
 
         // ========== SYNC CONTROLLERS WITH STATE ==========
@@ -517,33 +522,41 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
         // Non-critical image upload errors (shown as toast)
         if (state is ProfileImageUploadError) {
-          Fluttertoast.showToast(
-            msg: 'Image upload failed: ${state.errorMessage}',
-            backgroundColor: AppColors.primaryWhiteColor,
-            textColor: AppColors.appRedColor,
-            fontSize: 14.sp,
-          );
+          ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Image upload failed: ${state.errorMessage}', style: TextStyle(color: AppColors.appRedColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
         }
 
         // Non-critical gallery upload errors
         if (state is GalleryPhotoUploadError) {
-          Fluttertoast.showToast(
-            msg: 'Gallery upload failed: ${state.errorMessage}',
-            backgroundColor: AppColors.primaryWhiteColor,
-            textColor: AppColors.appRedColor,
-            fontSize: 14.sp,
-            toastLength: Toast.LENGTH_LONG,
-          );
+          ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Gallery upload failed: ${state.errorMessage}', style: TextStyle(color: AppColors.appRedColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
         }
 
         // Gallery delete error
         if (state is GalleryPhotoDeleteError) {
-          Fluttertoast.showToast(
-            msg: 'Delete failed: ${state.errorMessage}',
-            backgroundColor: AppColors.primaryWhiteColor,
-            textColor: AppColors.appRedColor,
-            fontSize: 14.sp,
-          );
+          ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Delete failed: ${state.errorMessage}', style: TextStyle(color: AppColors.appRedColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
         }
 
         // Permission denied for profile image
@@ -1089,15 +1102,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                                     ),
                                                   );
                                                 } else {
-                                                  Fluttertoast.showToast(
-                                                    msg:
-                                                        "Error: Invalid photo ID",
-                                                    backgroundColor:
-                                                        AppColors.appRedColor,
-                                                    textColor:
-                                                        AppColors
-                                                            .primaryWhiteColor,
-                                                  );
+                                                  ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Error: Invalid photo ID", style: TextStyle(color: AppColors
+                                                            .primaryWhiteColor)),
+        backgroundColor: AppColors.appRedColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
                                                 }
                                               },
                                               style: ElevatedButton.styleFrom(
@@ -1142,12 +1156,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                                     print(
                                       "Error: Invalid local photo index: $localIndex",
                                     );
-                                    Fluttertoast.showToast(
-                                      msg: "Error: Invalid photo index",
-                                      backgroundColor: AppColors.appRedColor,
-                                      textColor: AppColors.primaryWhiteColor,
-                                      fontSize: 14.sp,
-                                    );
+                                    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Error: Invalid photo index", style: TextStyle(color: AppColors.primaryWhiteColor)),
+        backgroundColor: AppColors.appRedColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
                                   }
                                 }
                               },

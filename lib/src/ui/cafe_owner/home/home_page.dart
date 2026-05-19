@@ -14,7 +14,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'widget/expandable_card.dart';
@@ -294,14 +293,15 @@ class _HomePageState extends State<HomePage> {
                           AuthSessionManager.consumeRefreshFailureFlag()) {
                         WidgetsBinding.instance.addPostFrameCallback((_) {
                           SignOut().logout(context);
-                          Fluttertoast.showToast(
-                            fontSize: 14.sp,
-                            backgroundColor: AppColors.primaryWhiteColor,
-                            textColor: AppColors.appRedColor,
-                            gravity: ToastGravity.BOTTOM,
-                            msg:
-                                "Your session has expired. Please sign in again.",
-                          );
+                          ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Your session has expired. Please sign in again.", style: TextStyle(color: AppColors.appRedColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
                         });
                       }
                     }
@@ -316,14 +316,15 @@ class _HomePageState extends State<HomePage> {
                         AuthSessionManager.consumeRefreshFailureFlag()) {
                       SignOut().logout(context);
                       WidgetsBinding.instance.addPostFrameCallback((_) {
-                        Fluttertoast.showToast(
-                          fontSize: 14.sp,
-                          backgroundColor: AppColors.primaryWhiteColor,
-                          textColor: AppColors.appRedColor,
-                          gravity: ToastGravity.BOTTOM,
-                          msg:
-                              "Your session has expired. Please sign in again.",
-                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Your session has expired. Please sign in again.", style: TextStyle(color: AppColors.appRedColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
                       });
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
@@ -603,13 +604,15 @@ class _HomePageState extends State<HomePage> {
                   // if (state is HomeLoaded) {
                   //   EasyLoading.dismiss();
                   //   if (state.subscriptionStatus == false) {
-                  //     Fluttertoast.showToast(
-                  //       fontSize: 14.sp, 
-                  //       backgroundColor: AppColors.primaryWhiteColor,
-                  //       textColor: AppColors.appRedColor,
-                  //       gravity: ToastGravity.BOTTOM,
-                  //       msg: "You dont have an active subscription. Please subscribe to access all features.",
-                  //     );
+                  //     ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('', style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.black87,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
                   //      SignOut().logout(context);
                   //   }
                   // }
@@ -619,14 +622,15 @@ class _HomePageState extends State<HomePage> {
                         EasyLoading.dismiss();
                         WidgetsBinding.instance.addPostFrameCallback((_) {
                           SignOut().logout(context);
-                          Fluttertoast.showToast(
-                            fontSize: 14.sp,
-                            backgroundColor: AppColors.primaryWhiteColor,
-                            textColor: AppColors.appRedColor,
-                            gravity: ToastGravity.BOTTOM,
-                            msg:
-                            "Your session has expired. Please sign in again.",
-                          );
+                          ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Your session has expired. Please sign in again.", style: TextStyle(color: AppColors.appRedColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
                         });
                       }
                     }
@@ -638,23 +642,26 @@ class _HomePageState extends State<HomePage> {
                       EasyLoading.dismiss();
                       SignOut().logout(context);
                       WidgetsBinding.instance.addPostFrameCallback((_) {
-                        Fluttertoast.showToast(
-                          fontSize: 14.sp,
-                          backgroundColor: AppColors.primaryWhiteColor,
-                          textColor: AppColors.appRedColor,
-                          gravity: ToastGravity.BOTTOM,
-                          msg:
-                          "Your session has expired. Please sign in again.",
-                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Your session has expired. Please sign in again.", style: TextStyle(color: AppColors.appRedColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
                       });
                     }else {
-                      Fluttertoast.showToast(
-                        fontSize: 14.sp,
-                        backgroundColor: AppColors.primaryWhiteColor,
-                        textColor: AppColors.appRedColor,
-                        gravity: ToastGravity.BOTTOM,
-                        msg: state.errorMessage,
-                      );
+                      ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(state.errorMessage, style: TextStyle(color: AppColors.appRedColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
                     }
                   }
                 },

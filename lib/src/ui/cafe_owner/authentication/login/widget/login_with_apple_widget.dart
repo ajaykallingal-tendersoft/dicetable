@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/constants/assets.dart';
@@ -87,11 +86,15 @@ class LoginWithAppleWidget extends StatelessWidget {
                     ? null
                     : () {
                       if (_networkState is NetworkFailure) {
-                        Fluttertoast.showToast(
-                          msg: "No internet connection",
-                          backgroundColor: AppColors.primaryWhiteColor,
-                          textColor: AppColors.appRedColor,
-                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("No internet connection", style: TextStyle(color: AppColors.appRedColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
                         return;
                       }
                       _signInWithApple(context);

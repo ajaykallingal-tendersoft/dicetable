@@ -21,7 +21,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
@@ -429,13 +428,15 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                   InkWell(
                     onTap: () {
                       if (isGuest) {
-                        Fluttertoast.showToast(
-                          fontSize: 14.sp,
-                          msg: "Please signup to proceed.",
-                          backgroundColor: AppColors.appRedColor,
-                          textColor: AppColors.primaryWhiteColor,
-                          gravity: ToastGravity.BOTTOM,
-                        );
+                        ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Please signup to proceed.", style: TextStyle(color: AppColors.primaryWhiteColor)),
+        backgroundColor: AppColors.appRedColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
 
                         Future.delayed(Duration.zero, () {
                           ObjectFactory().prefs.setIsGuestUser(false);

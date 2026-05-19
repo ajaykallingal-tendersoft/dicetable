@@ -17,7 +17,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -116,12 +115,14 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
   void _showToast(String message, Color textColor) {
     if (!_isMounted) return;
 
-    Fluttertoast.showToast(
-      fontSize: 14.sp,
-      backgroundColor: AppColors.primaryWhiteColor,
-      textColor: textColor,
-      gravity: ToastGravity.BOTTOM,
-      msg: message,
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: TextStyle(color: textColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
     );
   }
 
@@ -141,13 +142,15 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
               EasyLoading.dismiss();
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 SignOut().logout(context);
-                Fluttertoast.showToast(
-                  fontSize: 14.sp,
-                  backgroundColor: AppColors.primaryWhiteColor,
-                  textColor: AppColors.appRedColor,
-                  gravity: ToastGravity.BOTTOM,
-                  msg: "Your session has expired. Please sign in again.",
-                );
+                ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Your session has expired. Please sign in again.", style: TextStyle(color: AppColors.appRedColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
               });
             }
           }
@@ -159,13 +162,15 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
               AuthSessionManager.consumeRefreshFailureFlag()) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               SignOut().logout(context);
-              Fluttertoast.showToast(
-                fontSize: 14.sp,
-                backgroundColor: AppColors.primaryWhiteColor,
-                textColor: AppColors.appRedColor,
-                gravity: ToastGravity.BOTTOM,
-                msg: "Your session has expired. Please sign in again.",
-              );
+              ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Your session has expired. Please sign in again.", style: TextStyle(color: AppColors.appRedColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
             });
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -198,19 +203,25 @@ class _ManageProfileScreenState extends State<ManageProfileScreen> {
           _addressController.text = state.address;
           _postalCodeController.text = state.postalCode;
           EasyLoading.dismiss();
-          Fluttertoast.showToast(
-            fontSize: 14.sp,
-            msg: 'Profile updated successfully',
-            backgroundColor: AppColors.primaryWhiteColor,
-            textColor: AppColors.appGreenColor,
-          );
+          ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Profile updated successfully', style: TextStyle(color: AppColors.appGreenColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
         } else if (state is ProfileUpdateError) {
-          Fluttertoast.showToast(
-            fontSize: 14.sp,
-            msg: state.errorMessage,
-            backgroundColor: AppColors.primaryWhiteColor,
-            textColor: AppColors.appRedColor,
-          );
+          ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(state.errorMessage, style: TextStyle(color: AppColors.appRedColor)),
+        backgroundColor: AppColors.primaryWhiteColor,
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+    );
         }
 
         if (state is ProfileViewLoading) {
