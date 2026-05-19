@@ -89,6 +89,12 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
             if (state is FavListError) {
               EasyLoading.dismiss();
               print('FavListError: ${state.errorMessage}');
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.errorMessage),
+                  backgroundColor: AppColors.appRedColor,
+                ),
+              );
             }
 
             if (state is FavoriteToggleLoading) {}
@@ -292,16 +298,22 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                             child: Column(
                               mainAxisSize: MainAxisSize.min,
                               children: [
+                                Icon(
+                                  Icons.error_outline,
+                                  size: 64,
+                                  color: AppColors.primaryWhiteColor,
+                                ),
+                                SizedBox(height: 16.h),
                                 Text(
-                                  'Failed to load favorites: ${state.errorMessage}',
+                                  state.errorMessage,
                                   style: TextStyle(
                                     color: AppColors.primaryWhiteColor,
                                     fontSize: 16.sp,
-                                    fontWeight: FontWeight.w500,
+                                    fontWeight: FontWeight.bold,
                                   ),
                                   textAlign: TextAlign.center,
                                 ),
-                                SizedBox(height: 20.h),
+                                SizedBox(height: 16.h),
                                 ElevatedButton(
                                   onPressed: () {
                                     context.read<CafeListBloc>().add(
@@ -309,9 +321,8 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
                                     );
                                   },
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: AppColors.primary,
-                                    foregroundColor:
-                                        AppColors.primaryWhiteColor,
+                                    backgroundColor: AppColors.primaryWhiteColor,
+                                    foregroundColor: AppColors.primary,
                                     padding: EdgeInsets.symmetric(
                                       horizontal: 20.w,
                                       vertical: 10.h,
