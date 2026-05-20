@@ -443,10 +443,10 @@ class _ExpandableCardState extends State<ExpandableCard> {
                               paymentState.premiumOverride ||
                               paymentState.canAccessPremiumFeatures;
 
-                           final bool needsUpgrade = false; // TEMP: ungated for testing
+                          final bool needsUpgrade = false; // TEMP: ungated for testing
 
-                         // final bool needsUpgrade =
-                              !hasPremiumAccess; // restore for production
+                          // final bool needsUpgrade =
+                          //    !hasPremiumAccess; // restore for production
 
                           return ElevatedButton.icon(
                             style: ElevatedButton.styleFrom(
