@@ -362,8 +362,8 @@ class _ExpandableCardState extends State<ExpandableCard> {
                                 paymentState.premiumOverride ||
                                 paymentState.canAccessPremiumFeatures;
 
-                            final bool needsUpgrade = !hasPremiumAccess;
-                            // final bool needsUpgrade = false;
+                            // final bool needsUpgrade = !hasPremiumAccess;
+                            final bool needsUpgrade = false;
 
                             return InkWell(
                               onTap: () {
@@ -443,8 +443,10 @@ class _ExpandableCardState extends State<ExpandableCard> {
                               paymentState.premiumOverride ||
                               paymentState.canAccessPremiumFeatures;
 
-                          final bool needsUpgrade = !hasPremiumAccess;
-                          // final bool needsUpgrade = false;
+                          final bool needsUpgrade = false; // TEMP: ungated for testing
+
+                          // final bool needsUpgrade =
+                          //    !hasPremiumAccess; // restore for production
 
                           return ElevatedButton.icon(
                             style: ElevatedButton.styleFrom(
@@ -712,14 +714,30 @@ class _ExpandableCardState extends State<ExpandableCard> {
                         ? 'All Days'
                         : selectedDays
                             .map((d) {
-                              final firstTiming =
+                              final timings =
                                   (d.timings != null && d.timings!.isNotEmpty)
-                                      ? d.timings!.first
-                                      : Timing(
-                                        open: "10:00:00",
-                                        close: "22:00:00",
-                                      );
-                              return "${d.day}: ${firstTiming.open}-${firstTiming.close}";
+                                      ? d.timings!
+                                      : [Timing(open: "10:00:00", close: "22:00:00")];
+                              final displayTimings =
+                                  timings.length > 1 ? timings.sublist(1) : timings;
+                              final String slotsStr = displayTimings.map((t) {
+                                String formatTime(String time) {
+                                  try {
+                                    final parsed = TimeOfDay(
+                                      hour: int.parse(time.split(':')[0]),
+                                      minute: int.parse(time.split(':')[1]),
+                                    );
+                                    final hour = parsed.hourOfPeriod == 0 ? 12 : parsed.hourOfPeriod;
+                                    final period = parsed.period == DayPeriod.am ? 'AM' : 'PM';
+                                    final minute = parsed.minute.toString().padLeft(2, '0');
+                                    return '$hour:$minute $period';
+                                  } catch (e) {
+                                    return time;
+                                  }
+                                }
+                                return "${formatTime(t.open)} - ${formatTime(t.close)}";
+                              }).join(', ');
+                              return "${capitalizeFirstLetter(d.day ?? '')}: $slotsStr";
                             })
                             .join(', '),
                   ),
@@ -902,8 +920,10 @@ class _AvailableDaysMultiSelectFieldState
               ? d.timings!
               : [Timing(open: "10:00:00", close: "22:00:00")];
 
-      // ✅ Show all slots for each day
-      final slots = timings
+      // ✅ Show event slots only; fall back to timings[0] if no event slots saved
+      final displayTimings = timings.length > 1 ? timings.sublist(1) : timings;
+
+      final slots = displayTimings
           .map((t) => "${_formatTime(t.open)} - ${_formatTime(t.close)}")
           .join(', ');
 
