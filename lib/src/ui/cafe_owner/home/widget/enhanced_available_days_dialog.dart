@@ -44,11 +44,17 @@ class _EnhancedAvailableDaysDialogState
     final computedAlwaysAvailable = _initializeDaySelections();
 
     // ✅ If widget.initiallyAlwaysAvailable is explicitly provided (not null), use it
-    // Otherwise, use the computed value from day selections
+    // BUT we must guard against API inconsistencies. If the API says 'Always Available' is true,
+    // but the actual timeslots have custom hours or missing days, we MUST force it to false.
     if (widget.initiallyAlwaysAvailable != null) {
-      alwaysAvailable = widget.initiallyAlwaysAvailable!;
+      if (widget.initiallyAlwaysAvailable! && !computedAlwaysAvailable) {
+        print('🚨 WARNING: API says alwaysAvailable=true, but actual timeslots are custom/incomplete! Guarding by forcing alwaysAvailable=false.');
+        alwaysAvailable = false;
+      } else {
+        alwaysAvailable = widget.initiallyAlwaysAvailable!;
+      }
       print(
-        '🎯 Dialog initState: Using provided alwaysAvailable=${widget.initiallyAlwaysAvailable}',
+        '🎯 Dialog initState: Using provided alwaysAvailable=${widget.initiallyAlwaysAvailable} (Guarded to $alwaysAvailable)',
       );
     } else {
       alwaysAvailable = computedAlwaysAvailable;
@@ -114,9 +120,20 @@ class _EnhancedAvailableDaysDialogState
   bool _initializeDaySelections() {
     daySelections.clear();
 
-    // Get all open registration days
-    final openRegDays =
-        widget.availableDays.where((d) => d.isOpen ?? true).toList();
+    // ✅ Fix: Compute actual VENUE open days from ProfileBloc, 
+    // because widget.availableDays.isOpen means "table selected", NOT venue open.
+    final profileState = context.read<ProfileBloc>().state;
+    int openRegDaysCount = 0;
+    for (var day in widget.availableDays) {
+      final masterHour = profileState.openingHours[day.day?.toLowerCase()];
+      if (masterHour != null && masterHour.isEnabled) {
+        openRegDaysCount++;
+      }
+    }
+    // Fallback if ProfileBloc is somehow empty
+    if (openRegDaysCount == 0) {
+      openRegDaysCount = widget.availableDays.length;
+    }
 
     // Track how many days are selected with ONLY default timing
     int daysWithOnlyDefault = 0;
@@ -255,11 +272,11 @@ class _EnhancedAvailableDaysDialogState
     // ✅ Determine if "Always Available" should be ON:
     // 1. All open registration days must be selected
     // 2. Every selected day must have ONLY default timing (no custom slots)
-    final allOpenDaysSelected = totalSelectedDays == openRegDays.length;
+    final allOpenDaysSelected = totalSelectedDays == openRegDaysCount;
     final allHaveOnlyDefaults = daysWithOnlyDefault == totalSelectedDays;
 
     print(
-      '🔍 _initializeDaySelections: totalSelected=$totalSelectedDays, openDays=${openRegDays.length}, onlyDefaults=$daysWithOnlyDefault',
+      '🔍 _initializeDaySelections: totalSelected=$totalSelectedDays, openDays=$openRegDaysCount, onlyDefaults=$daysWithOnlyDefault',
     );
     print(
       '✅ Should be Always Available: ${allOpenDaysSelected && allHaveOnlyDefaults}',
@@ -288,6 +305,27 @@ class _EnhancedAvailableDaysDialogState
 
     if (text.isEmpty) return text;
     return "${text[0].toUpperCase()}${text.substring(1).toLowerCase()}";
+  }
+
+  void _disableAlwaysAvailable() {
+    if (alwaysAvailable) {
+      alwaysAvailable = false;
+      // Unfreeze all slots across all selected days so they become editable/deletable
+      for (var key in daySelections.keys.toList()) {
+        final sel = daySelections[key]!;
+        if (sel.isSelected) {
+          daySelections[key] = DaySelection(
+            isSelected: sel.isSelected,
+            isExpanded: sel.isExpanded,
+            cafeOpenTime: sel.cafeOpenTime,
+            cafeCloseTime: sel.cafeCloseTime,
+            timeSlots: sel.timeSlots.map((s) => 
+              TimeSlot(from: s.from, to: s.to, isDefault: false)
+            ).toList(),
+          );
+        }
+      }
+    }
   }
 
   // String _capitalizeFirstLetter(String text) {
@@ -366,7 +404,7 @@ class _EnhancedAvailableDaysDialogState
                       TimeSlot(
                         from: entry.value.cafeOpenTime,
                         to: entry.value.cafeCloseTime,
-                        isDefault: true,
+                        isDefault: false,
                       ),
                     ],
           );
@@ -414,8 +452,8 @@ class _EnhancedAvailableDaysDialogState
               ],
       );
 
-      if (!newIsSelected && alwaysAvailable) {
-        alwaysAvailable = false;
+      if (!newIsSelected) {
+        _disableAlwaysAvailable();
       }
     });
   }
@@ -481,6 +519,7 @@ class _EnhancedAvailableDaysDialogState
 
     if (_validateNewSlot(day, newStart, newEnd)) {
       setState(() {
+        _disableAlwaysAvailable();
         final current = daySelections[day]!;
         final updatedSlots = List<TimeSlot>.from(current.timeSlots)
           ..add(TimeSlot(from: newStart, to: newEnd, isDefault: false));
