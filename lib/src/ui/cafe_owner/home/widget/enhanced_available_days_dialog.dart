@@ -4,7 +4,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
-import 'package:go_router/go_router.dart';
 import 'package:soloseaters/src/constants/app_colors.dart';
 import 'package:soloseaters/src/constants/assets.dart';
 import 'package:soloseaters/src/model/cafe_owner/home/available_days.dart';
@@ -209,8 +208,8 @@ class _EnhancedAvailableDaysDialogState
                 .skip(1)
                 .map(
                   (t) => TimeSlot(
-                    from: _normalizeTime(t.open ?? defaultOpen),
-                    to: _normalizeTime(t.close ?? defaultClose),
+                    from: _normalizeTime(t.open),
+                    to: _normalizeTime(t.close),
                     isDefault: false,
                   ),
                 )
@@ -310,32 +309,42 @@ class _EnhancedAvailableDaysDialogState
 
         for (var day in widget.availableDays) {
           final dayKey = day.day!.toLowerCase();
-          final existingSelection = daySelections[dayKey];
 
-          // Default timings from availableDays (API)
-          final defaultOpen = _normalizeTime(
-            (day.timings?.isNotEmpty ?? false)
-                ? day.timings!.first.open
-                : "10:00:00",
-          );
-          final defaultClose = _normalizeTime(
-            (day.timings?.isNotEmpty ?? false)
-                ? day.timings!.first.close
-                : "22:00:00",
-          );
+          // ✅ Use the already-initialised cafeOpenTime/cafeCloseTime from
+          // daySelections — these already have the ProfileBloc master override
+          // applied by _initializeDaySelections. Re-reading from the raw API
+          // day.timings here would silently discard that override and could
+          // produce invalid ranges (e.g. API open=10:00 / close=09:00) that
+          // _validateAllSlots then rejects at Done (QA issue 0028392).
+          final existing = daySelections[dayKey];
+          final openTime =
+              existing?.cafeOpenTime ??
+              _normalizeTime(
+                (day.timings?.isNotEmpty ?? false)
+                    ? day.timings!.first.open
+                    : "10:00:00",
+              );
+          final closeTime =
+              existing?.cafeCloseTime ??
+              _normalizeTime(
+                (day.timings?.isNotEmpty ?? false)
+                    ? day.timings!.first.close
+                    : "22:00:00",
+              );
 
           // ✅ Update all days to have a single default slot (no custom events)
           daySelections[dayKey] = DaySelection(
             isSelected: true,
             isExpanded: false,
-            cafeOpenTime: defaultOpen,
-            cafeCloseTime: defaultClose,
+            cafeOpenTime: openTime,
+            cafeCloseTime: closeTime,
             timeSlots: [
-              TimeSlot(from: defaultOpen, to: defaultClose, isDefault: true),
+              TimeSlot(from: openTime, to: closeTime, isDefault: true),
             ],
           );
 
-          print('  ✓ $dayKey → $defaultOpen - $defaultClose');
+          print('  ✓ $dayKey → $openTime - $closeTime');
+
         }
       } else {
         // ✅ When toggled OFF: Keep only days that have custom event slots
@@ -382,30 +391,46 @@ class _EnhancedAvailableDaysDialogState
 
   void _toggleDay(String day) {
     setState(() {
-      daySelections[day]!.isSelected = !daySelections[day]!.isSelected;
-      if (daySelections[day]!.isSelected) {
-        daySelections[day]!.isExpanded = true;
-      } else {
-        daySelections[day]!.isExpanded = false;
-        daySelections[day]!.timeSlots = [
-          TimeSlot(
-            from: daySelections[day]!.cafeOpenTime,
-            to: daySelections[day]!.cafeCloseTime,
-            isDefault: true,
-          ),
-        ];
-      }
+      final current = daySelections[day]!;
+      final newIsSelected = !current.isSelected;
+      
+      daySelections[day] = DaySelection(
+        isSelected: newIsSelected,
+        isExpanded: newIsSelected,
+        cafeOpenTime: current.cafeOpenTime,
+        cafeCloseTime: current.cafeCloseTime,
+        timeSlots: newIsSelected
+            ? current.timeSlots.map((s) => TimeSlot(
+                from: s.from,
+                to: s.to,
+                isDefault: false,
+              )).toList()
+            : [
+                TimeSlot(
+                  from: current.cafeOpenTime,
+                  to: current.cafeCloseTime,
+                  isDefault: false,
+                ),
+              ],
+      );
 
-      if (!daySelections[day]!.isSelected && alwaysAvailable) {
+      if (!newIsSelected && alwaysAvailable) {
         alwaysAvailable = false;
       }
     });
   }
 
   void _toggleExpand(String day) {
-    if (daySelections[day]!.isSelected) {
+    final current = daySelections[day]!;
+    if (current.isSelected) {
       setState(() {
-        daySelections[day]!.isExpanded = !daySelections[day]!.isExpanded;
+        daySelections[day] = DaySelection(
+          isSelected: current.isSelected,
+          isExpanded: !current.isExpanded,
+          cafeOpenTime: current.cafeOpenTime,
+          cafeCloseTime: current.cafeCloseTime,
+          timeSlots: List<TimeSlot>.from(current.timeSlots),
+        );
       });
     }
   }
@@ -413,7 +438,7 @@ class _EnhancedAvailableDaysDialogState
   void _addTimeSlot(String day) {
     final selection = daySelections[day]!;
     final openMins = _timeToMinutes(_normalizeTime(selection.cafeOpenTime));
-    final closeMins = _timeToMinutes(_normalizeTime(selection.cafeCloseTime));
+    final closeMins = _closeTimeToMinutes(_normalizeTime(selection.cafeCloseTime));
 
     // All user slots sorted by start time (no isDefault distinction)
     final userSlots = List<TimeSlot>.from(
@@ -423,7 +448,7 @@ class _EnhancedAvailableDaysDialogState
     // ✅ FIX: Find the latest end time among all custom slots
     int nextStartMin = openMins;
     for (final slot in userSlots) {
-      final slotEnd = _timeToMinutes(slot.to);
+      final slotEnd = _closeTimeToMinutes(slot.to);
       // Always update to the latest end time (no early break)
       if (slotEnd > nextStartMin) {
         nextStartMin = slotEnd;
@@ -456,8 +481,15 @@ class _EnhancedAvailableDaysDialogState
 
     if (_validateNewSlot(day, newStart, newEnd)) {
       setState(() {
-        selection.timeSlots.add(
-          TimeSlot(from: newStart, to: newEnd, isDefault: false),
+        final current = daySelections[day]!;
+        final updatedSlots = List<TimeSlot>.from(current.timeSlots)
+          ..add(TimeSlot(from: newStart, to: newEnd, isDefault: false));
+        daySelections[day] = DaySelection(
+          isSelected: current.isSelected,
+          isExpanded: current.isExpanded,
+          cafeOpenTime: current.cafeOpenTime,
+          cafeCloseTime: current.cafeCloseTime,
+          timeSlots: updatedSlots,
         );
       });
     }
@@ -465,7 +497,8 @@ class _EnhancedAvailableDaysDialogState
 
   // Change 2: Guard — prevent deleting the last slot for a day.
   void _removeTimeSlot(String day, int index) {
-    final slots = daySelections[day]!.timeSlots;
+    final current = daySelections[day]!;
+    final slots = current.timeSlots;
     if (slots.length <= 1) {
       Fluttertoast.showToast(
         msg:
@@ -474,7 +507,14 @@ class _EnhancedAvailableDaysDialogState
       return;
     }
     setState(() {
-      slots.removeAt(index);
+      final updatedSlots = List<TimeSlot>.from(current.timeSlots)..removeAt(index);
+      daySelections[day] = DaySelection(
+        isSelected: current.isSelected,
+        isExpanded: current.isExpanded,
+        cafeOpenTime: current.cafeOpenTime,
+        cafeCloseTime: current.cafeCloseTime,
+        timeSlots: updatedSlots,
+      );
     });
   }
 
@@ -489,7 +529,7 @@ class _EnhancedAvailableDaysDialogState
     final TimeOfDay? picked = await showTimePicker(
       context: context,
       initialTime: initial,
-      builder: (context, child) {
+      builder: (BuildContext context, Widget? child) {
         return MediaQuery(
           data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
           child: child!,
@@ -498,9 +538,13 @@ class _EnhancedAvailableDaysDialogState
     );
 
     if (picked != null) {
-      final selectedMinutes = picked.hour * 60 + picked.minute;
+      int selectedMinutes = picked.hour * 60 + picked.minute;
       final minMinutes = _timeToMinutes(_normalizeTime(minTime));
-      final maxMinutes = _timeToMinutes(_normalizeTime(maxTime));
+      final maxMinutes = _closeTimeToMinutes(_normalizeTime(maxTime));
+
+      if (selectedMinutes == 0 && minMinutes > 0) {
+        selectedMinutes = 1440;
+      }
 
       // ─── TIME PICKER DEBUG ────────────────────────────────────────────────
       print(
@@ -539,9 +583,9 @@ class _EnhancedAvailableDaysDialogState
     newEnd = _normalizeTime(newEnd);
 
     final newStartMins = _timeToMinutes(newStart);
-    final newEndMins = _timeToMinutes(newEnd);
+    final newEndMins = _closeTimeToMinutes(newEnd);
     final openMins = _timeToMinutes(open);
-    final closeMins = _timeToMinutes(close);
+    final closeMins = _closeTimeToMinutes(close);
 
     // Validate: must lie inside the default café hours
     if (newStartMins < openMins || newEndMins > closeMins) {
@@ -560,7 +604,7 @@ class _EnhancedAvailableDaysDialogState
     // Overlap check against ALL other slots (no isDefault skip)
     for (final slot in selection.timeSlots) {
       final existingStart = _timeToMinutes(slot.from);
-      final existingEnd = _timeToMinutes(slot.to);
+      final existingEnd = _closeTimeToMinutes(slot.to);
       final overlaps = newStartMins < existingEnd && newEndMins > existingStart;
       if (overlaps) {
         Fluttertoast.showToast(
@@ -595,9 +639,9 @@ class _EnhancedAvailableDaysDialogState
     final close = _normalizeTime(selection.cafeCloseTime);
 
     final newStartMins = _timeToMinutes(_normalizeTime(newStart));
-    final newEndMins = _timeToMinutes(_normalizeTime(newEnd));
+    final newEndMins = _closeTimeToMinutes(_normalizeTime(newEnd));
     final openMins = _timeToMinutes(open);
-    final closeMins = _timeToMinutes(close);
+    final closeMins = _closeTimeToMinutes(close);
 
     // Inside open–close
     if (newStartMins < openMins || newEndMins > closeMins) {
@@ -618,7 +662,7 @@ class _EnhancedAvailableDaysDialogState
       if (i == currentIndex) continue; // Skip self
       final s = selection.timeSlots[i];
       final sStart = _timeToMinutes(_normalizeTime(s.from));
-      final sEnd = _timeToMinutes(_normalizeTime(s.to));
+      final sEnd = _closeTimeToMinutes(_normalizeTime(s.to));
       final overlaps = newStartMins < sEnd && newEndMins > sStart;
       if (overlaps) {
         Fluttertoast.showToast(
@@ -639,14 +683,14 @@ class _EnhancedAvailableDaysDialogState
       final open = _normalizeTime(selection.cafeOpenTime);
       final close = _normalizeTime(selection.cafeCloseTime);
       final openMins = _timeToMinutes(open);
-      final closeMins = _timeToMinutes(close);
+      final closeMins = _closeTimeToMinutes(close);
 
       for (int i = 0; i < selection.timeSlots.length; i++) {
         final slot = selection.timeSlots[i];
         // Change 7: validate ALL slots (no isDefault skip)
 
         final startMins = _timeToMinutes(_normalizeTime(slot.from));
-        final endMins = _timeToMinutes(_normalizeTime(slot.to));
+        final endMins = _closeTimeToMinutes(_normalizeTime(slot.to));
 
         if (endMins <= startMins) {
           Fluttertoast.showToast(
@@ -669,7 +713,7 @@ class _EnhancedAvailableDaysDialogState
           final other = selection.timeSlots[j];
           // Change 7: no isDefault skip
           final otherStart = _timeToMinutes(_normalizeTime(other.from));
-          final otherEnd = _timeToMinutes(_normalizeTime(other.to));
+          final otherEnd = _closeTimeToMinutes(_normalizeTime(other.to));
           final overlaps = startMins < otherEnd && endMins > otherStart;
           if (overlaps) {
             Fluttertoast.showToast(
@@ -696,6 +740,14 @@ class _EnhancedAvailableDaysDialogState
     final clean = _normalizeTime(time);
     final parts = clean.split(':');
     return int.parse(parts[0]) * 60 + int.parse(parts[1]);
+  }
+
+  int _closeTimeToMinutes(String time) {
+    final clean = _normalizeTime(time);
+    if (clean == "00:00:00") {
+      return 1440;
+    }
+    return _timeToMinutes(clean);
   }
 
   List<AvailableDay> _getSelectedDays() {
@@ -774,35 +826,6 @@ class _EnhancedAvailableDaysDialogState
     });
 
     return selected;
-  }
-
-  // Add this helper
-  String _fullDayName(String day) {
-    switch (day.toLowerCase()) {
-      case 'mon':
-      case 'monday':
-        return 'Monday';
-      case 'tue':
-      case 'tuesday':
-        return 'Tuesday';
-      case 'wed':
-      case 'wednesday':
-        return 'Wednesday';
-      case 'thu':
-      case 'thursday':
-        return 'Thursday';
-      case 'fri':
-      case 'friday':
-        return 'Friday';
-      case 'sat':
-      case 'saturday':
-        return 'Saturday';
-      case 'sun':
-      case 'sunday':
-        return 'Sunday';
-      default:
-        return day;
-    }
   }
 
   @override
@@ -926,7 +949,7 @@ class _EnhancedAvailableDaysDialogState
                               child: Switch(
                                 value: alwaysAvailable,
                                 onChanged: _toggleAlwaysAvailable,
-                                activeColor: AppColors.primaryWhiteColor,
+                                activeThumbColor: AppColors.primaryWhiteColor,
                                 activeTrackColor: AppColors.secondary,
                                 inactiveThumbColor: Colors.white,
                                 inactiveTrackColor: Colors.grey.shade400,
@@ -1006,33 +1029,79 @@ class _EnhancedAvailableDaysDialogState
   }
 
   Widget _buildTimeSlot(String day, int index, TimeSlot slot) {
-    final selection = daySelections[day]!;
-
     Future<void> _pickNewTime({required bool isFrom}) async {
+      // Always read the CURRENT state at the time the picker opens —
+      // not the stale build-time captures of `selection` and `slot`.
+      final liveSelection = daySelections[day]!;
+      final liveSlot = liveSelection.timeSlots[index];
+
       final newTime = await _selectTime(
         context,
-        isFrom ? slot.from : slot.to,
-        selection.cafeOpenTime,
-        selection.cafeCloseTime,
+        isFrom ? liveSlot.from : liveSlot.to,
+        liveSelection.cafeOpenTime,
+        liveSelection.cafeCloseTime,
       );
 
       if (newTime != null) {
-        if (isFrom) {
-          // Change 4: FROM edit — _selectTime already validated bounds.
-          // Skip start<end check; user will set TO next.
-          // _validateAllSlots() on DONE catches any remaining issues.
-          setState(() => selection.timeSlots[index].from = newTime);
-        } else {
-          // TO edit: validate the fully-assembled slot.
-          if (_validateEditedSlot(
-            day,
-            selection.timeSlots[index].from,
-            newTime,
-            index,
-          )) {
-            setState(() => selection.timeSlots[index].to = newTime);
+        setState(() {
+          final currentSelection = daySelections[day]!;
+          final slots = List<TimeSlot>.from(currentSelection.timeSlots);
+          final currentSlot = slots[index];
+
+          if (isFrom) {
+            final newFromMins = _timeToMinutes(newTime);
+            final currentToMins = _closeTimeToMinutes(currentSlot.to);
+
+            String updatedTo = currentSlot.to;
+            if (newFromMins >= currentToMins) {
+              int newToMins = newFromMins + 60;
+              final closeMins = _closeTimeToMinutes(currentSelection.cafeCloseTime);
+              if (newToMins > closeMins) {
+                newToMins = closeMins;
+              }
+              if (newToMins - newFromMins < 15) {
+                newToMins = newFromMins + 15;
+                if (newToMins > closeMins) {
+                  newToMins = closeMins;
+                }
+              }
+              final normalizedToMins = newToMins % 1440;
+              final hours = normalizedToMins ~/ 60;
+              final minutes = normalizedToMins % 60;
+              updatedTo = '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:00';
+            }
+
+            slots[index] = TimeSlot(
+              from: newTime,
+              to: updatedTo,
+              isDefault: false,
+            );
+          } else {
+            // TO edit: validate the fully-assembled slot.
+            if (_validateEditedSlot(
+              day,
+              currentSlot.from,
+              newTime,
+              index,
+            )) {
+              slots[index] = TimeSlot(
+                from: currentSlot.from,
+                to: newTime,
+                isDefault: false,
+              );
+            } else {
+              return;
+            }
           }
-        }
+
+          daySelections[day] = DaySelection(
+            isSelected: currentSelection.isSelected,
+            isExpanded: currentSelection.isExpanded,
+            cafeOpenTime: currentSelection.cafeOpenTime,
+            cafeCloseTime: currentSelection.cafeCloseTime,
+            timeSlots: slots,
+          );
+        });
       }
     }
 
@@ -1136,40 +1205,41 @@ class _EnhancedAvailableDaysDialogState
       ),
       child: Column(
         children: [
-          GestureDetector(
-            onTap: () => _toggleExpand(day),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: () => _toggleDay(day),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: Container(
-                        width: 24,
-                        height: 24,
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryWhiteColor,
-                          border: Border.all(
-                            color: AppColors.primary,
-                            width: 2,
-                          ),
-                          borderRadius: BorderRadius.circular(4),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                GestureDetector(
+                  onTap: () => _toggleDay(day),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryWhiteColor,
+                        border: Border.all(
+                          color: AppColors.primary,
+                          width: 2,
                         ),
-                        child:
-                            selection.isSelected
-                                ? SvgPicture.asset(
-                                  Assets.CHECK,
-                                  fit: BoxFit.scaleDown,
-                                  height: 10,
-                                )
-                                : null,
+                        borderRadius: BorderRadius.circular(4),
                       ),
+                      child:
+                          selection.isSelected
+                              ? SvgPicture.asset(
+                                Assets.CHECK,
+                                fit: BoxFit.scaleDown,
+                                height: 10,
+                              )
+                              : null,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: selection.isSelected ? () => _toggleExpand(day) : null,
+                    behavior: HitTestBehavior.opaque,
                     child: Text(
                       _capitalizeFirstLetter(day),
                       style: GoogleFonts.montserrat(
@@ -1179,15 +1249,22 @@ class _EnhancedAvailableDaysDialogState
                       ),
                     ),
                   ),
-                  if (selection.isSelected)
-                    SvgPicture.asset(
-                      selection.isExpanded
-                          ? Assets.TAB_ARROW_UP
-                          : Assets.TAB_ARROW_DOWN,
-                      height: 10,
+                ),
+                if (selection.isSelected)
+                  GestureDetector(
+                    onTap: () => _toggleExpand(day),
+                    behavior: HitTestBehavior.opaque,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      child: SvgPicture.asset(
+                        selection.isExpanded
+                            ? Assets.TAB_ARROW_UP
+                            : Assets.TAB_ARROW_DOWN,
+                        height: 10,
+                      ),
                     ),
-                ],
-              ),
+                  ),
+              ],
             ),
           ),
           if (selection.isSelected && selection.isExpanded)
@@ -1280,13 +1357,13 @@ class _EnhancedAvailableDaysDialogState
 }
 
 class DaySelection {
-  bool isSelected;
-  bool isExpanded;
-  String cafeOpenTime;
-  String cafeCloseTime;
-  List<TimeSlot> timeSlots;
+  final bool isSelected;
+  final bool isExpanded;
+  final String cafeOpenTime;
+  final String cafeCloseTime;
+  final List<TimeSlot> timeSlots;
 
-  DaySelection({
+  const DaySelection({
     required this.isSelected,
     required this.isExpanded,
     required this.cafeOpenTime,
@@ -1296,11 +1373,11 @@ class DaySelection {
 }
 
 class TimeSlot {
-  String from;
-  String to;
-  bool isDefault;
+  final String from;
+  final String to;
+  final bool isDefault;
 
-  TimeSlot({required this.from, required this.to, required this.isDefault});
+  const TimeSlot({required this.from, required this.to, required this.isDefault});
 }
 
 class NoGlowScrollBehavior extends ScrollBehavior {
