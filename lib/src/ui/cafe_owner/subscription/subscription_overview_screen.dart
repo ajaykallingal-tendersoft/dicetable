@@ -27,6 +27,7 @@ class _SubscriptionOverviewScreenState
   void initState() {
     super.initState();
     context.read<SubscriptionBloc>().add(FetchSubscriptionOverview());
+
   }
 
   @override

@@ -129,16 +129,7 @@ class PaymentService {
 
   List<ProductDetails> _fakeProducts() {
     return [
-      //  FIRST: Monthly plan (should appear first)
-      ProductDetails(
-        id: monthlyPublic, //  Use monthly ID
-        title: "Public Monthly Plan",
-        description: "Monthly subscription for public users",
-        price: "\$9.00",
-        rawPrice: 9.0,
-        currencyCode: "NZD",
-      ),
-      //  SECOND: Yearly plan
+      //  FIRST: Yearly plan
       ProductDetails(
         id: yearlyPublicProductId, //  Use yearly ID
         title: "Public Yearly Plan",
@@ -147,7 +138,7 @@ class PaymentService {
         rawPrice: 99.0,
         currencyCode: "NZD",
       ),
-      //  THIRD: Venue plan
+      //  SECOND: Venue plan
       ProductDetails(
         id: venueYearlyProductId,
         title: "Venue Yearly Plan",
@@ -194,7 +185,7 @@ class PaymentService {
       if (Platform.isAndroid) {
         productIds = {venueYearlyProductId, yearlyPublicProductId};
       } else if (Platform.isIOS) {
-        productIds = {yearlyPublic, monthlyPublic, yearlyVenueProductId};
+        productIds = {yearlyPublic, yearlyVenueProductId};
       } else {
         throw Exception('Unsupported platform');
       }

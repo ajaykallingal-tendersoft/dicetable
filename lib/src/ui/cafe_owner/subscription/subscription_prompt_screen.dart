@@ -43,6 +43,11 @@ class _SubscriptionPromptScreenState extends State<SubscriptionPromptScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 🔧 TEMPORARY FREE MODE: Skip subscription prompt entirely
+      if (PaymentPlanState.forceFreePremium) {
+        context.go('/home');
+        return;
+      }
       context.read<PaymentPlanBloc>().add(const InitializePaymentEvent());
       context.read<SubscriptionBloc>().add(FetchInitialSubscription());
     });

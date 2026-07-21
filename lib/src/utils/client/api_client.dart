@@ -57,7 +57,7 @@ class ApiClient {
   ///client dev
   initClientDiceAppDev() async {
     _baseOptionsDiceApp = BaseOptions(
-      baseUrl: UrlsDiceApp.baseUrlDev,
+      baseUrl: UrlsDiceApp.baseUrlLocal,
       connectTimeout: const Duration(
         seconds: 30,
       ), // ⏱ 30s to establish connection
@@ -1160,6 +1160,23 @@ class ApiClient {
     );
   }
 
+  /// Fetch active subscription details from database (no body parameters required)
+  Future<Response> getActiveSubscription() {
+    print('🔄 API: Fetching active subscription details from backend');
+
+    final userCategory = ObjectFactory().prefs.getUserDecisionName();
+    final isPublicUser = userCategory == "PUBLIC_USER";
+    final token = isPublicUser
+        ? ObjectFactory().prefs.getCustomerAuthToken()
+        : ObjectFactory().prefs.getAuthToken();
+
+    return dioDiceApp.get(
+      UrlsDiceApp.activeSubscription,
+      options: Options(headers: {"Authorization": token}),
+    );
+  }
+
+
   Future<bool> _hasRobustConnection() async {
     final connectivity = Connectivity();
     var results = await connectivity.checkConnectivity();
@@ -1167,7 +1184,8 @@ class ApiClient {
       await Future.delayed(const Duration(seconds: 1));
       results = await connectivity.checkConnectivity();
     }
-    return !(results.isEmpty || results.every((r) => r == ConnectivityResult.none));
+    return !(results.isEmpty ||
+        results.every((r) => r == ConnectivityResult.none));
   }
 
   Future<void> _ensureConnected([RequestOptions? options]) async {

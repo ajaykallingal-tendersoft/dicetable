@@ -1,11 +1,10 @@
 class UrlsDiceApp {
   ///base urls
   static const String baseUrlDev = 'https://app.soloseaters.com';
-  static const String baseUrlLocal = 'http://192.168.0.131:8001';
+  static const String baseUrlLocal = 'http://192.168.0.201:8000';
   static const String baseUrlLiveStaging = '';
   static const String baseUrlLiveProduction = '';
   static const String tokenRefresh = '/api/refresh';
-  
 
   ///Cafe Owner
   ///Auth
@@ -53,9 +52,10 @@ class UrlsDiceApp {
   static const String withdrawBooking = '/api/withdraw-booking';
   static const String deleteCustomerAccount = '/api/customer/profile/delete';
   static const String guestUserSignIn = '/api/guest/signin';
-  static const String getPaidCustomerProfileById = '/api/customer/paid-profile/';
-  static const String updatePaidCustomerProfile = '/api/customer/paid-profile/update/';
-  
+  static const String getPaidCustomerProfileById =
+      '/api/customer/paid-profile/';
+  static const String updatePaidCustomerProfile =
+      '/api/customer/paid-profile/update/';
 
   ///Notification
   static const String getCafeNotification = '/api/cafe/notifications';
@@ -64,8 +64,8 @@ class UrlsDiceApp {
   static const String updateNotificationStatus =
       '/api/notification/update-status';
 
-
   //IAP Endpoints
   static const String verifyPurchase = '/api/purchase/verify';
   static const String subscriptionStatus = '/api/purchase/verify-status';
+  static const String activeSubscription = '/api/purchase/get-token-details';
 }

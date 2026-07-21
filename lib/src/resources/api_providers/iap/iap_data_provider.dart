@@ -51,9 +51,7 @@ class IapDataProvider {
       if (e.message == "No internet connection") {
         return StateModel.error("No internet connection");
       }
-      return StateModel.error(
-        "Unable to reach server. Try again later.",
-      );
+      return StateModel.error("Unable to reach server. Try again later.");
     }
 
     if (e.response == null) {
@@ -214,6 +212,39 @@ class IapDataProvider {
       return _handleDioError(e);
     } catch (e) {
       print("❌ Unexpected error in getSubscriptionStatus: $e");
+      return StateModel.error("Unexpected error: ${e.toString()}");
+    }
+  }
+
+  /// Fetch active subscription details
+  Future<StateModel<SubscriptionStatusResponse>> getActiveSubscription() async {
+    try {
+      print('📡 Fetching active subscription details from backend');
+
+      final response = await ObjectFactory().apiClient.getActiveSubscription();
+
+      print('✅ Raw active subscription response: ${response.data}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final parsed = _safeParse(
+          response.data,
+          (json) => SubscriptionStatusResponse.fromJson(json),
+        );
+
+        if (parsed == null) {
+          return StateModel.error("Invalid server response format.");
+        }
+
+        return StateModel.success(parsed);
+      }
+
+      return StateModel.error(
+        "Request failed with status ${response.statusCode}",
+      );
+    } on DioException catch (e) {
+      return _handleDioError(e);
+    } catch (e) {
+      print("❌ Unexpected error in getActiveSubscription: $e");
       return StateModel.error("Unexpected error: ${e.toString()}");
     }
   }

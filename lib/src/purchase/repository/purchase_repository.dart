@@ -1,16 +1,11 @@
-// lib/src/purchase/repository/purchase_repository.dart
-
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:http/http.dart' as http;
 import 'package:soloseaters/src/model/payment/verify_purchase_request.dart';
 import 'package:soloseaters/src/purchase/bloc/bloc/purchase_state.dart';
 import 'package:soloseaters/src/resources/api_providers/iap/iap_data_provider.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:soloseaters/src/utils/extension/state_model_extension.dart';
 import 'package:soloseaters/src/model/payment/subscription_status_response.dart';
-import 'package:soloseaters/src/model/payment/subscription_status_request.dart';
 
 class PaymentRepository {
   final IapDataProvider _iapDataProvider;
@@ -76,6 +71,11 @@ class PaymentRepository {
     await prefs.remove(_scopedKey(_latestPurchaseTokenKey));
     await prefs.remove(_scopedKey(_latestPurchasePlatformKey));
     print('✅ Cleared cached purchase token/platform');
+  }
+
+  // Alias helper to cache purchase token/platform
+  Future<void> cachePurchaseToken(String purchaseToken, String platform) async {
+    await cacheLatestPurchaseDetails(purchaseToken: purchaseToken, platform: platform);
   }
 
   /// ========================================
@@ -516,166 +516,69 @@ class PaymentRepository {
   /// ========================================
   /// FETCH SUBSCRIPTION STATUS FROM BACKEND
   /// ========================================
-  /// MODIFIED to construct and use SubscriptionStatusRequest
+  /// MODIFIED to fetch active subscription using getActiveSubscription endpoint
   Future<Map<String, dynamic>> fetchSubscriptionStatusFromBackend({
-    String? productId, // ✅ NEW: Optional product ID from restored purchase
-    String?
-    purchaseToken, // ✅ NEW: Optional purchase token (e.g. from restored purchase)
+    String? productId,
+    String? purchaseToken,
   }) async {
     try {
-      print('🔄 Repository: Fetching subscription status');
-      if (productId != null) {
-        print('   Using provided product ID: $productId');
-      }
-      if (purchaseToken != null) {
-        print(
-          '   Using provided purchase token: ${purchaseToken.substring(0, 10)}...',
-        );
-      }
+      print('🔄 Repository: Fetching subscription status using get-token-details');
 
       final prefs = ObjectFactory().prefs;
       final userId = prefs.getUserId();
       final cafeId = prefs.getCafeId();
 
-      // Get necessary data from local cache
-      final cachedData = await getUserSubscriptionData();
-      final currentSubscriptionId =
-          cachedData['currentSubscriptionId'] as String?;
-      final latestPurchaseToken = cachedData['latestPurchaseToken'] as String?;
-      final latestPurchasePlatform =
-          cachedData['latestPurchasePlatform'] as String?;
-
-      // Determine platform fallback
-      final currentPlatform =
-          latestPurchasePlatform ??
-          (defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android');
-
-      // ✅ FIX: Check authentication first
+      // Check authentication first
       if (userId == null && cafeId == null) {
         print('ℹ️ Not authenticated - returning cache.');
-        return cachedData;
+        return await getUserSubscriptionData();
       }
 
-      // ✅ FIX: For restored purchases, we might have purchase token but no subscription ID
-      // Allow API call if we have EITHER purchase token OR subscription ID
-      // If a specific purchaseToken is provided, we can proceed even if cache is empty
-      if (purchaseToken == null &&
-          latestPurchaseToken == null &&
-          currentSubscriptionId == null) {
-        print(
-          '⚠️ Authenticated but missing both purchase token and subscription ID.',
-        );
+      // Check user category to determine if venue owner or public user
+      final userCategory = ObjectFactory().prefs.getUserDecisionName();
+      final isPublicUser = userCategory == "PUBLIC_USER";
+      final isVenueUser = !isPublicUser;
+      
+      // Determine platform fallback
+      final currentPlatform = defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android';
 
-        return cachedData; // Return existing cached or default data
-      }
-
-      // ✅ Log which identifiers we have
-      if (purchaseToken != null && purchaseToken.isNotEmpty) {
-        print('✅ Have provided purchase token - can fetch subscription status');
-      } else if (latestPurchaseToken != null &&
-          latestPurchaseToken.isNotEmpty) {
-        print('✅ Have cached purchase token - can fetch subscription status');
-      }
-      if (currentSubscriptionId != null && currentSubscriptionId.isNotEmpty) {
-        print('✅ Have subscription ID - can fetch subscription status');
-      }
-
-      // ✅ ADDITIONAL CHECK: If tokens are empty strings (not null but invalid)
-      // Only check if we are relying on cache (purchaseToken is null)
-      if (purchaseToken == null &&
-          (latestPurchaseToken != null && latestPurchaseToken.isEmpty) &&
-          (currentSubscriptionId != null && currentSubscriptionId.isEmpty)) {
-        print('⚠️ Purchase token and subscription ID are empty strings');
-        print('   → Returning cached data to prevent 400 error');
-        return cachedData;
-      }
-
-      // ✅ NEW: Debouncing - prevent redundant API calls
+      // Debouncing - prevent redundant API calls
       final now = DateTime.now();
       if (_lastStatusCheckTime != null) {
         final timeSinceLastCheck = now.difference(_lastStatusCheckTime!);
         if (timeSinceLastCheck < _debounceInterval) {
-          print(
-            '⏸️ Debouncing: Last status check was ${timeSinceLastCheck.inSeconds}s ago',
-          );
-          print(
-            '   Returning cached data (min interval: ${_debounceInterval.inSeconds}s)',
-          );
-          return cachedData;
-        }
-      }
-
-      // Update last check time
-      _lastStatusCheckTime = now;
-
-      // ✅ REMOVED: Debug mode bypass - backend API should work in all modes
-      // This was preventing subscription status from being fetched after logout/login
-
-      // ✅ CONSTRUCT THE REQUEST - use provided productId or fall back to cache
-      final effectiveProductId = productId ?? currentSubscriptionId ?? '';
-      final effectiveToken = purchaseToken ?? latestPurchaseToken ?? '';
-
-      // ✅ CRITICAL FIX: Validate that effectiveToken is not empty
-      // Empty tokens cause 422 "purchase_token field is required" errors from backend
-      if (effectiveToken.isEmpty) {
-        return cachedData;
-      }
-
-      print(
-        '✅ Effective token is valid (length: ${effectiveToken.length} chars)',
-      );
-
-      // MODIFIED: Reverting to SubscriptionStatusRequest
-      final request = SubscriptionStatusRequest(
-        purchaseToken: effectiveToken,
-        productId: effectiveProductId, // ✅ Use provided or cached product ID
-        platform: currentPlatform,
-      );
-      print(
-        '📤 Requesting status via STATUS endpoint for product: ${request.productId.isNotEmpty ? request.productId : "(will be derived from token)"} (platform: ${request.platform})',
-      );
-
-      // MODIFIED: Reverting to getSubscriptionStatus
-      final stateModel = await _iapDataProvider.getSubscriptionStatus(
-        request,
-      ); // Pass the request
-
-      if (stateModel == null) {
-        return await getUserSubscriptionData();
-      }
-
-      if (stateModel.isSuccess) {
-        final response = stateModel.data!;
-
-        // 🟢 FIX: Access verification properties through response.verificationData
-        final verificationData = response.verificationData;
-
-        // Check if verificationData is null before proceeding
-        if (verificationData == null) {
-          print(
-            '❌ Status endpoint success=true but verification_data is null.',
-          );
-          print('   Returning cache to avoid blocking user.');
+          print('⏸️ Debouncing: Last status check was ${timeSinceLastCheck.inSeconds}s ago');
           return await getUserSubscriptionData();
         }
+      }
+      _lastStatusCheckTime = now;
 
-        // ✅ CRITICAL: Validate that backend returned subscription status fields
-        // The backend should return subscription_state
-        // If this is missing, the response is incomplete and we can't determine status
+      // 1. Query the new active subscription details endpoint first
+      final stateModel = await _iapDataProvider.getActiveSubscription();
+
+      if (stateModel.isSuccess) {
+        final SubscriptionStatusResponse response = stateModel.data!;
+        
+        final verificationData = response.verificationData;
+
+        // If verificationData is null, or success is false, we indicate no subscription
+        if (response.success != true || verificationData == null) {
+          print('⚠️ Status endpoint success is not true or verification_data is null.');
+          print('   Revoking entitlements, defaulting to free tier.');
+          return await _revokePremiumEntitlements(isVenueUser);
+        }
+
+        // Validate that backend returned subscription status fields
         if (verificationData.subscriptionState == null) {
-          // Return cache but reset debounce to allow immediate retry
+          print('⚠️ Missing subscription_state field in verification_data.');
           _lastStatusCheckTime = null;
           return await getUserSubscriptionData();
         }
 
-        // 🟢 FIX: Derive status fields from the VerificationData object properties.
-        final String? subState =
-            verificationData.subscriptionState?.toLowerCase();
-        final bool isVenueUser =
-            verificationData.productId?.toLowerCase().contains('venue') ??
-            false;
+        // Derive status fields from the VerificationData object properties.
+        final String? subState = verificationData.subscriptionState?.toLowerCase();
 
-        // ✅ CRITICAL: Check for canceled/expired subscriptions
+        // Check for canceled/expired subscriptions
         final bool isCanceled =
             subState == 'canceled' ||
             subState == 'subscription_state_canceled' ||
@@ -691,19 +594,28 @@ class PaymentRepository {
             !isCanceled &&
             !isExpired;
 
-        // ✅ NEW: Check autoRenewing flag for expired subscriptions
         final bool autoRenewing = verificationData.autoRenewing ?? false;
 
-        // ☰☰☰ CRITICAL FIX: Distinguish between expired+auto-renewing vs truly cancelled
-        if (isCanceled || isExpired) {
-          final userType =
-              isVenueUser ? UserType.venueTrial : UserType.publicFree;
+        // Cache latest purchase details (purchase token and product ID)
+        final returnedToken = verificationData.linkedPurchaseToken ?? verificationData.orderId ?? '';
+        final returnedProductId = verificationData.productId ?? '';
+        if (returnedToken.isNotEmpty) {
+          await cacheLatestPurchaseDetails(
+            purchaseToken: returnedToken,
+            platform: currentPlatform,
+            subscriptionId: returnedProductId,
+          );
+        }
 
-          // ✅ NEW: If subscription is expired BUT auto-renewing, preserve the token
+        // Distinguish between expired+auto-renewing vs truly cancelled
+        if (isCanceled || isExpired) {
+          final userType = isVenueUser ? UserType.venueTrial : UserType.publicFree;
+
+          // If subscription is expired BUT auto-renewing, preserve the token
           if (isExpired && autoRenewing) {
             final result = {
               'userType': userType,
-              'isPremium': false, // ✅ No access until renewed
+              'isPremium': false, // No access until renewed
               'trialStartDate': null,
               'trialEndDate': null,
               'subscriptionExpiryDate':
@@ -711,43 +623,35 @@ class PaymentRepository {
                       ? DateTime.tryParse(verificationData.expiryTime!)
                       : null,
               'currentSubscriptionId': verificationData.productId,
-              'premiumOverride': false, // ✅ No override until renewed
-              'autoRenewing':
-                  true, // ✅ NEW: Flag that subscription is auto-renewing
-              'linkedPurchaseToken':
-                  verificationData.linkedPurchaseToken ??
-                  verificationData
-                      .orderId, // ✅ NEW: Transaction ID to clear from processed set
+              'premiumOverride': false, // No override until renewed
+              'autoRenewing': true,
+              'linkedPurchaseToken': returnedToken,
             };
 
-            // ✅ Cache the expired state BUT keep token for auto-renewal
             await cacheBackendSubscriptionState(
               isPaidUser: false,
               isVenueUser: isVenueUser,
-              subscriptionExpiryDate:
-                  result['subscriptionExpiryDate'] as DateTime?,
+              subscriptionExpiryDate: result['subscriptionExpiryDate'] as DateTime?,
               trialStartDate: null,
               trialEndDate: null,
               currentSubscriptionId: result['currentSubscriptionId'] as String?,
-              premiumOverride: false, // ✅ No access yet
+              premiumOverride: false,
             );
 
             return result;
           } else {
-            //  Truly cancelled or expired without auto-renew - clear everything
-
+            // Truly cancelled or expired without auto-renew - clear everything
             final result = {
               'userType': userType,
-              'isPremium': false, // ✅ Explicitly false
+              'isPremium': false,
               'trialStartDate': null,
               'trialEndDate': null,
               'subscriptionExpiryDate': null,
               'currentSubscriptionId': verificationData.productId,
-              'premiumOverride': false, // ✅ Explicitly clear override
-              'autoRenewing': false, // ✅ Not auto-renewing
+              'premiumOverride': false,
+              'autoRenewing': false,
             };
 
-            // ✅ Cache the canceled state
             await cacheBackendSubscriptionState(
               isPaidUser: false,
               isVenueUser: isVenueUser,
@@ -755,30 +659,29 @@ class PaymentRepository {
               trialStartDate: null,
               trialEndDate: null,
               currentSubscriptionId: result['currentSubscriptionId'] as String?,
-              premiumOverride: false, // ✅ Explicitly clear
+              premiumOverride: false,
             );
 
+            await clearCachedPurchaseToken();
             return result;
           }
         }
 
-        // ✅ Active subscription - grant premium access
+        // Active subscription - grant premium access
         final bool inTrial = false;
 
-        final userType =
-            isVenueUser
-                ? (hasActiveSub ? UserType.venuePaid : UserType.venueTrial)
-                : (hasActiveSub ? UserType.publicPaid : UserType.publicFree);
+        final userType = isVenueUser
+            ? (hasActiveSub ? UserType.venuePaid : UserType.venueTrial)
+            : (hasActiveSub ? UserType.publicPaid : UserType.publicFree);
+            
         final result = {
           'userType': userType,
-          // If the subscription is active, it's premium. We rely on cache to check if current trial is active.
           'isPremium': hasActiveSub || inTrial,
           'trialStartDate':
               verificationData.startTime != null
                   ? DateTime.tryParse(verificationData.startTime!)
                   : null,
           'trialEndDate':
-              // Assuming trial end is NOT explicitly returned, or is equal to expiryTime during trial
               verificationData.expiryTime != null
                   ? DateTime.tryParse(verificationData.expiryTime!)
                   : null,
@@ -787,9 +690,9 @@ class PaymentRepository {
                   ? DateTime.tryParse(verificationData.expiryTime!)
                   : null,
           'currentSubscriptionId': verificationData.productId,
-          'premiumOverride':
-              hasActiveSub, //  ADD: Set premium override when subscription is active
+          'premiumOverride': hasActiveSub,
         };
+        
         await cacheBackendSubscriptionState(
           isPaidUser: hasActiveSub,
           isVenueUser: isVenueUser,
@@ -797,21 +700,73 @@ class PaymentRepository {
           trialStartDate: result['trialStartDate'] as DateTime?,
           trialEndDate: result['trialEndDate'] as DateTime?,
           currentSubscriptionId: result['currentSubscriptionId'] as String?,
-          premiumOverride: hasActiveSub, //  ADD: Cache premium override
+          premiumOverride: hasActiveSub,
         );
+        
+        print('💾 Caching active subscription details complete: User premium access granted.');
         return result;
+      } else {
+        // The API returned an error state
+        final errorMessage = stateModel.error ?? 'Unknown error';
+        print('❌ getActiveSubscription API error: $errorMessage');
+
+        // Check if error is due to network or server-side issues (500, SQL, network, timeout, etc.)
+        final isServerOrNetworkError = 
+            errorMessage.contains('500') ||
+            errorMessage.contains('502') ||
+            errorMessage.contains('503') ||
+            errorMessage.contains('504') ||
+            errorMessage.contains('SQLSTATE') ||
+            errorMessage.toLowerCase().contains('network') ||
+            errorMessage.toLowerCase().contains('timeout') ||
+            errorMessage.toLowerCase().contains('connection') ||
+            errorMessage.toLowerCase().contains('unable to reach server') ||
+            errorMessage.toLowerCase().contains('no internet');
+
+        if (isServerOrNetworkError) {
+          print('⚠️ Server/Network error detected. Gracefully falling back to cached state.');
+          _lastStatusCheckTime = null; // Reset so next check will query backend
+          return await getUserSubscriptionData();
+        } else {
+          // If it is success: false response or explicitly indicates cancellation/expiration
+          // or 401 Unauthorized / 404 Not Found
+          print('⚠️ API returned failure or explicit cancellation. Revoking entitlements, defaulting to free tier.');
+          return await _revokePremiumEntitlements(isVenueUser);
+        }
       }
-
-      // Fallback: If status check fails (e.g., success: false, Purchase is pending)
-      return await getUserSubscriptionData();
     } catch (e) {
-      //  Catch network or parsing errors
-
+      print('❌ Unexpected error in fetchSubscriptionStatusFromBackend: $e');
       _lastStatusCheckTime = null;
-
-      // Return cache to avoid blocking user
       return await getUserSubscriptionData();
     }
+  }
+
+  /// Helper to revoke premium entitlements and return free/trial state
+  Future<Map<String, dynamic>> _revokePremiumEntitlements(bool isVenueUser) async {
+    final userType = isVenueUser ? UserType.venueTrial : UserType.publicFree;
+    final result = {
+      'userType': userType,
+      'isPremium': false,
+      'trialStartDate': null,
+      'trialEndDate': null,
+      'subscriptionExpiryDate': null,
+      'currentSubscriptionId': null,
+      'premiumOverride': false,
+      'autoRenewing': false,
+    };
+
+    await cacheBackendSubscriptionState(
+      isPaidUser: false,
+      isVenueUser: isVenueUser,
+      subscriptionExpiryDate: null,
+      trialStartDate: null,
+      trialEndDate: null,
+      currentSubscriptionId: null,
+      premiumOverride: false,
+    );
+
+    await clearCachedPurchaseToken();
+    return result;
   }
 
   /// ========================================
