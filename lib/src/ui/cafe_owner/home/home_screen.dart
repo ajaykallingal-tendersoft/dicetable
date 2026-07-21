@@ -44,14 +44,19 @@ class _HomeScreenState extends State<HomeScreen> {
         now.difference(currentBackPressTime!) > const Duration(seconds: 3)) {
       currentBackPressTime = now;
       ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("Press again to exit", style: TextStyle(color: AppColors.primaryWhiteColor)),
-        backgroundColor: AppColors.secondary,
-        behavior: SnackBarBehavior.floating,
-        margin: const EdgeInsets.all(16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
+        SnackBar(
+          content: Text(
+            "Press again to exit",
+            style: TextStyle(color: AppColors.primaryWhiteColor),
+          ),
+          backgroundColor: AppColors.secondary,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
       return Future.value(false);
     }
     if (Theme.of(context).platform == TargetPlatform.android) {

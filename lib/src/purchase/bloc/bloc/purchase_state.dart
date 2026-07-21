@@ -20,6 +20,9 @@ enum PaymentPlanStatus {
 enum UserType { publicFree, publicPaid, venueTrial, venuePaid }
 
 class PaymentPlanState extends Equatable {
+  /// 🔧 TEMPORARY FREE MODE: Set to true to make app free for all users.
+  static const bool forceFreePremium = true;
+
   final PaymentPlanStatus status;
   final List<ProductDetails> products;
   final List<Map<String, dynamic>>? expandedProducts; // ✅ NEW
@@ -148,6 +151,9 @@ class PaymentPlanState extends Equatable {
   }
 
   bool get canAccessPremiumFeatures {
+    // 🔧 TEMPORARY FREE MODE: Bypass all premium gates
+    if (forceFreePremium) return true;
+
     // If explicitly overridden (after purchase/restore)
     if (premiumOverride == true) return true;
 

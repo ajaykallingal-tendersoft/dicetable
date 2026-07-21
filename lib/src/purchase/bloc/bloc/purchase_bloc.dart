@@ -517,8 +517,7 @@ class PaymentPlanBloc extends Bloc<PaymentPlanEvent, PaymentPlanState> {
               if (Platform.isAndroid) {
                 return p.id == PaymentService.yearlyPublicProductId;
               } else {
-                return p.id == PaymentService.yearlyPublic ||
-                    p.id == PaymentService.monthlyPublic;
+                return p.id == PaymentService.yearlyPublic;
               }
             }).toList();
 

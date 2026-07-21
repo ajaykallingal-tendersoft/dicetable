@@ -274,48 +274,48 @@ class _SubscriptionOverviewCardState extends State<SubscriptionOverviewCard> {
                               ),
                             ),
                             SizedBox(height: basePadding * 0.75),
-                            AutoSizeText.rich(
-                              TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: '\$$amount',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodyLarge!.copyWith(
-                                      color: AppColors.primary,
-                                      fontSize: getScaledFontSize(24),
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text: ' / $duration',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.bodyMedium!.copyWith(
-                                      color:
-                                          AppColors.subscriptionPriceSubColor,
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: getScaledFontSize(14),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              maxLines: 1,
-                              minFontSize: 12,
-                            ),
+                            // AutoSizeText.rich(
+                            //   TextSpan(
+                            //     children: [
+                            //       TextSpan(
+                            //         text: '\$$amount',
+                            //         style: Theme.of(
+                            //           context,
+                            //         ).textTheme.bodyLarge!.copyWith(
+                            //           color: AppColors.primary,
+                            //           fontSize: getScaledFontSize(24),
+                            //           fontWeight: FontWeight.bold,
+                            //         ),
+                            //       ),
+                            //       TextSpan(
+                            //         text: ' / $duration',
+                            //         style: Theme.of(
+                            //           context,
+                            //         ).textTheme.bodyMedium!.copyWith(
+                            //           color:
+                            //               AppColors.subscriptionPriceSubColor,
+                            //           fontWeight: FontWeight.w600,
+                            //           fontSize: getScaledFontSize(14),
+                            //         ),
+                            //       ),
+                            //     ],
+                            //   ),
+                            //   maxLines: 1,
+                            //   minFontSize: 12,
+                            // ),
                             SizedBox(height: basePadding * 0.5),
-                            AutoSizeText(
-                              'Expires On $expiryDate',
-                              style: Theme.of(
-                                context,
-                              ).textTheme.bodyMedium!.copyWith(
-                                color: AppColors.timeTextColor,
-                                fontWeight: FontWeight.w500,
-                                fontSize: getScaledFontSize(12),
-                              ),
-                              maxLines: 1,
-                              minFontSize: 8,
-                            ),
+                            // AutoSizeText(
+                            //   'Expires On $expiryDate',
+                            //   style: Theme.of(
+                            //     context,
+                            //   ).textTheme.bodyMedium!.copyWith(
+                            //     color: AppColors.timeTextColor,
+                            //     fontWeight: FontWeight.w500,
+                            //     fontSize: getScaledFontSize(12),
+                            //   ),
+                            //   maxLines: 1,
+                            //   minFontSize: 8,
+                            // ),
                             // SizedBox(height: basePadding * 0.5),
                             // Container(
                             //   width: double.infinity,
