@@ -57,7 +57,7 @@ class ApiClient {
   ///client dev
   initClientDiceAppDev() async {
     _baseOptionsDiceApp = BaseOptions(
-      baseUrl: UrlsDiceApp.baseUrlLocal,
+      baseUrl: UrlsDiceApp.baseUrlDev,
       connectTimeout: const Duration(
         seconds: 30,
       ), // ⏱ 30s to establish connection
@@ -1166,16 +1166,16 @@ class ApiClient {
 
     final userCategory = ObjectFactory().prefs.getUserDecisionName();
     final isPublicUser = userCategory == "PUBLIC_USER";
-    final token = isPublicUser
-        ? ObjectFactory().prefs.getCustomerAuthToken()
-        : ObjectFactory().prefs.getAuthToken();
+    final token =
+        isPublicUser
+            ? ObjectFactory().prefs.getCustomerAuthToken()
+            : ObjectFactory().prefs.getAuthToken();
 
     return dioDiceApp.get(
       UrlsDiceApp.activeSubscription,
       options: Options(headers: {"Authorization": token}),
     );
   }
-
 
   Future<bool> _hasRobustConnection() async {
     final connectivity = Connectivity();

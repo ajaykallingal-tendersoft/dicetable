@@ -268,11 +268,11 @@ class _CustomerHomePageState extends State<CustomerHomePage> {
                 }
               },
               builder: (context, state) {
-                return SliverToBoxAdapter(
+                return SliverFillRemaining(
+                  hasScrollBody: false,
                   child: Container(
-                    height: MediaQuery.sizeOf(context).height,
                     width: double.infinity,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: AppColors.primaryWhiteColor,
                       borderRadius: BorderRadius.only(
                         topLeft: Radius.circular(30),

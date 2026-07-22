@@ -87,20 +87,7 @@ class PaymentService {
 
   List<ProductDetails> _fakeProducts() {
     return [
-<<<<<<< HEAD
-      //  FIRST: Monthly plan (should appear first)
-      ProductDetails(
-        id: monthlyPublic, //  Use monthly ID
-        title: "Public Monthly Plan",
-        description: "Monthly subscription for public users",
-        price: "\$9.99",
-        rawPrice: 9.0,
-        currencyCode: "NZD",
-      ),
-      //  SECOND: Yearly plan
-=======
       //  FIRST: Yearly plan
->>>>>>> 000d681 (For both user Free Subscription.)
       ProductDetails(
         id: yearlyPublicProductId, //  Use yearly ID
         title: "Public Yearly Plan",
@@ -156,13 +143,9 @@ class PaymentService {
       if (Platform.isAndroid) {
         productIds = {venueYearlyProductId, yearlyPublicProductId};
       } else if (Platform.isIOS) {
-<<<<<<< HEAD
-        productIds = {yearlyPublic, monthlyPublic, yearlyVenueProductId};
+        productIds = {yearlyPublic, yearlyVenueProductId};
 
         for (var id in productIds) {}
-=======
-        productIds = {yearlyPublic, yearlyVenueProductId};
->>>>>>> 000d681 (For both user Free Subscription.)
       } else {
         throw Exception('Unsupported platform');
       }

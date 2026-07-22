@@ -948,9 +948,8 @@ class _CafeDetailsScreenState extends State<CafeDetailsScreen> {
                         Gap(20.h),
                         BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
                           builder: (context, paymentState) {
-                            final isPaidUser =
-                                paymentState.canAccessPremiumFeatures ||
-                                paymentState.isSubscriptionActive;
+                            // Free mode enabled: treat all users as paid/premium
+                            final isPaidUser = true;
 
                             if (!isPaidUser) {
                               // Upgrade Info Box
