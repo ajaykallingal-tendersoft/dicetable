@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:connectivity_plus/connectivity_plus.dart';
+
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/forgot_password/forgot_password_request.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/forgot_password/password_reset_request.dart';
@@ -1178,14 +1178,21 @@ class ApiClient {
   }
 
   Future<bool> _hasRobustConnection() async {
-    final connectivity = Connectivity();
-    var results = await connectivity.checkConnectivity();
-    if (results.isEmpty || results.every((r) => r == ConnectivityResult.none)) {
+    try {
+      final result = await InternetAddress.lookup('google.com')
+          .timeout(const Duration(seconds: 3));
+      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } catch (_) {
+      // Retry once after a short delay
       await Future.delayed(const Duration(seconds: 1));
-      results = await connectivity.checkConnectivity();
+      try {
+        final result = await InternetAddress.lookup('google.com')
+            .timeout(const Duration(seconds: 3));
+        return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+      } catch (_) {
+        return false;
+      }
     }
-    return !(results.isEmpty ||
-        results.every((r) => r == ConnectivityResult.none));
   }
 
   Future<void> _ensureConnected([RequestOptions? options]) async {

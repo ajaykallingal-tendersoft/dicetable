@@ -18,11 +18,16 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'app.dart';
 import 'app_bloc_observer.dart';
 import 'package:get/get.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
+  try {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp();
+    }
+  } catch (e) {
+    debugPrint('Background message Firebase init error: $e');
+  }
 }
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
@@ -70,11 +75,16 @@ Future<void> main() async {
 
 Future<void> _initializeApp() async {
   try {
-    // Firebase init
-    await Firebase.initializeApp();
+    // Firebase init (safe check to avoid duplicate-app exception)
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp();
+    }
+  } catch (e, st) {
+    _logError('Firebase initialize error: $e', st);
+  }
 
+  try {
     // Error handlers (Flutter, PlatformDispatcher, Isolate)
-
     await _setupErrorHandlers();
 
     // App dependencies (prefs, system UI)
@@ -91,7 +101,7 @@ Future<void> _initializeApp() async {
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   } catch (e, st) {
     _handleInitializationError(e, st);
-    rethrow;
+    // Log error but do not rethrow, allowing runApp() to launch the app UI
   }
 }
 

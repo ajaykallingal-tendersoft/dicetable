@@ -5,7 +5,6 @@
         android:name="android.hardware.camera"
         android:required="false" />
     <uses-permission android:name="android.permission.INTERNET" />
-    
     <!-- Photo Picker for Android 13+ (API 33+) requires no permissions.
          For Android 12 and below, we need READ_MEDIA permissions.
          These are scoped to maxSdkVersion 32 to comply with Google Play policy. -->
@@ -13,6 +12,9 @@
         android:maxSdkVersion="32" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" 
         android:maxSdkVersion="32" />
+        
+    <!-- Required for Android 13+ (API 33+) to access images -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
         
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
@@ -67,6 +69,10 @@
         <meta-data
             android:name="com.google.android.gms.wallet.api.enabled"
             android:value="true" />
+
+        <meta-data
+            android:name="io.flutter.embedding.android.EnableImpeller"
+            android:value="false" />
 
     </application>
     <!-- Required to query activities that can process text, see:

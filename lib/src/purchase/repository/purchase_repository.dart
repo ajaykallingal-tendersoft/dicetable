@@ -5,12 +5,13 @@ import 'package:soloseaters/src/purchase/bloc/bloc/purchase_state.dart';
 import 'package:soloseaters/src/resources/api_providers/iap/iap_data_provider.dart';
 import 'package:soloseaters/src/utils/data/object_factory.dart';
 import 'package:soloseaters/src/utils/extension/state_model_extension.dart';
+import 'package:soloseaters/src/model/payment/subscription_status_request.dart';
 import 'package:soloseaters/src/model/payment/subscription_status_response.dart';
 
 class PaymentRepository {
   final IapDataProvider _iapDataProvider;
 
-  // ✅ NEW: Debouncing mechanism
+  //  NEW: Debouncing mechanism
   DateTime? _lastStatusCheckTime;
   static const Duration _debounceInterval = Duration(seconds: 5);
 
@@ -45,13 +46,13 @@ class PaymentRepository {
   Future<void> cacheLatestPurchaseDetails({
     required String purchaseToken,
     required String platform,
-    String? subscriptionId, // ✅ NEW: Optional subscription ID
+    String? subscriptionId, // NEW: Optional subscription ID
   }) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_scopedKey(_latestPurchaseTokenKey), purchaseToken);
     await prefs.setString(_scopedKey(_latestPurchasePlatformKey), platform);
 
-    // ✅ NEW: Cache subscription ID if provided
+    // NEW: Cache subscription ID if provided
     if (subscriptionId != null && subscriptionId.isNotEmpty) {
       await prefs.setString(
         _scopedKey(_currentSubscriptionIdKey),
@@ -75,7 +76,10 @@ class PaymentRepository {
 
   // Alias helper to cache purchase token/platform
   Future<void> cachePurchaseToken(String purchaseToken, String platform) async {
-    await cacheLatestPurchaseDetails(purchaseToken: purchaseToken, platform: platform);
+    await cacheLatestPurchaseDetails(
+      purchaseToken: purchaseToken,
+      platform: platform,
+    );
   }
 
   /// ========================================
@@ -108,16 +112,10 @@ class PaymentRepository {
       final verificationPayload = Map<String, dynamic>.from(payload);
       verificationPayload['platform'] = platform;
 
-      // ✅ CRITICAL FIX: For iOS, prioritize receipt_data (base64) over purchase_token (JWT)
-      // The backend expects base64 app receipt for iOS, not JWT transaction signatures
       final purchaseToken =
-          platform == 'ios'
-              ? (verificationPayload['receipt_data'] ??
-                  verificationPayload['purchase_token'] ??
-                  '')
-              : (verificationPayload['purchase_token'] ??
-                  verificationPayload['receipt_data'] ??
-                  '');
+          verificationPayload['purchase_token'] ??
+          verificationPayload['receipt_data'] ??
+          '';
 
       final productId = verificationPayload['product_id'] as String?;
 
@@ -129,7 +127,7 @@ class PaymentRepository {
 
       final prefs = ObjectFactory().prefs;
 
-      // ✅ DEBUG MODE SIMULATION
+      // DEBUG MODE SIMULATION
       if (kDebugMode) {
         print('🧪 DEBUG MODE: Simulating successful verification');
 
@@ -170,7 +168,7 @@ class PaymentRepository {
       print('   Platform: $platform');
       print('   Purchase token length: ${purchaseToken.toString().length}');
 
-      // ✅ CALL API
+      //  CALL API
       final stateModel = await _iapDataProvider.verifyPurchase(request);
 
       if (stateModel == null) {
@@ -184,7 +182,7 @@ class PaymentRepository {
         print('   Success: ${response.success}');
         print('   Message: ${response.message}');
 
-        // ✅ Treat "already verified" as success
+        // Treat "already verified" as success
         final isAlreadyVerified =
             response.message?.toLowerCase().contains('already verified') ??
             false;
@@ -194,10 +192,10 @@ class PaymentRepository {
             '✅ Verification successful ${isAlreadyVerified ? "(already verified)" : ""}',
           );
 
-          // ✅ CRITICAL: Extract data from verificationData
+          // CRITICAL: Extract data from verificationData
           final verificationData = response.verificationData;
 
-          // ✅ FIX: If already verified but no verification_data, fetch real-time status
+          // FIX: If already verified but no verification_data, fetch real-time status
           if (verificationData == null) {
             print(
               '⚠️ Missing verification_data in response (already verified)',
@@ -206,7 +204,6 @@ class PaymentRepository {
               '🔄 Fetching latest subscription status from backend to check if still active...',
             );
 
-            // ✅ CRITICAL FIX: Call backend to get real-time subscription status
             // This will check Google Play to see if subscription is still active or canceled
             try {
               final statusData = await fetchSubscriptionStatusFromBackend();
@@ -246,7 +243,7 @@ class PaymentRepository {
                     statusData['currentSubscriptionId'] as String? ??
                     purchaseProductId,
                 'premium_override':
-                    premiumOverride, // ✅ Use real-time status, not hardcoded true
+                    premiumOverride, //  Use real-time status, not hardcoded true
               };
             } catch (e) {
               print('❌ Failed to fetch subscription status: $e');
@@ -294,7 +291,7 @@ class PaymentRepository {
           print('   Product ID: $responseProductId');
           print('   Subscription state: $subscriptionState');
 
-          // ✅ Cache the token and platform for future status requests
+          // Cache the token and platform for future status requests
           await cacheLatestPurchaseDetails(
             purchaseToken: purchaseToken,
             platform: platform,
@@ -328,8 +325,6 @@ class PaymentRepository {
               print('⚠️ Failed to parse start date: $e');
             }
           }
-
-          // ✅ For venue users: Check if they're in a trial period OR have active subscription
           // The backend returns actual subscription validity period in start_time/expiry_time
           // For test accounts, this could be 30 minutes; for real accounts, it's 1 year
           if (isVenueUser &&
@@ -356,7 +351,7 @@ class PaymentRepository {
             }
           }
 
-          // ✅ Cache the subscription state with correct data
+          //  Cache the subscription state with correct data
           await cacheBackendSubscriptionState(
             isPaidUser: hasActiveSubscription,
             subscriptionExpiryDate: subscriptionExpiryDate,
@@ -392,78 +387,29 @@ class PaymentRepository {
       // Not success
       print('❌ Repository: stateModel indicates failure: ${stateModel.error}');
 
-      // ✅ WORKAROUND: Handle expired subscriptions from 400 errors
-      // Backend returns 400 for expired subscriptions, but we should treat as success with EXPIRED state
+      // CHECK FOR DUPLICATE PURCHASE TOKEN ERROR (ownership conflict)
       final errorMessage = stateModel.error ?? '';
-      if (errorMessage.toLowerCase().contains('expired')) {
-        print('');
-        print('╔══════════════════════════════════════════╗');
-        print('⚠️ EXPIRED SUBSCRIPTION DETECTED (400 Error)');
-        print('╚══════════════════════════════════════════╝');
-        print('Backend returned 400 for expired subscription.');
-        print(
-          'Treating as success with EXPIRED state to allow resubscription.',
-        );
-        print('');
-
-        // Try to extract verification_data from the error response
-        final responseData = stateModel.data;
-        final verificationData = responseData?.verificationData;
-
-        if (verificationData != null) {
-          print('✅ Extracted verification data from error response');
-          print('   Subscription State: ${verificationData.subscriptionState}');
-          print('   Expiry Time: ${verificationData.expiryTime}');
-          print('   Product ID: ${verificationData.productId}');
-
-          // Cache as expired subscription (premium = false)
-          await cacheBackendSubscriptionState(
-            isPaidUser: false, // ❌ No premium access for expired
-            subscriptionStatus: false,
-            subscriptionExpiryDate:
-                verificationData.expiryTime != null
-                    ? DateTime.fromMillisecondsSinceEpoch(
-                      int.tryParse(verificationData.expiryTime!) ?? 0,
-                    )
-                    : null,
-
-            currentSubscriptionId: verificationData.productId,
-            isVenueUser:
-                verificationData.productId?.toLowerCase().contains('venue') ??
-                false,
-            premiumOverride: false, // ❌ Explicitly deny premium
-          );
-
-          // Return success with expired state
-          return {
-            'valid': true, //  Treat as valid (not an error)
-            'has_active_subscription': false, // ❌ No active subscription
-            'subscription_expired': true, // ⚠️ But it's expired
-            'subscription_state': 'SUBSCRIPTION_STATE_EXPIRED',
-            'message': 'Subscription expired - user can resubscribe',
-          };
-        }
-
-        // If no verification_data, still treat as expired
-        print('⚠️ No verification data in error response');
-        print('   Treating as expired subscription anyway');
-        print('╚══════════════════════════════════════════╝');
-        print('');
-
-        return {
-          'valid': true, // ✅ Treat as valid (not an error)
-          'has_active_subscription': false,
-          'subscription_expired': true,
-          'subscription_state': 'SUBSCRIPTION_STATE_EXPIRED',
-          'message': 'Subscription expired - user can resubscribe',
-        };
-      }
-
-      //  CHECK FOR DUPLICATE PURCHASE TOKEN ERROR (ownership conflict)
-
       if (errorMessage.contains('Duplicate entry') ||
           errorMessage.contains('purchases_purchase_token_unique') ||
           errorMessage.contains('subscription belongs to another user')) {
+        print('');
+        print('╔══════════════════════════════════════════╗');
+        print('⚠️ DUPLICATE PURCHASE TOKEN DETECTED');
+        print('╚══════════════════════════════════════════╗');
+        print('This purchase token belongs to another user.');
+        print(
+          'Purchase token: ${payload['purchase_token']?.toString().substring(0, 20)}...',
+        );
+        print('Attempting user ID: ${_currentUserScope()}');
+        print('');
+        print('🔒 This is likely because:');
+        print('   1. Different app users sharing the same Google Play account');
+        print('   2. Or a cached purchase from a previous user session');
+        print('');
+        print('❌ Rejecting verification - user cannot claim this purchase');
+        print('╚══════════════════════════════════════════╝');
+        print('');
+
         // Return failure - don't grant access
         return {
           'valid': false,
@@ -488,6 +434,15 @@ class PaymentRepository {
       final errorMessage = e.toString();
       if (errorMessage.contains('Duplicate entry') ||
           errorMessage.contains('purchases_purchase_token_unique')) {
+        print('');
+        print('╔══════════════════════════════════════════╗');
+        print('⚠️ DUPLICATE PURCHASE TOKEN (Exception)');
+        print('╚══════════════════════════════════════════╝');
+        print('This purchase token belongs to another user.');
+        print('❌ Rejecting verification');
+        print('╚══════════════════════════════════════════╝');
+        print('');
+
         return {
           'valid': false,
           'message':
@@ -522,7 +477,9 @@ class PaymentRepository {
     String? purchaseToken,
   }) async {
     try {
-      print('🔄 Repository: Fetching subscription status using get-token-details');
+      print(
+        '🔄 Repository: Fetching subscription status using get-token-details',
+      );
 
       final prefs = ObjectFactory().prefs;
       final userId = prefs.getUserId();
@@ -538,19 +495,23 @@ class PaymentRepository {
       final userCategory = ObjectFactory().prefs.getUserDecisionName();
       final isPublicUser = userCategory == "PUBLIC_USER";
       final isVenueUser = !isPublicUser;
-      
+
       // Determine platform fallback
-      final currentPlatform = defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android';
+      final currentPlatform =
+          defaultTargetPlatform == TargetPlatform.iOS ? 'ios' : 'android';
 
       // Debouncing - prevent redundant API calls
       final now = DateTime.now();
       if (_lastStatusCheckTime != null) {
         final timeSinceLastCheck = now.difference(_lastStatusCheckTime!);
         if (timeSinceLastCheck < _debounceInterval) {
-          print('⏸️ Debouncing: Last status check was ${timeSinceLastCheck.inSeconds}s ago');
+          print(
+            '⏸️ Debouncing: Last status check was ${timeSinceLastCheck.inSeconds}s ago',
+          );
           return await getUserSubscriptionData();
         }
       }
+
       _lastStatusCheckTime = now;
 
       // 1. Query the new active subscription details endpoint first
@@ -558,12 +519,14 @@ class PaymentRepository {
 
       if (stateModel.isSuccess) {
         final SubscriptionStatusResponse response = stateModel.data!;
-        
+
         final verificationData = response.verificationData;
 
         // If verificationData is null, or success is false, we indicate no subscription
         if (response.success != true || verificationData == null) {
-          print('⚠️ Status endpoint success is not true or verification_data is null.');
+          print(
+            '⚠️ Status endpoint success is not true or verification_data is null.',
+          );
           print('   Revoking entitlements, defaulting to free tier.');
           return await _revokePremiumEntitlements(isVenueUser);
         }
@@ -576,7 +539,8 @@ class PaymentRepository {
         }
 
         // Derive status fields from the VerificationData object properties.
-        final String? subState = verificationData.subscriptionState?.toLowerCase();
+        final String? subState =
+            verificationData.subscriptionState?.toLowerCase();
 
         // Check for canceled/expired subscriptions
         final bool isCanceled =
@@ -587,7 +551,7 @@ class PaymentRepository {
         final bool isExpired =
             subState == 'expired' ||
             subState == 'subscription_state_expired' ||
-            subState?.contains('expired') == true;
+            subState?.contains('expire') == true;
 
         final bool hasActiveSub =
             (subState == 'active' || subState == 'subscription_state_active') &&
@@ -597,7 +561,10 @@ class PaymentRepository {
         final bool autoRenewing = verificationData.autoRenewing ?? false;
 
         // Cache latest purchase details (purchase token and product ID)
-        final returnedToken = verificationData.linkedPurchaseToken ?? verificationData.orderId ?? '';
+        final returnedToken =
+            verificationData.linkedPurchaseToken ??
+            verificationData.orderId ??
+            '';
         final returnedProductId = verificationData.productId ?? '';
         if (returnedToken.isNotEmpty) {
           await cacheLatestPurchaseDetails(
@@ -609,7 +576,8 @@ class PaymentRepository {
 
         // Distinguish between expired+auto-renewing vs truly cancelled
         if (isCanceled || isExpired) {
-          final userType = isVenueUser ? UserType.venueTrial : UserType.publicFree;
+          final userType =
+              isVenueUser ? UserType.venueTrial : UserType.publicFree;
 
           // If subscription is expired BUT auto-renewing, preserve the token
           if (isExpired && autoRenewing) {
@@ -631,7 +599,8 @@ class PaymentRepository {
             await cacheBackendSubscriptionState(
               isPaidUser: false,
               isVenueUser: isVenueUser,
-              subscriptionExpiryDate: result['subscriptionExpiryDate'] as DateTime?,
+              subscriptionExpiryDate:
+                  result['subscriptionExpiryDate'] as DateTime?,
               trialStartDate: null,
               trialEndDate: null,
               currentSubscriptionId: result['currentSubscriptionId'] as String?,
@@ -670,10 +639,11 @@ class PaymentRepository {
         // Active subscription - grant premium access
         final bool inTrial = false;
 
-        final userType = isVenueUser
-            ? (hasActiveSub ? UserType.venuePaid : UserType.venueTrial)
-            : (hasActiveSub ? UserType.publicPaid : UserType.publicFree);
-            
+        final userType =
+            isVenueUser
+                ? (hasActiveSub ? UserType.venuePaid : UserType.venueTrial)
+                : (hasActiveSub ? UserType.publicPaid : UserType.publicFree);
+
         final result = {
           'userType': userType,
           'isPremium': hasActiveSub || inTrial,
@@ -692,7 +662,7 @@ class PaymentRepository {
           'currentSubscriptionId': verificationData.productId,
           'premiumOverride': hasActiveSub,
         };
-        
+
         await cacheBackendSubscriptionState(
           isPaidUser: hasActiveSub,
           isVenueUser: isVenueUser,
@@ -702,8 +672,10 @@ class PaymentRepository {
           currentSubscriptionId: result['currentSubscriptionId'] as String?,
           premiumOverride: hasActiveSub,
         );
-        
-        print('💾 Caching active subscription details complete: User premium access granted.');
+
+        print(
+          '💾 Caching active subscription details complete: User premium access granted.',
+        );
         return result;
       } else {
         // The API returned an error state
@@ -711,7 +683,7 @@ class PaymentRepository {
         print('❌ getActiveSubscription API error: $errorMessage');
 
         // Check if error is due to network or server-side issues (500, SQL, network, timeout, etc.)
-        final isServerOrNetworkError = 
+        final isServerOrNetworkError =
             errorMessage.contains('500') ||
             errorMessage.contains('502') ||
             errorMessage.contains('503') ||
@@ -724,13 +696,17 @@ class PaymentRepository {
             errorMessage.toLowerCase().contains('no internet');
 
         if (isServerOrNetworkError) {
-          print('⚠️ Server/Network error detected. Gracefully falling back to cached state.');
+          print(
+            '⚠️ Server/Network error detected. Gracefully falling back to cached state.',
+          );
           _lastStatusCheckTime = null; // Reset so next check will query backend
           return await getUserSubscriptionData();
         } else {
           // If it is success: false response or explicitly indicates cancellation/expiration
           // or 401 Unauthorized / 404 Not Found
-          print('⚠️ API returned failure or explicit cancellation. Revoking entitlements, defaulting to free tier.');
+          print(
+            '⚠️ API returned failure or explicit cancellation. Revoking entitlements, defaulting to free tier.',
+          );
           return await _revokePremiumEntitlements(isVenueUser);
         }
       }
@@ -742,7 +718,9 @@ class PaymentRepository {
   }
 
   /// Helper to revoke premium entitlements and return free/trial state
-  Future<Map<String, dynamic>> _revokePremiumEntitlements(bool isVenueUser) async {
+  Future<Map<String, dynamic>> _revokePremiumEntitlements(
+    bool isVenueUser,
+  ) async {
     final userType = isVenueUser ? UserType.venueTrial : UserType.publicFree;
     final result = {
       'userType': userType,
@@ -794,7 +772,7 @@ class PaymentRepository {
     await prefs.setBool(_scopedKey(_isPremiumKey), hasActiveSubscription);
     await prefs.setString(_scopedKey(_userTypeKey), resolvedUserType.name);
 
-    // ✅ Store premiumOverride flag
+    // Store premiumOverride flag
     if (premiumOverride != null) {
       await prefs.setBool(_scopedKey(_premiumOverrideKey), premiumOverride);
       print('💾 Cached premiumOverride: $premiumOverride');
@@ -874,7 +852,7 @@ class PaymentRepository {
       //     subscriptionExpiryStr != null
       //         ? DateTime.parse(subscriptionExpiryStr)
       //         : null;
-      // ✅ Use safe parsing
+      // Use safe parsing
       DateTime? trialStartDate = _safeParseDateTimeFromBackend(trialStartStr);
       DateTime? trialEndDate = _safeParseDateTimeFromBackend(trialEndStr);
       DateTime? subscriptionExpiryDate = _safeParseDateTimeFromBackend(
@@ -907,7 +885,7 @@ class PaymentRepository {
       UserType userType;
 
       if (isVenueLoggedIn) {
-        // ✅ CRITICAL FIX: Check premiumOverride first
+        // CRITICAL FIX: Check premiumOverride first
         if (premiumOverride) {
           // If premiumOverride is set, user has premium access
           userType = UserType.venuePaid;
@@ -945,6 +923,12 @@ class PaymentRepository {
                 )
                 : UserType.publicFree;
       }
+      print('📖 Loaded from cache:');
+      print('   userType: $userType');
+      print('   isPremium: $isPremium');
+      print('   premiumOverride: $premiumOverride'); // Log it
+      print('   subscriptionExpiry: $subscriptionExpiryDate');
+      print('   trialEnd: $trialEndDate');
 
       return {
         'userType': userType,

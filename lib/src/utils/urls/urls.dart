@@ -1,6 +1,7 @@
 class UrlsDiceApp {
   ///base urls
   static const String baseUrlDev = 'https://app.soloseaters.com';
+  static const String baseUrlStaging = "https://dev.soloseaters.com";
   static const String baseUrlLocal = 'http://192.168.0.201:8000';
   static const String baseUrlLiveStaging = '';
   static const String baseUrlLiveProduction = '';

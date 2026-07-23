@@ -11,7 +11,9 @@ import FirebaseMessaging
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
-    FirebaseApp.configure()
+    if FirebaseApp.app() == nil {
+      FirebaseApp.configure()
+    }
       UNUserNotificationCenter.current().delegate = self
 
        let authOptions: UNAuthorizationOptions = [.alert, .badge, .sound]

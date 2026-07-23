@@ -1,34 +1,29 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:connectivity_plus/connectivity_plus.dart';
-
 import 'network_connectivity_bloc.dart';
 
 class NetworkHelper {
-  static StreamSubscription<List<ConnectivityResult>>? _subscription;
+  static Timer? _pollingTimer;
 
   static void observeNetwork() {
-    _subscription?.cancel();
+    _pollingTimer?.cancel();
 
-    _subscription = Connectivity().onConnectivityChanged.listen((
-      results,
-    ) async {
-      final connected = await isConnected(results);
-      NetworkConnectivityBloc().add(NetworkNotify(isConnected: connected));
-    });
+    // Check immediately on start
+    _checkAndNotify();
 
-    Connectivity().checkConnectivity().then((results) async {
-      final connected = await isConnected(results);
-      NetworkConnectivityBloc().add(NetworkNotify(isConnected: connected));
+    // Poll every 5 seconds for connectivity changes
+    _pollingTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      _checkAndNotify();
     });
   }
 
-  static Future<bool> isConnected(List<ConnectivityResult> results) async {
-    if (results.isEmpty || results.every((r) => r == ConnectivityResult.none)) {
-      return false;
-    }
+  static Future<void> _checkAndNotify() async {
+    final connected = await isConnected();
+    NetworkConnectivityBloc().add(NetworkNotify(isConnected: connected));
+  }
 
+  static Future<bool> isConnected([List? results]) async {
     try {
       final result = await InternetAddress.lookup(
         'google.com',
@@ -40,6 +35,6 @@ class NetworkHelper {
   }
 
   static void dispose() {
-    _subscription?.cancel();
+    _pollingTimer?.cancel();
   }
 }

@@ -293,24 +293,16 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                                       PaymentPlanState
                                     >(                                      
                                       builder: (context, paymentState) {
-                                        final bool hasAccess = paymentState.canAccessPremiumFeatures;
                                         return ElevatedButton(
                                           onPressed: () {
-                                            if (!hasAccess) {
-                                              // User is NOT premium, redirect to the payment plan screen.
-                                              context.push('/payment_plan');
-                                              return;
-                                            }
-                                            // User IS premium, proceed to the paid profile screen.
-                                            else {
-                                              context.push(
-                                                '/paid_profile',
-                                                extra: {
-                                                  "name":
-                                                      nameController.text.trim(),
-                                                },
-                                              );
-                                            }
+                                            // Free mode enabled: allow access directly
+                                            context.push(
+                                              '/paid_profile',
+                                              extra: {
+                                                "name":
+                                                    nameController.text.trim(),
+                                              },
+                                            );
                                           },
                                           style: ElevatedButton.styleFrom(
                                             // Match Container color

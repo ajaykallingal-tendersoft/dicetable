@@ -159,7 +159,7 @@ class _CafeDetailsCardState extends State<CafeDetailsCard> {
 
               BlocBuilder<PaymentPlanBloc, PaymentPlanState>(
                 builder: (context, paymentState) {
-                  final bool isPremium = paymentState.isPremium == true;
+                  final bool isPremium = paymentState.canAccessPremiumFeatures;
 
                   return BlocBuilder<CafeListBloc, CafeListState>(
                     builder: (context, cafeListState) {
@@ -185,11 +185,11 @@ class _CafeDetailsCardState extends State<CafeDetailsCard> {
 
                       return ElevatedButton(
                         onPressed: () {
-                          if (!isPremium) {
-                            // User NOT premium → redirect to ChoosePlan
-                            context.push('/payment_plan');
-                            return;
-                          }
+                          // Free mode enabled: allow access to attendees directly
+                          // if (!isPremium) {
+                          //   context.push('/payment_plan');
+                          //   return;
+                          // }
                           print('🚀 Navigating to attendees screen');
                           print(
                             '📊 Attendees count: ${latestAttendees.length}',
