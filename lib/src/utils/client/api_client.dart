@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/forgot_password/forgot_password_request.dart';
 import 'package:soloseaters/src/model/cafe_owner/auth/forgot_password/password_reset_request.dart';
@@ -57,7 +56,7 @@ class ApiClient {
   ///client dev
   initClientDiceAppDev() async {
     _baseOptionsDiceApp = BaseOptions(
-      baseUrl: UrlsDiceApp.baseUrlDev,
+      baseUrl: UrlsDiceApp.baseUrlStaging,
       connectTimeout: const Duration(
         seconds: 30,
       ), // ⏱ 30s to establish connection
@@ -90,6 +89,8 @@ class ApiClient {
       InterceptorsWrapper(
         onRequest: (options, handler) async {
           try {
+            print("🌐 Base URL: ${options.baseUrl}");
+            print("🌐 Request: ${options.method} ${options.baseUrl}${options.path}");
             await _ensureConnected(options);
             return handler.next(options);
           } on DioException catch (dioError) {
@@ -1179,15 +1180,17 @@ class ApiClient {
 
   Future<bool> _hasRobustConnection() async {
     try {
-      final result = await InternetAddress.lookup('google.com')
-          .timeout(const Duration(seconds: 3));
+      final result = await InternetAddress.lookup(
+        'google.com',
+      ).timeout(const Duration(seconds: 3));
       return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
     } catch (_) {
       // Retry once after a short delay
       await Future.delayed(const Duration(seconds: 1));
       try {
-        final result = await InternetAddress.lookup('google.com')
-            .timeout(const Duration(seconds: 3));
+        final result = await InternetAddress.lookup(
+          'google.com',
+        ).timeout(const Duration(seconds: 3));
         return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
       } catch (_) {
         return false;
